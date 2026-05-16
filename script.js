@@ -33,6 +33,7 @@ if (slider) {
   const prev = slider.querySelector('[data-prev]');
   const next = slider.querySelector('[data-next]');
   let index = 0;
+  let autoAdvanceId;
 
   const show = (target) => {
     index = (target + reviews.length) % reviews.length;
@@ -44,5 +45,28 @@ if (slider) {
   prev?.addEventListener('click', () => show(index - 1));
   next?.addEventListener('click', () => show(index + 1));
 
-  setInterval(() => show(index + 1), 6000);
+  const startAutoAdvance = () => {
+    if (autoAdvanceId || document.hidden) {
+      return;
+    }
+    autoAdvanceId = window.setInterval(() => show(index + 1), 6000);
+  };
+
+  const stopAutoAdvance = () => {
+    if (!autoAdvanceId) {
+      return;
+    }
+    window.clearInterval(autoAdvanceId);
+    autoAdvanceId = undefined;
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopAutoAdvance();
+      return;
+    }
+    startAutoAdvance();
+  });
+
+  startAutoAdvance();
 }

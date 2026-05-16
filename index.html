@@ -193,8 +193,8 @@
           <label>Name<input type="text" name="name" required /></label>
           <label>Business name<input type="text" name="business" required /></label>
           <label>Industry<input type="text" name="industry" required /></label>
-          <label>Project focus
-            <select name="needs" required>
+          <label for="needs">Project focus
+            <select id="needs" name="needs" required>
               <option value="">Select one</option>
               <option>Logo</option>
               <option>Website</option>
@@ -212,8 +212,9 @@
           <label>Examples they like<textarea name="examples" rows="3"></textarea></label>
           <label>Upload images<input type="file" name="upload" multiple /></label>
           <div class="field-group field-group-full">
-            <label for="timeline">Target launch window</label>
-            <input id="timeline" type="text" name="timeline" aria-describedby="timeline-help" />
+            <label>Target launch window
+              <input type="text" name="timeline" aria-describedby="timeline-help" />
+            </label>
             <small id="timeline-help" class="field-help">Example: 2–3 weeks</small>
           </div>
           <button class="btn btn-primary glow" type="submit">Submit Application</button>

@@ -1,5 +1,7 @@
 const revealItems = document.querySelectorAll('.reveal');
 const parallaxTarget = document.getElementById('parallax-target');
+const intakeForm = document.querySelector('.intake-form');
+const formMessage = document.querySelector('.form-message');
 
 window.addEventListener('load', () => {
   document.body.classList.add('loaded');
@@ -45,8 +47,10 @@ if (slider) {
   prev?.addEventListener('click', () => show(index - 1));
   next?.addEventListener('click', () => show(index + 1));
 
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
   const startAutoAdvance = () => {
-    if (autoAdvanceIntervalId || document.hidden) {
+    if (autoAdvanceIntervalId || document.hidden || reducedMotion.matches) {
       return;
     }
     autoAdvanceIntervalId = window.setInterval(() => show(index + 1), 6000);
@@ -69,4 +73,15 @@ if (slider) {
   });
 
   startAutoAdvance();
+}
+
+if (intakeForm) {
+  intakeForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!formMessage) {
+      return;
+    }
+    formMessage.textContent = 'Thanks! Your application is ready for review. We will follow up soon.';
+    intakeForm.reset();
+  });
 }

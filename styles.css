@@ -75,6 +75,12 @@ nav a {
   font-size: 0.95rem;
 }
 
+nav a:focus-visible {
+  outline: 2px solid #9cd9ff;
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
 .section,
 .hero {
   width: min(1100px, calc(100% - 2rem));
@@ -382,6 +388,12 @@ nav a {
   cursor: pointer;
 }
 
+.slider-btn:hover,
+.slider-btn:focus-visible {
+  border-color: rgba(156, 217, 255, 0.8);
+  box-shadow: 0 0 0 2px rgba(156, 217, 255, 0.25);
+}
+
 .intake-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -404,6 +416,13 @@ nav a {
   padding: 0.55rem 0.7rem;
 }
 
+.intake-form textarea:focus-visible,
+.intake-form input:focus-visible,
+.intake-form select:focus-visible {
+  outline: 2px solid #9cd9ff;
+  outline-offset: 2px;
+}
+
 .intake-form button,
 .intake-form label:nth-last-child(1),
 .intake-form label:nth-last-child(2) {
@@ -420,6 +439,12 @@ nav a {
 .domain-links a,
 .text-link {
   color: #9cd9ff;
+}
+
+.form-message {
+  min-height: 1.4rem;
+  margin: 0.4rem 0 0;
+  color: var(--accent-2);
 }
 
 .contact {

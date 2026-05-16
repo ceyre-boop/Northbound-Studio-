@@ -455,6 +455,11 @@ nav a:focus-visible {
   outline-offset: 2px;
 }
 
+.field-help {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .intake-form button,
 .intake-form label:nth-last-child(1),
 .intake-form label:nth-last-child(2) {

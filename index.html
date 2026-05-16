@@ -211,7 +211,10 @@
           </label>
           <label>Examples they like<textarea name="examples" rows="3"></textarea></label>
           <label>Upload images<input type="file" name="upload" multiple /></label>
-          <label>Target launch window (example: 2–3 weeks)<input type="text" name="timeline" /></label>
+          <label>Target launch window
+            <input type="text" name="timeline" aria-describedby="timeline-help" />
+            <small id="timeline-help" class="field-help">Example: 2–3 weeks</small>
+          </label>
           <button class="btn btn-primary glow" type="submit">Submit Application</button>
         </form>
         <p class="form-message reveal" aria-live="polite"></p>

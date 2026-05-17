@@ -192,6 +192,7 @@ nav a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  align-self: center;
 }
 
 .section h2 {

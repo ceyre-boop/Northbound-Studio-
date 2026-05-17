@@ -124,6 +124,9 @@ nav a:focus-visible {
 .hero-feature-image {
   width: 100%;
   max-width: 480px;
+  max-height: 72vh;
+  object-fit: cover;
+  object-position: top;
   display: block;
   border-radius: 20px;
   border: 1px solid rgba(163, 226, 255, 0.4);
@@ -168,6 +171,13 @@ nav a:focus-visible {
   backdrop-filter: blur(12px);
 }
 
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .hero-particles span {
   position: absolute;
   width: 10px;
@@ -186,6 +196,12 @@ nav a:focus-visible {
 @keyframes float {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-16px) scale(1.1); }
+}
+
+.hero-content,
+.hero-visual {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-visual {

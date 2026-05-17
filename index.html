@@ -28,13 +28,13 @@
         <div class="hero-particles" aria-hidden="true">
           <span></span><span></span><span></span><span></span><span></span>
         </div>
-        <div class="hero-content reveal">
-          <p class="eyebrow">Creative Studio + Lab</p>
-          <h1>Professional Websites for Small Businesses</h1>
-          <p class="subline">
+        <div class="hero-content">
+          <p class="eyebrow reveal" style="--delay:.1s">Creative Studio + Lab</p>
+          <h1 class="reveal" style="--delay:.22s">Professional Websites for Small Businesses</h1>
+          <p class="subline reveal" style="--delay:.36s">
             We design and build clean, modern websites that help small businesses look credible, attract customers, and grow online.
           </p>
-          <div class="hero-actions">
+          <div class="hero-actions reveal" style="--delay:.5s">
             <a class="btn btn-primary glow" href="#apply">Get Started</a>
             <a class="btn btn-secondary glow" href="#services">View Packages</a>
           </div>
@@ -79,7 +79,7 @@
       <section class="section services" id="services">
         <h2 class="reveal">Packages</h2>
         <div class="service-grid">
-          <article class="service-card glass reveal">
+          <article class="service-card glass reveal" style="--delay:.1s">
             <div class="price-badge">$250</div>
             <div class="service-icon" aria-hidden="true">🧱</div>
             <h3>Starter</h3>
@@ -91,8 +91,10 @@
               <li>Mobile-first design</li>
               <li>Basic SEO setup</li>
             </ul>
+            <a class="btn btn-secondary card-cta" href="#apply" data-package="Starter ($250)">Get Started ↗</a>
           </article>
-          <article class="service-card glass reveal">
+          <article class="service-card glass reveal popular" style="--delay:.22s">
+            <div class="popular-badge">Most Popular</div>
             <div class="price-badge">$400–$600</div>
             <div class="service-icon" aria-hidden="true">🚀</div>
             <h3>Pro</h3>
@@ -104,8 +106,9 @@
               <li>Enhanced interactions + animations</li>
               <li>Performance and accessibility polish</li>
             </ul>
+            <a class="btn btn-primary card-cta glow" href="#apply" data-package="Pro ($400–$600)">Get Started ↗</a>
           </article>
-          <article class="service-card glass reveal">
+          <article class="service-card glass reveal" style="--delay:.34s">
             <div class="price-badge">$750+</div>
             <div class="service-icon" aria-hidden="true">✨</div>
             <h3>Full Brand Kit</h3>
@@ -117,6 +120,7 @@
               <li>Website + custom icon/illustration package</li>
               <li>Launch support + handoff assets</li>
             </ul>
+            <a class="btn btn-secondary card-cta" href="#apply" data-package="Full Brand Kit ($750+)">Get Started ↗</a>
           </article>
         </div>
       </section>
@@ -124,13 +128,15 @@
       <section class="section portfolio" id="portfolio">
         <h2 class="reveal">Portfolio</h2>
         <div class="horizontal-gallery reveal" role="region" aria-label="Portfolio gallery">
-          <article class="gallery-card glass">
-            <h3>Construction Site Build</h3>
+          <article class="gallery-card glass" data-label="Construction">
+            <div class="gallery-tag">Web Design + Build</div>
+            <h3>Keystone South Construction</h3>
             <p>Custom website design and build for a local construction company.</p>
             <a href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer">View live site ↗</a>
           </article>
-          <article class="gallery-card glass">
-            <h3>TABOOST Product Experience</h3>
+          <article class="gallery-card glass" data-label="E-Commerce">
+            <div class="gallery-tag">Product Experience</div>
+            <h3>TABOOST Shop</h3>
             <p>E-commerce product page experience designed for conversion and clarity.</p>
             <a href="https://shop.taboost.me/" target="_blank" rel="noopener noreferrer">View live site ↗</a>
           </article>
@@ -152,20 +158,23 @@
         <div class="review-slider glass reveal" data-slider>
           <button class="slider-btn" data-prev aria-label="Previous review">‹</button>
           <div class="slides">
-            <article class="review active">
-              <div class="avatar" aria-hidden="true">C</div>
-              <div class="stars">★★★★★</div>
-              <p>“Fast, clean, and exactly what my business needed.”</p>
+            <article class=”review active”>
+              <div class=”avatar” aria-hidden=”true”>CR</div>
+              <div class=”stars” aria-label=”5 out of 5 stars”>★★★★★</div>
+              <p>”Fast, clean, and exactly what my business needed. The whole process was smooth from start to launch.”</p>
+              <span class=”reviewer-name”>Colin R. — Keystone South Construction</span>
             </article>
-            <article class="review">
-              <div class="avatar" aria-hidden="true">T</div>
-              <div class="stars">★★★★★</div>
-              <p>“Professional communication and a seriously polished final product.”</p>
+            <article class=”review”>
+              <div class=”avatar” aria-hidden=”true”>TM</div>
+              <div class=”stars” aria-label=”5 out of 5 stars”>★★★★★</div>
+              <p>”Professional communication and a seriously polished final product. Clients have already commented on how sharp the site looks.”</p>
+              <span class=”reviewer-name”>Taylor M. — Brand Consulting</span>
             </article>
-            <article class="review">
-              <div class="avatar" aria-hidden="true">B</div>
-              <div class="stars">★★★★★</div>
-              <p>“The design quality and speed made this an easy win for our launch.”</p>
+            <article class=”review”>
+              <div class=”avatar” aria-hidden=”true”>BK</div>
+              <div class=”stars” aria-label=”5 out of 5 stars”>★★★★★</div>
+              <p>”The design quality and speed made this an easy win for our launch. Exactly what I needed at exactly the right price.”</p>
+              <span class=”reviewer-name”>Brandon K. — Local Retail</span>
             </article>
           </div>
           <button class="slider-btn" data-next aria-label="Next review">›</button>
@@ -176,38 +185,44 @@
       <section class="section application" id="apply">
         <h2 class="reveal">Let's Work Together</h2>
         <p class="section-sub reveal">Tell us about your project and we'll be in touch within 24 hours.</p>
-        <form class="intake-form glass reveal">
-          <label>Name<input type="text" name="name" required /></label>
-          <label>Business name<input type="text" name="business" required /></label>
-          <label>Industry<input type="text" name="industry" required /></label>
-          <label>Project focus:
+        <form class="intake-form glass reveal" id="intake-form" action="https://formspree.io/f/xpwzgvkn" method="POST" novalidate>
+          <!-- honeypot -->
+          <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
+          <input type="hidden" name="_subject" value="New Northbound Studio Application" />
+          <label>Name<input type="text" name="name" required autocomplete="name" /><span class="field-error" aria-live="polite"></span></label>
+          <label>Business name<input type="text" name="business" required /><span class="field-error" aria-live="polite"></span></label>
+          <label>Industry<input type="text" name="industry" required /><span class="field-error" aria-live="polite"></span></label>
+          <label>Project focus
             <select name="needs" required>
               <option value="">Select one</option>
               <option>Logo</option>
               <option>Website</option>
               <option>Logo + Website</option>
             </select>
+            <span class="field-error" aria-live="polite"></span>
           </label>
           <label>Budget range
-            <select name="budget" required>
+            <select name="budget" required id="budget-select">
               <option value="">Select a range</option>
-              <option>$250</option>
-              <option>$400-$600</option>
-              <option>$750+</option>
+              <option>$250 — Starter</option>
+              <option>$400–$600 — Pro</option>
+              <option>$750+ — Full Brand Kit</option>
             </select>
+            <span class="field-error" aria-live="polite"></span>
           </label>
-          <label>Examples they like<textarea name="examples" rows="3"></textarea></label>
-          <label>Upload images<input type="file" name="upload" multiple /></label>
+          <label>Tell us about your project<textarea name="examples" rows="3" placeholder="What are you building? Link any sites you like the look of."></textarea></label>
           <div class="field-group field-group-full">
-            <label>Target launch window:
-              <input type="text" name="timeline" aria-describedby="timeline-help" />
+            <label>Target launch window
+              <input type="text" name="timeline" aria-describedby="timeline-help" placeholder="e.g. 2–3 weeks" />
             </label>
-            <small id="timeline-help" class="field-help">Example: 2–3 weeks</small>
+            <small id="timeline-help" class="field-help">We typically deliver in 1–3 weeks depending on scope.</small>
           </div>
-          <button class="btn btn-primary glow" type="submit">Submit Application</button>
+          <button class="btn btn-primary glow" type="submit" id="form-submit">
+            <span class="btn-label">Submit Application</span>
+            <span class="btn-spinner" aria-hidden="true" hidden></span>
+          </button>
         </form>
-        <p class="form-message reveal" aria-live="polite"></p>
-        <a class="text-link reveal" href="#final-cta">Prefer to talk first? Start with a quick project consultation</a>
+        <p class="form-message reveal" aria-live="polite" role="status"></p>
       </section>
 
       <section class="section domain" id="domain-dns-help">

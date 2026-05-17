@@ -255,6 +255,8 @@ nav a:focus-visible {
 .service-card {
   position: relative;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .service-icon {
@@ -495,6 +497,120 @@ nav a:focus-visible {
   font-size: 0.9rem;
 }
 
+/* Popular badge */
+.popular {
+  border-color: rgba(134, 240, 255, 0.5);
+  box-shadow: 0 0 0 1px rgba(134, 240, 255, 0.2), 0 8px 32px rgba(87, 168, 255, 0.18);
+}
+
+.popular-badge {
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  color: #031022;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.8rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Card CTA */
+.card-cta {
+  display: block;
+  text-align: center;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* Gallery */
+.gallery-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  margin-bottom: 0.5rem;
+}
+
+.gallery-card {
+  background: linear-gradient(145deg, rgba(25, 58, 125, 0.35), rgba(7, 15, 35, 0.6));
+  border-color: rgba(158, 206, 255, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.gallery-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(87, 167, 255, 0.25);
+}
+
+/* Reviews */
+.review {
+  display: none;
+  text-align: center;
+  animation: fadeReview 0.4s ease;
+}
+
+@keyframes fadeReview {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reviewer-name {
+  display: block;
+  margin-top: 0.65rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Form */
+.intake-form label {
+  position: relative;
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: #ff8a8a;
+  min-height: 1rem;
+  display: block;
+}
+
+.intake-form input.invalid,
+.intake-form select.invalid,
+.intake-form textarea.invalid {
+  border-color: rgba(255, 100, 100, 0.6);
+  box-shadow: 0 0 0 2px rgba(255, 100, 100, 0.15);
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(3, 16, 34, 0.3);
+  border-top-color: #031022;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.form-message.success {
+  color: var(--accent-2);
+  font-weight: 500;
+}
+
+.form-message.error {
+  color: #ff8a8a;
+  font-weight: 500;
+}
+
 /* Footer */
 .site-footer {
   border-top: 1px solid var(--line);
@@ -559,7 +675,8 @@ nav a:focus-visible {
 .reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.62s ease, transform 0.62s ease;
+  transition-delay: var(--delay, 0s);
 }
 
 .reveal.visible {

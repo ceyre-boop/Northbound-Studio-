@@ -267,7 +267,7 @@ document.addEventListener('mousemove', (e) => {
 
   let jx = W * 0.5, jy = -120; // start off-screen, drift down
 
-  function drawJellyfish(t) {
+  function drawJellyfish(t = 0) {
     const H = canvas.height;
     const capW = 95, capH = 62;
 
@@ -400,10 +400,11 @@ document.addEventListener('mousemove', (e) => {
     if (jy > H + 200) jy = -200;
   }
 
-  (function loop(t) {
+  // Use rAF for first call so t is always a valid timestamp, never undefined
+  requestAnimationFrame(function loop(t) {
     drawJellyfish(t);
     requestAnimationFrame(loop);
-  })();
+  });
 })();
 
 // ─── Phase 3b: Logo Machine Ring ─────────────────────────────────────────────

@@ -3,19 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#030b1a" />
     <title>Northbound Studio | Creative Studio + Lab</title>
+
+    <!-- Phase 7 — Typography System -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;1,9..40,300&family=Space+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- GSAP for intro + scroll animations -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js" defer></script>
+
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+
+    <!-- Phase 1 — Custom Cursor -->
+    <div id="cursor" aria-hidden="true">
+      <div class="cursor-dot"></div>
+      <div class="cursor-ring"></div>
+      <div class="cursor-aura"></div>
+    </div>
+
+    <!-- Phase 4 — Intro Overlay (fires once per session) -->
+    <div id="intro-overlay" aria-hidden="true">
+      <div class="intro-logos">
+        <div class="intro-logo-row"><span class="intro-logo-word">KEYSTONE SOUTH</span></div>
+        <div class="intro-logo-row"><span class="intro-logo-word">TABOOST</span></div>
+      </div>
+      <div class="intro-wordmark">
+        <span class="intro-name">NORTHBOUND</span>
+        <span class="intro-studio">STUDIO</span>
+      </div>
+      <div class="intro-curtain"></div>
+    </div>
+
+    <!-- Phase 2 — Canvas Background -->
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
     <div class="page-glow"></div>
+
     <header class="site-header glass">
-      <div class="logo">Northbound Studio</div>
+      <!-- Phase 3 — Molecular Logo -->
+      <div class="logo-wrap" id="logo-wrap">
+        <canvas id="logo-canvas" aria-hidden="true"></canvas>
+        <span class="logo logo-text" id="logo-text">Northbound Studio</span>
+      </div>
       <nav>
         <a href="#services">Packages</a>
         <a href="#portfolio">Portfolio</a>
@@ -24,12 +61,14 @@
     </header>
 
     <main>
+
+      <!-- HERO -->
       <section class="hero" id="hero">
         <div class="hero-particles" aria-hidden="true">
           <span></span><span></span><span></span><span></span><span></span>
         </div>
         <div class="hero-content">
-          <p class="eyebrow reveal" style="--delay:.1s">Creative Studio + Lab</p>
+          <p class="eyebrow label reveal" style="--delay:.1s">Creative Studio + Lab</p>
           <h1 class="reveal" style="--delay:.22s">Professional Websites for Small Businesses</h1>
           <p class="subline reveal" style="--delay:.36s">
             We design and build clean, modern websites that help small businesses look credible, attract customers, and grow online.
@@ -39,7 +78,7 @@
             <a class="btn btn-secondary glow" href="#services">View Packages</a>
           </div>
         </div>
-        <div class="hero-visual" id="parallax-target">
+        <div class="hero-visual" id="hero-visual">
           <img
             class="hero-feature-image glass"
             src="https://github.com/user-attachments/assets/9b6999a8-8431-4566-ab85-b9e51337bea8"
@@ -48,10 +87,11 @@
         </div>
       </section>
 
+      <!-- WHY NORTHBOUND -->
       <section class="section why-us" id="why-us">
         <h2 class="reveal">Why Northbound</h2>
         <div class="columns">
-          <article class="glass reveal">
+          <article class="glass reveal" style="--delay:.08s">
             <h3>Your Side</h3>
             <ul>
               <li>Product Developer at a top social media agency</li>
@@ -59,8 +99,8 @@
               <li>Fast turnaround, clean code, modern design systems</li>
             </ul>
           </article>
-          <article class="glass reveal">
-            <h3>Your Partner’s Side</h3>
+          <article class="glass reveal" style="--delay:.18s">
+            <h3>Your Partner's Side</h3>
             <ul>
               <li>SCAD animation + design student</li>
               <li>Professional-grade logos, branding, and visual identity</li>
@@ -68,7 +108,7 @@
             </ul>
           </article>
         </div>
-        <div class="feature-grid reveal">
+        <div class="feature-grid reveal" style="--delay:.1s">
           <div class="feature-card glass"><span>🏆</span>Experience</div>
           <div class="feature-card glass"><span>🎨</span>Design Quality</div>
           <div class="feature-card glass"><span>⚡</span>Fast Delivery</div>
@@ -76,16 +116,15 @@
         </div>
       </section>
 
+      <!-- PACKAGES -->
       <section class="section services" id="services">
         <h2 class="reveal">Packages</h2>
         <div class="service-grid">
-          <article class="service-card glass reveal" style="--delay:.1s">
-            <div class="price-badge">$250</div>
+          <article class="service-card glass reveal" style="--delay:.08s">
+            <div class="price-badge label">$250</div>
             <div class="service-icon" aria-hidden="true">🧱</div>
             <h3>Starter</h3>
-            <p>
-              A polished single-page website with conversion-focused copy, responsive design, and a quick launch timeline for businesses that need to get online fast.
-            </p>
+            <p>A polished single-page website with conversion-focused copy, responsive design, and a quick launch timeline for businesses that need to get online fast.</p>
             <ul>
               <li>1-page build + contact section</li>
               <li>Mobile-first design</li>
@@ -93,14 +132,12 @@
             </ul>
             <a class="btn btn-secondary card-cta" href="#apply" data-package="Starter ($250)">Get Started ↗</a>
           </article>
-          <article class="service-card glass reveal popular" style="--delay:.22s">
-            <div class="popular-badge">Most Popular</div>
-            <div class="price-badge">$400–$600</div>
+          <article class="service-card glass reveal popular" style="--delay:.2s">
+            <div class="popular-badge label">Most Popular</div>
+            <div class="price-badge label">$400–$600</div>
             <div class="service-icon" aria-hidden="true">🚀</div>
             <h3>Pro</h3>
-            <p>
-              A multi-section business website with stronger storytelling, custom visuals, and advanced layouts built to elevate trust and generate more leads.
-            </p>
+            <p>A multi-section business website with stronger storytelling, custom visuals, and advanced layouts built to elevate trust and generate more leads.</p>
             <ul>
               <li>Up to 5 custom sections</li>
               <li>Enhanced interactions + animations</li>
@@ -108,13 +145,11 @@
             </ul>
             <a class="btn btn-primary card-cta glow" href="#apply" data-package="Pro ($400–$600)">Get Started ↗</a>
           </article>
-          <article class="service-card glass reveal" style="--delay:.34s">
-            <div class="price-badge">$750+</div>
+          <article class="service-card glass reveal" style="--delay:.32s">
+            <div class="price-badge label">$750+</div>
             <div class="service-icon" aria-hidden="true">✨</div>
             <h3>Full Brand Kit</h3>
-            <p>
-              A complete visual identity and high-end website package that unifies logo, brand assets, and digital experience into one launch-ready system.
-            </p>
+            <p>A complete visual identity and high-end website package that unifies logo, brand assets, and digital experience into one launch-ready system.</p>
             <ul>
               <li>Logo + brand palette + style direction</li>
               <li>Website + custom icon/illustration package</li>
@@ -125,68 +160,91 @@
         </div>
       </section>
 
+      <!-- Phase 6 — PORTFOLIO (Obys-style project river) -->
       <section class="section portfolio" id="portfolio">
         <h2 class="reveal">Portfolio</h2>
-        <div class="horizontal-gallery reveal" role="region" aria-label="Portfolio gallery">
-          <article class="gallery-card glass" data-label="Construction">
-            <div class="gallery-tag">Web Design + Build</div>
-            <h3>Keystone South Construction</h3>
-            <p>Custom website design and build for a local construction company.</p>
-            <a href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer">View live site ↗</a>
+        <div class="projects-river">
+
+          <article class="project-item reveal" style="--delay:.08s">
+            <a class="project-image-wrap" href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer" aria-label="View Keystone South Construction live site">
+              <div class="project-thumb" style="--c1:#0f2a5c;--c2:#1a4a9e">
+                <span class="project-monogram">KS</span>
+              </div>
+              <div class="project-overlay">
+                <span class="project-view label">View Site ↗</span>
+              </div>
+            </a>
+            <div class="project-meta">
+              <span class="project-number label">01</span>
+              <h3 class="project-title">Keystone South Construction</h3>
+              <p class="project-tags label">Web Design · Local Business</p>
+            </div>
           </article>
-          <article class="gallery-card glass" data-label="E-Commerce">
-            <div class="gallery-tag">Product Experience</div>
-            <h3>TABOOST Shop</h3>
-            <p>E-commerce product page experience designed for conversion and clarity.</p>
-            <a href="https://shop.taboost.me/" target="_blank" rel="noopener noreferrer">View live site ↗</a>
+
+          <article class="project-item reveal" style="--delay:.2s">
+            <a class="project-image-wrap" href="https://shop.taboost.me/" target="_blank" rel="noopener noreferrer" aria-label="View TABOOST Shop live site">
+              <div class="project-thumb" style="--c1:#1a0d4d;--c2:#4a1a9e">
+                <span class="project-monogram">TB</span>
+              </div>
+              <div class="project-overlay">
+                <span class="project-view label">View Site ↗</span>
+              </div>
+            </a>
+            <div class="project-meta">
+              <span class="project-number label">02</span>
+              <h3 class="project-title">TABOOST Shop</h3>
+              <p class="project-tags label">E-Commerce · Product Experience</p>
+            </div>
           </article>
+
         </div>
-        <article class="case-study glass reveal">
-          <h3>Case Study: Keystone South Construction Website Launch</h3>
+
+        <article class="case-study glass reveal" style="--delay:.1s">
+          <h3>Case Study: Keystone South Construction</h3>
           <div class="case-grid">
             <div><strong>Goal:</strong> Launch a clear, professional web presence that reflects premium construction work.</div>
-            <div><strong>Build:</strong> Developed a modern responsive layout with service-first messaging and strong local trust signals.</div>
-            <div><strong>Outcome:</strong> Delivered a fast, mobile-ready site that helps visitors quickly understand services and request estimates.</div>
+            <div><strong>Build:</strong> Modern responsive layout with service-first messaging and strong local trust signals.</div>
+            <div><strong>Outcome:</strong> Fast, mobile-ready site that helps visitors quickly understand services and request estimates.</div>
             <div><strong>Live Site:</strong> <a href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer">keystonesouthconstruction.com ↗</a></div>
           </div>
           <a class="text-link" href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer">Explore the full project ↗</a>
         </article>
       </section>
 
+      <!-- REVIEWS -->
       <section class="section reviews" id="reviews">
         <h2 class="reveal">Reviews</h2>
         <div class="review-slider glass reveal" data-slider>
           <button class="slider-btn" data-prev aria-label="Previous review">‹</button>
           <div class="slides">
-            <article class=”review active”>
-              <div class=”avatar” aria-hidden=”true”>CR</div>
-              <div class=”stars” aria-label=”5 out of 5 stars”>★★★★★</div>
-              <p>”Fast, clean, and exactly what my business needed. The whole process was smooth from start to launch.”</p>
-              <span class=”reviewer-name”>Colin R. — Keystone South Construction</span>
+            <article class="review active">
+              <div class="avatar" aria-hidden="true">CR</div>
+              <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p>"Fast, clean, and exactly what my business needed. The whole process was smooth from start to launch."</p>
+              <span class="reviewer-name label">Colin R. — Keystone South Construction</span>
             </article>
-            <article class=”review”>
-              <div class=”avatar” aria-hidden=”true”>TM</div>
-              <div class=”stars” aria-label=”5 out of 5 stars”>★★★★★</div>
-              <p>”Professional communication and a seriously polished final product. Clients have already commented on how sharp the site looks.”</p>
-              <span class=”reviewer-name”>Taylor M. — Brand Consulting</span>
+            <article class="review">
+              <div class="avatar" aria-hidden="true">TM</div>
+              <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p>"Professional communication and a seriously polished final product. Clients have already commented on how sharp the site looks."</p>
+              <span class="reviewer-name label">Taylor M. — Brand Consulting</span>
             </article>
-            <article class=”review”>
-              <div class=”avatar” aria-hidden=”true”>BK</div>
-              <div class=”stars” aria-label=”5 out of 5 stars”>★★★★★</div>
-              <p>”The design quality and speed made this an easy win for our launch. Exactly what I needed at exactly the right price.”</p>
-              <span class=”reviewer-name”>Brandon K. — Local Retail</span>
+            <article class="review">
+              <div class="avatar" aria-hidden="true">BK</div>
+              <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p>"The design quality and speed made this an easy win for our launch. Exactly what I needed at exactly the right price."</p>
+              <span class="reviewer-name label">Brandon K. — Local Retail</span>
             </article>
           </div>
           <button class="slider-btn" data-next aria-label="Next review">›</button>
         </div>
-        <a class="text-link reveal" href="#portfolio">See project work behind our client feedback</a>
       </section>
 
+      <!-- APPLICATION -->
       <section class="section application" id="apply">
         <h2 class="reveal">Let's Work Together</h2>
         <p class="section-sub reveal">Tell us about your project and we'll be in touch within 24 hours.</p>
         <form class="intake-form glass reveal" id="intake-form" action="https://formspree.io/f/xpwzgvkn" method="POST" novalidate>
-          <!-- honeypot -->
           <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
           <input type="hidden" name="_subject" value="New Northbound Studio Application" />
           <label>Name<input type="text" name="name" required autocomplete="name" /><span class="field-error" aria-live="polite"></span></label>
@@ -222,9 +280,10 @@
             <span class="btn-spinner" aria-hidden="true" hidden></span>
           </button>
         </form>
-        <p class="form-message reveal" aria-live="polite" role="status"></p>
+        <p class="form-message" aria-live="polite" role="status"></p>
       </section>
 
+      <!-- DOMAIN SETUP -->
       <section class="section domain" id="domain-dns-help">
         <h2 class="reveal">We Handle the Setup</h2>
         <p class="section-sub reveal">Getting your domain and site live is simple — we walk you through it step by step.</p>
@@ -233,7 +292,7 @@
             <span class="step-num">01</span>
             <div>
               <strong>Choose your domain</strong>
-              <p>Domains typically cost around $20/year. We’ll help you pick the right name and where to register it.</p>
+              <p>Domains typically cost around $20/year. We'll help you pick the right name and where to register it.</p>
             </div>
           </div>
           <div class="domain-step">
@@ -252,13 +311,14 @@
           </div>
         </div>
         <div class="domain-links reveal">
-          <span class="domain-links-label">Recommended registrars:</span>
+          <span class="domain-links-label label">Recommended registrars:</span>
           <a href="https://www.namecheap.com" target="_blank" rel="noopener noreferrer">Namecheap ↗</a>
           <a href="https://domains.squarespace.com/" target="_blank" rel="noopener noreferrer">Squarespace Domains ↗</a>
           <a href="https://www.cloudflare.com/products/registrar/" target="_blank" rel="noopener noreferrer">Cloudflare Registrar ↗</a>
         </div>
       </section>
 
+      <!-- FINAL CTA -->
       <section class="section contact" id="final-cta">
         <h2 class="reveal">Ready to elevate your business?</h2>
         <p class="section-sub reveal">Most projects are completed in 1–3 weeks. Let's get yours started.</p>
@@ -267,23 +327,30 @@
           <a class="btn btn-secondary glow" href="#services">View Packages</a>
         </div>
       </section>
+
     </main>
 
+    <!-- Phase 8 — Footer (HelloMonday style) -->
     <footer class="site-footer">
       <div class="footer-inner">
-        <div class="footer-brand">
-          <span class="logo">Northbound Studio</span>
-          <p>Design + development for small businesses that want to stand out online.</p>
+        <div class="footer-brand-col">
+          <span class="logo footer-wordmark">Northbound Studio</span>
+          <p class="footer-tagline">Design + development for small businesses that want to stand out online.</p>
         </div>
-        <nav class="footer-nav" aria-label="Footer navigation">
-          <a href="#why-us">Why Us</a>
-          <a href="#services">Packages</a>
-          <a href="#portfolio">Portfolio</a>
-          <a href="#apply">Apply</a>
-        </nav>
+        <div class="footer-contact-grid">
+          <div class="footer-col">
+            <span class="footer-label label">Want to work together?</span>
+            <a href="#apply" class="footer-link">Start a project ↗</a>
+          </div>
+          <div class="footer-col">
+            <span class="footer-label label">See our work</span>
+            <a href="#portfolio" class="footer-link">View portfolio ↗</a>
+          </div>
+        </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2025 Northbound Studio. All rights reserved.</p>
+        <span class="label">&copy; 2025 Northbound Studio</span>
+        <span class="footer-location label">Grand Ledge, MI → Worldwide</span>
       </div>
     </footer>
 

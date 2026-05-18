@@ -7,7 +7,14 @@ const isMobile = () => window.innerWidth < 768 || navigator.maxTouchPoints > 0;
 const lerp = (a, b, t) => a + (b - a) * t;
 const TAU  = Math.PI * 2;
 
-window.addEventListener('load', () => document.body.classList.add('loaded'));
+// Clear any stale intro keys from previous deploys
+sessionStorage.removeItem('introSeen');
+
+// Body visible — check readyState first (cached pages fire 'load' before listeners register)
+function showBody() { document.body.classList.add('loaded'); }
+if (document.readyState === 'complete') showBody();
+else window.addEventListener('load', showBody);
+
 if (navigator.maxTouchPoints > 0) document.body.classList.add('touch-device');
 
 // ─── Shared mouse state ───────────────────────────────────────────────────────
@@ -646,15 +653,24 @@ document.addEventListener('mousemove', (e) => {
   const overlay = document.getElementById('intro-overlay');
   if (!overlay) return;
 
-  if (sessionStorage.getItem('nbIntroSeen')) {
-    overlay.style.display = 'none';
-    return;
-  }
+  const dismiss = () => { overlay.style.transition = 'opacity 0.4s ease'; overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 420); };
+
+  // Already seen — dismiss immediately
+  if (sessionStorage.getItem('nbIntroSeen')) { dismiss(); return; }
 
   sessionStorage.setItem('nbIntroSeen', '1');
 
+  // Hard safety fallback: always dismiss after 4s regardless
+  const safetyTimer = setTimeout(dismiss, 4000);
+
+  let attempts = 0;
   function run() {
-    if (typeof gsap === 'undefined') { setTimeout(run, 50); return; }
+    if (typeof gsap === 'undefined') {
+      if (++attempts < 60) { setTimeout(run, 80); return; }
+      clearTimeout(safetyTimer); dismiss(); return; // GSAP never loaded, bail out
+    }
+
+    clearTimeout(safetyTimer);
 
     const logos    = overlay.querySelector('.intro-logos');
     const words    = overlay.querySelectorAll('.intro-logo-word');
@@ -663,17 +679,16 @@ document.addEventListener('mousemove', (e) => {
     const studio   = overlay.querySelector('.intro-studio');
     const curtain  = overlay.querySelector('.intro-curtain');
 
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, onComplete: dismiss });
 
-    tl.to(logos, { opacity: 1, duration: 0.01 })
-      .to(words,  { y: 0, duration: 0.5, stagger: 0.18 })
-      .to(logos,  { opacity: 0, y: -10, duration: 0.3, ease: 'power2.in' }, '+=0.35')
+    tl.to(logos,    { opacity: 1, duration: 0.01 })
+      .to(words,    { y: 0, duration: 0.5, stagger: 0.18 })
+      .to(logos,    { opacity: 0, y: -10, duration: 0.3, ease: 'power2.in' }, '+=0.35')
       .to(wordmark, { opacity: 1, duration: 0.01 })
       .fromTo(name,   { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65 }, '-=0.05')
       .fromTo(studio, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45 }, '-=0.4')
       .to({}, { duration: 0.5 })
-      .fromTo(curtain, { y: '100%' }, { y: '-100%', duration: 0.85, ease: 'power3.inOut' })
-      .call(() => overlay.style.display = 'none');
+      .fromTo(curtain, { y: '100%' }, { y: '-100%', duration: 0.85, ease: 'power3.inOut' });
   }
 
   run();

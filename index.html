@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E" />
     <meta
       name="description"
       content="Northbound Studio — a creative web design studio. We design and build fast, modern websites and brand identities for small businesses that want to stand out online."
@@ -18,11 +19,44 @@
     />
 
     <link rel="stylesheet" href="./style.css" />
-    <script src="./script.js" defer></script>
+    <noscript>
+      <!-- With JS off, reveal-on-scroll can't fire — show everything. -->
+      <style>
+        [data-reveal] { opacity: 1 !important; transform: none !important; }
+        .intro { display: none !important; }
+      </style>
+    </noscript>
+    <script>
+      /* No-flash: skip the intro for repeat visits in this session.
+         Set the flag here too, so repeat visits skip even if the
+         module never runs. */
+      try {
+        if (sessionStorage.getItem("nb_intro"))
+          document.documentElement.classList.add("intro-skip");
+        else sessionStorage.setItem("nb_intro", "1");
+      } catch (e) {}
+    </script>
+    <script type="module" src="./js/main.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- Deep-space constellation (WebGL2 → Canvas-2D → CSS gradient) -->
+    <canvas id="bg" class="bg-canvas" aria-hidden="true"></canvas>
     <div class="grain" aria-hidden="true"></div>
+
+    <!-- ── CINEMATIC INTRO (first visit per session) ──────────── -->
+    <div id="intro" class="intro" aria-hidden="true">
+      <div class="intro__marks">
+        <svg class="intro__mark" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" /></svg>
+        <svg class="intro__mark" viewBox="0 0 40 40"><rect x="7" y="7" width="26" height="26" rx="3" /></svg>
+        <svg class="intro__mark" viewBox="0 0 40 40"><polygon points="20,5 34,33 6,33" /></svg>
+        <svg class="intro__mark" viewBox="0 0 40 40"><polygon points="20,4 34,12 34,28 20,36 6,28 6,12" /></svg>
+        <svg class="intro__mark" viewBox="0 0 44 40"><path d="M8 35 V5 L33 35 V5" /></svg>
+      </div>
+      <div class="intro__word">NORTHBOUND<span>&nbsp;STUDIO</span></div>
+      <span class="intro__skip">click to skip</span>
+    </div>
 
     <!-- ── NAV ─────────────────────────────────────────────────── -->
     <header class="nav" id="nav">
@@ -40,7 +74,6 @@
     <main id="main">
       <!-- ── HERO ──────────────────────────────────────────────── -->
       <section class="hero" id="hero" aria-labelledby="hero-title">
-        <canvas class="hero__canvas" aria-hidden="true"></canvas>
         <div class="hero__inner">
           <div class="hero__logo">
             <span class="hero__n" aria-hidden="true">N</span>
@@ -191,7 +224,7 @@
         <div class="work__list">
           <!-- Project 01 — Keystone South Construction -->
           <article class="project" data-reveal>
-            <div class="project__frame">
+            <div class="project__frame" data-parallax="0.05">
               <div class="browser">
                 <div class="browser__bar" aria-hidden="true">
                   <span class="browser__dot"></span>
@@ -230,7 +263,7 @@
 
           <!-- Project 02 — TABOOST Shop -->
           <article class="project" data-reveal>
-            <div class="project__frame">
+            <div class="project__frame" data-parallax="0.05">
               <div class="browser">
                 <div class="browser__bar" aria-hidden="true">
                   <span class="browser__dot"></span>

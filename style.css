@@ -192,7 +192,7 @@ section { padding: clamp(5rem, 12vh, 9rem) var(--gut); position: relative; }
 .hero__canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
 .hero__inner { position: relative; z-index: 2; max-width: 880px; }
 
-.hero__logo { margin: 0 auto 2rem; }
+.hero__logo { margin: 0 auto 2rem; position: relative; display: inline-block; }
 .hero__n {
   display: inline-grid;
   place-items: center;
@@ -271,7 +271,9 @@ section { padding: clamp(5rem, 12vh, 9rem) var(--gut); position: relative; }
 /* ============================================================
    WHY US — diagonal split
    ============================================================ */
-.why { background: linear-gradient(180deg, var(--bg), var(--bg-soft) 50%, var(--bg)); }
+/* Translucent scrims let the constellation bleed through every section
+   while keeping text readable. */
+.why { background: linear-gradient(180deg, rgba(10,10,10,0.55), rgba(17,18,19,0.78) 50%, rgba(10,10,10,0.55)); }
 .why__split {
   max-width: var(--maxw);
   margin: 0 auto;
@@ -553,7 +555,7 @@ section { padding: clamp(5rem, 12vh, 9rem) var(--gut); position: relative; }
 /* ============================================================
    APPLY FORM
    ============================================================ */
-.apply { background: linear-gradient(180deg, var(--bg), var(--bg-soft)); }
+.apply { background: linear-gradient(180deg, rgba(10,10,10,0.45), rgba(17,18,19,0.85)); }
 .apply__inner {
   max-width: 820px;
   margin: 0 auto;
@@ -755,4 +757,276 @@ section { padding: clamp(5rem, 12vh, 9rem) var(--gut); position: relative; }
   }
   .word, .hero__sub, .hero__actions, [data-reveal] { opacity: 1 !important; transform: none !important; }
   .browser, .project:nth-child(even) .browser { transform: none !important; }
+}
+
+/* ============================================================
+   ▓▓▓  EXPERIENCE LAYER — added in the "impossible to duplicate" build
+   Deep-space background · custom cursor · cinematic intro ·
+   molecular logo · scroll HUD · portfolio breathe · card sheen
+   ============================================================ */
+
+/* ---------- Deep-space background canvas ---------- */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100svh;
+  z-index: -1;
+  display: block;
+  background: #0a0a0a;
+  will-change: transform;
+}
+/* Static gradient backdrop when no canvas renderer is available. */
+html.bg-static .bg-canvas { display: none; }
+html.bg-static body {
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(0, 240, 255, 0.10), transparent 55%),
+    radial-gradient(80% 60% at 85% 115%, rgba(0, 166, 179, 0.10), transparent 60%),
+    #0a0a0a;
+}
+
+/* ---------- Custom cursor ---------- */
+@media (hover: hover) and (pointer: fine) {
+  html.has-cursor, html.has-cursor * { cursor: none !important; }
+}
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.cursor > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+.cursor__dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: #fff;
+  transition: opacity 0.2s;
+}
+.cursor__ring {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: width 0.25s var(--ease), height 0.25s var(--ease),
+    margin 0.25s var(--ease), background 0.25s, border-color 0.25s,
+    border-radius 0.25s;
+}
+.cursor__aura {
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.16), transparent 70%);
+  opacity: 0.55;
+}
+.cursor__label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.cursor[data-mode="link"] .cursor__ring {
+  width: 52px; height: 52px; margin: -26px 0 0 -26px;
+  background: rgba(0, 240, 255, 0.10); border-color: var(--accent);
+}
+.cursor[data-mode="link"] .cursor__dot { opacity: 0; }
+.cursor[data-mode="view"] .cursor__ring {
+  width: 84px; height: 84px; margin: -42px 0 0 -42px;
+  background: rgba(0, 240, 255, 0.14); border-color: var(--accent);
+}
+.cursor[data-mode="view"] .cursor__label { opacity: 1; }
+.cursor[data-mode="view"] .cursor__dot { opacity: 0; }
+.cursor[data-mode="slice"] .cursor__ring {
+  width: 9px; height: 46px; margin: -23px 0 0 -4px;
+  border-radius: 6px; background: var(--accent); border-color: transparent;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.7);
+}
+.cursor[data-mode="slice"] .cursor__dot { opacity: 0; }
+.is-magnet { will-change: transform; }
+
+/* ---------- Cinematic intro ---------- */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: #050506;
+  display: grid;
+  place-items: center;
+  transition: transform 0.9s var(--ease);
+  /* Pure-CSS lift — runs even if JS never executes. */
+  animation: introLift 0.9s var(--ease) 2.6s forwards;
+}
+.intro.is-lifted { animation: none; transform: translateY(-100%); }
+.intro-skip .intro { display: none; }
+.intro__marks {
+  display: flex;
+  gap: clamp(0.7rem, 3vw, 1.8rem);
+  animation: introMarksOut 0.6s var(--ease) 1.5s forwards;
+}
+.intro__mark { width: clamp(24px, 5vw, 38px); height: clamp(24px, 5vw, 38px); overflow: visible; }
+.intro__mark * {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  opacity: 0.9;
+  animation: introDraw 0.7s var(--ease) forwards;
+}
+.intro__mark:nth-child(1) * { animation-delay: 0.15s; }
+.intro__mark:nth-child(2) * { animation-delay: 0.30s; }
+.intro__mark:nth-child(3) * { animation-delay: 0.45s; }
+.intro__mark:nth-child(4) * { animation-delay: 0.60s; }
+.intro__mark:nth-child(5) * { animation-delay: 0.75s; }
+.intro__word {
+  position: absolute;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-size: clamp(1.1rem, 4.5vw, 2.4rem);
+  color: var(--ink);
+  opacity: 0;
+  animation: introWordIn 0.8s var(--ease) 1.5s forwards;
+}
+.intro__word span { color: var(--accent); }
+.intro__skip {
+  position: absolute;
+  bottom: 2rem;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  opacity: 0;
+  animation: introSkipIn 0.4s ease 2s forwards;
+}
+@keyframes introDraw { to { stroke-dashoffset: 0; } }
+@keyframes introMarksOut { to { opacity: 0; transform: translateY(-12px); } }
+@keyframes introWordIn {
+  0% { opacity: 0; transform: translateY(12px); letter-spacing: 0.22em; }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: none; letter-spacing: 0.04em; }
+}
+@keyframes introSkipIn { to { opacity: 1; } }
+@keyframes introLift { to { transform: translateY(-100%); visibility: hidden; pointer-events: none; } }
+
+/* ---------- Molecular logo ---------- */
+.logo-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+.hero__n.is-molecular { color: transparent; }
+
+/* ---------- Scroll HUD: progress rail + section counter ---------- */
+.hud {
+  position: fixed;
+  right: clamp(0.7rem, 2vw, 1.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  pointer-events: none;
+}
+.hud__rail {
+  width: 2px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.hud__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: top;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+}
+.hud__count {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.15rem;
+  max-width: 64px;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-mut);
+  text-align: center;
+}
+.hud__idx { color: var(--accent); }
+.hud__sep, .hud__total { color: var(--ink-dim); }
+.hud__label { flex-basis: 100%; color: var(--ink-dim); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em; }
+@media (max-width: 860px) { .hud { display: none; } }
+
+/* ---------- Portfolio: parallax + breathe + glare ---------- */
+.project__frame { transform: translateY(var(--py, 0px)); }
+.browser { position: relative; filter: saturate(0.82) brightness(0.92); transition: transform 0.5s var(--ease), box-shadow 0.5s var(--ease), filter 0.5s var(--ease); }
+.project:hover .browser { filter: saturate(1.05) brightness(1.02); }
+.browser::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(0, 240, 255, 0.18) 50%, transparent 68%);
+  transform: translateX(-120%);
+  transition: transform 0.85s var(--ease);
+}
+.project:hover .browser::after { transform: translateX(120%); }
+
+/* ---------- Package cards: cursor-tracking sheen ---------- */
+.pkg__body { overflow: hidden; }
+.pkg__body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(0, 240, 255, 0.16), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.pkg.is-tilting .pkg__body::after { opacity: 1; }
+
+/* ---------- Konami "warp" easter egg ---------- */
+body.warp .bg-canvas { animation: warpFlash 1.4s var(--ease); }
+@keyframes warpFlash {
+  0% { filter: none; transform: none; }
+  30% { filter: brightness(1.7) saturate(1.4) hue-rotate(-12deg); transform: scale(1.05); }
+  100% { filter: none; transform: none; }
+}
+
+/* ---------- Reduced motion: neutralize the new layer ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .intro { display: none !important; }
+  .cursor { display: none !important; }
+  html.has-cursor, html.has-cursor * { cursor: auto !important; }
+  .browser::after, .pkg__body::after { display: none; }
+  .browser { filter: none; }
+  .intro__marks, .intro__mark *, .intro__word, .intro__skip { animation: none !important; }
 }

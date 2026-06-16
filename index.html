@@ -1,425 +1,1000 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0a0a" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E" />
-    <meta
-      name="description"
-      content="Northbound Studio — a creative web design studio. We design and build fast, modern websites and brand identities for small businesses that want to stand out online."
-    />
-    <title>Northbound Studio — Creative Web Design Studio</title>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#030305"/>
+<title>Northbound Studio — Creative Web Design Studio</title>
+<meta name="description" content="Northbound Studio — we build high-end websites and brand identities."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cyan:#00f5d4;
+  --cyan2:#00c8ff;
+  --ink:#030305;
+  --ink2:#0a0a12;
+  --white:#f0f0f5;
+  --grey:#8888aa;
+  --border:rgba(255,255,255,0.06);
+  --glow:0 0 40px rgba(0,245,212,0.15);
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{
+  background:var(--ink);
+  color:var(--white);
+  font-family:'Space Grotesk',sans-serif;
+  overflow-x:hidden;
+  cursor:none;
+}
+/* ── CUSTOM CURSOR ── */
+#cur,#cur-ring{
+  position:fixed;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:10000;
+  mix-blend-mode:difference;
+  transition:transform 0.1s ease,opacity 0.3s ease;
+}
+#cur{
+  width:10px;height:10px;
+  background:var(--white);
+  top:0;left:0;
+  transform:translate(-50%,-50%);
+}
+#cur-ring{
+  width:40px;height:40px;
+  border:1.5px solid rgba(255,255,255,0.6);
+  top:0;left:0;
+  transform:translate(-50%,-50%);
+  transition:width 0.3s ease,height 0.3s ease,transform 0.08s ease,border-color 0.3s ease;
+}
+body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring{
+  width:70px;height:70px;
+  border-color:var(--cyan);
+}
+/* ── GRAIN OVERLAY ── */
+#grain{
+  position:fixed;inset:0;z-index:9999;
+  pointer-events:none;
+  opacity:0.045;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  animation:grain-move 0.4s steps(1) infinite;
+}
+@keyframes grain-move{
+  0%{transform:translate(0,0)}10%{transform:translate(-2%,-3%)}20%{transform:translate(3%,1%)}30%{transform:translate(-1%,4%)}40%{transform:translate(2%,-2%)}50%{transform:translate(-3%,2%)}60%{transform:translate(1%,-4%)}70%{transform:translate(3%,3%)}80%{transform:translate(-2%,1%)}90%{transform:translate(2%,-1%)}100%{transform:translate(0,0)}
+}
+/* ── SCANLINES ── */
+#scanlines{
+  position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+}
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:24px 48px;
+  border-bottom:1px solid transparent;
+  transition:all 0.5s ease;
+}
+nav.scrolled{
+  background:rgba(3,3,5,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom-color:var(--border);
+}
+.nav-logo{
+  display:flex;align-items:center;gap:12px;
+  text-decoration:none;
+}
+.logo-mark{
+  width:36px;height:36px;
+  border:1.5px solid var(--cyan);
+  border-radius:8px;
+  display:grid;place-items:center;
+  font-weight:800;font-size:16px;
+  color:var(--cyan);
+  position:relative;
+  overflow:hidden;
+  transition:box-shadow 0.3s ease;
+}
+.logo-mark::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,245,212,0.1),transparent);
+  opacity:0;transition:opacity 0.3s;
+}
+.nav-logo:hover .logo-mark{box-shadow:0 0 20px rgba(0,245,212,0.4)}
+.nav-logo:hover .logo-mark::before{opacity:1}
+.logo-text{font-size:15px;font-weight:600;letter-spacing:-0.02em;color:var(--white)}
+.nav-links{display:flex;align-items:center;gap:40px}
+.nav-links a{
+  font-size:13px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--grey);text-decoration:none;
+  transition:color 0.3s ease;
+  position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;
+  background:var(--cyan);transition:width 0.3s ease;
+}
+.nav-links a:hover{color:var(--white)}
+.nav-links a:hover::after{width:100%}
+.nav-apply{
+  font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+  color:var(--ink);background:var(--cyan);
+  padding:10px 22px;border-radius:100px;
+  text-decoration:none;
+  transition:all 0.3s ease;
+  position:relative;overflow:hidden;
+}
+.nav-apply::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--cyan2),var(--cyan));
+  opacity:0;transition:opacity 0.3s;
+}
+.nav-apply:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,245,212,0.35)}
+.nav-apply:hover::before{opacity:1}
+/* ── HERO ── */
+#hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;text-align:center;overflow:hidden;
+  padding:120px 24px 80px;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(0,200,255,0.04) 0%,transparent 70%),
+              radial-gradient(ellipse 40% 40% at 20% 80%,rgba(0,245,212,0.03) 0%,transparent 60%),
+              radial-gradient(ellipse 50% 50% at 80% 20%,rgba(100,0,255,0.03) 0%,transparent 60%);
+}
+.hero-eyebrow{
+  font-size:11px;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:32px;
+  opacity:0;transform:translateY(20px);
+  animation:fade-up 0.8s ease 0.2s forwards;
+}
+.hero-title{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(56px,9vw,130px);
+  font-weight:900;
+  line-height:0.92;
+  letter-spacing:-0.04em;
+  margin-bottom:32px;
+  position:relative;
+}
+.hero-title .line{
+  display:block;overflow:hidden;
+}
+.hero-title .line span{
+  display:block;
+  opacity:0;transform:translateY(110%);
+  animation:line-reveal 0.9s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+.hero-title .line:nth-child(1) span{animation-delay:0.4s}
+.hero-title .line:nth-child(2) span{animation-delay:0.55s}
+.hero-title .line:nth-child(3) span{animation-delay:0.7s}
+.hero-title .accent{
+  background:linear-gradient(90deg,var(--cyan),var(--cyan2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  position:relative;
+}
+.hero-title .stroke{
+  -webkit-text-stroke:2px rgba(255,255,255,0.15);
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+}
+@keyframes line-reveal{to{opacity:1;transform:translateY(0)}}
+@keyframes fade-up{to{opacity:1;transform:translateY(0)}}
+.hero-sub{
+  font-size:clamp(15px,2vw,18px);
+  color:var(--grey);
+  max-width:560px;
+  line-height:1.7;
+  margin-bottom:48px;
+  opacity:0;transform:translateY(20px);
+  animation:fade-up 0.8s ease 1.1s forwards;
+}
+.hero-ctas{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
+  opacity:0;transform:translateY(20px);
+  animation:fade-up 0.8s ease 1.3s forwards;
+}
+.btn-primary{
+  background:var(--cyan);color:var(--ink);
+  padding:16px 36px;border-radius:100px;
+  font-weight:700;font-size:14px;letter-spacing:0.04em;text-transform:uppercase;
+  text-decoration:none;border:none;cursor:none;
+  position:relative;overflow:hidden;
+  transition:all 0.3s ease;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,245,212,0.4)}
+.btn-outline{
+  border:1px solid rgba(255,255,255,0.2);color:var(--white);
+  padding:16px 36px;border-radius:100px;
+  font-weight:500;font-size:14px;letter-spacing:0.04em;text-transform:uppercase;
+  text-decoration:none;
+  position:relative;overflow:hidden;
+  transition:all 0.3s ease;
+  backdrop-filter:blur(10px);
+}
+.btn-outline:hover{border-color:var(--cyan);color:var(--cyan);transform:translateY(-2px)}
+/* Scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  opacity:0;animation:fade-up 0.8s ease 1.8s forwards;
+}
+.scroll-hint span{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--grey)}
+.scroll-line{width:1px;height:60px;background:linear-gradient(to bottom,var(--cyan),transparent);animation:scroll-pulse 2s ease-in-out infinite}
+@keyframes scroll-pulse{0%,100%{opacity:0.3;transform:scaleY(0.6)}50%{opacity:1;transform:scaleY(1)}}
+/* Floating orbs */
+.orb{
+  position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;
+}
+.orb-1{width:600px;height:600px;background:rgba(0,200,255,0.04);top:-200px;right:-200px;animation:orb-drift 20s ease-in-out infinite}
+.orb-2{width:400px;height:400px;background:rgba(0,245,212,0.03);bottom:-100px;left:-100px;animation:orb-drift 25s ease-in-out infinite reverse}
+.orb-3{width:300px;height:300px;background:rgba(100,0,255,0.04);top:50%;left:50%;transform:translate(-50%,-50%);animation:orb-drift 15s ease-in-out infinite 5s}
+@keyframes orb-drift{0%,100%{transform:translate(0,0)}25%{transform:translate(30px,-40px)}50%{transform:translate(-20px,30px)}75%{transform:translate(40px,20px)}}
+/* ── MARQUEE ── */
+.marquee-wrap{
+  padding:28px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  overflow:hidden;
+  position:relative;
+}
+.marquee-wrap::before,.marquee-wrap::after{
+  content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none;
+}
+.marquee-wrap::before{left:0;background:linear-gradient(to right,var(--ink),transparent)}
+.marquee-wrap::after{right:0;background:linear-gradient(to left,var(--ink),transparent)}
+.marquee-track{
+  display:flex;width:max-content;
+  animation:marquee 30s linear infinite;
+}
+.marquee-track:hover{animation-play-state:paused}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.marquee-item{
+  display:flex;align-items:center;gap:20px;
+  padding:0 40px;white-space:nowrap;
+}
+.marquee-item span{
+  font-size:13px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--grey);
+}
+.marquee-dot{width:4px;height:4px;border-radius:50%;background:var(--cyan);opacity:0.6}
+/* ── STUDIO SECTION ── */
+#studio{
+  padding:140px 48px;
+  max-width:1400px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;
+}
+.studio-kicker{
+  font-size:11px;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:20px;
+}
+.studio-title{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(36px,5vw,64px);
+  font-weight:800;line-height:1.05;letter-spacing:-0.03em;
+  margin-bottom:28px;
+}
+.studio-body{
+  font-size:17px;color:var(--grey);line-height:1.8;margin-bottom:40px;
+}
+.studio-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;
+}
+.stat-card{
+  padding:24px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:rgba(255,255,255,0.02);
+  position:relative;overflow:hidden;
+  transition:all 0.4s ease;
+}
+.stat-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,245,212,0.05),transparent);
+  opacity:0;transition:opacity 0.4s;
+}
+.stat-card:hover{border-color:rgba(0,245,212,0.2);transform:translateY(-4px)}
+.stat-card:hover::before{opacity:1}
+.stat-num{
+  font-size:42px;font-weight:800;font-family:'Inter',sans-serif;
+  background:linear-gradient(90deg,var(--white),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:-0.03em;margin-bottom:4px;
+}
+.stat-label{font-size:13px;color:var(--grey);font-weight:500}
+/* Studio visual */
+.studio-visual{
+  position:relative;height:500px;
+}
+.visual-card{
+  position:absolute;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:rgba(255,255,255,0.03);
+  backdrop-filter:blur(20px);
+  padding:28px;
+  transition:transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+.visual-card:hover{transform:translateY(-8px) rotate(0deg) !important}
+.vc-1{top:0;left:0;width:260px;transform:rotate(-3deg)}
+.vc-2{top:80px;right:0;width:240px;transform:rotate(2deg)}
+.vc-3{bottom:0;left:40px;width:220px;transform:rotate(-1deg)}
+.vc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:12px}
+.vc-value{font-size:28px;font-weight:800;font-family:'Inter',sans-serif;letter-spacing:-0.03em}
+.vc-bar{height:3px;background:var(--border);border-radius:100px;margin-top:16px;overflow:hidden}
+.vc-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--cyan2));border-radius:100px;animation:bar-grow 2s ease forwards}
+@keyframes bar-grow{from{width:0}}
+/* ── SERVICES ── */
+#services{
+  padding:100px 48px;
+  background:linear-gradient(to bottom,transparent,rgba(0,245,212,0.02),transparent);
+}
+.section-header{text-align:center;margin-bottom:80px}
+.section-kicker{
+  font-size:11px;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:16px;
+}
+.section-title{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(32px,4vw,56px);
+  font-weight:800;line-height:1.1;letter-spacing:-0.03em;
+}
+.services-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  max-width:1200px;margin:0 auto;
+  border:1px solid var(--border);border-radius:20px;overflow:hidden;
+}
+.service-card{
+  padding:48px 40px;
+  background:rgba(255,255,255,0.01);
+  position:relative;overflow:hidden;
+  transition:all 0.4s ease;
+  border-right:1px solid var(--border);
+}
+.service-card:last-child{border-right:none}
+.service-card::after{
+  content:'';position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(0,245,212,0.06),rgba(0,200,255,0.02));
+  opacity:0;transition:opacity 0.4s;
+}
+.service-card:hover{background:rgba(255,255,255,0.03)}
+.service-card:hover::after{opacity:1}
+.service-icon{
+  width:48px;height:48px;margin-bottom:28px;
+  border:1px solid var(--border);border-radius:12px;
+  display:grid;place-items:center;
+  position:relative;z-index:1;
+  transition:all 0.3s ease;
+}
+.service-card:hover .service-icon{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,245,212,0.2)}
+.service-icon svg{width:22px;height:22px;stroke:var(--cyan)}
+.service-name{
+  font-size:20px;font-weight:700;letter-spacing:-0.02em;
+  margin-bottom:12px;position:relative;z-index:1;
+}
+.service-desc{
+  font-size:14px;color:var(--grey);line-height:1.7;
+  position:relative;z-index:1;margin-bottom:24px;
+}
+.service-tags{display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1}
+.tag{
+  font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--grey);
+  border:1px solid var(--border);
+  padding:5px 12px;border-radius:100px;
+  transition:all 0.3s ease;
+}
+.service-card:hover .tag{border-color:rgba(0,245,212,0.2);color:rgba(0,245,212,0.7)}
+/* ── PACKAGES ── */
+#packages{padding:120px 48px}
+.packages-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:24px;max-width:1200px;margin:80px auto 0;
+}
+.pkg-card{
+  border:1px solid var(--border);
+  border-radius:20px;padding:44px 36px;
+  position:relative;overflow:hidden;
+  transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  background:rgba(255,255,255,0.02);
+}
+.pkg-card.featured{
+  border-color:rgba(0,245,212,0.3);
+  background:linear-gradient(135deg,rgba(0,245,212,0.04),rgba(0,200,255,0.02));
+}
+.pkg-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:0;transition:opacity 0.4s;
+}
+.pkg-card:hover::before,.pkg-card.featured::before{opacity:1}
+.pkg-card:hover{transform:translateY(-8px);border-color:rgba(0,245,212,0.2)}
+.pkg-badge{
+  display:inline-block;
+  font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--ink);background:var(--cyan);
+  padding:5px 12px;border-radius:100px;margin-bottom:28px;
+}
+.pkg-name{
+  font-size:13px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--grey);margin-bottom:8px;
+}
+.pkg-price{
+  font-family:'Inter',sans-serif;
+  font-size:48px;font-weight:900;letter-spacing:-0.04em;
+  color:var(--white);margin-bottom:4px;
+  display:flex;align-items:flex-start;gap:4px;
+}
+.pkg-price sup{font-size:24px;margin-top:8px;font-weight:600}
+.pkg-sub{font-size:13px;color:var(--grey);margin-bottom:32px}
+.pkg-features{list-style:none;margin-bottom:40px}
+.pkg-features li{
+  display:flex;align-items:flex-start;gap:12px;
+  font-size:14px;color:var(--grey);
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+.pkg-features li:last-child{border-bottom:none}
+.pkg-features li::before{
+  content:'';
+  width:16px;height:16px;flex-shrink:0;margin-top:2px;
+  border:1px solid rgba(0,245,212,0.4);border-radius:50%;
+  background:radial-gradient(circle,rgba(0,245,212,0.3) 0%,transparent 70%);
+}
+.pkg-cta{
+  display:block;width:100%;
+  text-align:center;
+  padding:14px;border-radius:12px;
+  font-size:14px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+  text-decoration:none;
+  transition:all 0.3s ease;
+}
+.pkg-card:not(.featured) .pkg-cta{
+  border:1px solid var(--border);color:var(--white);
+}
+.pkg-card:not(.featured) .pkg-cta:hover{border-color:var(--cyan);color:var(--cyan)}
+.pkg-card.featured .pkg-cta{
+  background:var(--cyan);color:var(--ink);
+}
+.pkg-card.featured .pkg-cta:hover{box-shadow:0 8px 30px rgba(0,245,212,0.4);transform:translateY(-2px)}
+/* ── PORTFOLIO ── */
+#portfolio{padding:120px 0}
+.port-header{padding:0 48px;margin-bottom:60px}
+.port-scroll{
+  display:flex;gap:24px;
+  padding:0 48px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.port-scroll::-webkit-scrollbar{display:none}
+.port-item{
+  flex:0 0 420px;height:320px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:rgba(255,255,255,0.02);
+  position:relative;overflow:hidden;
+  cursor:none;
+  transition:all 0.4s ease;
+}
+.port-item:hover{border-color:rgba(0,245,212,0.2);transform:translateY(-4px)}
+.port-bg{
+  position:absolute;inset:0;
+  transition:transform 0.6s ease;
+}
+.port-item:hover .port-bg{transform:scale(1.05)}
+.port-bg-1{background:linear-gradient(135deg,#0a0f1a,#0d1520,rgba(0,100,200,0.1))}
+.port-bg-2{background:linear-gradient(135deg,#0f0a1a,#150d20,rgba(100,0,200,0.1))}
+.port-bg-3{background:linear-gradient(135deg,#0a1a0f,#0d2015,rgba(0,200,100,0.1))}
+.port-bg-4{background:linear-gradient(135deg,#1a0f0a,#201508,rgba(200,100,0,0.1))}
+.port-grid-lines{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.port-content{
+  position:absolute;inset:0;padding:32px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+.port-tag{
+  font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:8px;
+}
+.port-title{
+  font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px;
+}
+.port-sub{font-size:13px;color:var(--grey)}
+.port-arrow{
+  position:absolute;top:24px;right:24px;
+  width:36px;height:36px;
+  border:1px solid var(--border);border-radius:50%;
+  display:grid;place-items:center;
+  opacity:0;transform:translateY(8px);
+  transition:all 0.3s ease;
+}
+.port-item:hover .port-arrow{opacity:1;transform:translateY(0)}
+.port-arrow svg{width:14px;height:14px;stroke:var(--cyan)}
+/* ── CONTACT ── */
+#contact{
+  padding:140px 48px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.contact-glow{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:800px;height:400px;
+  background:radial-gradient(ellipse,rgba(0,245,212,0.06),transparent 70%);
+  pointer-events:none;
+}
+.contact-title{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(40px,6vw,88px);
+  font-weight:900;line-height:1;letter-spacing:-0.04em;
+  max-width:900px;margin:0 auto 32px;
+  position:relative;z-index:1;
+}
+.contact-title em{
+  font-style:normal;
+  background:linear-gradient(90deg,var(--cyan),var(--cyan2),var(--cyan));
+  background-size:200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:gradient-shift 4s ease infinite;
+}
+@keyframes gradient-shift{0%,100%{background-position:0%}50%{background-position:100%}}
+.contact-sub{
+  font-size:17px;color:var(--grey);line-height:1.7;
+  max-width:480px;margin:0 auto 48px;
+  position:relative;z-index:1;
+}
+.contact-ctas{
+  display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;
+  position:relative;z-index:1;
+}
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--border);
+  padding:40px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:16px;
+}
+.footer-left{font-size:13px;color:var(--grey)}
+.footer-right{
+  display:flex;align-items:center;gap:24px;
+}
+.footer-right a{
+  font-size:13px;color:var(--grey);text-decoration:none;
+  transition:color 0.3s ease;letter-spacing:0.05em;
+}
+.footer-right a:hover{color:var(--cyan)}
+/* ── REVEAL ── */
+[data-reveal]{
+  opacity:0;transform:translateY(40px);
+  transition:opacity 0.8s ease,transform 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+[data-reveal].visible{opacity:1;transform:translateY(0)}
+/* ── GLITCH ── */
+.glitch{position:relative}
+.glitch::before,.glitch::after{
+  content:attr(data-text);
+  position:absolute;top:0;left:0;width:100%;height:100%;
+}
+.glitch::before{
+  animation:glitch-1 4s infinite;
+  clip-path:polygon(0 0,100% 0,100% 35%,0 35%);
+  background:inherit;-webkit-background-clip:text;background-clip:text;
+  color:var(--cyan2);opacity:0;
+}
+.glitch::after{
+  animation:glitch-2 4s infinite;
+  clip-path:polygon(0 65%,100% 65%,100% 100%,0 100%);
+  color:var(--cyan);opacity:0;
+}
+@keyframes glitch-1{
+  0%,94%,100%{opacity:0;transform:translate(0,0)}
+  95%{opacity:0.8;transform:translate(-3px,-1px)}
+  96%{opacity:0;transform:translate(3px,1px)}
+  97%{opacity:0.6;transform:translate(-2px,2px)}
+  98%{opacity:0}
+}
+@keyframes glitch-2{
+  0%,94%,100%{opacity:0;transform:translate(0,0)}
+  95%{opacity:0.6;transform:translate(3px,1px)}
+  96%{opacity:0;transform:translate(-3px,-1px)}
+  97%{opacity:0.4;transform:translate(2px,-2px)}
+  98%{opacity:0}
+}
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  nav{padding:20px 24px}
+  .nav-links{gap:20px}
+  #studio{grid-template-columns:1fr;gap:48px;padding:80px 24px}
+  .studio-visual{height:300px}
+  .services-grid{grid-template-columns:1fr;border-radius:12px}
+  .service-card{border-right:none;border-bottom:1px solid var(--border)}
+  .service-card:last-child{border-bottom:none}
+  .packages-grid{grid-template-columns:1fr;max-width:480px}
+  .port-item{flex:0 0 300px;height:240px}
+  #contact{padding:80px 24px}
+  footer{padding:28px 24px}
+}
+</style>
+</head>
+<body>
+<!-- Cursor -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+<!-- Grain & Scanlines -->
+<div id="grain"></div>
+<div id="scanlines"></div>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <div class="logo-mark">N</div>
+    <span class="logo-text">Northbound Studio</span>
+  </a>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#packages">Packages</a>
+    <a href="#portfolio">Work</a>
+    <a href="#contact" class="nav-apply">Apply</a>
+  </div>
+</nav>
 
-    <link rel="stylesheet" href="./style.css" />
-    <noscript>
-      <!-- With JS off, reveal-on-scroll can't fire — show everything. -->
-      <style>
-        [data-reveal] { opacity: 1 !important; transform: none !important; }
-        .intro { display: none !important; }
-      </style>
-    </noscript>
-    <script>
-      /* No-flash: skip the intro for repeat visits in this session.
-         Set the flag here too, so repeat visits skip even if the
-         module never runs. */
-      try {
-        if (sessionStorage.getItem("nb_intro"))
-          document.documentElement.classList.add("intro-skip");
-        else sessionStorage.setItem("nb_intro", "1");
-      } catch (e) {}
-    </script>
-    <script type="module" src="./js/main.js"></script>
-  </head>
-  <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+<!-- HERO -->
+<section id="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="hero-bg"></div>
+  <p class="hero-eyebrow">Creative Web Design Studio — Est. 2024</p>
+  <h1 class="hero-title">
+    <span class="line"><span>We build</span></span>
+    <span class="line"><span class="accent glitch" data-text="websites">websites</span></span>
+    <span class="line"><span>that <span class="stroke">move.</span></span></span>
+  </h1>
+  <p class="hero-sub">Northbound Studio crafts high-performance websites and brand identities for businesses that refuse to be ordinary.</p>
+  <div class="hero-ctas">
+    <a href="#contact" class="btn-primary">Start a Project</a>
+    <a href="#portfolio" class="btn-outline">View Our Work</a>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
 
-    <!-- Deep-space constellation (WebGL2 → Canvas-2D → CSS gradient) -->
-    <canvas id="bg" class="bg-canvas" aria-hidden="true"></canvas>
-    <div class="grain" aria-hidden="true"></div>
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <!-- two copies for seamless loop -->
+    <div class="marquee-item"><span>Web Design</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Brand Identity</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Motion Graphics</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>UI / UX</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>WebGL</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Performance</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Accessibility</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>SEO</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Web Design</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Brand Identity</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Motion Graphics</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>UI / UX</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>WebGL</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Performance</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>Accessibility</span><div class="marquee-dot"></div></div>
+    <div class="marquee-item"><span>SEO</span><div class="marquee-dot"></div></div>
+  </div>
+</div>
 
-    <!-- ── CINEMATIC INTRO (first visit per session) ──────────── -->
-    <div id="intro" class="intro" aria-hidden="true">
-      <div class="intro__marks">
-        <svg class="intro__mark" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" /></svg>
-        <svg class="intro__mark" viewBox="0 0 40 40"><rect x="7" y="7" width="26" height="26" rx="3" /></svg>
-        <svg class="intro__mark" viewBox="0 0 40 40"><polygon points="20,5 34,33 6,33" /></svg>
-        <svg class="intro__mark" viewBox="0 0 40 40"><polygon points="20,4 34,12 34,28 20,36 6,28 6,12" /></svg>
-        <svg class="intro__mark" viewBox="0 0 44 40"><path d="M8 35 V5 L33 35 V5" /></svg>
-      </div>
-      <div class="intro__word">NORTHBOUND<span>&nbsp;STUDIO</span></div>
-      <span class="intro__skip">click to skip</span>
+<!-- STUDIO -->
+<section id="studio">
+  <div data-reveal>
+    <p class="studio-kicker">Who we are</p>
+    <h2 class="studio-title">Two disciplines.<br/>One obsession.</h2>
+    <p class="studio-body">We're a two-person powerhouse — a senior product developer from a top social-media agency, and a SCAD-trained visual designer. Every project gets both, in full.</p>
+    <div class="studio-stats">
+      <div class="stat-card"><div class="stat-num">50+</div><div class="stat-label">Sites delivered</div></div>
+      <div class="stat-card"><div class="stat-num">100%</div><div class="stat-label">Client satisfaction</div></div>
+      <div class="stat-card"><div class="stat-num">5★</div><div class="stat-label">Average rating</div></div>
+      <div class="stat-card"><div class="stat-num">2wk</div><div class="stat-label">Avg. turnaround</div></div>
     </div>
+  </div>
+  <div class="studio-visual" data-reveal>
+    <div class="visual-card vc-1">
+      <div class="vc-label">Perf. Score</div>
+      <div class="vc-value">99</div>
+      <div class="vc-bar"><div class="vc-bar-fill" style="width:99%"></div></div>
+    </div>
+    <div class="visual-card vc-2">
+      <div class="vc-label">Avg. Load</div>
+      <div class="vc-value">0.8s</div>
+      <div class="vc-bar"><div class="vc-bar-fill" style="width:90%"></div></div>
+    </div>
+    <div class="visual-card vc-3">
+      <div class="vc-label">Accessibility</div>
+      <div class="vc-value">100</div>
+      <div class="vc-bar"><div class="vc-bar-fill" style="width:100%"></div></div>
+    </div>
+  </div>
+</section>
 
-    <!-- ── NAV ─────────────────────────────────────────────────── -->
-    <header class="nav" id="nav">
-      <a class="nav__brand" href="#main" aria-label="Northbound Studio — home">
-        <span class="mark" aria-hidden="true">N</span>
-        <span class="nav__name">Northbound&nbsp;Studio</span>
-      </a>
-      <nav class="nav__links" aria-label="Primary">
-        <a href="#packages">Packages</a>
-        <a href="#work">Portfolio</a>
-        <a class="nav__cta" href="#apply">Apply</a>
-      </nav>
-    </header>
-
-    <main id="main">
-      <!-- ── HERO ──────────────────────────────────────────────── -->
-      <section class="hero" id="hero" aria-labelledby="hero-title">
-        <div class="hero__inner">
-          <div class="hero__logo">
-            <span class="hero__n" aria-hidden="true">N</span>
-          </div>
-          <h1 class="hero__title" id="hero-title">
-            <span class="line"><span class="word">Websites</span> <span class="word">that</span> <span class="word">earn</span></span>
-            <span class="line"><span class="word accent">trust</span> <span class="word">on</span> <span class="word">sight.</span></span>
-          </h1>
-          <p class="hero__sub">
-            Northbound Studio is a creative web design studio. We design and build clean,
-            fast, modern websites that help small businesses look credible and grow online.
-          </p>
-          <div class="hero__actions">
-            <a class="btn btn--primary" href="#apply">Get Started</a>
-            <a class="btn btn--ghost" href="#packages">View Packages</a>
-          </div>
-        </div>
-        <a class="hero__scroll" href="#why" aria-label="Scroll to content">
-          <span class="hero__scroll-line" aria-hidden="true"></span>
-        </a>
-      </section>
-
-      <!-- ── WHY US ────────────────────────────────────────────── -->
-      <section class="why" id="why" aria-labelledby="why-title">
-        <div class="section-head">
-          <span class="eyebrow">Why Northbound</span>
-          <h2 class="section-title" id="why-title">Two disciplines, one studio.</h2>
-          <p class="section-lead">
-            A developer who ships high-end product, paired with a trained designer. You
-            get engineering and art direction from the same table — not a handoff.
-          </p>
-        </div>
-        <div class="why__split">
-          <!-- TODO: add the developer's real name -->
-          <article class="why__card why__card--dev" data-reveal>
-            <span class="why__role">Development</span>
-            <h3 class="why__name">The Build Side</h3>
-            <p class="why__title">Product Developer at a top social-media agency</p>
-            <p class="why__bio">
-              Professional experience building high-end websites and applications — fast
-              turnaround, clean code, and modern design systems that stay fast as they grow.
-            </p>
-            <ul class="why__skills">
-              <li>High-end websites &amp; apps</li>
-              <li>Clean, fast code</li>
-              <li>Modern design systems</li>
-              <li>Performance &amp; accessibility</li>
-            </ul>
-          </article>
-          <!-- TODO: add the design partner's real name -->
-          <article class="why__card why__card--design" data-reveal>
-            <span class="why__role">Design</span>
-            <h3 class="why__name">The Art Side</h3>
-            <p class="why__title">SCAD animation &amp; design</p>
-            <p class="why__bio">
-              Professional-grade logos, branding, and visual identity — plus custom
-              illustration, icons, and motion graphics that give a brand a real voice.
-            </p>
-            <ul class="why__skills">
-              <li>Logos &amp; brand identity</li>
-              <li>Custom illustration</li>
-              <li>Icon systems</li>
-              <li>Motion graphics</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <!-- ── PACKAGES ──────────────────────────────────────────── -->
-      <section class="packages" id="packages" aria-labelledby="packages-title">
-        <div class="section-head">
-          <span class="eyebrow">Packages</span>
-          <h2 class="section-title" id="packages-title">Pick a starting point.</h2>
-          <p class="section-lead">
-            Transparent scope, fixed pricing, and a launch in 1–3 weeks. Every package is
-            built mobile-first and tuned to convert.
-          </p>
-        </div>
-        <div class="packages__grid">
-          <article class="pkg" data-reveal>
-            <div class="pkg__glow" aria-hidden="true"></div>
-            <div class="pkg__body">
-              <span class="pkg__tier">Starter</span>
-              <p class="pkg__desc">
-                A polished single-page site with conversion-focused copy and a quick launch.
-              </p>
-              <p class="pkg__price"><span class="pkg__currency">$</span>250</p>
-              <ul class="pkg__features">
-                <li>1-page build + contact section</li>
-                <li>Mobile-first design</li>
-                <li>Basic SEO setup</li>
-                <li>Launch support</li>
-              </ul>
-              <a class="btn btn--ghost pkg__cta" href="#apply"
-                 data-package="Starter ($250)" data-budget="$250 — Starter">Get Started</a>
-            </div>
-          </article>
-
-          <article class="pkg pkg--featured" data-reveal>
-            <span class="pkg__badge">Most Popular</span>
-            <div class="pkg__glow" aria-hidden="true"></div>
-            <div class="pkg__body">
-              <span class="pkg__tier">Pro</span>
-              <p class="pkg__desc">
-                A multi-section site with stronger storytelling, custom visuals, and
-                advanced layouts built to elevate trust.
-              </p>
-              <p class="pkg__price"><span class="pkg__currency">$</span>400–600</p>
-              <ul class="pkg__features">
-                <li>Up to 5 custom sections</li>
-                <li>Enhanced interactions + animation</li>
-                <li>Performance &amp; accessibility polish</li>
-                <li>Custom visuals</li>
-              </ul>
-              <a class="btn btn--primary pkg__cta" href="#apply"
-                 data-package="Pro ($400–$600)" data-budget="$400–$600 — Pro">Get Started</a>
-            </div>
-          </article>
-
-          <article class="pkg" data-reveal>
-            <div class="pkg__glow" aria-hidden="true"></div>
-            <div class="pkg__body">
-              <span class="pkg__tier">Full Brand Kit</span>
-              <p class="pkg__desc">
-                A complete visual identity + website that unifies logo, brand assets, and
-                digital experience.
-              </p>
-              <p class="pkg__price"><span class="pkg__currency">$</span>750+</p>
-              <ul class="pkg__features">
-                <li>Logo + palette + style direction</li>
-                <li>Website + custom icon/illustration set</li>
-                <li>Launch support + handoff assets</li>
-                <li>Brand guidelines</li>
-              </ul>
-              <a class="btn btn--ghost pkg__cta" href="#apply"
-                 data-package="Full Brand Kit ($750+)" data-budget="$750+ — Full Brand Kit">Get Started</a>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <!-- ── PORTFOLIO ─────────────────────────────────────────── -->
-      <section class="work" id="work" aria-labelledby="work-title">
-        <div class="section-head section-head--left">
-          <span class="eyebrow">Selected Work</span>
-          <h2 class="section-title" id="work-title">Recent projects.</h2>
-        </div>
-        <div class="work__list">
-          <!-- Project 01 — Keystone South Construction -->
-          <article class="project" data-reveal>
-            <div class="project__frame" data-parallax="0.05">
-              <div class="browser">
-                <div class="browser__bar" aria-hidden="true">
-                  <span class="browser__dot"></span>
-                  <span class="browser__dot"></span>
-                  <span class="browser__dot"></span>
-                  <span class="browser__url">keystonesouthconstruction.com</span>
-                </div>
-                <div class="browser__viewport">
-                  <div class="mock mock--atlas" aria-hidden="true">
-                    <div class="mock__nav mock__nav--light">
-                      <span class="mock__logo">KEYSTONE</span>
-                      <div class="mock__links"><i></i><i></i><i></i></div>
-                    </div>
-                    <div class="mock__hero mock__hero--atlas">
-                      <h4>Built to last. Finished to impress.</h4>
-                      <span class="mock__btn">Request an estimate</span>
-                      <div class="mock__grid"><span></span><span></span><span></span></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="project__meta">
-              <span class="project__tag">Web Design · Local Business</span>
-              <h3 class="project__name">Keystone South Construction</h3>
-              <p class="project__blurb">
-                A clear, professional web presence that reflects premium construction work
-                and makes it easy for visitors to request an estimate.
-              </p>
-              <button class="project__open" type="button"
-                      data-project="keystone" aria-haspopup="dialog" aria-expanded="false">
-                Read the case study <span aria-hidden="true">→</span>
-              </button>
-            </div>
-          </article>
-
-          <!-- Project 02 — TABOOST Shop -->
-          <article class="project" data-reveal>
-            <div class="project__frame" data-parallax="0.05">
-              <div class="browser">
-                <div class="browser__bar" aria-hidden="true">
-                  <span class="browser__dot"></span>
-                  <span class="browser__dot"></span>
-                  <span class="browser__dot"></span>
-                  <span class="browser__url">shop.taboost.me</span>
-                </div>
-                <div class="browser__viewport">
-                  <div class="mock mock--meridian" aria-hidden="true">
-                    <div class="mock__nav">
-                      <span class="mock__logo">TABOOST</span>
-                      <div class="mock__links"><i></i><i></i><i></i></div>
-                    </div>
-                    <div class="mock__hero">
-                      <h4>Gear that moves with you.</h4>
-                      <span class="mock__btn">Shop the drop</span>
-                    </div>
-                    <div class="mock__chart">
-                      <svg viewBox="0 0 200 60" preserveAspectRatio="none">
-                        <polyline points="0,46 28,40 56,44 84,26 112,30 140,14 168,18 200,6" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="project__meta">
-              <span class="project__tag">E-Commerce · Product Experience</span>
-              <h3 class="project__name">TABOOST Shop</h3>
-              <p class="project__blurb">
-                A fast, product-first storefront with a clean buying flow and a brand-forward
-                experience built to convert browsers into buyers.
-              </p>
-              <button class="project__open" type="button"
-                      data-project="taboost" aria-haspopup="dialog" aria-expanded="false">
-                Read the case study <span aria-hidden="true">→</span>
-              </button>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <!-- ── APPLY ─────────────────────────────────────────────── -->
-      <section class="apply" id="apply" aria-labelledby="apply-title">
-        <div class="apply__inner">
-          <div class="section-head">
-            <span class="eyebrow">Start a project</span>
-            <h2 class="section-title" id="apply-title">Let's build yours.</h2>
-            <p class="section-lead">
-              Tell us about your project and we'll be in touch within 24 hours.
-            </p>
-          </div>
-
-          <form class="form" id="applyForm"
-                action="https://formspree.io/f/xpwzgvkn" method="POST" novalidate>
-            <input type="hidden" name="_subject" value="New Northbound Studio Application" />
-            <label class="form__honey" aria-hidden="true">
-              Leave this empty
-              <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
-            </label>
-
-            <div class="form__row">
-              <div class="field">
-                <input class="field__input" id="f-name" name="name" type="text"
-                       placeholder=" " required autocomplete="name" />
-                <label class="field__label" for="f-name">Your name</label>
-                <span class="field__line" aria-hidden="true"></span>
-              </div>
-              <div class="field">
-                <input class="field__input" id="f-business" name="business" type="text"
-                       placeholder=" " required />
-                <label class="field__label" for="f-business">Business name</label>
-                <span class="field__line" aria-hidden="true"></span>
-              </div>
-            </div>
-
-            <div class="form__row">
-              <div class="field">
-                <input class="field__input" id="f-industry" name="industry" type="text"
-                       placeholder=" " required />
-                <label class="field__label" for="f-industry">Industry</label>
-                <span class="field__line" aria-hidden="true"></span>
-              </div>
-              <div class="field">
-                <select class="field__input field__input--select" id="f-focus" name="focus"
-                        required>
-                  <option value="" disabled selected hidden></option>
-                  <option>Logo</option>
-                  <option>Website</option>
-                  <option>Logo + Website</option>
-                </select>
-                <label class="field__label field__label--up" for="f-focus">Project focus</label>
-                <span class="field__line" aria-hidden="true"></span>
-              </div>
-            </div>
-
-            <div class="field">
-              <select class="field__input field__input--select" id="budgetSelect" name="budget"
-                      required>
-                <option value="" disabled selected hidden></option>
-                <option>$250 — Starter</option>
-                <option>$400–$600 — Pro</option>
-                <option>$750+ — Full Brand Kit</option>
-              </select>
-              <label class="field__label field__label--up" for="budgetSelect">Budget range</label>
-              <span class="field__line" aria-hidden="true"></span>
-            </div>
-
-            <div class="field field--full">
-              <textarea class="field__input field__input--area" id="f-details" name="details"
-                        placeholder=" " rows="3"></textarea>
-              <label class="field__label" for="f-details">Tell us about your project</label>
-              <span class="field__line" aria-hidden="true"></span>
-            </div>
-
-            <div class="field field--full">
-              <input class="field__input" id="f-timeline" name="timeline" type="text"
-                     placeholder=" " />
-              <label class="field__label" for="f-timeline">Target launch window (e.g. 2–3 weeks)</label>
-              <span class="field__line" aria-hidden="true"></span>
-            </div>
-
-            <button class="btn btn--primary btn--submit" type="submit">
-              <span class="btn__label">Submit Application</span>
-              <span class="btn__spinner" aria-hidden="true"></span>
-              <svg class="btn__check" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 12.5l5 5L20 6.5" />
-              </svg>
-            </button>
-            <p class="form__status" role="status" aria-live="polite"></p>
-          </form>
-        </div>
-      </section>
-    </main>
-
-    <!-- ── CASE STUDY MODAL ──────────────────────────────────────── -->
-    <div class="modal" id="caseModal" role="dialog" aria-modal="true"
-         aria-labelledby="caseTitle" hidden>
-      <div class="modal__backdrop" data-close></div>
-      <div class="modal__panel" role="document">
-        <button class="modal__close" type="button" data-close aria-label="Close case study">✕</button>
-        <div class="modal__content" id="caseContent"></div>
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-header" data-reveal>
+    <p class="section-kicker">What we do</p>
+    <h2 class="section-title">The full stack,<br/>beautifully executed.</h2>
+  </div>
+  <div class="services-grid">
+    <div class="service-card" data-reveal>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+      <h3 class="service-name">Web Design &amp; Dev</h3>
+      <p class="service-desc">Pixel-perfect, performant websites hand-coded for speed, SEO, and lasting impressions.</p>
+      <div class="service-tags">
+        <span class="tag">React</span><span class="tag">Next.js</span><span class="tag">GSAP</span><span class="tag">WebGL</span>
       </div>
     </div>
-
-    <!-- ── FOOTER ────────────────────────────────────────────────── -->
-    <footer class="footer">
-      <span class="mark mark--pulse" aria-hidden="true">N</span>
-      <p class="footer__line">
-        Design + development for small businesses that want to stand out online.
-      </p>
-      <div class="footer__links">
-        <a href="#apply">Start a project ↗</a>
-        <a href="#work">View portfolio ↗</a>
+    <div class="service-card" data-reveal>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       </div>
-      <p class="footer__fine">© 2025 Northbound Studio · Grand Ledge, MI → Worldwide</p>
-    </footer>
-  </body>
+      <h3 class="service-name">Brand Identity</h3>
+      <p class="service-desc">Logos, palettes, and visual systems that give your brand a voice it can't stop using.</p>
+      <div class="service-tags">
+        <span class="tag">Logo</span><span class="tag">Guidelines</span><span class="tag">Typography</span>
+      </div>
+    </div>
+    <div class="service-card" data-reveal>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <h3 class="service-name">Motion &amp; Interaction</h3>
+      <p class="service-desc">Scroll animations, microinteractions, and 3D — details that make users stay longer.</p>
+      <div class="service-tags">
+        <span class="tag">GSAP</span><span class="tag">Three.js</span><span class="tag">Lottie</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PACKAGES -->
+<section id="packages">
+  <div class="section-header" data-reveal>
+    <p class="section-kicker">Packages</p>
+    <h2 class="section-title">Pick a starting point.</h2>
+  </div>
+  <div class="packages-grid">
+    <div class="pkg-card" data-reveal>
+      <p class="pkg-name">Launchpad</p>
+      <div class="pkg-price"><sup>$</sup>200</div>
+      <p class="pkg-sub">Perfect to get online fast</p>
+      <ul class="pkg-features">
+        <li>1-page build + contact section</li>
+        <li>Mobile-first design</li>
+        <li>Basic SEO setup</li>
+        <li>Launch support</li>
+      </ul>
+      <a href="#contact" class="pkg-cta">Get Started</a>
+    </div>
+    <div class="pkg-card featured" data-reveal>
+      <span class="pkg-badge">Most Popular</span>
+      <p class="pkg-name">Studio</p>
+      <div class="pkg-price"><sup>$</sup>400<span style="font-size:24px;font-weight:400">–600</span></div>
+      <p class="pkg-sub">The full creative build</p>
+      <ul class="pkg-features">
+        <li>Up to 5 custom sections</li>
+        <li>Enhanced interactions + animation</li>
+        <li>Performance &amp; accessibility polish</li>
+        <li>Custom visuals</li>
+      </ul>
+      <a href="#contact" class="pkg-cta">Get Started</a>
+    </div>
+    <div class="pkg-card" data-reveal>
+      <p class="pkg-name">Brand + Web</p>
+      <div class="pkg-price"><sup>$</sup>700<span style="font-size:24px;font-weight:400">+</span></div>
+      <p class="pkg-sub">Identity meets digital</p>
+      <ul class="pkg-features">
+        <li>Logo + palette + style direction</li>
+        <li>Website + custom icon/illustration set</li>
+        <li>Launch support + handoff assets</li>
+        <li>Brand guidelines</li>
+      </ul>
+      <a href="#contact" class="pkg-cta">Get Started</a>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="port-header" data-reveal>
+    <p class="section-kicker">Selected Work</p>
+    <h2 class="section-title">Recent projects.</h2>
+  </div>
+  <div class="port-scroll">
+    <div class="port-item">
+      <div class="port-bg port-bg-1"></div>
+      <div class="port-grid-lines"></div>
+      <div class="port-content">
+        <p class="port-tag">E-Commerce</p>
+        <h3 class="port-title">Coastal Goods Co.</h3>
+        <p class="port-sub">Shopify redesign + brand identity</p>
+      </div>
+      <div class="port-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+    <div class="port-item">
+      <div class="port-bg port-bg-2"></div>
+      <div class="port-grid-lines"></div>
+      <div class="port-content">
+        <p class="port-tag">SaaS</p>
+        <h3 class="port-title">Orbit Analytics</h3>
+        <p class="port-sub">Marketing site + motion system</p>
+      </div>
+      <div class="port-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+    <div class="port-item">
+      <div class="port-bg port-bg-3"></div>
+      <div class="port-grid-lines"></div>
+      <div class="port-content">
+        <p class="port-tag">Agency</p>
+        <h3 class="port-title">Verde Creative</h3>
+        <p class="port-sub">Full rebrand + website</p>
+      </div>
+      <div class="port-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+    <div class="port-item">
+      <div class="port-bg port-bg-4"></div>
+      <div class="port-grid-lines"></div>
+      <div class="port-content">
+        <p class="port-tag">Restaurant</p>
+        <h3 class="port-title">Ember &amp; Salt</h3>
+        <p class="port-sub">Interactive menu + reservations</p>
+      </div>
+      <div class="port-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-glow"></div>
+  <div data-reveal>
+    <h2 class="contact-title">Ready to build something <em>exceptional?</em></h2>
+    <p class="contact-sub">We take on a limited number of projects each month. Tell us about yours.</p>
+    <div class="contact-ctas">
+      <a href="mailto:hello@northboundstudio.co" class="btn-primary">Start a Conversation</a>
+      <a href="#packages" class="btn-outline">See Pricing</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-left">© 2024 Northbound Studio — All rights reserved</span>
+  <div class="footer-right">
+    <a href="#services">Services</a>
+    <a href="#packages">Packages</a>
+    <a href="#portfolio">Work</a>
+    <a href="mailto:hello@northboundstudio.co">Contact</a>
+  </div>
+</footer>
+<script>
+// ── MAGNETIC CURSOR ──
+const cur = document.getElementById('cur');
+const curRing = document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+});
+function lerp(a,b,t){return a+(b-a)*t}
+function animCursor(){
+  rx=lerp(rx,mx,0.12);ry=lerp(ry,my,0.12);
+  curRing.style.left=rx+'px';curRing.style.top=ry+'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+
+// ── NAV SCROLL ──
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled',window.scrollY>80);
+},{ passive:true });
+
+// ── INTERSECTION OBSERVER (reveal) ──
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}
+  });
+},{threshold:0.12});
+document.querySelectorAll('[data-reveal]').forEach(el=>obs.observe(el));
+
+// ── SCRAMBLE TEXT ──
+const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*';
+function scramble(el,original,duration=900){
+  let start=null,frame;
+  function step(ts){
+    if(!start)start=ts;
+    const p=Math.min((ts-start)/duration,1);
+    const revealed=Math.floor(p*original.length);
+    let result='';
+    for(let i=0;i<original.length;i++){
+      if(i<revealed||original[i]===' '){result+=original[i]}
+      else{result+=chars[Math.floor(Math.random()*chars.length)]}
+    }
+    el.textContent=result;
+    if(p<1){frame=requestAnimationFrame(step)}
+    else{el.textContent=original}
+  }
+  requestAnimationFrame(step);
+}
+
+// Run scramble on stat numbers when visible
+const statObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const num=e.target.querySelector('.stat-num');
+      if(num){const orig=num.textContent;scramble(num,orig);}
+      statObs.unobserve(e.target);
+    }
+  });
+},{threshold:0.5});
+document.querySelectorAll('.stat-card').forEach(el=>statObs.observe(el));
+
+// ── 3D TILT on visual cards ──
+document.querySelectorAll('.visual-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-0.5;
+    const y=(e.clientY-r.top)/r.height-0.5;
+    card.style.transform=`perspective(600px) rotateX(${-y*12}deg) rotateY(${x*12}deg) translateZ(8px)`;
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.transform='';
+    setTimeout(()=>{
+      const idx=['vc-1','vc-2','vc-3'].findIndex(c=>card.classList.contains(c));
+      const rots=[-3,2,-1];
+      card.style.transform=`rotate(${rots[idx]||0}deg)`;
+    },300);
+  });
+});
+
+// ── 3D TILT on pkg cards ──
+document.querySelectorAll('.pkg-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-0.5;
+    const y=(e.clientY-r.top)/r.height-0.5;
+    card.style.transform=`perspective(800px) rotateX(${-y*8}deg) rotateY(${x*8}deg) translateY(-8px)`;
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.transform='';
+  });
+});
+
+// ── PARALLAX HERO ORBS ──
+document.addEventListener('mousemove',e=>{
+  const cx=window.innerWidth/2,cy=window.innerHeight/2;
+  const dx=(e.clientX-cx)/cx,dy=(e.clientY-cy)/cy;
+  document.querySelector('.orb-1').style.transform=`translate(${dx*-30}px,${dy*-20}px)`;
+  document.querySelector('.orb-2').style.transform=`translate(${dx*20}px,${dy*15}px)`;
+  document.querySelector('.orb-3').style.transform=`translate(${dx*15}px,${dy*-25}px)`;
+},{passive:true});
+
+// ── GLITCH on hover ──
+document.querySelectorAll('.glitch').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    el.style.animation='glitch-hover 0.4s steps(1) 2';
+  });
+  el.addEventListener('animationend',()=>{el.style.animation=''});
+});
+</script>
+</body>
 </html>

@@ -5,25 +5,44 @@
 
 /* ---------- Design tokens ---------- */
 :root {
-  --bg: #0a0a0a;
-  --bg-soft: #111213;
+  /* The Observatory palette */
+  --bg: #060608;
+  --bg-soft: #0c0c10;
   --bg-card: rgba(255, 255, 255, 0.025);
-  --ink: #ededed;
-  --ink-mut: #8b8d90;
-  --ink-dim: #5f6164;
+  --surface: #16161e;
+  --ink: #e8e8ed;
+  --ink-mut: #7a7a8e;
+  --ink-dim: #4a4a5e;
   --accent: #00f0ff;
   --accent-deep: #00a6b3;
-  --line: rgba(255, 255, 255, 0.08);
+  --accent-glow: rgba(0, 240, 255, 0.15);
+  --accent-subtle: rgba(0, 240, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.06);
   --line-bright: rgba(0, 240, 255, 0.4);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  /* spec aliases */
+  --text: var(--ink);
+  --text-muted: var(--ink-mut);
+  --text-dim: var(--ink-dim);
 
   --maxw: 1180px;
   --gut: clamp(1.25rem, 4vw, 3rem);
 
-  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Syne", var(--font);
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --r: 16px;
+}
+
+/* Display face on headings */
+h1, h2, h3,
+.hero__title, .section-title, .panel__title,
+.why__name, .project__name, .pkg__price {
+  font-family: var(--font-display);
 }
 
 /* ---------- Reset ---------- */

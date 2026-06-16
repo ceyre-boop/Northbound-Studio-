@@ -8,10 +8,9 @@
 import { reduceMotion, isTouch, clamp } from "../core/util.js";
 
 const LABELS = {
-  hero: "Home",
-  why: "Studio",
-  packages: "Packages",
+  studio: "Studio",
   work: "Work",
+  packages: "Packages",
   apply: "Contact",
 };
 

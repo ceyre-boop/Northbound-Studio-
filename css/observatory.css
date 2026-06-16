@@ -15,7 +15,7 @@
   place-items: center;
   gap: 1.6rem;
   transition: transform 0.9s var(--ease-expo);
-  animation: introLift 0.9s var(--ease-expo) 2.8s forwards; /* pure-CSS failsafe */
+  animation: introLift 0.9s var(--ease-expo) 3.2s forwards; /* pure-CSS failsafe */
 }
 .intro.is-lifted { animation: none; transform: translateY(-100%); }
 .intro-skip .intro { display: none; }
@@ -31,6 +31,27 @@
   filter: drop-shadow(0 0 14px rgba(0, 240, 255, 0.6));
   animation: introDraw 1.1s var(--ease-expo) 0.2s forwards;
 }
+.intro__type {
+  min-height: 1.2em;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(0.95rem, 3.4vw, 1.7rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.intro__type::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 0.1em;
+  vertical-align: -0.16em;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+  animation: introCaret 0.7s steps(1) infinite;
+}
 .intro__prompt {
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -38,10 +59,11 @@
   text-transform: uppercase;
   color: var(--ink-dim);
   opacity: 0;
-  animation: introPrompt 0.6s ease 1.6s forwards;
+  animation: introPrompt 0.6s ease 2.4s forwards;
 }
 @keyframes introDraw { to { stroke-dashoffset: 0; } }
 @keyframes introPrompt { to { opacity: 1; } }
+@keyframes introCaret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @keyframes introLift { to { transform: translateY(-100%); visibility: hidden; pointer-events: none; } }
 
 /* ============================================================
@@ -125,6 +147,12 @@
   transform: translateY(-4px);
   transition: opacity 0.3s, transform 0.3s;
 }
+/* Cursor proximity — the node becomes a gravity well (set by observatory.js). */
+.node.is-near .node__dot {
+  transform: scale(1.32);
+  box-shadow: 0 0 0 9px var(--accent-subtle), 0 0 26px rgba(0, 240, 255, 0.7);
+}
+.node.is-near .node__meta { opacity: 1; transform: none; }
 .node:hover .node__dot,
 .node:focus-visible .node__dot {
   transform: scale(1.5);
@@ -365,6 +393,55 @@ body[data-mode="hub"] .work__slide .project__name { font-size: clamp(2rem, 4.5vw
 .apply__note span { margin-right: 0.4rem; opacity: 0.8; }
 
 /* ============================================================
+   WARP GATE — Layer 2 transition burst (light ring + flash).
+   Fired by ui/transitions.js from the clicked node's screen point.
+   ============================================================ */
+#warpgate {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  overflow: hidden;
+}
+.warpgate__ring,
+.warpgate__flash {
+  position: absolute;
+  left: var(--ox, 50%);
+  top: var(--oy, 50%);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  border-radius: 50%;
+}
+.warpgate__ring {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(0, 240, 255, 0.9);
+  box-shadow: 0 0 26px rgba(0, 240, 255, 0.7), inset 0 0 18px rgba(0, 240, 255, 0.5);
+}
+.warpgate__flash {
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(220, 250, 255, 0.85), rgba(0, 240, 255, 0.25) 40%, transparent 70%);
+  filter: blur(2px);
+}
+#warpgate.is-in .warpgate__ring { animation: warpRingIn 0.62s var(--ease-expo) forwards; }
+#warpgate.is-in .warpgate__flash { animation: warpFlashIn 0.5s var(--ease) forwards; }
+#warpgate.is-out .warpgate__ring { animation: warpRingOut 0.5s var(--ease) forwards; }
+@keyframes warpRingIn {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) scale(34); opacity: 0; }
+}
+@keyframes warpFlashIn {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  22% { opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+}
+@keyframes warpRingOut {
+  0% { transform: translate(-50%, -50%) scale(8); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+}
+
+/* ============================================================
    REDUCED MOTION — force the calm linear base
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
@@ -373,4 +450,5 @@ body[data-mode="hub"] .work__slide .project__name { font-size: clamp(2rem, 4.5vw
   body[data-mode="hub"] .panel.is-active .why__card--dev,
   body[data-mode="hub"] .panel.is-active .why__card--design { animation: none !important; }
   #bg { transition: none !important; }
+  #warpgate { display: none !important; }
 }

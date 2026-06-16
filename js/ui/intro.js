@@ -1,13 +1,13 @@
 /* ============================================================
    ui/intro.js — cinematic first-visit intro.
-   Line-draw marks → wordmark reveal → curtain lift.
+   N draws itself → "NORTHBOUND STUDIO" typewriters in → curtain lift.
    Fail-safes (so the page can NEVER be trapped on black):
      1. inline <head> script skips it for repeat visits (no flash)
      2. reduced-motion skips instantly
      3. click / keypress skips
-     4. JS timer lifts at ~2.6s
-     5. JS hard timer force-removes at 4s
-     6. pure-CSS keyframe removes it at 6s even if JS never runs
+     4. JS timer lifts at ~3.2s (after the wordmark finishes)
+     5. JS hard timer force-removes at 4.6s
+     6. pure-CSS keyframe removes it at ~3.2s even if JS never runs
    ============================================================ */
 import { reduceMotion } from "../core/util.js";
 
@@ -18,12 +18,16 @@ export function initIntro() {
     return false;
   }
 
+  let typeTimer = 0;
+
   const done = () => {
+    clearInterval(typeTimer);
     document.body.classList.add("intro-done");
     if (intro.isConnected) intro.remove();
   };
 
   const lift = () => {
+    clearInterval(typeTimer);
     intro.classList.add("is-lifted");
     document.body.classList.add("intro-done");
     intro.addEventListener("transitionend", done, { once: true });
@@ -48,8 +52,26 @@ export function initIntro() {
   intro.addEventListener("click", lift, { once: true });
   window.addEventListener("keydown", lift, { once: true });
 
-  setTimeout(lift, 2600); // scheduled curtain lift
-  setTimeout(done, 4000); // hard failsafe — remove no matter what
+  // Typewriter the wordmark once the N has finished drawing itself (~1.1s).
+  const type = intro.querySelector(".intro__type");
+  if (type) {
+    const text = "NORTHBOUND STUDIO";
+    setTimeout(() => {
+      let i = 0;
+      type.classList.add("is-typing");
+      typeTimer = setInterval(() => {
+        i++;
+        type.textContent = text.slice(0, i);
+        if (i >= text.length) {
+          clearInterval(typeTimer);
+          type.classList.add("is-typed");
+        }
+      }, 68);
+    }, 1000);
+  }
+
+  setTimeout(lift, 3200); // scheduled curtain lift (after the wordmark types in)
+  setTimeout(done, 4600); // hard failsafe — remove no matter what
 
   return true;
 }

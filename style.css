@@ -877,72 +877,7 @@ html.bg-static body {
 .cursor[data-mode="slice"] .cursor__dot { opacity: 0; }
 .is-magnet { will-change: transform; }
 
-/* ---------- Cinematic intro ---------- */
-.intro {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  background: #050506;
-  display: grid;
-  place-items: center;
-  transition: transform 0.9s var(--ease);
-  /* Pure-CSS lift — runs even if JS never executes. */
-  animation: introLift 0.9s var(--ease) 2.6s forwards;
-}
-.intro.is-lifted { animation: none; transform: translateY(-100%); }
-.intro-skip .intro { display: none; }
-.intro__marks {
-  display: flex;
-  gap: clamp(0.7rem, 3vw, 1.8rem);
-  animation: introMarksOut 0.6s var(--ease) 1.5s forwards;
-}
-.intro__mark { width: clamp(24px, 5vw, 38px); height: clamp(24px, 5vw, 38px); overflow: visible; }
-.intro__mark * {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 160;
-  stroke-dashoffset: 160;
-  opacity: 0.9;
-  animation: introDraw 0.7s var(--ease) forwards;
-}
-.intro__mark:nth-child(1) * { animation-delay: 0.15s; }
-.intro__mark:nth-child(2) * { animation-delay: 0.30s; }
-.intro__mark:nth-child(3) * { animation-delay: 0.45s; }
-.intro__mark:nth-child(4) * { animation-delay: 0.60s; }
-.intro__mark:nth-child(5) * { animation-delay: 0.75s; }
-.intro__word {
-  position: absolute;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  font-size: clamp(1.1rem, 4.5vw, 2.4rem);
-  color: var(--ink);
-  opacity: 0;
-  animation: introWordIn 0.8s var(--ease) 1.5s forwards;
-}
-.intro__word span { color: var(--accent); }
-.intro__skip {
-  position: absolute;
-  bottom: 2rem;
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-  opacity: 0;
-  animation: introSkipIn 0.4s ease 2s forwards;
-}
-@keyframes introDraw { to { stroke-dashoffset: 0; } }
-@keyframes introMarksOut { to { opacity: 0; transform: translateY(-12px); } }
-@keyframes introWordIn {
-  0% { opacity: 0; transform: translateY(12px); letter-spacing: 0.22em; }
-  60% { opacity: 1; }
-  100% { opacity: 1; transform: none; letter-spacing: 0.04em; }
-}
-@keyframes introSkipIn { to { opacity: 1; } }
-@keyframes introLift { to { transform: translateY(-100%); visibility: hidden; pointer-events: none; } }
+/* ---------- Cinematic intro — owned entirely by css/observatory.css ---------- */
 
 /* ---------- Molecular logo ---------- */
 .logo-canvas {

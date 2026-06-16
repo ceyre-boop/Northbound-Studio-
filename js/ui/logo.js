@@ -85,11 +85,20 @@ export function initLogo() {
   let rect = box.getBoundingClientRect();
   let rectTimer = 0;
 
+  // Heartbeat: every ~3.4s the N pulses — particles get a soft outward
+  // shove (the spring reforms them) and brighten, like a slow heartbeat.
+  let lastBeat = performance.now();
+  let beat = 0;
+
   function step(dt, now) {
     // Refresh element rect a few times/sec (it scrolls with the page).
     if (now - rectTimer > 120) {
       rect = box.getBoundingClientRect();
       rectTimer = now;
+    }
+    if (!reduceMotion) {
+      if (now - lastBeat > 3400) { lastBeat = now; beat = 1; }
+      beat *= 0.92;
     }
     // Pointer in canvas-local space.
     const mxRaw = pointer.x - rect.left;
@@ -118,6 +127,15 @@ export function initLogo() {
           p.vy -= (dy / d) * force * power;
         }
       }
+      // Heartbeat shove — radial impulse out from the glyph center.
+      if (beat > 0.02) {
+        const hx = p.x - cw / 2;
+        const hy = p.y - ch / 2;
+        const hd = Math.hypot(hx, hy) || 1;
+        const push = beat * 0.5;
+        p.vx += (hx / hd) * push;
+        p.vy += (hy / hd) * push;
+      }
       // Spring home + damping (all clamped → never NaN/explode).
       p.vx += (p.baseX - p.x) * 0.05;
       p.vy += (p.baseY - p.y) * 0.05;
@@ -128,11 +146,11 @@ export function initLogo() {
 
       const off = Math.hypot(p.x - p.baseX, p.y - p.baseY);
       const lit = clamp(off / 30, 0, 1);
-      const a = 0.55 + breathe * 0.1 + lit * 0.45;
-      ctx.fillStyle = lit > 0.4
+      const a = 0.55 + breathe * 0.1 + lit * 0.45 + beat * 0.35;
+      ctx.fillStyle = lit > 0.4 || beat > 0.25
         ? `rgba(170, 250, 255, ${clamp(a, 0, 1)})`
         : `rgba(0, 240, 255, ${clamp(a, 0, 1)})`;
-      const s = 1.7 + lit * 1.3;
+      const s = 1.7 + lit * 1.3 + beat * 0.8;
       ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s);
     }
   }

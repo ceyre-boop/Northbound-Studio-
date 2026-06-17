@@ -804,78 +804,148 @@ html.bg-static body {
     #0a0a0a;
 }
 
-/* ---------- Custom cursor ---------- */
+/* ---------- Custom cursor (the "Comet") ---------- */
 @media (hover: hover) and (pointer: fine) {
   html.has-cursor, html.has-cursor * { cursor: none !important; }
 }
-.cursor {
+.cursor-canvas {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   z-index: 10000;
   pointer-events: none;
   transition: opacity 0.3s;
 }
-.cursor > * {
-  position: absolute;
+.cursor-label {
+  position: fixed;
   top: 0;
   left: 0;
-  will-change: transform;
+  z-index: 10001;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+  opacity: 0;
+  transform: translate(-200px, -200px);
+  transition: opacity 0.2s var(--ease);
+  will-change: transform, opacity;
 }
-.cursor__dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 50%;
-  background: #fff;
-  transition: opacity 0.2s;
+.cursor-label[data-show="1"] { opacity: 0.9; }
+.is-magnet { will-change: transform; }
+
+/* ============================================================
+   PASS B — interiors, play & ambient UI
+   ============================================================ */
+
+/* Code-rain behind the Build card (canvas sits under the content). */
+.why__card--dev { overflow: hidden; }
+.coderain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: none;
 }
-.cursor__ring {
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  transition: width 0.25s var(--ease), height 0.25s var(--ease),
-    margin 0.25s var(--ease), background 0.25s, border-color 0.25s,
-    border-radius 0.25s;
+.why__card--dev > *:not(.coderain) { position: relative; z-index: 1; }
+
+/* Slow color-shift behind the Art card. */
+.why__card--design { overflow: hidden; }
+.why__card--design > * { position: relative; z-index: 1; }
+.why__card--design::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  background:
+    radial-gradient(40% 50% at 30% 30%, rgba(0, 240, 255, 0.18), transparent 60%),
+    radial-gradient(45% 55% at 75% 70%, rgba(120, 80, 255, 0.16), transparent 60%),
+    radial-gradient(40% 40% at 60% 20%, rgba(0, 200, 180, 0.14), transparent 60%);
+  filter: blur(6px);
+  animation: artShift 16s ease-in-out infinite;
 }
-.cursor__aura {
-  width: 120px;
-  height: 120px;
-  margin: -60px 0 0 -60px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 240, 255, 0.16), transparent 70%);
-  opacity: 0.55;
+@keyframes artShift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(6%, -5%) rotate(4deg); }
+  66% { transform: translate(-5%, 4%) rotate(-3deg); }
 }
-.cursor__label {
+
+/* Energy travelling around the featured package's border. */
+@property --pkgang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.pkg--featured::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--pkgang),
+    transparent 0 58%, rgba(0, 240, 255, 0.9) 72%, rgba(200, 250, 255, 1) 76%, transparent 90%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: pkgBorderSpin 4.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes pkgBorderSpin { to { --pkgang: 360deg; } }
+
+/* Idle whisper — surfaces after 30s of stillness (main.js). */
+.idle-whisper {
+  position: fixed;
+  bottom: 2.3rem;
+  left: 50%;
+  z-index: 120;
+  transform: translateX(-50%) translateY(8px);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-mut);
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+}
+.idle-whisper.is-show { opacity: 0.75; transform: translateX(-50%) translateY(0); }
+
+/* Ambient-sound toggle (default OFF). */
+.sound-toggle {
+  position: fixed;
+  bottom: 1.05rem;
+  left: 1.05rem;
+  z-index: 130;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(8, 8, 12, 0.7);
+  backdrop-filter: blur(10px);
+  color: var(--ink-mut);
   font-family: var(--mono);
   font-size: 0.6rem;
-  letter-spacing: 0.14em;
-  color: #fff;
-  opacity: 0;
-  transition: opacity 0.2s;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: color 0.2s, border-color 0.2s;
 }
-.cursor[data-mode="link"] .cursor__ring {
-  width: 52px; height: 52px; margin: -26px 0 0 -26px;
-  background: rgba(0, 240, 255, 0.10); border-color: var(--accent);
+.sound-toggle:hover { color: var(--ink); border-color: var(--border-hover); }
+.sound-toggle.is-on { color: var(--accent); border-color: var(--line-bright); }
+.sound-toggle__icon { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.sound-toggle__icon i { width: 2px; height: 4px; background: currentColor; border-radius: 1px; }
+.sound-toggle.is-on .sound-toggle__icon i { animation: eq 0.8s ease-in-out infinite; }
+.sound-toggle.is-on .sound-toggle__icon i:nth-child(2) { animation-delay: 0.18s; }
+.sound-toggle.is-on .sound-toggle__icon i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes eq { 0%, 100% { height: 4px; } 50% { height: 12px; } }
+@media (max-width: 600px) { .sound-toggle__txt { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .coderain { display: none !important; }
+  .why__card--design::before,
+  .pkg--featured::before,
+  .sound-toggle.is-on .sound-toggle__icon i { animation: none !important; }
 }
-.cursor[data-mode="link"] .cursor__dot { opacity: 0; }
-.cursor[data-mode="view"] .cursor__ring {
-  width: 84px; height: 84px; margin: -42px 0 0 -42px;
-  background: rgba(0, 240, 255, 0.14); border-color: var(--accent);
-}
-.cursor[data-mode="view"] .cursor__label { opacity: 1; }
-.cursor[data-mode="view"] .cursor__dot { opacity: 0; }
-.cursor[data-mode="slice"] .cursor__ring {
-  width: 9px; height: 46px; margin: -23px 0 0 -4px;
-  border-radius: 6px; background: var(--accent); border-color: transparent;
-  box-shadow: 0 0 18px rgba(0, 240, 255, 0.7);
-}
-.cursor[data-mode="slice"] .cursor__dot { opacity: 0; }
-.is-magnet { will-change: transform; }
 
 /* ---------- Cinematic intro — owned entirely by css/observatory.css ---------- */
 

@@ -21,6 +21,8 @@ import { initForm } from "./ui/form.js";
 import { initObservatory } from "./ui/observatory.js";
 import { initSections } from "./ui/sections.js";
 import { initRouter } from "./core/router.js";
+import { initCodeRain } from "./ui/coderain.js";
+import { initSound } from "./ui/sound.js";
 
 function wantsHub() {
   return (
@@ -52,8 +54,40 @@ function initEasterEgg() {
       i = 0;
       document.body.classList.add("warp");
       setTimeout(() => document.body.classList.remove("warp"), 1400);
+      // Fireworks: staggered bursts across the viewport (cursor canvas +
+      // constellation dust both react).
+      const burst = (x, y) => {
+        try { document.dispatchEvent(new CustomEvent("nb:burst", { detail: { x, y } })); } catch (_) {}
+        try { document.dispatchEvent(new CustomEvent("nb:warp", { detail: { type: "scatter", x, y } })); } catch (_) {}
+        try { document.dispatchEvent(new CustomEvent("nb:click", { detail: { x, y } })); } catch (_) {}
+      };
+      for (let k = 0; k < 7; k++) {
+        const x = window.innerWidth * (0.2 + Math.random() * 0.6);
+        const y = window.innerHeight * (0.2 + Math.random() * 0.5);
+        setTimeout(() => burst(x, y), k * 140);
+      }
     }
   });
+}
+
+/* After 30s of stillness, the site whispers to the curious. */
+function initIdleWhisper() {
+  if (reduceMotion) return;
+  const el = document.createElement("div");
+  el.className = "idle-whisper";
+  el.setAttribute("aria-hidden", "true");
+  el.textContent = "Still here? We like the curious ones.";
+  document.body.appendChild(el);
+  let timer = 0;
+  const reset = () => {
+    el.classList.remove("is-show");
+    clearTimeout(timer);
+    timer = setTimeout(() => el.classList.add("is-show"), 30000);
+  };
+  ["pointermove", "pointerdown", "keydown", "scroll", "wheel"].forEach((ev) =>
+    window.addEventListener(ev, reset, { passive: true })
+  );
+  reset();
 }
 
 function signature() {
@@ -90,7 +124,10 @@ function boot() {
   guard("sections", initSections);
   guard("scrollfx", initScrollFX);
   guard("router", initRouter);
+  guard("coderain", initCodeRain);
+  guard("sound", initSound);
   guard("easter", initEasterEgg);
+  guard("whisper", initIdleWhisper);
   signature();
 
   // Re-evaluate mode when crossing the breakpoint.

@@ -170,6 +170,18 @@ export function initObservatory() {
         p.ix += (dx / d) * warpToward;
         p.iy += (dy / d) * warpToward;
       }
+      // Cursor wake — the comet stirs nearby dust (repel + carry along motion).
+      if (pointer.active) {
+        const cdx = p.x - pointer.x, cdy = p.y - pointer.y;
+        const cd = Math.hypot(cdx, cdy);
+        if (cd < 130 && cd > 0.1) {
+          const f = 1 - cd / 130;
+          p.ix += (cdx / cd) * f * 0.7;
+          p.iy += (cdy / cd) * f * 0.7;
+          p.ix += pointer.vx * f * 0.05;
+          p.iy += pointer.vy * f * 0.05;
+        }
+      }
       // Integrate (impulse decays; steady drift continues).
       p.ix *= 0.9; p.iy *= 0.9;
       p.x = safe(p.x + p.vx + p.ix, p.x);

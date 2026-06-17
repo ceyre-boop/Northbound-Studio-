@@ -35,6 +35,29 @@ function scramble(el) {
   }, 16);
 }
 
+/* Count a price up from zero, preserving its currency span + separators
+   ($250 / $400–600 / $750+). Reduced-motion callers just skip it. */
+function countUpPrice(priceEl) {
+  const span = priceEl.querySelector(".pkg__currency");
+  const currency = span ? span.textContent : "";
+  const tpl = priceEl.textContent.replace(currency, "");
+  const targets = (tpl.match(/\d+/g) || []).map(Number);
+  if (!targets.length) return;
+  const dur = 950;
+  const start = performance.now();
+  function frame(now) {
+    const t = Math.min((now - start) / dur, 1);
+    const e = t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    let idx = 0;
+    const out = tpl.replace(/\d+/g, () => String(Math.round(targets[idx++] * e)));
+    priceEl.textContent = "";
+    if (span) priceEl.appendChild(span);
+    priceEl.appendChild(document.createTextNode(out));
+    if (t < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
 export function initReveals() {
   // Hero load stagger (fonts-aware), independent of the intro.
   const reveal = () => document.body.classList.add("is-loaded");
@@ -80,6 +103,32 @@ export function initReveals() {
     { threshold: 0.5 }
   );
   titles.forEach((t) => titleObs.observe(t));
+
+  // Price count-up. In linear mode the IntersectionObserver fires on scroll;
+  // in hub mode the prices live in a hidden fixed panel, so we also trigger
+  // when the Packages panel is opened (hashchange). A WeakSet de-dupes.
+  const counted = new WeakSet();
+  const runCount = (p) => { if (!counted.has(p)) { counted.add(p); countUpPrice(p); } };
+  const isShown = (el) =>
+    getComputedStyle(el).visibility !== "hidden" && el.getClientRects().length > 0;
+  const prices = [...document.querySelectorAll(".pkg__price")];
+  if (prices.length) {
+    const priceObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && isShown(entry.target)) {
+            priceObs.unobserve(entry.target);
+            runCount(entry.target);
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+    prices.forEach((p) => priceObs.observe(p));
+    window.addEventListener("hashchange", () => {
+      if (location.hash === "#packages") prices.forEach(runCount);
+    });
+  }
 
   return true;
 }

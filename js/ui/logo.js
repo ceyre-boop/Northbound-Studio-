@@ -82,6 +82,18 @@ export function initLogo() {
   }
   window.addEventListener("resize", () => setTimeout(buildParticles, 200));
 
+  // Click the N → it fractures outward, then the springs reform it.
+  wrap.addEventListener("click", () => {
+    for (const p of particles) {
+      const dx = p.x - cw / 2, dy = p.y - ch / 2;
+      const d = Math.hypot(dx, dy) || 1;
+      const power = 14 + Math.random() * 16;
+      p.vx += (dx / d) * power + (Math.random() - 0.5) * 8;
+      p.vy += (dy / d) * power + (Math.random() - 0.5) * 8;
+    }
+    beat = 1; // flash bright as it shatters
+  });
+
   let rect = box.getBoundingClientRect();
   let rectTimer = 0;
 

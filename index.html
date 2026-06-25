@@ -4,444 +4,322 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#060608" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060608'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E" />
+    <title>Northbound Studio — We build unfair advantages.</title>
     <meta
       name="description"
-      content="Northbound Studio — a creative web design studio. Navigate the constellation: studio, work, packages, and how to start a project. We design and build fast, modern websites and brand identities."
+      content="Northbound Studio designs and builds cinematic, high-converting websites and brand identities. The site is the portfolio — imagine what we'll build for you."
     />
-    <title>Northbound Studio — The Observatory</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060608'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-
-    <link rel="stylesheet" href="./style.css" />
-    <link rel="stylesheet" href="./css/observatory.css" />
-    <noscript>
-      <!-- With JS off, reveal-on-scroll can't fire — show everything, linear. -->
-      <style>
-        [data-reveal] { opacity: 1 !important; transform: none !important; }
-        .intro { display: none !important; }
-      </style>
-    </noscript>
-    <script>
-      /* No-flash: skip the intro for repeat visits in this session. */
-      try {
-        if (sessionStorage.getItem("nb_intro"))
-          document.documentElement.classList.add("intro-skip");
-        else sessionStorage.setItem("nb_intro", "1");
-      } catch (e) {}
-    </script>
-    <script type="module" src="./js/main.js"></script>
+    <link rel="stylesheet" href="./css/style.css" />
   </head>
 
-  <body data-mode="linear">
-    <a class="skip-link" href="#main">Skip to content</a>
-
-    <!-- Deep-space constellation (WebGL2 → Canvas-2D → CSS gradient) -->
-    <canvas id="bg" class="bg-canvas" aria-hidden="true"></canvas>
+  <body>
+    <!-- Film grain overlay -->
     <div class="grain" aria-hidden="true"></div>
 
-    <!-- ── OPENING SEQUENCE ──────────────────────────────────────── -->
-    <div id="intro" class="intro" aria-hidden="true">
-      <svg class="intro__n" viewBox="0 0 60 56" aria-hidden="true">
-        <path d="M10 50 V6 L50 50 V6" />
-      </svg>
-      <span class="intro__type" aria-hidden="true"></span>
-      <span class="intro__prompt">Click anywhere to explore</span>
+    <!-- Transition stage (energy swoosh / disintegration / wipe / scan) -->
+    <div class="fx" aria-hidden="true">
+      <span class="fx__sweep"></span>
+      <span class="fx__flash"></span>
+      <canvas class="fx__canvas"></canvas>
     </div>
 
-    <!-- ── TOP NAV (also the accessible / linear fallback) ───────── -->
+    <!-- ── BOOT SEQUENCE ─────────────────────────────────────────── -->
+    <div id="boot" class="boot" aria-hidden="true">
+      <span class="boot__scan"></span>
+      <pre class="boot__log"></pre>
+      <svg class="boot__n" viewBox="0 0 60 56" aria-hidden="true">
+        <path d="M10 50 V6 L50 50 V6" />
+      </svg>
+    </div>
+
+    <!-- ── NAV ───────────────────────────────────────────────────── -->
     <header class="nav" id="nav">
-      <a class="nav__brand" href="#" data-home aria-label="Northbound Studio — home">
-        <span class="mark" aria-hidden="true">N</span>
+      <a class="nav__brand" href="#top" data-scroll aria-label="Northbound Studio — top">
+        <span class="nav__mark" aria-hidden="true">N</span>
         <span class="nav__name">Northbound&nbsp;Studio</span>
       </a>
       <nav class="nav__links" aria-label="Primary">
-        <a href="#studio" data-node-link>Studio</a>
-        <a href="#work" data-node-link>Work</a>
-        <a href="#packages" data-node-link>Packages</a>
-        <a class="nav__cta" href="#apply" data-node-link>Apply</a>
+        <a href="#portfolio" data-scroll>Work</a>
+        <a href="#packages" data-scroll>Packages</a>
+        <a class="nav__cta" href="#apply" data-scroll>Apply</a>
       </nav>
+      <button class="nav__burger" type="button" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </header>
-
-    <!-- ── THE HUB (constellation map / linear hero) ─────────────── -->
-    <div class="hub" id="hub">
-      <canvas class="hub__lines" aria-hidden="true"></canvas>
-
-      <div class="hub__center">
-        <div class="hero__logo">
-          <span class="hero__n" id="brandN" aria-hidden="true">N</span>
-        </div>
-        <h1 class="hub__wordmark">
-          <span class="line">Websites that earn</span>
-          <span class="line"><span class="accent">trust</span> on sight.</span>
-        </h1>
-        <p class="hub__sub">
-          Northbound Studio is a creative web design studio — engineering and art
-          direction from the same table.
-        </p>
-
-        <!-- linear-mode call to action -->
-        <div class="hub__cta">
-          <a class="btn btn--primary" href="#apply" data-node-link>Start a project</a>
-          <a class="btn btn--ghost" href="#packages" data-node-link>View packages</a>
-        </div>
-
-        <!-- hub-mode prompt -->
-        <p class="hub__prompt" aria-hidden="true">Navigate the constellation</p>
-      </div>
-
-      <!-- Orbital nodes (hub mode only; positioned by JS) -->
-      <a class="node" href="#studio" data-target="studio" data-i="0">
-        <span class="node__dot" aria-hidden="true"></span>
-        <span class="node__label">Studio</span>
-        <span class="node__meta">01 — Who we are</span>
-      </a>
-      <a class="node" href="#work" data-target="work" data-i="1">
-        <span class="node__dot" aria-hidden="true"></span>
-        <span class="node__label">Work</span>
-        <span class="node__meta">02 — Selected projects</span>
-      </a>
-      <a class="node" href="#packages" data-target="packages" data-i="2">
-        <span class="node__dot" aria-hidden="true"></span>
-        <span class="node__label">Packages</span>
-        <span class="node__meta">03 — Levels of craft</span>
-      </a>
-      <a class="node" href="#apply" data-target="apply" data-i="3">
-        <span class="node__dot" aria-hidden="true"></span>
-        <span class="node__label">Apply</span>
-        <span class="node__meta">04 — Start a project</span>
-      </a>
+    <div class="navmenu" aria-hidden="true">
+      <a href="#portfolio" data-scroll>Work</a>
+      <a href="#packages" data-scroll>Packages</a>
+      <a href="#apply" data-scroll>Apply</a>
     </div>
 
-    <!-- Back-to-map control (hub mode, when a panel is open) -->
-    <button class="panel-back" type="button" data-back aria-label="Back to the constellation map">
-      <span aria-hidden="true">←</span> Back to map
-    </button>
-
-    <main id="main">
-      <!-- ── STUDIO ─────────────────────────────────────────────── -->
-      <section class="panel" id="studio" aria-labelledby="studio-title">
-        <div class="panel__inner">
-          <div class="section-head">
-            <span class="eyebrow">Studio</span>
-            <h2 class="section-title panel__title" id="studio-title">Two disciplines. One studio.</h2>
-            <p class="section-lead">
-              A developer who ships high-end product, paired with a trained designer —
-              two sides that merge into one brand.
-            </p>
+    <main id="top">
+      <!-- ══ SCENE 1 — HERO ═══════════════════════════════════════ -->
+      <section class="scene scene--hero" id="hero">
+        <canvas class="hero__canvas" aria-hidden="true"></canvas>
+        <span class="hero__tag mono" data-hero>NORTHBOUND STUDIO</span>
+        <div class="hero__center">
+          <h1 class="hero__title display">
+            <span class="line" data-hero>We don't build websites.</span>
+            <span class="line line--accent" data-hero>We build unfair advantages.</span>
+          </h1>
+          <p class="hero__sub" data-hero>
+            The site you're looking at? We built this. Imagine what we'll build for you.
+          </p>
+          <div class="hero__cta" data-hero>
+            <a class="btn btn--primary" href="#apply" data-scroll>Start a Project</a>
+            <a class="btn btn--ghost" href="#portfolio" data-scroll>See Our Work</a>
           </div>
-
-          <div class="why__split" data-merge>
-            <article class="why__card why__card--dev" data-reveal>
-              <span class="why__role">The Build Side</span>
-              <h3 class="why__name">Colin</h3>
-              <p class="why__title">Product Developer · AI Systems Engineer</p>
-              <p class="why__bio">
-                Professional experience building high-end websites and applications — fast
-                turnaround, clean code, and modern design systems that stay fast as they grow.
-              </p>
-              <ul class="why__skills">
-                <li>High-end websites &amp; apps</li>
-                <li>Clean, fast code</li>
-                <li>Modern design systems</li>
-                <li>Performance &amp; accessibility</li>
-              </ul>
-            </article>
-            <article class="why__card why__card--design" data-reveal>
-              <span class="why__role">The Art Side</span>
-              <h3 class="why__name">SCAD Design</h3>
-              <p class="why__title">Animation &amp; design partner</p>
-              <p class="why__bio">
-                Professional-grade logos, branding, and visual identity — plus custom
-                illustration, icons, and motion graphics that give a brand a real voice.
-              </p>
-              <ul class="why__skills">
-                <li>Logos &amp; brand identity</li>
-                <li>Custom illustration</li>
-                <li>Icon systems</li>
-                <li>Motion graphics</li>
-              </ul>
-            </article>
-          </div>
-
-          <ul class="badges" data-reveal>
-            <li class="badge"><span class="badge__k">Experience</span><span class="badge__v">Agency-grade</span></li>
-            <li class="badge"><span class="badge__k">Design Quality</span><span class="badge__v">SCAD-trained</span></li>
-            <li class="badge"><span class="badge__k">Fast Delivery</span><span class="badge__v">1–3 weeks</span></li>
-            <li class="badge"><span class="badge__k">Full Branding</span><span class="badge__v">End-to-end</span></li>
-          </ul>
         </div>
+        <a class="hero__scroll" href="#capability" data-scroll aria-label="Scroll">
+          <span class="hero__scroll-line"></span>
+          <span class="mono">SCROLL</span>
+        </a>
       </section>
 
-      <!-- ── WORK ───────────────────────────────────────────────── -->
-      <section class="panel" id="work" aria-labelledby="work-title">
-        <div class="panel__inner panel__inner--wide">
-          <div class="section-head section-head--left">
-            <span class="eyebrow">Selected Work</span>
-            <h2 class="section-title panel__title" id="work-title">The site is the portfolio.</h2>
-          </div>
-
-          <div class="work">
-            <button class="work__arrow work__arrow--prev" type="button" data-work-prev aria-label="Previous project">←</button>
-            <div class="work__track" data-work-track>
-              <!-- 01 -->
-              <article class="work__slide" data-reveal>
-                <div class="browser">
-                  <div class="browser__bar" aria-hidden="true">
-                    <span class="browser__dot"></span><span class="browser__dot"></span><span class="browser__dot"></span>
-                    <span class="browser__url">keystonesouthconstruction.com</span>
-                  </div>
-                  <div class="browser__viewport">
-                    <div class="mock mock--atlas" aria-hidden="true">
-                      <div class="mock__nav mock__nav--light">
-                        <span class="mock__logo">KEYSTONE</span>
-                        <div class="mock__links"><i></i><i></i><i></i></div>
-                      </div>
-                      <div class="mock__hero mock__hero--atlas">
-                        <h4>Built to last. Finished to impress.</h4>
-                        <span class="mock__btn">Request an estimate</span>
-                        <div class="mock__grid"><span></span><span></span><span></span></div>
-                      </div>
-                    </div>
-                  </div>
+      <!-- ══ SCENE 2 — CAPABILITY SHOWCASE (pinned) ═══════════════ -->
+      <section class="scene scene--cap" id="capability">
+        <div class="cap__grid" aria-hidden="true"></div>
+        <div class="cap__pin">
+          <div class="cap__stage">
+            <!-- Animated device frame (UI builds itself / code / branding) -->
+            <div class="cap__device" data-cap-device>
+              <div class="device__bar" aria-hidden="true">
+                <span></span><span></span><span></span>
+                <em class="device__url mono">northbound.systems</em>
+              </div>
+              <div class="device__view">
+                <!-- A: design build -->
+                <div class="demo demo--design" data-demo="0">
+                  <div class="demo__nav"><i class="demo__logo">BRAND</i><i></i><i></i><i></i></div>
+                  <div class="demo__hero"><h4>Build what matters.</h4><span class="demo__btn">Get started</span></div>
+                  <div class="demo__cards"><span></span><span></span><span></span></div>
                 </div>
-                <div class="work__meta">
-                  <span class="work__num">01</span>
-                  <span class="project__tag">Web Design · Local Business</span>
-                  <h3 class="project__name">Keystone South Construction</h3>
-                  <p class="project__blurb">A clear, professional web presence that reflects premium construction work and makes it easy to request an estimate.</p>
-                  <a class="project__open" href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer">Visit the site <span aria-hidden="true">↗</span></a>
+                <!-- B: code editor -->
+                <div class="demo demo--code" data-demo="1">
+                  <pre class="demo__code"></pre>
+                  <div class="demo__meter"><svg viewBox="0 0 120 120"><circle class="meter__bg" cx="60" cy="60" r="52"/><circle class="meter__fg" cx="60" cy="60" r="52"/></svg><span class="meter__num">0</span><em class="mono">Lighthouse</em></div>
                 </div>
-              </article>
-
-              <!-- 02 -->
-              <article class="work__slide" data-reveal>
-                <div class="browser">
-                  <div class="browser__bar" aria-hidden="true">
-                    <span class="browser__dot"></span><span class="browser__dot"></span><span class="browser__dot"></span>
-                    <span class="browser__url">shop.taboost.me</span>
-                  </div>
-                  <div class="browser__viewport">
-                    <div class="mock mock--meridian" aria-hidden="true">
-                      <div class="mock__nav">
-                        <span class="mock__logo">TABOOST</span>
-                        <div class="mock__links"><i></i><i></i><i></i></div>
-                      </div>
-                      <div class="mock__hero">
-                        <h4>Gear that moves with you.</h4>
-                        <span class="mock__btn">Shop the drop</span>
-                      </div>
-                      <div class="mock__chart">
-                        <svg viewBox="0 0 200 60" preserveAspectRatio="none">
-                          <polyline points="0,46 28,40 56,44 84,26 112,30 140,14 168,18 200,6" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
+                <!-- C: branding -->
+                <div class="demo demo--brand" data-demo="2">
+                  <div class="brandmark"><span></span><span></span><span></span></div>
+                  <div class="swatches"><i></i><i></i><i></i><i></i></div>
                 </div>
-                <div class="work__meta">
-                  <span class="work__num">02</span>
-                  <span class="project__tag">E-Commerce · Product Experience</span>
-                  <h3 class="project__name">TABOOST Shop</h3>
-                  <p class="project__blurb">A fast, product-first storefront with a clean buying flow and a brand-forward experience built to convert browsers into buyers.</p>
-                  <a class="project__open" href="https://shop.taboost.me/" target="_blank" rel="noopener noreferrer">Visit the site <span aria-hidden="true">↗</span></a>
+                <!-- D: support thread -->
+                <div class="demo demo--chat" data-demo="3">
+                  <div class="bubble bubble--in"><b>CLIENT</b>The contact form stopped working</div>
+                  <div class="bubble bubble--out"><b>COLIN</b>Fixed. Check it now.</div>
+                  <div class="bubble bubble--in"><b>CLIENT</b>That was 3 minutes. You're insane.</div>
                 </div>
-              </article>
-
-              <!-- 03 — self-referential -->
-              <article class="work__slide" data-reveal>
-                <div class="browser browser--self">
-                  <div class="browser__bar" aria-hidden="true">
-                    <span class="browser__dot"></span><span class="browser__dot"></span><span class="browser__dot"></span>
-                    <span class="browser__url">northboundstudio · the observatory</span>
-                  </div>
-                  <div class="browser__viewport">
-                    <div class="mock mock--self" aria-hidden="true">
-                      <span class="mock__star"></span><span class="mock__star"></span><span class="mock__star"></span>
-                      <span class="mock__star"></span><span class="mock__star"></span><span class="mock__star"></span>
-                      <span class="mock__n">N</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="work__meta">
-                  <span class="work__num">03</span>
-                  <span class="project__tag">Interactive Experience · Creative Studio</span>
-                  <h3 class="project__name">Northbound Studio</h3>
-                  <p class="project__blurb">This site. The observatory you're navigating right now — a hand-built, zero-dependency constellation that proves the craft.</p>
-                  <a class="project__open" href="#" data-home>You're here <span aria-hidden="true">★</span></a>
-                </div>
-              </article>
+              </div>
             </div>
-            <button class="work__arrow work__arrow--next" type="button" data-work-next aria-label="Next project">→</button>
-            <div class="work__dots" data-work-dots aria-hidden="true"></div>
+            <div class="cap__copy">
+              <span class="cap__count mono"><em>01</em> / 04</span>
+              <span class="cap__eyebrow mono" data-cap-tag>DESIGN · UX · CONVERSION</span>
+              <h3 class="cap__head display" data-cap-head>Design that converts.</h3>
+              <p class="cap__text" data-cap-text>Every pixel placed with intent. Every interaction designed to convert.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- ── PACKAGES ───────────────────────────────────────────── -->
-      <section class="panel" id="packages" aria-labelledby="packages-title">
-        <div class="panel__inner">
-          <div class="section-head">
-            <span class="eyebrow">Packages</span>
-            <h2 class="section-title panel__title" id="packages-title">Choose your level of craft.</h2>
-            <p class="section-lead">Transparent scope, fixed pricing, and a launch in 1–3 weeks. Built mobile-first and tuned to convert.</p>
+      <!-- ══ SCENE 3 — PORTFOLIO (horizontal) ═════════════════════ -->
+      <section class="scene scene--work" id="portfolio">
+        <div class="work__aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="work__pin">
+          <div class="work__track" data-work-track>
+            <!-- 01 -->
+            <article class="work__slide">
+              <div class="work__frame">
+                <div class="frame__bar" aria-hidden="true"><span></span><span></span><span></span><em class="mono">keystonesouthconstruction.com</em></div>
+                <div class="frame__view"><span class="frame__icon">K</span></div>
+              </div>
+              <div class="work__meta">
+                <span class="work__num display">01</span>
+                <span class="mono work__tag">WEB DESIGN · LOCAL BUSINESS</span>
+                <h3 class="work__name display">Keystone South Construction</h3>
+                <p class="work__desc">A clear, professional web presence that reflects premium construction work and makes it easy for visitors to request an estimate.</p>
+                <a class="work__link" href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer">Visit Live Site <span aria-hidden="true">↗</span></a>
+              </div>
+            </article>
+            <!-- 02 -->
+            <article class="work__slide">
+              <div class="work__frame">
+                <div class="frame__bar" aria-hidden="true"><span></span><span></span><span></span><em class="mono">shop.taboost.me</em></div>
+                <div class="frame__view"><span class="frame__icon">T</span></div>
+              </div>
+              <div class="work__meta">
+                <span class="work__num display">02</span>
+                <span class="mono work__tag">E-COMMERCE · PRODUCT EXPERIENCE</span>
+                <h3 class="work__name display">TABOOST Shop</h3>
+                <p class="work__desc">A fast, product-first storefront with a clean buying flow and brand-forward experience built to convert.</p>
+                <a class="work__link" href="https://shop.taboost.me/" target="_blank" rel="noopener noreferrer">Visit Live Site <span aria-hidden="true">↗</span></a>
+              </div>
+            </article>
+            <!-- 03 — self-referential -->
+            <article class="work__slide">
+              <div class="work__frame work__frame--self">
+                <div class="frame__bar" aria-hidden="true"><span></span><span></span><span></span><em class="mono">northbound · the magnum opus</em></div>
+                <div class="frame__view frame__view--self"><span class="frame__n">N</span></div>
+              </div>
+              <div class="work__meta">
+                <span class="work__num display">03</span>
+                <span class="mono work__tag">INTERACTIVE EXPERIENCE · CREATIVE STUDIO</span>
+                <h3 class="work__name display">Northbound Studio</h3>
+                <p class="work__desc">The site you're navigating right now. Our magnum opus. Three.js, GSAP, custom everything.</p>
+                <span class="work__link work__link--here">You're already here <span aria-hidden="true">★</span></span>
+              </div>
+            </article>
           </div>
-          <div class="packages__grid">
-            <article class="pkg" data-reveal>
-              <div class="pkg__glow" aria-hidden="true"></div>
-              <div class="pkg__body">
-                <span class="pkg__tier">Starter</span>
-                <p class="pkg__desc">A polished single-page site with conversion-focused copy and a quick launch.</p>
-                <p class="pkg__price"><span class="pkg__currency">$</span>250</p>
-                <ul class="pkg__features">
-                  <li>1-page build + contact section</li>
-                  <li>Mobile-first design</li>
-                  <li>Basic SEO setup</li>
-                  <li>Launch support</li>
-                </ul>
-                <a class="btn btn--ghost pkg__cta" href="#apply" data-node-link data-budget="$250 — Starter">Get Started</a>
-              </div>
-            </article>
-
-            <article class="pkg pkg--featured" data-reveal>
-              <span class="pkg__badge">Most Popular</span>
-              <div class="pkg__glow" aria-hidden="true"></div>
-              <div class="pkg__body">
-                <span class="pkg__tier">Pro</span>
-                <p class="pkg__desc">A multi-section site with stronger storytelling, custom visuals, and advanced layouts built to elevate trust.</p>
-                <p class="pkg__price"><span class="pkg__currency">$</span>400–600</p>
-                <ul class="pkg__features">
-                  <li>Up to 5 custom sections</li>
-                  <li>Enhanced interactions + animation</li>
-                  <li>Performance &amp; accessibility polish</li>
-                  <li>Custom visuals</li>
-                </ul>
-                <a class="btn btn--primary pkg__cta" href="#apply" data-node-link data-budget="$400–$600 — Pro">Get Started</a>
-              </div>
-            </article>
-
-            <article class="pkg" data-reveal>
-              <div class="pkg__glow" aria-hidden="true"></div>
-              <div class="pkg__body">
-                <span class="pkg__tier">Full Brand Kit</span>
-                <p class="pkg__desc">A complete visual identity + website that unifies logo, brand assets, and digital experience.</p>
-                <p class="pkg__price"><span class="pkg__currency">$</span>750+</p>
-                <ul class="pkg__features">
-                  <li>Logo + palette + style direction</li>
-                  <li>Website + custom icon/illustration set</li>
-                  <li>Launch support + handoff assets</li>
-                  <li>Brand guidelines</li>
-                </ul>
-                <a class="btn btn--ghost pkg__cta" href="#apply" data-node-link data-budget="$750+ — Full Brand Kit">Get Started</a>
-              </div>
-            </article>
+          <div class="work__hud" aria-hidden="true">
+            <span class="work__counter mono"><em>01</em> / 03</span>
+            <div class="work__dots"><i class="is-active"></i><i></i><i></i></div>
           </div>
         </div>
       </section>
 
-      <!-- ── APPLY ──────────────────────────────────────────────── -->
-      <section class="panel" id="apply" aria-labelledby="apply-title">
-        <div class="panel__inner apply__inner">
-          <div class="section-head">
-            <span class="eyebrow">Start a project</span>
-            <h2 class="section-title panel__title" id="apply-title">Let's build yours.</h2>
-            <p class="section-lead">Tell us about your project. We respond within 24 hours.</p>
-            <p class="apply__note"><span aria-hidden="true">◆</span> We take on 2–3 projects per month.</p>
+      <!-- ══ SCENE 4 — PACKAGES ═══════════════════════════════════ -->
+      <section class="scene scene--pkg" id="packages">
+        <div class="pkg__field" aria-hidden="true"></div>
+        <div class="pkg__head">
+          <span class="mono eyebrow" data-reveal>PACKAGES</span>
+          <h2 class="display" data-reveal>Choose your level of craft.</h2>
+          <p class="lead" data-reveal>Transparent scope, fixed pricing, launch in 1–3 weeks. Every build is mobile-first and tuned to convert.</p>
+        </div>
+        <div class="pkg__grid">
+          <article class="pkg" data-reveal data-tilt>
+            <div class="pkg__glow" aria-hidden="true"></div>
+            <span class="pkg__tier mono">Starter</span>
+            <span class="pkg__sub">Quick &amp; Polished</span>
+            <p class="pkg__price display" data-price="250"><span class="pkg__cur">$</span>250</p>
+            <ul class="pkg__feat">
+              <li>1-page build + contact section</li>
+              <li>Mobile-first design</li>
+              <li>Basic SEO setup</li>
+              <li>Launch support</li>
+            </ul>
+            <a class="btn btn--ghost pkg__cta" href="#apply" data-scroll data-budget="$250 — Starter">Get Started</a>
+          </article>
+
+          <article class="pkg pkg--featured" data-reveal data-tilt>
+            <span class="pkg__badge mono">Most Popular</span>
+            <div class="pkg__glow" aria-hidden="true"></div>
+            <span class="pkg__tier mono">Pro</span>
+            <span class="pkg__sub">The Full Experience</span>
+            <p class="pkg__price display" data-price="400-600"><span class="pkg__cur">$</span>400–600</p>
+            <ul class="pkg__feat">
+              <li>Up to 5 custom sections</li>
+              <li>Enhanced interactions + animation</li>
+              <li>Performance &amp; accessibility polish</li>
+              <li>Custom visuals</li>
+            </ul>
+            <a class="btn btn--primary pkg__cta" href="#apply" data-scroll data-budget="$400–$600 — Pro">Get Started</a>
+          </article>
+
+          <article class="pkg" data-reveal data-tilt>
+            <div class="pkg__glow" aria-hidden="true"></div>
+            <span class="pkg__tier mono">Full Brand Kit</span>
+            <span class="pkg__sub">Total Transformation</span>
+            <p class="pkg__price display" data-price="750"><span class="pkg__cur">$</span>750+</p>
+            <ul class="pkg__feat">
+              <li>Logo + palette + style direction</li>
+              <li>Website + custom icon/illustration set</li>
+              <li>Launch support + handoff assets</li>
+              <li>Brand guidelines</li>
+            </ul>
+            <a class="btn btn--ghost pkg__cta" href="#apply" data-scroll data-budget="$750+ — Full Brand Kit">Get Started</a>
+          </article>
+        </div>
+        <p class="pkg__foot" data-reveal>Most agencies charge $5,000+ for this. We're not most agencies.</p>
+      </section>
+
+      <!-- ══ SCENE 5 — APPLY ══════════════════════════════════════ -->
+      <section class="scene scene--apply" id="apply">
+        <div class="apply__glow" aria-hidden="true"></div>
+        <div class="apply__wrap">
+          <span class="hud-bracket hud-bracket--tl" aria-hidden="true"></span>
+          <span class="hud-bracket hud-bracket--tr" aria-hidden="true"></span>
+          <span class="hud-bracket hud-bracket--bl" aria-hidden="true"></span>
+          <span class="hud-bracket hud-bracket--br" aria-hidden="true"></span>
+          <div class="apply__head">
+            <span class="mono eyebrow" data-reveal>START A PROJECT</span>
+            <h2 class="display" data-reveal>Let's build yours.</h2>
+            <p class="lead" data-reveal>Tell us about your project. We respond within 24 hours.</p>
+            <p class="apply__note mono" data-reveal>We take on 2–3 projects per month.</p>
           </div>
 
           <form class="form" id="applyForm" action="https://formspree.io/f/xpwzgvkn" method="POST" novalidate>
             <input type="hidden" name="_subject" value="New Northbound Studio Application" />
-            <label class="form__honey" aria-hidden="true">
-              Leave this empty
-              <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
-            </label>
+            <label class="form__honey" aria-hidden="true">Leave empty<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label>
 
             <div class="form__row">
-              <div class="field">
-                <input class="field__input" id="f-name" name="name" type="text" placeholder=" " required autocomplete="name" />
-                <label class="field__label" for="f-name">Your name</label>
-                <span class="field__line" aria-hidden="true"></span>
-              </div>
-              <div class="field">
-                <input class="field__input" id="f-business" name="business" type="text" placeholder=" " required />
-                <label class="field__label" for="f-business">Business name</label>
-                <span class="field__line" aria-hidden="true"></span>
-              </div>
+              <div class="field"><label class="mono" for="f-name">Your name</label><input class="field__input" id="f-name" name="name" type="text" required autocomplete="name" /></div>
+              <div class="field"><label class="mono" for="f-biz">Business name</label><input class="field__input" id="f-biz" name="business" type="text" /></div>
             </div>
-
             <div class="form__row">
-              <div class="field">
-                <input class="field__input" id="f-email" name="email" type="email" placeholder=" " required autocomplete="email" />
-                <label class="field__label" for="f-email">Email</label>
-                <span class="field__line" aria-hidden="true"></span>
-              </div>
-              <div class="field">
-                <input class="field__input" id="f-industry" name="industry" type="text" placeholder=" " required />
-                <label class="field__label" for="f-industry">Industry</label>
-                <span class="field__line" aria-hidden="true"></span>
-              </div>
+              <div class="field"><label class="mono" for="f-email">Email</label><input class="field__input" id="f-email" name="email" type="email" required autocomplete="email" /></div>
+              <div class="field"><label class="mono" for="f-ind">Industry</label><input class="field__input" id="f-ind" name="industry" type="text" /></div>
             </div>
-
             <div class="form__row">
-              <div class="field">
-                <select class="field__input field__input--select" id="f-focus" name="focus" required>
+              <div class="field"><label class="mono" for="f-focus">Project focus</label>
+                <select class="field__input" id="f-focus" name="focus" required>
                   <option value="" disabled selected hidden></option>
-                  <option>Logo</option>
-                  <option>Website</option>
-                  <option>Logo + Website</option>
+                  <option>Logo</option><option>Website</option><option>Logo + Website</option>
                 </select>
-                <label class="field__label field__label--up" for="f-focus">Project focus</label>
-                <span class="field__line" aria-hidden="true"></span>
               </div>
-              <div class="field">
-                <select class="field__input field__input--select" id="budgetSelect" name="budget" required>
+              <div class="field"><label class="mono" for="budgetSelect">Budget range</label>
+                <select class="field__input" id="budgetSelect" name="budget" required>
                   <option value="" disabled selected hidden></option>
-                  <option>$250 — Starter</option>
-                  <option>$400–$600 — Pro</option>
-                  <option>$750+ — Full Brand Kit</option>
+                  <option>$250 — Starter</option><option>$400–$600 — Pro</option><option>$750+ — Full Brand Kit</option>
                 </select>
-                <label class="field__label field__label--up" for="budgetSelect">Budget range</label>
-                <span class="field__line" aria-hidden="true"></span>
               </div>
             </div>
-
-            <div class="field field--full">
-              <textarea class="field__input field__input--area" id="f-details" name="details" placeholder=" " rows="3"></textarea>
-              <label class="field__label" for="f-details">Tell us about your project</label>
-              <span class="field__line" aria-hidden="true"></span>
-            </div>
-
-            <div class="field field--full">
-              <input class="field__input" id="f-timeline" name="timeline" type="text" placeholder=" " />
-              <label class="field__label" for="f-timeline">Target launch window (e.g. 2–3 weeks)</label>
-              <span class="field__line" aria-hidden="true"></span>
-            </div>
+            <div class="field field--full"><label class="mono" for="f-detail">Tell us about your project</label><textarea class="field__input" id="f-detail" name="details" rows="3"></textarea></div>
+            <div class="field field--full"><label class="mono" for="f-when">Target launch window</label><input class="field__input" id="f-when" name="timeline" type="text" placeholder="e.g., 2 weeks" /></div>
 
             <button class="btn btn--primary btn--submit" type="submit">
               <span class="btn__label">Submit Application</span>
               <span class="btn__spinner" aria-hidden="true"></span>
-              <svg class="btn__check" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
             </button>
-            <p class="form__status" role="status" aria-live="polite"></p>
+            <p class="form__status mono" role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>
+
+      <!-- ══ SCENE 6 — FOOTER ═════════════════════════════════════ -->
+      <footer class="footer" id="footer">
+        <span class="footer__n display" aria-hidden="true">N</span>
+        <p class="footer__line">Design + development for small businesses that want to stand out online.</p>
+        <div class="footer__links">
+          <a href="#apply" data-scroll>Start a project ↗</a>
+          <a href="#portfolio" data-scroll>View our work ↗</a>
+        </div>
+        <p class="footer__fine mono">© 2025 Northbound Studio · Grand Ledge, MI → Worldwide</p>
+        <p class="footer__flex mono">Built with Three.js · GSAP · Vanilla JS · Obsession</p>
+      </footer>
     </main>
 
-    <!-- ── FOOTER (linear mode) ──────────────────────────────────── -->
-    <footer class="footer">
-      <span class="mark mark--pulse" aria-hidden="true">N</span>
-      <p class="footer__line">Design + development for small businesses that want to stand out online.</p>
-      <div class="footer__links">
-        <a href="#apply" data-node-link>Start a project ↗</a>
-        <a href="#work" data-node-link>View work ↗</a>
-      </div>
-      <p class="footer__fine">© 2025 Northbound Studio · Grand Ledge, MI → Worldwide</p>
-    </footer>
+    <!-- ── LIBS (global) ─────────────────────────────────────────── -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+    <!-- ── APP (classic scripts, dependency order) ───────────────── -->
+    <script src="./js/cursor.js"></script>
+    <script src="./js/form.js"></script>
+    <script src="./js/three-scenes.js"></script>
+    <script src="./js/transitions.js"></script>
+    <script src="./js/animations.js"></script>
+    <script src="./js/app.js"></script>
   </body>
 </html>

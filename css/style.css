@@ -232,7 +232,8 @@ img, canvas, svg { display: block; }
   flex: 0 0 100vw; height: 100%; display: grid; grid-template-columns: 1.25fr 1fr;
   gap: clamp(2rem, 5vw, 4.5rem); align-items: center; padding: 0 clamp(2rem, 8vw, 8rem);
 }
-.work__frame { border-radius: 14px; overflow: hidden; border: 1px solid var(--border-hover); background: var(--bg-card); box-shadow: 0 40px 120px -40px #000; }
+.work__frame { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--border-hover); background: var(--bg-card); box-shadow: 0 40px 120px -40px #000; }
+.frame__link { position: absolute; inset: 0; z-index: 5; } /* whole preview opens the live site */
 .frame__bar { display: flex; align-items: center; gap: 6px; padding: 0.7rem 1rem; background: #0a0a0e; border-bottom: 1px solid var(--border); }
 .frame__bar span { width: 9px; height: 9px; border-radius: 50%; background: #2a2a36; }
 .frame__bar em { margin-left: auto; color: var(--text-dim); font-size: 0.6rem; font-style: normal; }
@@ -274,7 +275,8 @@ img, canvas, svg { display: block; }
 .tmock__hero { text-align: center; display: grid; gap: 0.3rem; justify-items: center; padding: 0.2rem 0; }
 .tmock__eyebrow { font-family: var(--mono); font-size: 0.4rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tp); }
 .tmock__h { font-family: var(--display); font-weight: 800; font-size: clamp(0.8rem, 2.2vw, 1.25rem); line-height: 1.05; color: #fff; }
-.tmock__h i { color: var(--tp); font-style: normal; }
+.tmock__h i, .tmock__green { color: #2bd96b; font-style: normal; } /* real site: "Higher Commission." is green */
+.tmock__genie { font-size: 0.52rem; font-weight: 700; color: #fff; background: var(--tp); padding: 0.3rem 0.7rem; border-radius: 999px; box-shadow: 0 0 16px rgba(255, 45, 111, 0.5); }
 .tmock__search { width: 70%; height: 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); }
 .tmock__pills { display: flex; gap: 0.3rem; justify-content: center; flex-wrap: wrap; }
 .tmock__pills b { width: 30px; height: 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); }

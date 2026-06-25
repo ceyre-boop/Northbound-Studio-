@@ -5,7 +5,7 @@
   window.NB = window.NB || {};
 
   const CODE = [
-    ['c', '// northbound.systems — build pipeline'],
+    ['c', '// ship fast, accessible, 60fps'],
     ['k', 'export', ' function ', 'k', 'mount', '(app) {'],
     ['', '  const ui = ', 'k', 'createScene', '({'],
     ['', '    theme: ', 's', '"northbound"', ', fps: 60,'],
@@ -76,6 +76,8 @@
       const headEl = document.querySelector("[data-cap-head]");
       const textEl = document.querySelector("[data-cap-text]");
       const countEl = document.querySelector(".cap__count em");
+      const urlEl = document.querySelector(".device__url");
+      const URLS = ["atlascoffee.co", "app.tsx", "brand-kit.fig", "inbox"];
       const COPY = [
         { tag: "DESIGN · UX · CONVERSION", head: "Design that converts.", text: "Every pixel placed with intent. Every interaction designed to convert." },
         { tag: "ENGINEERING · PERFORMANCE · SPEED", head: "Code that performs.", text: "Clean, fast code. Modern design systems. Performance and accessibility built in." },
@@ -91,6 +93,7 @@
         if (headEl) headEl.textContent = COPY[i].head;
         if (textEl) textEl.textContent = COPY[i].text;
         if (countEl) countEl.textContent = "0" + (i + 1);
+        if (urlEl) urlEl.textContent = URLS[i] || URLS[0];
         if (!rm) gsap.fromTo([headEl, textEl], { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.05 });
         if (i === 1) { // code → animate Lighthouse meter
           const fg = document.querySelector(".meter__fg"), num = document.querySelector(".meter__num");

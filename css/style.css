@@ -145,6 +145,9 @@ img, canvas, svg { display: block; }
 .hero__title { font-size: clamp(2.6rem, 9vw, 7rem); }
 .hero__title .line { display: block; }
 .hero__title .line--accent { color: var(--accent); text-shadow: 0 0 50px var(--accent-glow); }
+/* When the 3D particle headline is active, hide the DOM <h1> visually but keep it
+   in the layout + accessibility tree (opacity:0 stays readable by screen readers). */
+.has-3d-headline .hero__title .line { opacity: 0 !important; }
 .hero__sub { margin: 1.8rem auto 0; max-width: 540px; color: var(--text-muted); font-size: clamp(1rem, 2vw, 1.2rem); }
 .hero__cta { display: flex; gap: 0.9rem; justify-content: center; margin-top: 2.4rem; flex-wrap: wrap; }
 .hero__scroll { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; color: var(--text-dim); }

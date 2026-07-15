@@ -42,8 +42,8 @@
       const LINKISH = "a, button, .btn, input, select, textarea, label, [data-magnetic]";
       function pickMode(el) {
         if (!el || !el.closest) return ["", ""];
-        if (el.closest(".work__frame, .cap__device")) return ["view", "VIEW"];
-        if (el.closest(".pkg, .nav__cta")) return ["link", ""];
+        if (el.closest(".tpl")) return ["view", "SELECT"];
+        if (el.closest(".nav__cta")) return ["link", ""];
         if (el.closest("input, textarea")) return ["text", ""];
         if (el.closest(LINKISH)) return ["link", ""];
         return ["", ""];

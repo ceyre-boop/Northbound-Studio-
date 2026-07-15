@@ -1,57 +1,32 @@
-/* animations.js — GSAP ScrollTrigger choreography for every scene.
-   Reveals, the pinned capability showcase, the horizontal portfolio,
-   package count-up + tilt, nav state, and the scene-boundary transitions. */
+/* animations.js — GSAP ScrollTrigger choreography: nav state, generic reveals,
+   the four pinned Journey steps (mask reveal, split craft, iMessage bounce,
+   stat counters), and the voyage-lite fallback trigger. */
 (function () {
   window.NB = window.NB || {};
 
-  const CODE = [
-    ['c', '// ship fast, accessible, 60fps'],
-    ['k', 'export', ' function ', 'k', 'mount', '(app) {'],
-    ['', '  const ui = ', 'k', 'createScene', '({'],
-    ['', '    theme: ', 's', '"northbound"', ', fps: 60,'],
-    ['', '    a11y: ', 'k', 'true', ', perf: ', 's', '"max"'],
-    ['', '  });'],
-    ['', '  ui.', 'k', 'render', '(', 's', '"#root"', ');'],
-    ['', '  ', 'k', 'return', ' ui.ready;'],
-    ['', '}'],
-  ];
-  function codeHTML() {
-    return CODE.map((line) => {
-      let out = "";
-      for (let j = 0; j < line.length; j += 2) {
-        const c = line[j], t = line[j + 1];
-        out += c ? `<span class="${c}">${t}</span>` : t;
-      }
-      return out;
-    }).join("\n");
-  }
-
-  function countUp(el) {
-    const raw = (el.getAttribute("data-price") || "").trim();
-    const cur = el.querySelector(".pkg__cur");
-    const targets = (raw.match(/\d+/g) || []).map(Number);
-    if (!targets.length) return;
-    const tpl = el.textContent.replace(cur ? cur.textContent : "", "");
-    const start = performance.now(), dur = 950;
+  // Generalized count-up: reads the final display string from data-count and
+  // tweens every digit group from 0 (e.g. "< 2 WEEKS", "$250+", "100%").
+  function countUp(el, dur) {
+    const target = (el.getAttribute("data-count") || el.textContent).trim();
+    if (!/\d/.test(target)) return;
+    const start = performance.now(), d = dur || 950;
     function frame(now) {
-      const t = Math.min((now - start) / dur, 1), e = t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
-      let idx = 0;
-      const out = tpl.replace(/\d+/g, () => String(Math.round(targets[idx++] * e)));
-      el.textContent = ""; if (cur) el.appendChild(cur); el.appendChild(document.createTextNode(out));
+      const t = Math.min((now - start) / d, 1);
+      const e = t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+      el.textContent = target.replace(/\d+/g, (m) => String(Math.round(Number(m) * e)));
       if (t < 1) requestAnimationFrame(frame);
+      else el.textContent = target;
     }
     requestAnimationFrame(frame);
   }
+  NB.countUp = countUp;
 
   NB.animations = {
-    revealHero() {
-      if (NB.reduceMotion) return;
-      gsap.to("[data-hero]", { opacity: 1, y: 0, duration: 0.9, ease: "power3.out", stagger: 0.12 });
-    },
-
     init(opts) {
       const mobile = opts.mobile, rm = opts.reduceMotion;
       const nav = document.getElementById("nav");
+      const hasST = typeof ScrollTrigger !== "undefined";
+      if (!hasST || typeof gsap === "undefined") return;
 
       // Nav stuck state.
       ScrollTrigger.create({ start: 40, end: 99999, onUpdate: (self) => nav.classList.toggle("is-stuck", self.scroll() > 40) });
@@ -62,100 +37,83 @@
           gsap.to(el, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 85%" } });
         });
       } else {
-        gsap.utils.toArray("[data-reveal], [data-hero]").forEach((el) => gsap.set(el, { opacity: 1, y: 0 }));
+        gsap.utils.toArray("[data-reveal]").forEach((el) => gsap.set(el, { opacity: 1, y: 0 }));
       }
 
-      // Prefill the code-editor demo.
-      const codeEl = document.querySelector(".demo__code");
-      if (codeEl) codeEl.innerHTML = codeHTML();
+      // Voyage lite (mobile / reduced-motion / WebGL-failure) — draw the N on entry.
+      const lite = document.querySelector(".voyage__lite");
+      if (lite) ScrollTrigger.create({ trigger: lite, start: "top 75%", once: true, onEnter: () => lite.classList.add("is-in") });
 
-      // ── Capability showcase (pinned scrub) ──
-      const capPin = document.querySelector(".cap__pin");
-      const demos = gsap.utils.toArray(".demo");
-      const tagEl = document.querySelector("[data-cap-tag]");
-      const headEl = document.querySelector("[data-cap-head]");
-      const textEl = document.querySelector("[data-cap-text]");
-      const countEl = document.querySelector(".cap__count em");
-      const urlEl = document.querySelector(".device__url");
-      const URLS = ["atlascoffee.co", "app.tsx", "brand-kit.fig", "inbox"];
-      const COPY = [
-        { tag: "DESIGN · UX · CONVERSION", head: "Design that converts.", text: "Every pixel placed with intent. Every interaction designed to convert." },
-        { tag: "ENGINEERING · PERFORMANCE · SPEED", head: "Code that performs.", text: "Clean, fast code. Modern design systems. Performance and accessibility built in." },
-        { tag: "BRANDING · IDENTITY · ART DIRECTION", head: "Brands that stand out.", text: "Professional-grade logos and visual identity from a trained SCAD designer." },
-        { tag: "ONGOING SUPPORT · REAL PEOPLE · PARTNERSHIP", head: "Support that lasts.", text: "We don't disappear after launch. Something breaks? Text us. We fix it." },
-      ];
-      let cur = -1;
-      function setDemo(i) {
-        if (i === cur || !demos.length) return;
-        cur = i;
-        demos.forEach((d, di) => d.classList.toggle("is-live", di === i));
-        if (tagEl) tagEl.textContent = COPY[i].tag;
-        if (headEl) headEl.textContent = COPY[i].head;
-        if (textEl) textEl.textContent = COPY[i].text;
-        if (countEl) countEl.textContent = "0" + (i + 1);
-        if (urlEl) urlEl.textContent = URLS[i] || URLS[0];
-        if (!rm) gsap.fromTo([headEl, textEl], { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.05 });
-        if (i === 1) { // code → animate Lighthouse meter
-          const fg = document.querySelector(".meter__fg"), num = document.querySelector(".meter__num");
-          if (fg) gsap.fromTo(fg, { strokeDashoffset: 327 }, { strokeDashoffset: 327 * (1 - 0.98), duration: 1, ease: "power2.out" });
-          if (num) { const o = { v: 0 }; gsap.to(o, { v: 98, duration: 1, ease: "power2.out", onUpdate: () => (num.textContent = Math.round(o.v)) }); }
+      // ── Journey: 4 individually pinned steps, time-based content timelines ──
+      const steps = gsap.utils.toArray(".journey__step");
+      if (!steps.length) return;
+
+      if (rm) {
+        // Everything visible and final, counters at final text (already in markup).
+        gsap.set("[data-j-mask]", { clipPath: "inset(0% 0 0 0)" });
+        gsap.set("[data-j-fade], [data-j-left], [data-j-right], [data-j-bubble]", { opacity: 1, y: 0, x: 0, scale: 1 });
+        return;
+      }
+
+      // Pins (desktop only) — hold each step for an extra half-viewport.
+      if (!mobile) {
+        steps.forEach((step) => {
+          ScrollTrigger.create({ trigger: step, start: "top top", end: "+=50%", pin: true, anticipatePin: 1 });
+        });
+      }
+
+      // Content timelines — play on scroll-in, reverse when leaving upward.
+      steps.forEach((step) => {
+        const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+
+        const mask = step.querySelector("[data-j-mask]");
+        const fades = step.querySelectorAll("[data-j-fade]");
+        const left = step.querySelector("[data-j-left]");
+        const right = step.querySelector("[data-j-right]");
+        const line = step.querySelector("[data-j-line]");
+        const bubbles = step.querySelectorAll("[data-j-bubble]");
+
+        if (mask) {
+          gsap.set(mask, { clipPath: "inset(100% 0 0 0)" });
+          tl.to(mask, { clipPath: "inset(0% 0 0 0)", duration: 0.9, ease: "power4.out" });
         }
-      }
-      if (capPin && demos.length) {
-        if (mobile || rm) {
-          setDemo(0);
-          // On mobile each demo is shown as a stacked reveal; keep first live + reveal copy.
-        } else {
-          ScrollTrigger.create({
-            trigger: capPin, start: "top top", end: "+=300%", pin: true, scrub: true,
-            onUpdate: (self) => setDemo(Math.min(3, Math.floor(self.progress * 4))),
-          });
-          setDemo(0);
+        if (left && right) {
+          const lTags = left.querySelectorAll(".tag, .craft__eyebrow");
+          const rTags = right.querySelectorAll(".tag, .craft__eyebrow");
+          gsap.set(left, { x: -44, autoAlpha: 0 });
+          gsap.set(right, { x: 44, autoAlpha: 0 });
+          gsap.set([lTags, rTags], { y: 12, autoAlpha: 0 });
+          tl.to(left, { x: 0, autoAlpha: 1, duration: 0.6 }, 0)
+            .to(right, { x: 0, autoAlpha: 1, duration: 0.6 }, 0.08)
+            .to(lTags, { y: 0, autoAlpha: 1, duration: 0.4, stagger: 0.06 }, 0.25)
+            .to(rTags, { y: 0, autoAlpha: 1, duration: 0.4, stagger: 0.06 }, 0.33);
+          if (line) {
+            const axis = mobile ? "scaleX" : "scaleY";
+            gsap.set(line, { [axis]: 0 });
+            tl.to(line, { [axis]: 1, duration: 0.7, ease: "expo.out" }, 0.2);
+          }
         }
-      }
+        if (bubbles.length) {
+          gsap.set(bubbles, { y: 16, scale: 0.92, autoAlpha: 0 });
+          tl.to(bubbles, { y: 0, scale: 1, autoAlpha: 1, duration: 0.4, ease: "back.out(1.8)", stagger: 0.6 }, 0);
+        }
+        if (fades.length) {
+          gsap.set(fades, { y: 24, autoAlpha: 0 });
+          tl.to(fades, { y: 0, autoAlpha: 1, duration: 0.6, stagger: 0.12 }, bubbles.length ? 0.6 * bubbles.length : (mask || left ? 0.5 : 0));
+        }
 
-      // ── Portfolio (horizontal pinned scrub) ──
-      const workPin = document.querySelector(".work__pin");
-      const track = document.querySelector(".work__track");
-      const slides = gsap.utils.toArray(".work__slide");
-      const dots = gsap.utils.toArray(".work__dots i");
-      const wCount = document.querySelector(".work__counter em");
-      if (workPin && track && slides.length > 1 && !mobile && !rm) {
-        const n = slides.length;
         ScrollTrigger.create({
-          trigger: workPin, start: "top top", end: () => "+=" + (n - 1) * window.innerWidth, pin: true, scrub: 0.6,
-          onUpdate: (self) => {
-            gsap.set(track, { x: -self.progress * (n - 1) * window.innerWidth });
-            const i = Math.round(self.progress * (n - 1));
-            dots.forEach((d, di) => d.classList.toggle("is-active", di === i));
-            if (wCount) wCount.textContent = "0" + (i + 1);
-          },
+          trigger: step,
+          start: "top 70%",
+          onEnter: () => tl.play(),
+          onLeaveBack: () => tl.reverse(),
         });
-      }
-
-      // ── Packages: count-up + 3D tilt ──
-      gsap.utils.toArray(".pkg__price").forEach((el) => {
-        ScrollTrigger.create({ trigger: el, start: "top 85%", once: true, onEnter: () => (rm ? null : countUp(el)) });
       });
-      if (!mobile && !rm) {
-        gsap.utils.toArray("[data-tilt]").forEach((card) => {
-          card.addEventListener("pointermove", (e) => {
-            const r = card.getBoundingClientRect();
-            const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
-            card.style.transform = `perspective(900px) rotateY(${px * 6}deg) rotateX(${-py * 6}deg) translateZ(8px)`;
-          });
-          card.addEventListener("pointerleave", () => { card.style.transform = ""; });
-        });
-      }
 
-      // ── Scene-boundary transitions ──
-      if (!rm) {
-        const at = (sel, type) => ScrollTrigger.create({ trigger: sel, start: "top 78%", onEnter: () => NB.transitions.play(type) });
-        at("#capability", "swoosh");
-        at("#portfolio", "disintegrate");
-        at("#packages", "wipe");
-        at("#apply", "scan");
-      }
+      // Stat counters — fire once when the numbers step arrives.
+      gsap.utils.toArray("#j-numbers .num__val").forEach((el) => {
+        ScrollTrigger.create({ trigger: "#j-numbers", start: "top 60%", once: true, onEnter: () => countUp(el) });
+      });
 
       ScrollTrigger.refresh();
     },

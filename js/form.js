@@ -1,21 +1,27 @@
 /* form.js — application form (Formspree, endpoint xpwzgvkn preserved).
-   Package-CTA budget prefill, validation, honeypot, send states, success burst. */
+   Template/budget prefill API (used by templates.js), validation, honeypot,
+   send states, success burst. */
 (function () {
   window.NB = window.NB || {};
   NB.form = {
+    // Called by the template picker: fills the template select and defaults the budget.
+    setTemplate(templateName, budgetString) {
+      const template = document.getElementById("templateSelect");
+      const budget = document.getElementById("budgetSelect");
+      const pick = (select, want) => {
+        if (!select || !want) return;
+        [...select.options].forEach((o) => { if (o.value === want || o.text === want) select.value = o.value; });
+      };
+      pick(template, templateName);
+      pick(budget, budgetString);
+      if (budget) budget.classList.remove("is-invalid");
+      if (template) template.classList.remove("is-invalid");
+    },
+
     init() {
       const form = document.getElementById("applyForm");
       if (!form) return false;
       const status = form.querySelector(".form__status");
-      const budget = form.querySelector("#budgetSelect");
-
-      document.querySelectorAll(".pkg__cta[data-budget]").forEach((cta) => {
-        cta.addEventListener("click", () => {
-          if (!budget) return;
-          const want = cta.dataset.budget;
-          [...budget.options].forEach((o) => { if (o.value === want || o.text === want) budget.value = o.value; });
-        });
-      });
 
       function setStatus(msg, type) {
         status.textContent = msg;

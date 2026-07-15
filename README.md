@@ -1,31 +1,33 @@
-# Northbound Studio
+# Northbound Studio — The Anime Scroll Experience
 
-Agency landing page built as a static HTML/CSS/JS site.
+Cinematic scroll-driven site for Northbound Studio. Vanilla HTML/CSS/JS — **no build step**.
 
-## Core site sections
+## Scenes
 
-- Hero
-- Why Us
-- Packages
-- Portfolio
-- Reviews
-- Application Form
-- Domain + DNS Help
-- Final CTA
+1. **Hero** — two anime characters flanking the NORTHBOUND STUDIO wordmark (per-letter reveal, scan sweep, N glow). Character art lives at `assets/char-colin.png` / `assets/char-partner.png`; styled placeholder cards render automatically until those files exist.
+2. **Voyage** (`js/helix.js`) — a Three.js particle double-helix tunnel the camera flies through; the strands converge into a letter **N** that inflates, cracks, and shatters toward the camera. One canvas, one 600% pinned ScrollTrigger; every visual is a pure function of scroll progress (reverse-scrub safe).
+3. **Journey** — four pinned story steps: unfair advantages, Design × Engineering split, iMessage support thread, animated stat counters.
+4. **Template picker** — six style cards (Minimal / Bold Dark / Warm & Organic / Corporate Trust / Creative Pop / Original Design). Selecting one pre-fills the apply form's template + budget.
+5. **Apply** — Formspree-backed application form.
+6. **Footer**.
 
-## Repo + branch workflow
+Budget tiers (canonical strings used in the form and picker): `$250 — Starter` · `$400–600 — Pro` · `$750+ — Full Brand Kit`.
 
-1. Push stable work to `main`.
-2. Create and use `design-preview` for animation/layout experiments before merging to `main`.
+## Stack
 
-## Build system decision
+- Three.js **r128** (cdnjs) + `three@0.128.0` examples/js post-processing (unpkg) — these two must stay on the same version.
+- GSAP 3.12.5 + ScrollTrigger, Lenis 1.1.18 (native-scroll mode — no scrollerProxy).
+- Modules attach to a shared `window.NB` namespace; one `gsap.ticker` drives everything (`js/app.js`).
 
-- This repository is pure HTML/CSS/JS, so no build step is required.
-- If migrating to React, Vite, Next.js, Astro, or SvelteKit later, add the framework build command in the Pages workflow before deploy.
+## Mobile / accessibility
 
-## GitHub Pages deployment
+Three.js is skipped on mobile and under `prefers-reduced-motion` (`body.no-three`); the voyage falls back to a CSS starfield + stroke-drawn N. Journey steps stack without pins. The custom cursor disables itself on touch.
 
-1. Go to **Settings → Pages**.
-2. Set source to **GitHub Actions**.
-3. The included workflow deploys on pushes to `main`.
-4. Approve the first deployment run when prompted.
+## Deploy
+
+GitHub Pages via Actions: every push to `main` runs `.github/workflows/deploy-pages.yml` (Pages source must stay set to "GitHub Actions"). Live at:
+`https://ceyre-boop.github.io/Northbound-Studio-/`
+
+## Local dev
+
+Serve the folder with any static server, e.g. `bunx serve -l 8080`, and open `http://localhost:8080`.

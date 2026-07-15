@@ -1,10 +1,16 @@
-/* app.js — orchestrator. Sets up the shared pointer + frame loop, Lenis
-   smooth scroll wired to ScrollTrigger, the boot sequence, nav, smooth
-   anchors, and boots every module. Mobile/reduced-motion are gated here. */
+/* app.js — orchestrator. Shared pointer + frame bus, Lenis smooth scroll
+   wired to ScrollTrigger, nav, smooth anchors; boots every module.
+   Mobile/reduced-motion are gated here (body.no-three hides WebGL scenes). */
 (function () {
   window.NB = window.NB || {};
 
-  NB.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // ?motion=full forces the cinematic experience (overrides OS reduce-motion);
+  // ?motion=lite forces the calm fallback. No param → honor the OS setting.
+  const motionParam = new URLSearchParams(location.search).get("motion");
+  NB.reduceMotion = motionParam === "full" ? false
+    : motionParam === "lite" ? true
+    : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (motionParam === "full") document.documentElement.classList.add("force-motion");
   NB.isTouch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
   const isMobile = window.innerWidth <= 768;
   if (isMobile) document.body.classList.add("is-mobile");
@@ -16,55 +22,22 @@
   NB._frames = [];
   NB.onFrame = (fn) => NB._frames.push(fn);
   NB.scrollY = 0;
+  NB.scrollVel = 0; // px/frame-ish scroll velocity (helix rotation reads this)
   NB.burstAt = null; // assigned by cursor
-
-  function boot() {
-    const bootEl = document.getElementById("boot");
-    if (!bootEl) { NB.animations.revealHero(); return; }
-    const log = bootEl.querySelector(".boot__log");
-    const nSvg = bootEl.querySelector(".boot__n");
-    const nPath = bootEl.querySelector(".boot__n path");
-    const lines = [
-      "> INITIALIZING NORTHBOUND.SYSTEMS...",
-      "> LOADING CREATIVE ENGINE v2.0...",
-      "> CALIBRATING DESIGN PROTOCOLS...",
-      "> STATUS: ONLINE",
-    ];
-    let li = 0, ci = 0, text = "";
-    function type() {
-      if (li >= lines.length) { afterLog(); return; }
-      const line = lines[li];
-      if (ci <= line.length) { log.textContent = text + line.slice(0, ci); ci++; setTimeout(type, 15); }
-      else { text += line + "\n"; li++; ci = 0; setTimeout(type, 130); }
-    }
-    function afterLog() {
-      gsap.set(nSvg, { opacity: 1 });
-      gsap.timeline()
-        .to(nPath, { strokeDashoffset: 0, duration: 1.0, ease: "power2.inOut" })
-        .add(() => { if (NB.three && NB.three.available) NB.three.burst(); })
-        .to(bootEl, { opacity: 0, duration: 0.6, ease: "power2.out" }, "+=0.15")
-        .add(() => { bootEl.classList.add("is-done"); NB.animations.revealHero(); });
-    }
-    type();
-    // Failsafe — never trap the page on the boot screen.
-    setTimeout(() => { if (!bootEl.classList.contains("is-done")) { bootEl.classList.add("is-done"); NB.animations.revealHero(); } }, 6000);
-  }
 
   function ready() {
     // Plugins.
     if (typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
-    // Hide hero items pre-reveal (covered by the boot overlay anyway).
-    if (!NB.reduceMotion && typeof gsap !== "undefined") gsap.set("[data-hero]", { opacity: 0, y: 24 });
-
     // Cursor.
     if (NB.cursor) NB.cursor.init();
 
-    // Three.js hero (desktop, motion only).
+    // WebGL gating — one flag, one body class for CSS fallbacks.
     NB.skipThree = NB.reduceMotion || isMobile;
-    if (!NB.skipThree && NB.three) {
-      const c = document.querySelector(".hero__canvas");
-      try { NB.three.init(c); } catch (e) { NB.three.available = false; }
+    if (NB.skipThree) document.body.classList.add("no-three");
+    if (NB.helix) {
+      const c = document.querySelector(".voyage__canvas");
+      try { NB.helix.init(c); } catch (e) { document.body.classList.add("no-three"); }
     }
 
     // Lenis smooth scroll (desktop, motion only) wired to ScrollTrigger.
@@ -75,9 +48,18 @@
     }
     NB.lenis = lenis;
 
-    // Form + scene choreography.
+    // Shared smooth-scroll target helper (anchors + template picker).
+    NB.scrollTo = (el) => {
+      if (!el) return;
+      if (lenis) lenis.scrollTo(el, { offset: 0, duration: 1.2 });
+      else el.scrollIntoView({ behavior: NB.reduceMotion ? "auto" : "smooth" });
+    };
+
+    // Modules.
     if (NB.form) NB.form.init();
+    if (NB.templates) NB.templates.init();
     if (NB.animations) NB.animations.init({ mobile: isMobile, reduceMotion: NB.reduceMotion });
+    if (NB.hero) NB.hero.intro({ reduceMotion: NB.reduceMotion });
 
     // Smooth-scroll anchors.
     document.querySelectorAll("[data-scroll]").forEach((a) => {
@@ -87,8 +69,7 @@
         const el = href === "#top" ? document.body : document.querySelector(href);
         if (!el) return;
         e.preventDefault();
-        if (lenis) lenis.scrollTo(el, { offset: 0 });
-        else el.scrollIntoView({ behavior: NB.reduceMotion ? "auto" : "smooth" });
+        NB.scrollTo(el);
         closeMenu();
       });
     });
@@ -108,6 +89,7 @@
 
     // Single ticker: Lenis raf + pointer velocity + scroll + frame callbacks.
     if (typeof gsap !== "undefined") {
+      let prevScrollY = 0;
       gsap.ticker.lagSmoothing(0);
       gsap.ticker.add((time) => {
         if (lenis) lenis.raf(time * 1000);
@@ -116,16 +98,18 @@
         p.speed = Math.hypot(p.vx, p.vy); px = p.x; py = p.y;
         p.nx = (p.x / innerWidth) * 2 - 1; p.ny = (p.y / innerHeight) * 2 - 1;
         NB.scrollY = lenis ? lenis.scroll : (window.scrollY || window.pageYOffset || 0);
+        NB.scrollVel = lenis ? (lenis.velocity || 0) : (NB.scrollY - prevScrollY);
+        prevScrollY = NB.scrollY;
         const dt = Math.min(gsap.ticker.deltaRatio(60) / 60, 0.05);
         for (let i = 0; i < NB._frames.length; i++) { try { NB._frames[i](dt); } catch (e) {} }
       });
     }
 
-    // Boot.
-    if (NB.reduceMotion) { const b = document.getElementById("boot"); if (b) b.classList.add("is-done"); NB.animations.revealHero(); }
-    else boot();
-
+    // Late layout shifts (fonts, hero images) move every pin — re-measure.
     window.addEventListener("load", () => { if (typeof ScrollTrigger !== "undefined") ScrollTrigger.refresh(); });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => { if (typeof ScrollTrigger !== "undefined") ScrollTrigger.refresh(); });
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready);

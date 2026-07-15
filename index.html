@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#060608" />
-    <title>Northbound Studio — We build unfair advantages.</title>
+    <title>Northbound Studio — The Anime Scroll Experience</title>
     <meta
       name="description"
-      content="Northbound Studio designs and builds cinematic, high-converting websites and brand identities. The site is the portfolio — imagine what we'll build for you."
+      content="Northbound Studio builds cinematic, high-converting websites. Scroll through the helix, watch the N shatter, pick your style — the site is the proof."
     />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060608'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E" />
 
@@ -18,28 +18,12 @@
       href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/style.css?v=3" />
   </head>
 
   <body>
     <!-- Film grain overlay -->
     <div class="grain" aria-hidden="true"></div>
-
-    <!-- Transition stage (energy swoosh / disintegration / wipe / scan) -->
-    <div class="fx" aria-hidden="true">
-      <span class="fx__sweep"></span>
-      <span class="fx__flash"></span>
-      <canvas class="fx__canvas"></canvas>
-    </div>
-
-    <!-- ── BOOT SEQUENCE ─────────────────────────────────────────── -->
-    <div id="boot" class="boot" aria-hidden="true">
-      <span class="boot__scan"></span>
-      <pre class="boot__log"></pre>
-      <svg class="boot__n" viewBox="0 0 60 56" aria-hidden="true">
-        <path d="M10 50 V6 L50 50 V6" />
-      </svg>
-    </div>
 
     <!-- ── NAV ───────────────────────────────────────────────────── -->
     <header class="nav" id="nav">
@@ -48,8 +32,8 @@
         <span class="nav__name">Northbound&nbsp;Studio</span>
       </a>
       <nav class="nav__links" aria-label="Primary">
-        <a href="#portfolio" data-scroll>Work</a>
-        <a href="#packages" data-scroll>Packages</a>
+        <a href="#journey" data-scroll>Journey</a>
+        <a href="#templates" data-scroll>Templates</a>
         <a class="nav__cta" href="#apply" data-scroll>Apply</a>
       </nav>
       <button class="nav__burger" type="button" aria-label="Menu" aria-expanded="false">
@@ -57,259 +41,211 @@
       </button>
     </header>
     <div class="navmenu" aria-hidden="true">
-      <a href="#portfolio" data-scroll>Work</a>
-      <a href="#packages" data-scroll>Packages</a>
+      <a href="#journey" data-scroll>Journey</a>
+      <a href="#templates" data-scroll>Templates</a>
       <a href="#apply" data-scroll>Apply</a>
     </div>
 
     <main id="top">
       <!-- ══ SCENE 1 — HERO ═══════════════════════════════════════ -->
       <section class="scene scene--hero" id="hero">
-        <canvas class="hero__canvas" aria-hidden="true"></canvas>
-        <span class="hero__tag mono" data-hero>NORTHBOUND STUDIO</span>
-        <div class="hero__center">
-          <h1 class="hero__title display">
-            <span class="line" data-hero>We don't build websites.</span>
-            <span class="line line--accent" data-hero>We build unfair advantages.</span>
-          </h1>
-          <p class="hero__sub" data-hero>
-            The site you're looking at? We built this. Imagine what we'll build for you.
-          </p>
-          <div class="hero__cta" data-hero>
-            <a class="btn btn--primary" href="#apply" data-scroll>Start a Project</a>
-            <a class="btn btn--ghost" href="#portfolio" data-scroll>See Our Work</a>
+        <span class="hero__scan" aria-hidden="true"></span>
+        <span class="hud-bracket hud-bracket--tl hero__hud" aria-hidden="true"></span>
+        <span class="hud-bracket hud-bracket--tr hero__hud" aria-hidden="true"></span>
+        <span class="hud-bracket hud-bracket--bl hero__hud" aria-hidden="true"></span>
+        <span class="hud-bracket hud-bracket--br hero__hud" aria-hidden="true"></span>
+
+        <figure class="hero__char hero__char--left" aria-hidden="true">
+          <img class="hero__img" src="./assets/char-colin.png" alt="" decoding="async" />
+          <div class="hero__fallback">
+            <b class="display">C</b>
+            <span class="mono">Character art loading…</span>
           </div>
+        </figure>
+        <figure class="hero__char hero__char--right" aria-hidden="true">
+          <img class="hero__img" src="./assets/char-partner.png" alt="" decoding="async" />
+          <div class="hero__fallback">
+            <b class="display">A</b>
+            <span class="mono">Character art loading…</span>
+          </div>
+        </figure>
+
+        <div class="hero__center">
+          <h1 class="hero__word display" aria-label="Northbound Studio">
+            <span class="hero__row hero__row--main" aria-hidden="true"><span class="ltr ltr--n">N</span><span class="ltr">O</span><span class="ltr">R</span><span class="ltr">T</span><span class="ltr">H</span><span class="ltr">B</span><span class="ltr">O</span><span class="ltr">U</span><span class="ltr">N</span><span class="ltr">D</span></span>
+            <span class="hero__rule" aria-hidden="true"></span>
+            <span class="hero__row hero__row--sub" aria-hidden="true"><span class="ltr">S</span><span class="ltr">T</span><span class="ltr">U</span><span class="ltr">D</span><span class="ltr">I</span><span class="ltr">O</span></span>
+          </h1>
         </div>
-        <a class="hero__scroll" href="#capability" data-scroll aria-label="Scroll">
-          <span class="hero__scroll-line"></span>
+
+        <a class="hero__scroll" href="#voyage" data-scroll aria-label="Scroll">
+          <span class="hero__scroll-arrow" aria-hidden="true"></span>
           <span class="mono">SCROLL</span>
         </a>
       </section>
 
-      <!-- ══ SCENE 2 — CAPABILITY SHOWCASE (pinned) ═══════════════ -->
-      <section class="scene scene--cap" id="capability">
-        <div class="cap__grid" aria-hidden="true"></div>
-        <div class="cap__pin">
-          <div class="cap__stage">
-            <!-- Animated device frame (UI builds itself / code / branding) -->
-            <div class="cap__device" data-cap-device>
-              <div class="device__bar" aria-hidden="true">
-                <span></span><span></span><span></span>
-                <em class="device__url mono">atlascoffee.co</em>
+      <!-- ══ SCENES 2+3 — THE VOYAGE (helix → N → shatter) ════════ -->
+      <section class="scene scene--voyage" id="voyage">
+        <div class="voyage__pin">
+          <canvas class="voyage__canvas" aria-hidden="true"></canvas>
+          <div class="voyage__flash" aria-hidden="true"></div>
+        </div>
+        <div class="voyage__lite" aria-hidden="true">
+          <span class="lite__stars"></span>
+          <svg class="lite__n" viewBox="0 0 60 56">
+            <path d="M10 50 V6 L50 50 V6" />
+          </svg>
+          <span class="mono lite__tag">NORTHBOUND</span>
+        </div>
+      </section>
+
+      <!-- ══ SCENE 4 — THE JOURNEY ════════════════════════════════ -->
+      <section class="scene scene--journey" id="journey">
+        <!-- A — unfair advantages -->
+        <div class="journey__step" id="j-advantage">
+          <span class="j__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <div class="j__inner">
+            <h2 class="j__head display" data-j-mask>WE BUILD UNFAIR ADVANTAGES.</h2>
+            <p class="j__sub" data-j-fade>Custom websites that make your competition irrelevant.</p>
+          </div>
+        </div>
+
+        <!-- B — design × engineering -->
+        <div class="journey__step" id="j-craft">
+          <div class="j__inner j__inner--wide">
+            <div class="craft">
+              <div class="craft__side craft__side--art" data-j-left>
+                <span class="mono craft__eyebrow">THE ART SIDE</span>
+                <div class="craft__tags">
+                  <span class="tag">Logos</span><span class="tag">Branding</span>
+                  <span class="tag">Illustration</span><span class="tag">Motion</span>
+                </div>
               </div>
-              <div class="device__view">
-                <!-- A: design build (a polished sample landing) -->
-                <div class="demo demo--design" data-demo="0">
-                  <div class="demo__nav">
-                    <i class="demo__logo">Atlas</i>
-                    <span class="demo__links"><b>Menu</b><b>Story</b><b>Visit</b></span>
-                    <span class="demo__order">Order</span>
-                  </div>
-                  <div class="demo__hero">
-                    <span class="demo__eyebrow">Small-batch roastery</span>
-                    <h4>Coffee worth<br />the detour.</h4>
-                    <span class="demo__btn">Find us →</span>
-                  </div>
-                  <div class="demo__cards">
-                    <span class="demo__card"><i></i><em>Single-origin</em></span>
-                    <span class="demo__card"><i></i><em>Open 7–6</em></span>
-                    <span class="demo__card"><i></i><em>Order ahead</em></span>
-                  </div>
-                </div>
-                <!-- B: code editor -->
-                <div class="demo demo--code" data-demo="1">
-                  <pre class="demo__code"></pre>
-                  <div class="demo__meter"><svg viewBox="0 0 120 120"><circle class="meter__bg" cx="60" cy="60" r="52"/><circle class="meter__fg" cx="60" cy="60" r="52"/></svg><span class="meter__num">0</span><em class="mono">Lighthouse</em></div>
-                </div>
-                <!-- C: branding -->
-                <div class="demo demo--brand" data-demo="2">
-                  <div class="brandmark">
-                    <span class="brandmark__ring"></span>
-                    <span class="brandmark__ring brandmark__ring--2"></span>
-                    <span class="brandmark__n">N</span>
-                  </div>
-                  <div class="swatches">
-                    <i style="--c: #00f0ff"><em>#00F0FF</em></i>
-                    <i style="--c: #7a5cff"><em>#7A5CFF</em></i>
-                    <i style="--c: #00c853"><em>#00C853</em></i>
-                    <i style="--c: #060608"><em>#060608</em></i>
-                  </div>
-                </div>
-                <!-- D: support thread -->
-                <div class="demo demo--chat" data-demo="3">
-                  <div class="bubble bubble--in"><b>CLIENT</b>The contact form stopped working</div>
-                  <div class="bubble bubble--out"><b>COLIN</b>Fixed. Check it now.</div>
-                  <div class="bubble bubble--in"><b>CLIENT</b>That was 3 minutes. You're insane.</div>
+              <span class="craft__line" data-j-line aria-hidden="true"></span>
+              <div class="craft__side craft__side--build" data-j-right>
+                <span class="mono craft__eyebrow">THE BUILD SIDE</span>
+                <div class="craft__tags">
+                  <span class="tag">Websites</span><span class="tag">Apps</span>
+                  <span class="tag">Performance</span><span class="tag">SEO</span>
                 </div>
               </div>
             </div>
-            <div class="cap__copy">
-              <span class="cap__count mono"><em>01</em> / 04</span>
-              <span class="cap__eyebrow mono" data-cap-tag>DESIGN · UX · CONVERSION</span>
-              <h3 class="cap__head display" data-cap-head>Design that converts.</h3>
-              <p class="cap__text" data-cap-text>Every pixel placed with intent. Every interaction designed to convert.</p>
+            <p class="j__sub j__sub--center" data-j-fade>A SCAD-trained designer and a production AI engineer. One studio.</p>
+          </div>
+        </div>
+
+        <!-- C — built to last -->
+        <div class="journey__step" id="j-support">
+          <div class="j__inner">
+            <div class="j__chat">
+              <div class="bubble bubble--in" data-j-bubble><b>CLIENT</b>Hey, the contact form stopped working</div>
+              <div class="bubble bubble--out" data-j-bubble><b>COLIN</b>Fixed. Check it now.</div>
+              <div class="bubble bubble--in" data-j-bubble><b>CLIENT</b>That was 3 minutes 😳</div>
+              <div class="bubble bubble--out" data-j-bubble><b>COLIN</b>That's what we do.</div>
             </div>
+            <p class="j__sub" data-j-fade>We don't disappear after launch. Something breaks? Text us. We fix it.</p>
+            <span class="mono j__tag" data-j-fade>ONGOING SUPPORT · REAL PEOPLE · NOT A TICKET NUMBER</span>
+          </div>
+        </div>
+
+        <!-- D — the numbers -->
+        <div class="journey__step" id="j-numbers">
+          <div class="j__inner j__inner--wide">
+            <div class="nums">
+              <div class="num" data-j-fade>
+                <span class="num__val display" data-count="&lt; 2 WEEKS">&lt; 2 WEEKS</span>
+                <span class="mono num__label">AVERAGE DELIVERY</span>
+              </div>
+              <div class="num" data-j-fade>
+                <span class="num__val display" data-count="$250+">$250+</span>
+                <span class="mono num__label">STARTING PRICE</span>
+              </div>
+              <div class="num" data-j-fade>
+                <span class="num__val display" data-count="100%">100%</span>
+                <span class="mono num__label">SATISFACTION — WE REVISE UNTIL YOU'RE HAPPY</span>
+              </div>
+            </div>
+            <p class="j__sub j__sub--center j__foot" data-j-fade>Most agencies charge $5,000+ for this. We're not most agencies.</p>
           </div>
         </div>
       </section>
 
-      <!-- ══ SCENE 3 — PORTFOLIO (horizontal) ═════════════════════ -->
-      <section class="scene scene--work" id="portfolio">
-        <div class="work__aurora" aria-hidden="true"><span></span><span></span><span></span></div>
-        <div class="work__pin">
-          <div class="work__track" data-work-track>
-            <!-- 01 -->
-            <article class="work__slide">
-              <div class="work__frame">
-                <a class="frame__link" href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit Keystone South Construction"></a>
-                <div class="frame__bar" aria-hidden="true"><span></span><span></span><span></span><em class="mono">keystonesouthconstruction.com</em></div>
-                <div class="frame__view frame__view--keystone">
-                  <div class="kmock" aria-hidden="true">
-                    <div class="kmock__nav">
-                      <span class="kmock__logo">Keystone <i>South</i></span>
-                      <span class="kmock__links"><b>About</b><b>Gallery</b><b>Services</b><b>Reviews</b></span>
-                      <span class="kmock__quote">Get a Free Quote</span>
-                    </div>
-                    <div class="kmock__hero">
-                      <span class="kmock__eyebrow">Georgia's Premier Construction Company</span>
-                      <h5 class="kmock__h">Crafting the South's<br /><i>Finest Homes.</i></h5>
-                      <span class="kmock__btns"><b class="kmock__btn">Call Jeff Tullis</b><b class="kmock__btn kmock__btn--ghost">Get a Free Quote</b></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="work__meta">
-                <span class="work__num display">01</span>
-                <span class="mono work__tag">WEB DESIGN · CONSTRUCTION</span>
-                <h3 class="work__name display">Keystone South Construction</h3>
-                <p class="work__desc">A bold, dark-and-orange site for a 35-year, family-owned Georgia contractor — built to convey trust and craftsmanship, and make requesting a free quote effortless.</p>
-                <a class="work__link" href="https://keystonesouthconstruction.com/" target="_blank" rel="noopener noreferrer">Visit Live Site <span aria-hidden="true">↗</span></a>
-              </div>
-            </article>
-            <!-- 02 -->
-            <article class="work__slide">
-              <div class="work__frame">
-                <a class="frame__link" href="https://shop.taboost.me/" target="_blank" rel="noopener noreferrer" aria-label="Visit TABOOST"></a>
-                <div class="frame__bar" aria-hidden="true"><span></span><span></span><span></span><em class="mono">shop.taboost.me</em></div>
-                <div class="frame__view frame__view--taboost">
-                  <div class="tmock" aria-hidden="true">
-                    <div class="tmock__nav">
-                      <span class="tmock__logo"><i></i>TABOOST</span>
-                      <span class="tmock__auth"><b>Sign Up</b><b class="tmock__login">Login</b></span>
-                    </div>
-                    <div class="tmock__hero">
-                      <span class="tmock__eyebrow">Built for TikTok Shop creators</span>
-                      <h5 class="tmock__h"><i class="tmock__green">Higher Commission.</i><br />Better Products.</h5>
-                      <span class="tmock__genie">✨ Ask the Genie</span>
-                      <span class="tmock__search"></span>
-                    </div>
-                    <div class="tmock__pills"><b>Beauty</b><b>Electronics</b><b>Fashion</b><b>Home</b><b>Sports</b></div>
-                    <div class="tmock__grid">
-                      <span class="tmock__card"><i class="tmock__img"></i><em class="tmock__pct">16%</em></span>
-                      <span class="tmock__card"><i class="tmock__img"></i><em class="tmock__pct">16%</em></span>
-                      <span class="tmock__card"><i class="tmock__img"></i><em class="tmock__pct">16%</em></span>
-                      <span class="tmock__card"><i class="tmock__img"></i><em class="tmock__pct">16%</em></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="work__meta">
-                <span class="work__num display">02</span>
-                <span class="mono work__tag">WEB APP · CREATOR MARKETPLACE</span>
-                <h3 class="work__name display">TABOOST</h3>
-                <p class="work__desc">A creator-marketplace web app for TikTok Shop sellers — browse high-commission products and exclusive campaigns, with live sales and commission data on every card.</p>
-                <a class="work__link" href="https://shop.taboost.me/" target="_blank" rel="noopener noreferrer">Visit Live Site <span aria-hidden="true">↗</span></a>
-              </div>
-            </article>
-            <!-- 03 — self-referential -->
-            <article class="work__slide">
-              <div class="work__frame work__frame--self">
-                <div class="frame__bar" aria-hidden="true"><span></span><span></span><span></span><em class="mono">northbound · the magnum opus</em></div>
-                <div class="frame__view frame__view--self">
-                  <div class="smock" aria-hidden="true">
-                    <div class="smock__nav">
-                      <span class="smock__logo">N</span>
-                      <span class="smock__links"><b>Work</b><b>Packages</b><b class="smock__cta">Apply</b></span>
-                    </div>
-                    <div class="smock__hero">
-                      <span class="smock__orb"></span>
-                      <h5 class="smock__h">We don't build websites.<br /><i>We build unfair advantages.</i></h5>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="work__meta">
-                <span class="work__num display">03</span>
-                <span class="mono work__tag">INTERACTIVE EXPERIENCE · CREATIVE STUDIO</span>
-                <h3 class="work__name display">Northbound Studio</h3>
-                <p class="work__desc">The site you're navigating right now. Our magnum opus. Three.js, GSAP, custom everything.</p>
-                <span class="work__link work__link--here">You're already here <span aria-hidden="true">★</span></span>
-              </div>
-            </article>
-          </div>
-          <div class="work__hud" aria-hidden="true">
-            <span class="work__counter mono"><em>01</em> / 03</span>
-            <div class="work__dots"><i class="is-active"></i><i></i><i></i></div>
-          </div>
+      <!-- ══ SCENE 5 — TEMPLATE PICKER ════════════════════════════ -->
+      <section class="scene scene--templates" id="templates">
+        <div class="tpl__head">
+          <span class="mono eyebrow" data-reveal>CHOOSE YOUR STYLE</span>
+          <h2 class="display" data-reveal>Pick a starting point.</h2>
+          <p class="lead" data-reveal>Select a template and we'll customize it for your brand. Want something completely original? That's an option too.</p>
+        </div>
+        <div class="tpl__grid">
+          <button type="button" class="tpl" data-reveal data-template="Minimal" data-budget="$250 — Starter" style="--t1:#ffffff; --t2:#1a1a1a; --t3:#f5f5f5">
+            <span class="tpl__preview" aria-hidden="true">
+              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
+              <span class="tpl__pcards"><i></i><i></i><i></i></span>
+              <span class="tpl__palette"><i style="--c:#ffffff"></i><i style="--c:#1a1a1a"></i><i style="--c:#f5f5f5"></i></span>
+            </span>
+            <span class="tpl__name display">Minimal</span>
+            <span class="tpl__desc">Clean, light, lots of whitespace — consultants, coaches, personal brands.</span>
+            <span class="tpl__price mono">$250–400</span>
+          </button>
+
+          <button type="button" class="tpl" data-reveal data-template="Bold Dark" data-budget="$250 — Starter" style="--t1:#0a0a0a; --t2:#00f0ff; --t3:#1a1a2e">
+            <span class="tpl__preview" aria-hidden="true">
+              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
+              <span class="tpl__pcards"><i></i><i></i><i></i></span>
+              <span class="tpl__palette"><i style="--c:#0a0a0a"></i><i style="--c:#00f0ff"></i><i style="--c:#1a1a2e"></i></span>
+            </span>
+            <span class="tpl__name display">Bold Dark</span>
+            <span class="tpl__desc">Dark backgrounds, neon accents — tech companies, developers, gaming.</span>
+            <span class="tpl__price mono">$250–400</span>
+          </button>
+
+          <button type="button" class="tpl" data-reveal data-template="Warm &amp; Organic" data-budget="$250 — Starter" style="--t1:#f4ede4; --t2:#c8956c; --t3:#2d2a24">
+            <span class="tpl__preview" aria-hidden="true">
+              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
+              <span class="tpl__pcards"><i></i><i></i><i></i></span>
+              <span class="tpl__palette"><i style="--c:#f4ede4"></i><i style="--c:#c8956c"></i><i style="--c:#2d2a24"></i></span>
+            </span>
+            <span class="tpl__name display">Warm &amp; Organic</span>
+            <span class="tpl__desc">Earth tones, rounded shapes — restaurants, wellness, local services.</span>
+            <span class="tpl__price mono">$250–400</span>
+          </button>
+
+          <button type="button" class="tpl" data-reveal data-template="Corporate Trust" data-budget="$250 — Starter" style="--t1:#0f1b2d; --t2:#2563eb; --t3:#f8fafc">
+            <span class="tpl__preview" aria-hidden="true">
+              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
+              <span class="tpl__pcards"><i></i><i></i><i></i></span>
+              <span class="tpl__palette"><i style="--c:#0f1b2d"></i><i style="--c:#2563eb"></i><i style="--c:#f8fafc"></i></span>
+            </span>
+            <span class="tpl__name display">Corporate Trust</span>
+            <span class="tpl__desc">Professional blues, credibility-first — law firms, finance, B2B.</span>
+            <span class="tpl__price mono">$250–400</span>
+          </button>
+
+          <button type="button" class="tpl" data-reveal data-template="Creative Pop" data-budget="$400–600 — Pro" style="--t1:#fef3c7; --t2:#f97316; --t3:#1e1b4b">
+            <span class="tpl__preview" aria-hidden="true">
+              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
+              <span class="tpl__pcards"><i></i><i></i><i></i></span>
+              <span class="tpl__palette"><i style="--c:#fef3c7"></i><i style="--c:#f97316"></i><i style="--c:#1e1b4b"></i></span>
+            </span>
+            <span class="tpl__name display">Creative Pop</span>
+            <span class="tpl__desc">Bright colors, bold typography — creative agencies, artists, events.</span>
+            <span class="tpl__price mono">$400–600</span>
+          </button>
+
+          <button type="button" class="tpl tpl--original" data-reveal data-template="Original Design" data-budget="$400–600 — Pro">
+            <span class="tpl__preview tpl__preview--original" aria-hidden="true">
+              <span class="tpl__n display">N</span>
+              <span class="mono tpl__custom">CUSTOM</span>
+            </span>
+            <span class="tpl__name display">Original Design</span>
+            <span class="tpl__desc">Skip the templates. We design something nobody else has.</span>
+            <span class="tpl__price mono">$400–600+ · PRO TIER</span>
+          </button>
         </div>
       </section>
 
-      <!-- ══ SCENE 4 — PACKAGES ═══════════════════════════════════ -->
-      <section class="scene scene--pkg" id="packages">
-        <div class="pkg__field" aria-hidden="true"></div>
-        <div class="pkg__head">
-          <span class="mono eyebrow" data-reveal>PACKAGES</span>
-          <h2 class="display" data-reveal>Choose your level of craft.</h2>
-          <p class="lead" data-reveal>Transparent scope, fixed pricing, launch in 1–3 weeks. Every build is mobile-first and tuned to convert.</p>
-        </div>
-        <div class="pkg__grid">
-          <article class="pkg" data-reveal data-tilt>
-            <div class="pkg__glow" aria-hidden="true"></div>
-            <span class="pkg__tier mono">Starter</span>
-            <span class="pkg__sub">Quick &amp; Polished</span>
-            <p class="pkg__price display" data-price="250"><span class="pkg__cur">$</span>250</p>
-            <ul class="pkg__feat">
-              <li>1-page build + contact section</li>
-              <li>Mobile-first design</li>
-              <li>Basic SEO setup</li>
-              <li>Launch support</li>
-            </ul>
-            <a class="btn btn--ghost pkg__cta" href="#apply" data-scroll data-budget="$250 — Starter">Get Started</a>
-          </article>
-
-          <article class="pkg pkg--featured" data-reveal data-tilt>
-            <span class="pkg__badge mono">Most Popular</span>
-            <div class="pkg__glow" aria-hidden="true"></div>
-            <span class="pkg__tier mono">Pro</span>
-            <span class="pkg__sub">The Full Experience</span>
-            <p class="pkg__price display" data-price="400-600"><span class="pkg__cur">$</span>400–600</p>
-            <ul class="pkg__feat">
-              <li>Up to 5 custom sections</li>
-              <li>Enhanced interactions + animation</li>
-              <li>Performance &amp; accessibility polish</li>
-              <li>Custom visuals</li>
-            </ul>
-            <a class="btn btn--primary pkg__cta" href="#apply" data-scroll data-budget="$400–$600 — Pro">Get Started</a>
-          </article>
-
-          <article class="pkg" data-reveal data-tilt>
-            <div class="pkg__glow" aria-hidden="true"></div>
-            <span class="pkg__tier mono">Full Brand Kit</span>
-            <span class="pkg__sub">Total Transformation</span>
-            <p class="pkg__price display" data-price="750"><span class="pkg__cur">$</span>750+</p>
-            <ul class="pkg__feat">
-              <li>Logo + palette + style direction</li>
-              <li>Website + custom icon/illustration set</li>
-              <li>Launch support + handoff assets</li>
-              <li>Brand guidelines</li>
-            </ul>
-            <a class="btn btn--ghost pkg__cta" href="#apply" data-scroll data-budget="$750+ — Full Brand Kit">Get Started</a>
-          </article>
-        </div>
-        <p class="pkg__foot" data-reveal>Most agencies charge $5,000+ for this. We're not most agencies.</p>
-      </section>
-
-      <!-- ══ SCENE 5 — APPLY ══════════════════════════════════════ -->
+      <!-- ══ SCENE 6 — APPLY ══════════════════════════════════════ -->
       <section class="scene scene--apply" id="apply">
         <div class="apply__glow" aria-hidden="true"></div>
         <div class="apply__wrap">
@@ -337,21 +273,34 @@
               <div class="field"><label class="mono" for="f-ind">Industry</label><input class="field__input" id="f-ind" name="industry" type="text" /></div>
             </div>
             <div class="form__row">
+              <div class="field"><label class="mono" for="templateSelect">Selected template</label>
+                <select class="field__input" id="templateSelect" name="template">
+                  <option value="" selected>No preference / not sure</option>
+                  <option>Minimal</option>
+                  <option>Bold Dark</option>
+                  <option>Warm &amp; Organic</option>
+                  <option>Corporate Trust</option>
+                  <option>Creative Pop</option>
+                  <option>Original Design</option>
+                </select>
+              </div>
               <div class="field"><label class="mono" for="f-focus">Project focus</label>
                 <select class="field__input" id="f-focus" name="focus" required>
                   <option value="" disabled selected hidden></option>
                   <option>Logo</option><option>Website</option><option>Logo + Website</option>
                 </select>
               </div>
+            </div>
+            <div class="form__row">
               <div class="field"><label class="mono" for="budgetSelect">Budget range</label>
                 <select class="field__input" id="budgetSelect" name="budget" required>
                   <option value="" disabled selected hidden></option>
-                  <option>$250 — Starter</option><option>$400–$600 — Pro</option><option>$750+ — Full Brand Kit</option>
+                  <option>$250 — Starter</option><option>$400–600 — Pro</option><option>$750+ — Full Brand Kit</option>
                 </select>
               </div>
+              <div class="field"><label class="mono" for="f-when">Target launch window</label><input class="field__input" id="f-when" name="timeline" type="text" placeholder="e.g., 2 weeks" /></div>
             </div>
             <div class="field field--full"><label class="mono" for="f-detail">Tell us about your project</label><textarea class="field__input" id="f-detail" name="details" rows="3"></textarea></div>
-            <div class="field field--full"><label class="mono" for="f-when">Target launch window</label><input class="field__input" id="f-when" name="timeline" type="text" placeholder="e.g., 2 weeks" /></div>
 
             <button class="btn btn--primary btn--submit" type="submit">
               <span class="btn__label">Submit Application</span>
@@ -362,16 +311,15 @@
         </div>
       </section>
 
-      <!-- ══ SCENE 6 — FOOTER ═════════════════════════════════════ -->
+      <!-- ══ SCENE 7 — FOOTER ═════════════════════════════════════ -->
       <footer class="footer" id="footer">
         <span class="footer__n display" aria-hidden="true">N</span>
         <p class="footer__line">Design + development for small businesses that want to stand out online.</p>
         <div class="footer__links">
           <a href="#apply" data-scroll>Start a project ↗</a>
-          <a href="#portfolio" data-scroll>View our work ↗</a>
         </div>
         <p class="footer__fine mono">© 2026 Northbound Studio · Grand Ledge, MI → Worldwide</p>
-        <p class="footer__flex mono">Built with Three.js · GSAP · Vanilla JS · Obsession</p>
+        <p class="footer__flex mono">Built with Three.js · GSAP · Obsession</p>
       </footer>
     </main>
 
@@ -389,11 +337,12 @@
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
 
     <!-- ── APP (classic scripts, dependency order) ───────────────── -->
-    <script src="./js/cursor.js"></script>
-    <script src="./js/form.js"></script>
-    <script src="./js/three-scenes.js"></script>
-    <script src="./js/transitions.js"></script>
-    <script src="./js/animations.js"></script>
-    <script src="./js/app.js"></script>
+    <script src="./js/cursor.js?v=3"></script>
+    <script src="./js/form.js?v=3"></script>
+    <script src="./js/templates.js?v=3"></script>
+    <script src="./js/hero.js?v=3"></script>
+    <script src="./js/helix.js?v=3"></script>
+    <script src="./js/animations.js?v=3"></script>
+    <script src="./js/app.js?v=3"></script>
   </body>
 </html>

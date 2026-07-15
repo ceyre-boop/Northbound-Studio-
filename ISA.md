@@ -3,7 +3,7 @@ project: Northbound Studio
 task: Site-wide revamp into 7-scene cinematic anime scroll experience
 slug: northbound-anime-scroll
 effort: E5
-phase: verify
+phase: learn
 progress: 120/128
 mode: build
 started: 2026-07-14T22:30:36-0400
@@ -266,7 +266,16 @@ The Northbound Studio site on `main` deploys to GitHub Pages as the approved 7-s
 
 ## Changelog
 
-(Entries land at LEARN in conjecture/refutation/learning format.)
+- **2026-07-15 — shatter velocity.**
+  - conjectured: `vel·easeIn(tG)·14` would spread particle passage across phase G ("fast, dramatic, then calm").
+  - refuted by: live screenshot at p=0.955 — frame already empty; the ×2.5 group scale multiplies displacement, so every particle passed the camera in the first ~20% of G.
+  - learned: displacement tuning must be computed in WORLD units (local × group scale), and the passage *window* — not the max distance — is the design variable.
+  - criterion now: ISC-46/123 — multiplier 2.5 spreads passage across tG≈0.4–0.7; full-frame debris verified at p 0.955.
+- **2026-07-15 — reduce-motion acceptance trap.**
+  - conjectured: a correct prefers-reduced-motion gate is purely an accessibility win.
+  - refuted by: this Mac has OS Reduce Motion ON — the "correct" gate rendered the fallback during acceptance, indistinguishable from a broken build (the exact failure pattern in recent learning signals).
+  - learned: motion-gated sites need an explicit inspection override, and environment state (OS settings, tool availability) belongs in PREFLIGHT probes.
+  - criterion now: `?motion=full`/`?motion=lite` overrides exist (app.js), html.force-motion scopes the RM CSS; default honors the OS setting.
 
 ## Verification
 

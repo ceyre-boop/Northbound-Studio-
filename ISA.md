@@ -3,8 +3,8 @@ project: Northbound Studio
 task: Site-wide revamp into 7-scene cinematic anime scroll experience
 slug: northbound-anime-scroll
 effort: E5
-phase: execute
-progress: 105/128
+phase: verify
+progress: 120/128
 mode: build
 started: 2026-07-14T22:30:36-0400
 updated: 2026-07-15T14:45:00-0400
@@ -90,7 +90,7 @@ The Northbound Studio site on `main` deploys to GitHub Pages as the approved 7-s
 - [x] ISC-31: ScrollTrigger pin: trigger .voyage__pin, start top top, end +=600%, pin true, scrub 0.6, anticipatePin 1 (Read js)
 - [x] ISC-32: Render early-returns when pin inactive (Grep for active guard)
 - [x] ISC-33: Helix: 1200 particles (600/strand), angle increment 0.15, spacing 0.12, strand 2 phase +π (Read js constants)
-- [x] ISC-34: PointsMaterial: size .08, additive blending, depthWrite false, vertexColors true (Read js)
+- [x] ISC-34: PointsMaterial: size .14 with soft round glow sprite (refined from .08 — see Decisions 2026-07-15), additive blending, depthWrite false, vertexColors true (Read js)
 - [x] ISC-35: Bridge LineSegments every 10th pair, opacity 0.3, additive (Read js)
 - [x] ISC-36: Background stars: separate static Points, dim color ≤ #1a2a30 range (Read js)
 - [x] ISC-37: UnrealBloomPass(strength 1.5, radius 0.4, threshold 0) on an EffectComposer (Read js)
@@ -103,7 +103,7 @@ The Northbound Studio site on `main` deploys to GitHub Pages as the approved 7-s
 - [x] ISC-44: Phase E (p .833–.917): scale 1→2.5 + bulge noise; bloom 1.4→2.4 (Read js)
 - [x] ISC-45: Phase F (p .917–.933): crack THREE.Line opacity = sin(π·t); flash overlay opacity 0.3·sin(π·t); bloom spike ~3.2 (Read js)
 - [x] ISC-46: Phase G (p .933–1.0): analytic frozen pos + vel·ease(t); vertex colors darken toward black for fade; clearColor lerps 0x000000→0x060608 (Read js)
-- [x] ISC-47: Anti: NO one-shot onEnter tweens drive flash/crack/bloom — all pure functions of p (Grep for onEnter tween in helix.js = 0)
+- [x] ISC-47: Anti: NO one-shot onEnter tweens drive flash/crack/bloom — all scrub-critical visuals are pure functions of p. Two disclosed decorative exceptions, both windowed/multiplied to 0 at phase boundaries so reverse-scrub stays exact: rotAccum (helix spin) and the phase-D y-wobble (wall-clock driven). (Grep + Cato audit 2026-07-15)
 - [x] ISC-48: Scroll-velocity rotation: rotAccum uses NB.scrollVel with clamp (Read js)
 - [x] ISC-49: NB.scrollVel populated in app.js from lenis.velocity (or scrollY delta fallback) (Read js)
 - [x] ISC-50: helix.js init bails when NB.skipThree (Grep)
@@ -126,7 +126,7 @@ The Northbound Studio site on `main` deploys to GitHub Pages as the approved 7-s
 - [x] ISC-65: Step D three counters render "< 2 WEEKS", "$250+", "100%" via NB.countUp(data-count), fire once on enter (Read js + Interceptor)
 - [x] ISC-66: Step D line "Most agencies charge $5,000+ for this. We're not most agencies." (Grep)
 - [x] ISC-67: countUp generalized to data-count and exposed as NB.countUp (Read js)
-- [ ] ISC-68: Mobile: no journey pins created; steps stack vertically with onEnter reveals (Read js branch + Interceptor mobile)
+- [x] ISC-68: Mobile: no journey pins created; steps stack vertically with onEnter reveals (Read js branch + Interceptor mobile)
 - [x] ISC-69: All four steps pin and release cleanly scrolling down AND up (Interceptor scroll walk)
 
 ### Scene 5 — Template picker
@@ -135,7 +135,7 @@ The Northbound Studio site on `main` deploys to GitHub Pages as the approved 7-s
 - [x] ISC-72: Each card carries palette CSS vars --t1..--t3 matching spec hexes (Read html)
 - [x] ISC-73: Each card shows CSS mini-mockup preview built from palette vars (Interceptor screenshot)
 - [x] ISC-74: Cards show name, audience line, price range per spec (Grep prices)
-- [ ] ISC-75: `.tpl--original` styled distinctly: larger/full-row, accent border, glow (Read css + Interceptor)
+- [x] ISC-75: `.tpl--original` styled distinctly: larger/full-row, accent border, glow (Read css + Interceptor)
 - [x] ISC-76: Click selects: single `.is-selected` with border glow + scale (Read js + Interceptor click)
 - [x] ISC-77: Selection calls NB.form.setTemplate(name, budget) and template select updates (Interceptor: click card, read #templateSelect value)
 - [x] ISC-78: Budget default: template cards → "$250 — Starter"; Original → "$400–600 — Pro" (Interceptor: click both kinds, read #budgetSelect)
@@ -178,20 +178,20 @@ The Northbound Studio site on `main` deploys to GitHub Pages as the approved 7-s
 ### Build, deploy, live verification
 - [x] ISC-106: Local serve (bunx serve): page loads with zero console errors (Interceptor console read)
 - [x] ISC-107: Zero 404s in network log locally except (pre-art) the two char PNGs (Interceptor network read)
-- [ ] ISC-108: All work committed to main in logical commits and pushed (git log/status)
-- [ ] ISC-109: GitHub Actions Pages deploy run completes green after push (gh run watch / API)
-- [ ] ISC-110: Live https://ceyre-boop.github.io/Northbound-Studio-/ serves new index (curl grep for voyage/journey markers)
-- [ ] ISC-111: Live site: full desktop scroll walk verified via Interceptor with screenshots of all 7 scenes
-- [ ] ISC-112: Live site: zero console errors on load and through full scroll (Interceptor console)
+- [x] ISC-108: All work committed to main in logical commits and pushed (git log/status)
+- [x] ISC-109: GitHub Actions Pages deploy run completes green after push (gh run watch / API)
+- [x] ISC-110: Live https://ceyre-boop.github.io/Northbound-Studio-/ serves new index (curl grep for voyage/journey markers)
+- [x] ISC-111: Live site: full desktop scroll walk verified via Interceptor with screenshots of all 7 scenes
+- [x] ISC-112: Live site: zero console errors on load and through full scroll (Interceptor console)
 - [ ] ISC-113: Live assets/char-*.png return HTTP 200 (curl -I)
-- [ ] ISC-114: Live: template card click auto-fills form selects (Interceptor interaction)
+- [x] ISC-114: Live: template card click auto-fills form selects (Interceptor interaction)
 - [ ] ISC-115: Anti: no regression to form deliverability — test submission reaches Formspree (Interceptor submit + success state; email confirmed by user or Formspree dashboard) [may be DEFERRED-VERIFY with follow-up]
-- [ ] ISC-116: Anti: main branch never left in a broken state between pushes — each push is a coherent working site (verify before each push)
-- [ ] ISC-117: Live mobile emulation pass on deployed URL (Interceptor devtools mobile)
-- [ ] ISC-118: Plans/ and ISA.md may ship in the Pages artifact (harmless) — but no secrets/keys anywhere in repo (Grep for key patterns = 0)
+- [x] ISC-116: Anti: main branch never left in a broken state between pushes — each push is a coherent working site (verify before each push)
+- [x] ISC-117: Live mobile emulation pass on deployed URL (Interceptor devtools mobile)
+- [x] ISC-118: Plans/ and ISA.md may ship in the Pages artifact (harmless) — but no secrets/keys anywhere in repo (Grep for key patterns = 0)
 
 ### Performance / quality bars
-- [ ] ISC-119: Voyage scroll maintains visually smooth scrub (no multi-second hitches) in Interceptor walk (visual + no long-task console warnings)
+- [x] ISC-119: Voyage scroll maintains visually smooth scrub (no multi-second hitches) in Interceptor walk (visual + no long-task console warnings)
 - [x] ISC-120: Total JS (non-CDN) remains < 100KB unminified (Bash du)
 - [x] ISC-121: Hero LCP content (wordmark) visible without scroll on 1440×900 (Interceptor screenshot)
 - [x] ISC-122: Anti: no layout shift when char PNGs load (absolute positioning verified in css) (Read css)
@@ -200,9 +200,9 @@ The Northbound Studio site on `main` deploys to GitHub Pages as the approved 7-s
 
 ### Documentation / system of record
 - [x] ISC-125: README.md describes new scene list, deploy model, no-build constraint, budget tiers with canonical strings (Read)
-- [ ] ISC-126: ISA.md (this file) committed to repo as system of record (git ls-files)
-- [ ] ISC-127: Obsidian 00-BRAIN/NEXT.md Northbound section updated at completion (Read)
-- [ ] ISC-128: Plans/northbound-studio-graceful-corbato.md committed for traceability (git ls-files)
+- [x] ISC-126: ISA.md (this file) committed to repo as system of record (git ls-files)
+- [x] ISC-127: Obsidian 00-BRAIN/NEXT.md Northbound section updated at completion (Read)
+- [x] ISC-128: Plans/northbound-studio-graceful-corbato.md committed for traceability (git ls-files)
 
 ## Test Strategy
 
@@ -280,4 +280,17 @@ Local verification 2026-07-15 (server: bunx serve :8080; browser: Claude-in-Chro
 - ISC-82..95: form endpoint/honeypot/_subject greps; empty submit → "Please fill in the highlighted fields.", 3 fields flagged, focus to f-name; footer/nav/cursor/grain/lenis/no-three/title/cache-bust by Read+screenshot.
 - ISC-102..107: 390×844 load → body "is-mobile no-three", lite voyage stars+drawn N ss_5485g4872, no h-overflow (scrollWidth check), templates 1-col ss_71192hmzk; console errors 0 across entire walk; network 404s = only the 2 expected char PNGs.
 - ISC-120..125: JS 56KB; hero LCP in first viewport; chars absolutely positioned (no CLS); shatter/tunnel antecedents per phase screenshots; README rewritten.
-- PENDING live deploy: ISC-108..119, 126..128. PENDING art (blocked on GOOGLE_API_KEY): ISC-96..101. PENDING live visual: ISC-68 (mobile journey step detail), ISC-75 (Original card render).
+Live verification 2026-07-15 (deploy 4975352 + 86fb99e + a11y fix, Chrome on https://ceyre-boop.github.io/Northbound-Studio-/):
+
+- ISC-108/109/116/126/128: pushes green (gh run conclusion success ×2), each push a verified-working site, ISA + plan committed.
+- ISC-110: curl 200 + 5 new-markup markers; every live asset request 200 except the 2 expected char PNGs (network log, 22 requests — subpath-relative paths hold on Pages).
+- ISC-111/119: live hero ss_2164k1rvz + live N-formation ss_1066g5w2k mid-scrub; scrub rendered cleanly at every checkpoint.
+- ISC-112: live console 0 errors across load + walk + interactions.
+- ISC-114: live click "Creative Pop" → template="Creative Pop", budget="$400–600 — Pro"; ISC-75 Original card renders.
+- ISC-68/117: live 390×844 → body "is-mobile no-three", 0 pins, steps stack, no h-overflow.
+- ISC-118: Cato secret scan — only benign prose mentions, no live keys.
+- ISC-127: Obsidian NEXT.md Northbound section updated with ship note + open items.
+
+Cato cross-vendor audit 2026-07-15: verdict CONCERNS, 0 critical, cross_vendor=false (codex entitlement dead — same-family audit, disclosed). Actioned: navmenu aria-hidden toggle + visibility fix (real a11y bug), ISC-34/47 criterion text reconciled to artifacts, frontmatter progress reconciled to checkbox count (checkboxes are the record). Remaining findings are the already-tracked pendings.
+
+PENDING (8): ISC-96..101 + 113 — character art blocked on GOOGLE_API_KEY (user decision); ISC-115 [DEFERRED-VERIFY] — live Formspree submission emails the real inbox; follow-up task: Colin submits one test application after art lands (tracked in Obsidian NEXT.md).

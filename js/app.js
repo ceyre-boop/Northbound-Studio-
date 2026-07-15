@@ -78,12 +78,13 @@
     const burger = document.querySelector(".nav__burger");
     const menu = document.querySelector(".navmenu");
     const navEl = document.getElementById("nav");
-    function closeMenu() { if (!menu) return; menu.classList.remove("is-open"); navEl.classList.remove("is-menu"); burger && burger.setAttribute("aria-expanded", "false"); }
+    function closeMenu() { if (!menu) return; menu.classList.remove("is-open"); navEl.classList.remove("is-menu"); menu.setAttribute("aria-hidden", "true"); burger && burger.setAttribute("aria-expanded", "false"); }
     if (burger && menu) {
       burger.addEventListener("click", () => {
         const open = menu.classList.toggle("is-open");
         navEl.classList.toggle("is-menu", open);
         burger.setAttribute("aria-expanded", String(open));
+        menu.setAttribute("aria-hidden", String(!open));
       });
     }
 

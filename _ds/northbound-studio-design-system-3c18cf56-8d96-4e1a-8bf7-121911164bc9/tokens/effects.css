@@ -1,0 +1,42 @@
+/* Northbound Studio — EFFECTS
+   Radii, borders, shadows, glows, motion. The system is glow-driven: shadows
+   are mostly cyan light bleed rather than opaque drop shadows, and everything
+   pill-rounded or softly-rounded. Values copied from the live site. */
+:root {
+  /* ---- Corner radii ---- */
+  --radius-sm: 4px;     /* focus outlines, tiny chips */
+  --radius: 10px;       /* inputs, preview thumbs */
+  --radius-md: 16px;    /* chat bubbles */
+  --radius-lg: 18px;    /* cards, fallback panels */
+  --radius-pill: 999px; /* buttons, tags, nav CTA */
+
+  /* ---- Borders ---- */
+  --border-width: 1px; /* @kind spacing */
+  --border-line: 1px solid var(--border);
+  --border-line-hover: 1px solid var(--border-hover);
+  --border-accent: 1px solid var(--accent);
+
+  /* ---- Shadows & glows ---- */
+  /* Cyan glow — the signature. Used on hover, focus, selected states. */
+  --glow-accent: 0 0 26px var(--accent-glow);
+  --glow-accent-strong: 0 12px 40px -8px var(--accent-glow), 0 0 26px var(--accent-glow);
+  --glow-inset: inset 0 0 24px var(--accent-subtle);
+  /* Deep drop for floating art / elevated cards */
+  --shadow-drop: 0 24px 60px rgba(0, 0, 0, 0.6);
+  --shadow-card: inset 0 0 40px var(--accent-subtle), 0 24px 60px rgba(0, 0, 0, 0.6);
+  /* Focus ring on inputs */
+  --focus-shadow: 0 0 0 3px rgba(0, 240, 255, 0.1);
+
+  /* ---- Film grain overlay opacity ---- */
+  --grain-opacity: 0.035; /* @kind other */
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1); /* @kind other */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1); /* @kind other */
+  --dur-fast: 0.2s; /* @kind other */
+  --dur: 0.25s; /* @kind other */
+  --dur-slow: 0.4s; /* @kind other */
+  /* Hover lift used on buttons & cards */
+  --lift: translateY(-2px); /* @kind other */
+  --lift-card: translateY(-3px); /* @kind other */
+}

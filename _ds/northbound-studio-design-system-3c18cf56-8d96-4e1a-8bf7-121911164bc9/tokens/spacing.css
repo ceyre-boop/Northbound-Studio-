@@ -1,0 +1,26 @@
+/* Northbound Studio — SPACING & LAYOUT
+   Loose, cinematic rhythm. A fluid page gutter and a fixed content max-width
+   frame the whole site; the scale below is used for gaps and padding. */
+:root {
+  /* ---- Layout frame ---- */
+  --maxw: 1180px;                          /* content column cap */
+  --gut: clamp(1.25rem, 4vw, 3rem); /* @kind spacing */        /* fluid page gutter */
+
+  /* ---- Spacing scale ---- */
+  --space-1: 0.4rem;
+  --space-2: 0.6rem;
+  --space-3: 0.8rem;
+  --space-4: 1.1rem;    /* default form / stack gap */
+  --space-5: 1.6rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+  --space-10: 5rem;     /* section vertical padding (min) */
+
+  /* ---- Semantic aliases ---- */
+  --gap-form: var(--space-4);
+  --gap-stack: var(--space-5);
+  --pad-card: 1.05rem;         /* template card padding */
+  --pad-input: 0.8rem 1rem;    /* field padding */
+  --pad-btn: 0.85rem 1.6rem;   /* pill button padding */
+  --section-pad-y: clamp(5rem, 12vh, 9rem);
+}

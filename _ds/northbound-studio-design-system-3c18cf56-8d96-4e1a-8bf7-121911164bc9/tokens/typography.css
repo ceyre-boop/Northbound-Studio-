@@ -1,0 +1,49 @@
+/* Northbound Studio — TYPOGRAPHY SYSTEM
+   Three families: Syne (display headlines & wordmark), Instrument Sans
+   (body & UI), JetBrains Mono (uppercase labels, prices, captions). */
+:root {
+  /* ---- Families ---- */
+  --font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* @kind font */
+  --display: "Syne", var(--font); /* @kind font */
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; /* @kind font */
+
+  /* Semantic aliases */
+  --font-body: var(--font); /* @kind font */
+  --font-display: var(--display); /* @kind font */
+  --font-mono: var(--mono); /* @kind font */
+
+  /* ---- Weights ---- */
+  --fw-regular: 400; /* @kind font */
+  --fw-medium: 500; /* @kind font */
+  --fw-semibold: 600; /* @kind font */
+  --fw-bold: 700; /* @kind font */
+  --fw-display: 800; /* @kind font */
+
+  /* ---- Display scale (Syne, fluid clamps as used across scenes) ---- */
+  --fs-hero: clamp(2rem, 6.2vw, 7rem); /* @kind font */
+  --fs-h1: clamp(2.2rem, 6.5vw, 5.2rem); /* @kind font */
+  --fs-h2: clamp(2rem, 5vw, 3.4rem); /* @kind font */
+  --fs-stat: clamp(2rem, 4.6vw, 3.6rem); /* @kind font */
+  --fs-card-title: 1.22rem;                 /* template card name @kind font */
+
+  /* ---- Body scale (Instrument Sans) ---- */
+  --fs-lead: clamp(1rem, 2vw, 1.15rem); /* @kind font */
+  --fs-body: 0.95rem; /* @kind font */
+  --fs-sm: 0.88rem; /* @kind font */
+
+  /* ---- Mono / label ---- */
+  --fs-mono: 0.7rem; /* @kind font */
+  --tracking-mono: 0.14em;   /* wide letter-spacing on uppercase labels @kind font */
+
+  /* ---- Line heights & display tracking ---- */
+  --lh-body: 1.6; /* @kind font */
+  --lh-tight: 1.02; /* @kind font */
+  --tracking-display: -0.03em;  /* Syne headlines pull in slightly @kind font */
+  --tracking-wordmark: 0.1em;   /* the wordmark spreads out @kind font */
+}
+
+/* ---- Reusable type roles (opt-in classes) ---- */
+.display { font-family: var(--display); font-weight: var(--fw-display); letter-spacing: var(--tracking-display); line-height: var(--lh-tight); }
+.mono { font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--tracking-mono); font-size: var(--fs-mono); color: var(--text-muted); }
+.eyebrow { font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--tracking-mono); font-size: var(--fs-mono); color: var(--accent); }
+.lead { color: var(--text-muted); font-size: var(--fs-lead); max-width: 540px; line-height: var(--lh-body); }

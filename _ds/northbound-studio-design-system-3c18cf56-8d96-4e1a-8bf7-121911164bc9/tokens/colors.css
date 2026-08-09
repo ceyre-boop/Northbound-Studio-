@@ -1,0 +1,40 @@
+/* Northbound Studio — COLOR SYSTEM
+   Cinematic near-black canvas, layered dark surfaces, a single electric-cyan
+   accent, and a green "success/warm" secondary. Values copied verbatim from
+   the live site (css/style.css :root). */
+:root {
+  /* ---- Base canvas & surfaces (darkest → lightest) ---- */
+  --bg: #060608;            /* page background — near-black with a hint of blue */
+  --bg-card: #0c0c10;       /* default card / input fill */
+  --bg-elevated: #111118;   /* raised panels */
+  --surface: #16161e;       /* chips, incoming chat bubbles */
+
+  /* ---- Hairline borders ---- */
+  --border: rgba(255, 255, 255, 0.06);        /* default 1px hairline */
+  --border-hover: rgba(255, 255, 255, 0.12);  /* hover / stronger divider */
+
+  /* ---- Text (brightest → dimmest) ---- */
+  --text: #e8e8ed;       /* primary copy */
+  --text-muted: #7a7a8e; /* secondary / supporting copy */
+  --text-dim: #4a4a5e;   /* labels, captions, fine print */
+
+  /* ---- Accent — electric cyan (the whole brand) ---- */
+  --accent: #00f0ff;
+  --accent-glow: rgba(0, 240, 255, 0.15);   /* glows, focus rings, shadows */
+  --accent-subtle: rgba(0, 240, 255, 0.06); /* faint washes, inner glows */
+  --accent-warm: #00c853;   /* success / secondary green */
+
+  /* ---- Ink used ON the accent (dark text on cyan buttons) ---- */
+  --on-accent: #04181b;
+  --on-warm: #04210f;
+
+  /* ---- Semantic aliases ---- */
+  --text-body: var(--text);
+  --text-heading: var(--text);
+  --surface-page: var(--bg);
+  --surface-card: var(--bg-card);
+  --surface-input: var(--bg-card);
+  --focus-ring: var(--accent);
+  --danger: #ff5f57;        /* invalid field border */
+  --danger-text: #ff7a72;
+}

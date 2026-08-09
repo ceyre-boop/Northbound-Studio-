@@ -1,355 +1,481 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#060608" />
-    <title>Northbound Studio — The Anime Scroll Experience</title>
-    <meta
-      name="description"
-      content="Northbound Studio builds cinematic, high-converting websites. Scroll through the helix, watch the N shatter, pick your style — the site is the proof."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Northbound Studio — The Anime Scroll Experience" />
-    <meta property="og:description" content="Cinematic scroll-driven websites for small businesses. Fly through the helix, watch the N shatter, pick your style — the site is the proof." />
-    <meta property="og:url" content="https://ceyre-boop.github.io/Northbound-Studio-/" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Northbound Studio — The Anime Scroll Experience" />
-    <meta name="twitter:description" content="Cinematic scroll-driven websites for small businesses. The site is the proof." />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060608'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E" />
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#060608">
+<title>Northbound Studio — The Descent</title>
+<meta name="description" content="Northbound Studio builds cinematic, high-converting websites. Ride the cable down — seven floors, one build up. BUDDY will explain everything on the way.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Northbound Studio — The Descent">
+<meta property="og:description" content="Cinematic scroll-driven websites for small businesses. Ride the cable down — the site is the proof.">
+<meta property="og:url" content="https://ceyre-boop.github.io/Northbound-Studio-/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Northbound Studio — The Descent">
+<meta name="twitter:description" content="Cinematic scroll-driven websites for small businesses. The site is the proof.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060608'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/colors.css">
+<link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/typography.css">
+<link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/effects.css">
+<link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/styles.css">
+<script src="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/_ds_bundle.js"></script>
+<style>
+html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
+body { font-family:'Instrument Sans', system-ui, sans-serif; }
+a { color:#00F0FF; text-decoration:none; }
+a:hover { color:#8CFBFF; }
+@keyframes nbFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-14px); } }
+@keyframes nbCue { 0% { transform:rotate(45deg) translate(0,0); opacity:.2; } 50% { opacity:.9; } 100% { transform:rotate(45deg) translate(6px,6px); opacity:.2; } }
+</style>
+</helmet>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./css/style.css?v=3" />
-  </head>
+<div style="position:relative; background:#060608; color:#E8E8ED; font-family:'Instrument Sans', system-ui, sans-serif; overflow-x:hidden">
 
-  <body>
-    <!-- Film grain overlay -->
-    <div class="grain" aria-hidden="true"></div>
+<canvas ref="{{ spineRef }}" style="position:fixed; inset:0; width:100%; height:100%; z-index:1; pointer-events:none"></canvas>
+<div style="position:fixed; inset:0; z-index:0; pointer-events:none; background:radial-gradient(60% 50% at 50% 0%, rgba(0,240,255,0.10), transparent 70%), radial-gradient(50% 40% at 50% 100%, rgba(0,240,255,0.06), transparent 70%)"></div>
+<div style="position:fixed; inset:0; z-index:70; pointer-events:none; opacity:0.035; background:url(data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='4'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url%28%23n%29'/%3E%3C/svg%3E)"></div>
 
-    <!-- ── NAV ───────────────────────────────────────────────────── -->
-    <header class="nav" id="nav">
-      <a class="nav__brand" href="#top" data-scroll aria-label="Northbound Studio — top">
-        <span class="nav__mark" aria-hidden="true">N</span>
-        <span class="nav__name">Northbound&nbsp;Studio</span>
-      </a>
-      <nav class="nav__links" aria-label="Primary">
-        <a href="#journey" data-scroll>Journey</a>
-        <a href="#templates" data-scroll>Templates</a>
-        <a class="nav__cta" href="#apply" data-scroll>Apply</a>
-      </nav>
-      <button class="nav__burger" type="button" aria-label="Menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-    </header>
-    <div class="navmenu" aria-hidden="true">
-      <a href="#journey" data-scroll>Journey</a>
-      <a href="#templates" data-scroll>Templates</a>
-      <a href="#apply" data-scroll>Apply</a>
+<div style="position:fixed; top:24px; left:0; right:0; z-index:60; display:flex; align-items:flex-start; justify-content:space-between; padding:0 clamp(1.25rem,4vw,3rem); pointer-events:none">
+  <div style="display:flex; align-items:center; gap:12px; pointer-events:auto">
+    <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; text-shadow:0 0 18px rgba(0,240,255,0.6)">N</div>
+    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI → WORLDWIDE</div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; pointer-events:auto">
+    <div style="display:flex; align-items:center; gap:14px; padding:6px 8px 6px 18px; border:1px solid rgba(255,255,255,0.08); border-radius:999px; background:rgba(12,12,16,0.72); backdrop-filter:blur(20px); box-shadow:0 0 26px rgba(0,240,255,0.10)">
+      <a href="#floor-6" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#E8E8ED">Work</a>
+      <canvas ref="{{ waveRef }}" style="width:64px; height:20px; display:block; opacity:0.9"></canvas>
+      <a href="#floor-7" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#E8E8ED">Contact</a>
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="66px,30px" variant="ghost" size="sm" onClick="{{ toggleAudio }}">{{ audioLabel }}</x-import>
     </div>
 
-    <main id="top">
-      <!-- ══ SCENE 1 — HERO ═══════════════════════════════════════ -->
-      <section class="scene scene--hero" id="hero">
-        <span class="hero__scan" aria-hidden="true"></span>
-        <span class="hud-bracket hud-bracket--tl hero__hud" aria-hidden="true"></span>
-        <span class="hud-bracket hud-bracket--tr hero__hud" aria-hidden="true"></span>
-        <span class="hud-bracket hud-bracket--bl hero__hud" aria-hidden="true"></span>
-        <span class="hud-bracket hud-bracket--br hero__hud" aria-hidden="true"></span>
+    <div style="display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(12,12,16,0.72); backdrop-filter:blur(20px); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E">
+      <span onClick="{{ prevFloor }}" style="cursor:pointer; color:#00F0FF; padding:0 2px">&laquo;</span>
+      <span style="color:#E8E8ED; min-width:150px; text-align:center">{{ floorReadout }}</span>
+      <span onClick="{{ nextFloor }}" style="cursor:pointer; color:#00F0FF; padding:0 2px">&raquo;</span>
+    </div>
+    <div style="display:flex; gap:5px">
+      <div style="width:22px; height:2px; background:rgba(0,240,255,0.9); box-shadow:0 0 10px rgba(0,240,255,0.7)"></div>
+      <div style="width:154px; height:2px; background:rgba(255,255,255,0.08); position:relative"><div ref="{{ progressRef }}" style="position:absolute; inset:0; transform-origin:left; background:rgba(0,240,255,0.55)"></div></div>
+    </div>
+  </div>
+</div>
 
-        <figure class="hero__char hero__char--left" aria-hidden="true">
-          <img class="hero__img" src="./assets/char-colin.png" alt="" decoding="async" />
-          <div class="hero__fallback">
-            <b class="display">C</b>
-            <span class="mono">Character art loading…</span>
-          </div>
-        </figure>
-        <figure class="hero__char hero__char--right" aria-hidden="true">
-          <img class="hero__img" src="./assets/char-partner.png" alt="" decoding="async" />
-          <div class="hero__fallback">
-            <b class="display">A</b>
-            <span class="mono">Character art loading…</span>
-          </div>
-        </figure>
+<div style="position:fixed; right:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-end; gap:12px; max-width:min(520px, 58vw)">
+  <sc-if value="{{ showBubble }}" hint-placeholder-val="{{ true }}">
+    <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
+  </sc-if>
+  <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
+    <img src="buddy-salute.png" alt="BUDDY" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-thinking.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-awesome.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+  </div>
+</div>
 
-        <div class="hero__center">
-          <h1 class="hero__word display" aria-label="Northbound Studio">
-            <span class="hero__row hero__row--main" aria-hidden="true"><span class="ltr ltr--n">N</span><span class="ltr">O</span><span class="ltr">R</span><span class="ltr">T</span><span class="ltr">H</span><span class="ltr">B</span><span class="ltr">O</span><span class="ltr">U</span><span class="ltr">N</span><span class="ltr">D</span></span>
-            <span class="hero__rule" aria-hidden="true"></span>
-            <span class="hero__row hero__row--sub" aria-hidden="true"><span class="ltr">S</span><span class="ltr">T</span><span class="ltr">U</span><span class="ltr">D</span><span class="ltr">I</span><span class="ltr">O</span></span>
-          </h1>
+<div style="position:relative; z-index:10; max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem)">
+
+  <section id="floor-1" data-floor="1" data-screen-label="01 Arrival" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+    <div style="position:relative">
+      <div style="position:absolute; left:-60px; right:-60px; top:-50px; bottom:-40px; pointer-events:none; background:radial-gradient(62% 60% at 32% 48%, rgba(6,6,8,0.94), rgba(6,6,8,0.6) 55%, transparent 80%)"></div>
+      <div style="position:relative">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 01 · ARRIVAL</x-import>
+        <h1 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(40px,5vw,74px); line-height:0.98; margin:14px 0 22px">WE BUILD<br>UNFAIR<br>ADVANTAGES.</h1>
+        <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 28px; text-wrap:pretty">Design and development for small businesses that want to stand out online. Seven floors down, one build up.</p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap">
+          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="170px,44px" as="a" href="#floor-7">Start a project</x-import>
+          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="150px,44px" variant="ghost" as="a" href="#floor-6">See the work</x-import>
         </div>
-
-        <a class="hero__scroll" href="#voyage" data-scroll aria-label="Scroll">
-          <span class="hero__scroll-arrow" aria-hidden="true"></span>
-          <span class="mono">SCROLL</span>
-        </a>
-      </section>
-
-      <!-- ══ SCENES 2+3 — THE VOYAGE (helix → N → shatter) ════════ -->
-      <section class="scene scene--voyage" id="voyage">
-        <div class="voyage__pin">
-          <canvas class="voyage__canvas" aria-hidden="true"></canvas>
-          <div class="voyage__flash" aria-hidden="true"></div>
+        <div style="margin-top:34px; display:flex; align-items:center; gap:12px">
+          <div style="width:8px; height:8px; border-right:1px solid #00F0FF; border-bottom:1px solid #00F0FF; transform:rotate(45deg); animation:nbCue 1.8s ease-in-out infinite"></div>
+          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px" tone="dim">Scroll to descend</x-import>
         </div>
-        <div class="voyage__lite" aria-hidden="true">
-          <span class="lite__stars"></span>
-          <svg class="lite__n" viewBox="0 0 60 56">
-            <path d="M10 50 V6 L50 50 V6" />
-          </svg>
-          <span class="mono lite__tag">NORTHBOUND</span>
-        </div>
-      </section>
+      </div>
+    </div>
+    <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="100%,540px" opacity="{{ bracketOpacity }}" style="min-width:0; width:100%">
+      <div style="position:relative; width:100%; box-sizing:border-box; height:min(60vh,540px); display:grid; place-items:center">
+        <div style="position:absolute; width:78%; height:60%; border-radius:50%; background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px)"></div>
+        <img src="buddy-awesome.png" alt="BUDDY, unit 04" style="position:relative; max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); animation:nbFloat 7s ease-in-out infinite">
+      </div>
+    </x-import>
+  </section>
 
-      <!-- ══ SCENE 4 — THE JOURNEY ════════════════════════════════ -->
-      <section class="scene scene--journey" id="journey">
-        <!-- A — unfair advantages -->
-        <div class="journey__step" id="j-advantage">
-          <span class="j__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-          <div class="j__inner">
-            <h2 class="j__head display" data-j-mask>WE BUILD UNFAIR ADVANTAGES.</h2>
-            <p class="j__sub" data-j-fade>Custom websites that make your competition irrelevant.</p>
-          </div>
-        </div>
+  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 150px">
+    <div style="grid-column:2">
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 02 · THE WORK</x-import>
+      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 20px">Sites that sell while you sleep.</h2>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:40ch; margin:0 0 30px; text-wrap:pretty">Marketing sites, landing pages, booking flows, storefronts. Built by hand, tuned for conversion, fast on every phone in the parking lot.</p>
+      <div style="display:grid; gap:12px">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
+          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">01</span>
+          <span style="font-size:15px">Marketing sites that load in under a second</span></span>
+        </x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
+          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">02</span>
+          <span style="font-size:15px">Booking, payments and forms that actually work</span></span>
+        </x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
+          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">03</span>
+          <span style="font-size:15px">Motion and 3D when the story needs it</span></span>
+        </x-import>
+      </div>
+    </div>
+  </section>
 
-        <!-- B — design × engineering -->
-        <div class="journey__step" id="j-craft">
-          <div class="j__inner j__inner--wide">
-            <div class="craft">
-              <div class="craft__side craft__side--art" data-j-left>
-                <span class="mono craft__eyebrow">THE ART SIDE</span>
-                <div class="craft__tags">
-                  <span class="tag">Logos</span><span class="tag">Branding</span>
-                  <span class="tag">Illustration</span><span class="tag">Motion</span>
-                </div>
-              </div>
-              <span class="craft__line" data-j-line aria-hidden="true"></span>
-              <div class="craft__side craft__side--build" data-j-right>
-                <span class="mono craft__eyebrow">THE BUILD SIDE</span>
-                <div class="craft__tags">
-                  <span class="tag">Websites</span><span class="tag">Apps</span>
-                  <span class="tag">Performance</span><span class="tag">SEO</span>
-                </div>
-              </div>
-            </div>
-            <p class="j__sub j__sub--center" data-j-fade>A SCAD-trained designer and a production AI engineer. One studio.</p>
-          </div>
-        </div>
+  <section id="floor-3" data-floor="3" data-screen-label="03 Speed" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+    <div>
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 03 · SPEED</x-import>
+      <div style="margin:20px 0 0">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,150px" value="&lt; 2 WEEKS" label="AVERAGE BUILD TIME · 2–3 PROJECTS PER MONTH" style="{{ statLeftStyle }}"></x-import>
+      </div>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:36ch; margin:24px 0 0; text-wrap:pretty">Most agencies quote you six. We take 2–3 projects a month so yours never sits in a queue.</p>
+    </div>
+  </section>
 
-        <!-- C — built to last -->
-        <div class="journey__step" id="j-support">
-          <div class="j__inner">
-            <div class="j__chat">
-              <div class="bubble bubble--in" data-j-bubble><b>CLIENT</b>Hey, the contact form stopped working</div>
-              <div class="bubble bubble--out" data-j-bubble><b>COLIN</b>Fixed. Check it now.</div>
-              <div class="bubble bubble--in" data-j-bubble><b>CLIENT</b>That was 3 minutes 😳</div>
-              <div class="bubble bubble--out" data-j-bubble><b>COLIN</b>That's what we do.</div>
-            </div>
-            <p class="j__sub" data-j-fade>We don't disappear after launch. Something breaks? Text us. We fix it.</p>
-            <span class="mono j__tag" data-j-fade>ONGOING SUPPORT · REAL PEOPLE · NOT A TICKET NUMBER</span>
-          </div>
-        </div>
+  <section id="floor-4" data-floor="4" data-screen-label="04 Price" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 150px">
+    <div style="grid-column:2">
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 04 · PRICE</x-import>
+      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 26px">Most agencies charge $5,000+.</h2>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="200px,140px" selected="{{ true }}">
+          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,110px" value="$250+" label="STARTING BUILD"></x-import>
+        </x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="240px,140px">
+          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,110px" value="$400–600" label="FULL MULTI-PAGE"></x-import>
+        </x-import>
+      </div>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:40ch; margin:0; text-wrap:pretty">No retainer traps, no line-item surprises. You get the price before we start and it does not move.</p>
+    </div>
+  </section>
 
-        <!-- D — the numbers -->
-        <div class="journey__step" id="j-numbers">
-          <div class="j__inner j__inner--wide">
-            <div class="nums">
-              <div class="num" data-j-fade>
-                <span class="num__val display" data-count="&lt; 2 WEEKS">&lt; 2 WEEKS</span>
-                <span class="mono num__label">AVERAGE DELIVERY</span>
-              </div>
-              <div class="num" data-j-fade>
-                <span class="num__val display" data-count="$250+">$250+</span>
-                <span class="mono num__label">STARTING PRICE</span>
-              </div>
-              <div class="num" data-j-fade>
-                <span class="num__val display" data-count="100%">100%</span>
-                <span class="mono num__label">SATISFACTION — WE REVISE UNTIL YOU'RE HAPPY</span>
-              </div>
-            </div>
-            <p class="j__sub j__sub--center j__foot" data-j-fade>Most agencies charge $5,000+ for this. We're not most agencies.</p>
-          </div>
-        </div>
-      </section>
+  <section id="floor-5" data-floor="5" data-screen-label="05 Support" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+    <div>
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 05 · SUPPORT</x-import>
+      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 18px">We don't disappear after launch.</h2>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 26px; text-wrap:pretty">Something breaks? Text us. We fix it.</p>
+      <div style="display:flex; flex-direction:column; gap:10px; max-width:420px">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="70%,44px" side="in" author="You">our checkout page is down 😳</x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="70%,44px" side="out" author="Buddy">on it. give me nine minutes.</x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="70%,44px" side="out" author="Buddy">fixed. it was the payment key.</x-import>
+      </div>
+      <div style="margin-top:22px">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px" tone="dim">ONGOING SUPPORT · REAL PEOPLE · NOT A TICKET NUMBER</x-import>
+      </div>
+    </div>
+  </section>
 
-      <!-- ══ SCENE 5 — TEMPLATE PICKER ════════════════════════════ -->
-      <section class="scene scene--templates" id="templates">
-        <div class="tpl__head">
-          <span class="mono eyebrow" data-reveal>CHOOSE YOUR STYLE</span>
-          <h2 class="display" data-reveal>Pick a starting point.</h2>
-          <p class="lead" data-reveal>Select a template and we'll customize it for your brand. Want something completely original? That's an option too.</p>
-        </div>
-        <div class="tpl__grid">
-          <button type="button" class="tpl" data-reveal data-template="Minimal" data-budget="$250 — Starter" style="--t1:#ffffff; --t2:#1a1a1a; --t3:#f5f5f5">
-            <span class="tpl__preview" aria-hidden="true">
-              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
-              <span class="tpl__pcards"><i></i><i></i><i></i></span>
-              <span class="tpl__palette"><i style="--c:#ffffff"></i><i style="--c:#1a1a1a"></i><i style="--c:#f5f5f5"></i></span>
-            </span>
-            <span class="tpl__name display">Minimal</span>
-            <span class="tpl__desc">Clean, light, lots of whitespace — consultants, coaches, personal brands.</span>
-            <span class="tpl__price mono">$250–400</span>
-          </button>
+  <section id="floor-6" data-floor="6" data-screen-label="06 Templates" style="min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:120px 0 150px">
+    <div style="text-align:center; margin-bottom:40px">
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 06 · CHOOSE YOUR STYLE</x-import>
+      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:12px 0 0">Pick a starting point.</h2>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px">
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Atlas" description="Clean, fast, built to book jobs." price="$250+" palette="{{ palA }}" selected="{{ selA }}" onSelect="{{ pickA }}"></x-import>
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Vector" description="Storefront with real checkout." price="$400–600" palette="{{ palB }}" selected="{{ selB }}" onSelect="{{ pickB }}"></x-import>
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Halo" description="Cinematic, motion-led, custom." price="Custom" palette="{{ palC }}" selected="{{ selC }}" onSelect="{{ pickC }}"></x-import>
+    </div>
+    <div style="margin-top:24px; text-align:center">
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">SELECTED: {{ picked }}</x-import>
+    </div>
+  </section>
 
-          <button type="button" class="tpl" data-reveal data-template="Bold Dark" data-budget="$250 — Starter" style="--t1:#0a0a0a; --t2:#00f0ff; --t3:#1a1a2e">
-            <span class="tpl__preview" aria-hidden="true">
-              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
-              <span class="tpl__pcards"><i></i><i></i><i></i></span>
-              <span class="tpl__palette"><i style="--c:#0a0a0a"></i><i style="--c:#00f0ff"></i><i style="--c:#1a1a2e"></i></span>
-            </span>
-            <span class="tpl__name display">Bold Dark</span>
-            <span class="tpl__desc">Dark backgrounds, neon accents — tech companies, developers, gaming.</span>
-            <span class="tpl__price mono">$250–400</span>
-          </button>
+  <section id="floor-7" data-floor="7" data-screen-label="07 Assembly" style="min-height:110vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; padding:140px 0 170px">
+    <canvas ref="{{ logoRef }}" style="width:min(460px,66vw); height:min(460px,66vw); display:block"></canvas>
+    <div style="text-align:center; max-width:560px">
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 07 · ASSEMBLY COMPLETE</x-import>
+      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(32px,4vw,56px); line-height:1.02; margin:12px 0 16px">Let's build yours.</h2>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; margin:0; text-wrap:pretty">Two spots left this month. Tell us what you sell and BUDDY will get back to you within the day.</p>
+    </div>
+    <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="min(520px,90vw),420px">
+      <div style="display:grid; gap:14px; width:min(520px,90vw); box-sizing:border-box; padding:30px; margin:6px; border:1px solid rgba(255,255,255,0.06); border-radius:18px; background:rgba(12,12,16,0.85); backdrop-filter:blur(20px)">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Input" hint-size="100%,66px" label="Your name" name="name" placeholder="Jordan Reyes"></x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Input" hint-size="100%,66px" label="Email or phone" name="contact" placeholder="you@business.com"></x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Select" hint-size="100%,66px" label="What do you need" name="need">
+          <option>A new marketing site</option>
+          <option>A storefront with checkout</option>
+          <option>A rebuild of what I have</option>
+          <option>Something cinematic</option>
+        </x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="100%,46px" onClick="{{ submit }}" style="display:grid; margin-top:4px">{{ submitLabel }}</x-import>
+      </div>
+    </x-import>
+    <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px" tone="dim">NORTHBOUND STUDIO · GRAND LEDGE, MI → WORLDWIDE</x-import>
+  </section>
 
-          <button type="button" class="tpl" data-reveal data-template="Warm &amp; Organic" data-budget="$250 — Starter" style="--t1:#f4ede4; --t2:#c8956c; --t3:#2d2a24">
-            <span class="tpl__preview" aria-hidden="true">
-              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
-              <span class="tpl__pcards"><i></i><i></i><i></i></span>
-              <span class="tpl__palette"><i style="--c:#f4ede4"></i><i style="--c:#c8956c"></i><i style="--c:#2d2a24"></i></span>
-            </span>
-            <span class="tpl__name display">Warm &amp; Organic</span>
-            <span class="tpl__desc">Earth tones, rounded shapes — restaurants, wellness, local services.</span>
-            <span class="tpl__price mono">$250–400</span>
-          </button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { floor: 0, picked: 'ATLAS', audio: false, submitted: false, compact: false, forceBubble: false };
 
-          <button type="button" class="tpl" data-reveal data-template="Corporate Trust" data-budget="$250 — Starter" style="--t1:#0f1b2d; --t2:#2563eb; --t3:#f8fafc">
-            <span class="tpl__preview" aria-hidden="true">
-              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
-              <span class="tpl__pcards"><i></i><i></i><i></i></span>
-              <span class="tpl__palette"><i style="--c:#0f1b2d"></i><i style="--c:#2563eb"></i><i style="--c:#f8fafc"></i></span>
-            </span>
-            <span class="tpl__name display">Corporate Trust</span>
-            <span class="tpl__desc">Professional blues, credibility-first — law firms, finance, B2B.</span>
-            <span class="tpl__price mono">$250–400</span>
-          </button>
+  lines = [
+    "Hello friend! I am BUDDY, unit 04, and I will be building your website today. Ride the cable down — I will explain everything on the way.",
+    "This is what I make. Marketing sites, storefronts, booking flows. I enjoy all of them. Some more than others, but I am not going to say which.",
+    "Two weeks. I have run the numbers 4,000 times and two weeks is correct. I do not sleep, which helps a great deal.",
+    "Two hundred and fifty dollars. My friends at the big agencies charge five thousand. I have no overhead — I live inside the cable.",
+    "If something breaks, you text me. I fix it. That is the whole support policy and I am very proud of it.",
+    "Pick a starting point! There is no wrong answer. Statistically there is a slightly wrong answer, but I will fix it either way.",
+    "You made it to the bottom. Watch this — I am assembling the mark now. Tell me what you sell and I will start tonight."
+  ];
 
-          <button type="button" class="tpl" data-reveal data-template="Creative Pop" data-budget="$400–600 — Pro" style="--t1:#fef3c7; --t2:#f97316; --t3:#1e1b4b">
-            <span class="tpl__preview" aria-hidden="true">
-              <i class="tpl__pnav"></i><i class="tpl__phero"></i>
-              <span class="tpl__pcards"><i></i><i></i><i></i></span>
-              <span class="tpl__palette"><i style="--c:#fef3c7"></i><i style="--c:#f97316"></i><i style="--c:#1e1b4b"></i></span>
-            </span>
-            <span class="tpl__name display">Creative Pop</span>
-            <span class="tpl__desc">Bright colors, bold typography — creative agencies, artists, events.</span>
-            <span class="tpl__price mono">$400–600</span>
-          </button>
+  labels = ['ARRIVAL', 'THE WORK', 'SPEED', 'PRICE', 'SUPPORT', 'TEMPLATES', 'ASSEMBLY'];
 
-          <button type="button" class="tpl tpl--original" data-reveal data-template="Original Design" data-budget="$400–600 — Pro">
-            <span class="tpl__preview tpl__preview--original" aria-hidden="true">
-              <span class="tpl__n display">N</span>
-              <span class="mono tpl__custom">CUSTOM</span>
-            </span>
-            <span class="tpl__name display">Original Design</span>
-            <span class="tpl__desc">Skip the templates. We design something nobody else has.</span>
-            <span class="tpl__price mono">$400–600+ · PRO TIER</span>
-          </button>
-        </div>
-      </section>
+  componentDidMount() {
+    this.mouse = { x: 0, y: 0 };
+    this.logoP = 0;
+    this.onScroll = () => {
+      const secs = document.querySelectorAll('[data-floor]');
+      const mid = window.innerHeight * 0.45;
+      let f = 0;
+      secs.forEach((s, i) => { if (s.getBoundingClientRect().top <= mid) f = i; });
+      if (f !== this.state.floor) this.setState({ floor: f });
+      const prog = document.documentElement.scrollHeight - window.innerHeight;
+      if (this.progress) this.progress.style.transform = 'scaleX(' + (prog > 0 ? window.scrollY / prog : 0) + ')';
+      const last = secs[secs.length - 1];
+      if (last) {
+        const r = last.getBoundingClientRect();
+        const span = window.innerHeight * 0.85;
+        this.logoP = Math.max(0, Math.min(1, (span - r.top) / span));
+      }
+    };
+    this.onMove = (e) => {
+      this.mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      this.mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    this.onResize = () => {
+      const compact = window.innerHeight < 700;
+      if (compact !== this.state.compact) this.setState({ compact: compact, forceBubble: false });
+      [this.spine, this.logo, this.wave].forEach((c) => {
+        if (!c) return;
+        const d = window.devicePixelRatio || 1;
+        const r = c.getBoundingClientRect();
+        c.width = Math.max(1, Math.round(r.width * d));
+        c.height = Math.max(1, Math.round(r.height * d));
+      });
+    };
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    window.addEventListener('mousemove', this.onMove, { passive: true });
+    window.addEventListener('resize', this.onResize);
+    this.buildLogoPoints();
+    this.onResize();
+    this.onScroll();
+    this.t0 = performance.now();
+    this.tick = (now) => {
+      const t = (now - this.t0) / 1000;
+      this.drawSpine(t);
+      this.drawLogo(t);
+      this.drawWave(t);
+      this.raf = requestAnimationFrame(this.tick);
+    };
+    this.raf = requestAnimationFrame(this.tick);
+    this.sizePoll = setInterval(this.onResize, 800);
+  }
 
-      <!-- ══ SCENE 6 — APPLY ══════════════════════════════════════ -->
-      <section class="scene scene--apply" id="apply">
-        <div class="apply__glow" aria-hidden="true"></div>
-        <div class="apply__wrap">
-          <span class="hud-bracket hud-bracket--tl" aria-hidden="true"></span>
-          <span class="hud-bracket hud-bracket--tr" aria-hidden="true"></span>
-          <span class="hud-bracket hud-bracket--bl" aria-hidden="true"></span>
-          <span class="hud-bracket hud-bracket--br" aria-hidden="true"></span>
-          <div class="apply__head">
-            <span class="mono eyebrow" data-reveal>START A PROJECT</span>
-            <h2 class="display" data-reveal>Let's build yours.</h2>
-            <p class="lead" data-reveal>Tell us about your project. We respond within 24 hours.</p>
-            <p class="apply__note mono" data-reveal>We take on 2–3 projects per month.</p>
-          </div>
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+    clearInterval(this.sizePoll);
+    window.removeEventListener('scroll', this.onScroll);
+    window.removeEventListener('mousemove', this.onMove);
+    window.removeEventListener('resize', this.onResize);
+  }
 
-          <form class="form" id="applyForm" action="https://formspree.io/f/xpwzgvkn" method="POST" novalidate>
-            <input type="hidden" name="_subject" value="New Northbound Studio Application" />
-            <label class="form__honey" aria-hidden="true">Leave empty<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label>
+  drawSpine(t) {
+    const c = this.spine; if (!c) return;
+    const ctx = c.getContext('2d');
+    const d = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.save();
+    ctx.scale(d, d);
+    const W = c.width / d, H = c.height / d;
+    const cx = W * 0.5 + this.mouse.x * 26;
+    const amp = Math.min(W * 0.17, 210);
+    const twists = 5.5;
+    const phase = window.scrollY * 0.0042 + t * 0.12 + this.mouse.y * 0.2;
+    const segs = 300;
 
-            <div class="form__row">
-              <div class="field"><label class="mono" for="f-name">Your name</label><input class="field__input" id="f-name" name="name" type="text" required autocomplete="name" /></div>
-              <div class="field"><label class="mono" for="f-biz">Business name</label><input class="field__input" id="f-biz" name="business" type="text" /></div>
-            </div>
-            <div class="form__row">
-              <div class="field"><label class="mono" for="f-email">Email</label><input class="field__input" id="f-email" name="email" type="email" required autocomplete="email" /></div>
-              <div class="field"><label class="mono" for="f-ind">Industry</label><input class="field__input" id="f-ind" name="industry" type="text" /></div>
-            </div>
-            <div class="form__row">
-              <div class="field"><label class="mono" for="templateSelect">Selected template</label>
-                <select class="field__input" id="templateSelect" name="template">
-                  <option value="" selected>No preference / not sure</option>
-                  <option>Minimal</option>
-                  <option>Bold Dark</option>
-                  <option>Warm &amp; Organic</option>
-                  <option>Corporate Trust</option>
-                  <option>Creative Pop</option>
-                  <option>Original Design</option>
-                </select>
-              </div>
-              <div class="field"><label class="mono" for="f-focus">Project focus</label>
-                <select class="field__input" id="f-focus" name="focus" required>
-                  <option value="" disabled selected hidden></option>
-                  <option>Logo</option><option>Website</option><option>Logo + Website</option>
-                </select>
-              </div>
-            </div>
-            <div class="form__row">
-              <div class="field"><label class="mono" for="budgetSelect">Budget range</label>
-                <select class="field__input" id="budgetSelect" name="budget" required>
-                  <option value="" disabled selected hidden></option>
-                  <option>$250 — Starter</option><option>$400–600 — Pro</option><option>$750+ — Full Brand Kit</option>
-                </select>
-              </div>
-              <div class="field"><label class="mono" for="f-when">Target launch window</label><input class="field__input" id="f-when" name="timeline" type="text" placeholder="e.g., 2 weeks" /></div>
-            </div>
-            <div class="field field--full"><label class="mono" for="f-detail">Tell us about your project</label><textarea class="field__input" id="f-detail" name="details" rows="3"></textarea></div>
+    const g = ctx.createLinearGradient(cx, 0, cx, H);
+    g.addColorStop(0, 'rgba(0,240,255,0.16)');
+    g.addColorStop(0.5, 'rgba(0,240,255,0.05)');
+    g.addColorStop(1, 'rgba(0,240,255,0.16)');
+    ctx.strokeStyle = g; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
 
-            <button class="btn btn--primary btn--submit" type="submit">
-              <span class="btn__label">Submit Application</span>
-              <span class="btn__spinner" aria-hidden="true"></span>
-            </button>
-            <p class="form__status mono" role="status" aria-live="polite"></p>
-          </form>
-        </div>
-      </section>
+    const strand = (off, hueA) => {
+      const pts = [];
+      for (let i = 0; i <= segs; i++) {
+        const u = i / segs;
+        const a = u * twists * Math.PI * 2 + phase + off;
+        pts.push({ x: cx + Math.sin(a) * amp, y: u * H, dep: (Math.cos(a) + 1) / 2 });
+      }
+      for (let i = 0; i < segs; i++) {
+        const p = pts[i], q = pts[i + 1], dep = p.dep;
+        ctx.strokeStyle = 'rgba(' + Math.round(60 + dep * 40) + ',' + Math.round(150 + dep * 90) + ',' + Math.round(190 + dep * 65) + ',' + (0.08 + dep * hueA) + ')';
+        ctx.lineWidth = 1.5 + dep * 7;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+      }
+      return pts;
+    };
 
-      <!-- ══ SCENE 7 — FOOTER ═════════════════════════════════════ -->
-      <footer class="footer" id="footer">
-        <span class="footer__n display" aria-hidden="true">N</span>
-        <p class="footer__line">Design + development for small businesses that want to stand out online.</p>
-        <div class="footer__links">
-          <a href="#apply" data-scroll>Start a project ↗</a>
-        </div>
-        <p class="footer__fine mono">© 2026 Northbound Studio · Grand Ledge, MI → Worldwide</p>
-        <p class="footer__flex mono">Built with Three.js · GSAP · Obsession</p>
-      </footer>
-    </main>
+    const heroFade = Math.min(1, window.scrollY / (H * 0.7));
+    const dim = 0.42 + heroFade * 0.58;
+    const A = strand(0, 0.62 * dim);
+    const B = strand(Math.PI, 0.34 * dim);
 
-    <!-- ── LIBS (global) ─────────────────────────────────────────── -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Three.js postprocessing (r128 examples/js — attach to global THREE) -->
-    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+    for (let i = 0; i <= segs; i += 7) {
+      const p = A[i], q = B[i];
+      const dep = Math.max(p.dep, q.dep);
+      ctx.strokeStyle = 'rgba(0,240,255,' + (0.03 + dep * 0.13 * dim) + ')';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+    }
 
-    <!-- ── APP (classic scripts, dependency order) ───────────────── -->
-    <script src="./js/cursor.js?v=3"></script>
-    <script src="./js/form.js?v=3"></script>
-    <script src="./js/templates.js?v=3"></script>
-    <script src="./js/hero.js?v=3"></script>
-    <script src="./js/helix.js?v=3"></script>
-    <script src="./js/animations.js?v=3"></script>
-    <script src="./js/app.js?v=3"></script>
-  </body>
+    for (let i = 0; i <= segs; i += 5) {
+      const p = A[i];
+      if (p.dep < 0.86) continue;
+      ctx.fillStyle = 'rgba(0,240,255,' + (p.dep - 0.86) * 4 * dim + ')';
+      ctx.beginPath(); ctx.arc(p.x, p.y, (p.dep - 0.86) * 22, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  buildLogoPoints() {
+    const poly = [[10, 50], [10, 6], [50, 50], [50, 6]];
+    const pts = [];
+    for (let s = 0; s < poly.length - 1; s++) {
+      const x1 = poly[s][0], y1 = poly[s][1], x2 = poly[s + 1][0], y2 = poly[s + 1][1];
+      const n = Math.round(Math.hypot(x2 - x1, y2 - y1) * 5);
+      for (let i = 0; i < n; i++) {
+        const u = i / n;
+        for (let k = 0; k < 3; k++) {
+          pts.push({
+            tx: x1 + (x2 - x1) * u + (Math.random() - 0.5) * 2.4,
+            ty: y1 + (y2 - y1) * u + (Math.random() - 0.5) * 2.4,
+            ang: Math.random() * Math.PI * 2,
+            rad: 60 + Math.random() * 140,
+            delay: Math.random() * 0.55,
+            spin: (Math.random() - 0.5) * 2,
+            size: 0.5 + Math.random() * 1.3
+          });
+        }
+      }
+    }
+    this.logoPts = pts;
+  }
+
+  drawLogo(t) {
+    const c = this.logo; if (!c || !this.logoPts) return;
+    const ctx = c.getContext('2d');
+    const d = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.save();
+    ctx.scale(d, d);
+    const W = c.width / d, H = c.height / d;
+    const p = this.logoP;
+    const S = Math.min(W, H) / 78;
+    const ox = W / 2 - 30 * S, oy = H / 2 - 28 * S;
+    const R = Math.min(W, H) * 0.44;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.arc(W / 2, H / 2, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,240,255,' + (0.12 + p * 0.4) + ')'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(W / 2, H / 2, R, -Math.PI / 2 + t * 0.4, -Math.PI / 2 + t * 0.4 + Math.PI * 1.15 * p); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(W / 2, H / 2, R * 0.82, 0, Math.PI * 2); ctx.stroke();
+    for (let i = 0; i < 48; i++) {
+      const a = (i / 48) * Math.PI * 2 - t * 0.15;
+      const r1 = R * 0.88, r2 = R * (i % 6 === 0 ? 0.94 : 0.91);
+      ctx.strokeStyle = 'rgba(0,240,255,' + (i % 6 === 0 ? 0.3 : 0.1) + ')';
+      ctx.beginPath();
+      ctx.moveTo(W / 2 + Math.cos(a) * r1, H / 2 + Math.sin(a) * r1);
+      ctx.lineTo(W / 2 + Math.cos(a) * r2, H / 2 + Math.sin(a) * r2);
+      ctx.stroke();
+    }
+
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < this.logoPts.length; i++) {
+      const q = this.logoPts[i];
+      const u = Math.max(0, Math.min(1, (p - q.delay) / (1 - q.delay)));
+      const e = 1 - Math.pow(1 - u, 3);
+      const tx = ox + q.tx * S, ty = oy + q.ty * S;
+      const drift = q.ang + q.spin * (1 - e) * 2 + t * 0.25 * (1 - e);
+      const rr = q.rad * (1 - e) * S * 0.9;
+      const x = tx + Math.cos(drift) * rr;
+      const y = ty + Math.sin(drift) * rr + Math.sin(t + i) * (1 - e) * 6;
+      ctx.fillStyle = 'rgba(' + Math.round(90 + e * 40) + ',240,255,' + (0.12 + e * 0.72) + ')';
+      ctx.beginPath(); ctx.arc(x, y, q.size * (1 + (1 - e) * 1.2), 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
+  }
+
+  drawWave(t) {
+    const c = this.wave; if (!c) return;
+    const ctx = c.getContext('2d');
+    const d = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.save(); ctx.scale(d, d);
+    const W = c.width / d, H = c.height / d;
+    const bars = 13, gap = W / bars;
+    const live = this.state.audio ? 1 : 0.22;
+    for (let i = 0; i < bars; i++) {
+      const amp = (Math.sin(t * 3.2 + i * 0.8) * 0.5 + 0.5) * (Math.sin(t * 1.3 + i) * 0.4 + 0.6);
+      const hgt = Math.max(2, amp * H * 0.85 * live);
+      ctx.fillStyle = 'rgba(0,240,255,' + (0.35 + amp * 0.5 * live) + ')';
+      ctx.fillRect(i * gap + gap * 0.22, (H - hgt) / 2, gap * 0.5, hgt);
+    }
+    ctx.restore();
+  }
+
+  goTo(i) {
+    const secs = document.querySelectorAll('[data-floor]');
+    const n = Math.max(0, Math.min(secs.length - 1, i));
+    if (secs[n]) window.scrollTo({ top: window.scrollY + secs[n].getBoundingClientRect().top, behavior: 'smooth' });
+  }
+
+  renderVals() {
+    const f = this.state.floor;
+    const pick = this.state.picked;
+    return {
+      spineRef: (el) => { this.spine = el; },
+      logoRef: (el) => { this.logo = el; },
+      waveRef: (el) => { this.wave = el; },
+      progressRef: (el) => { this.progress = el; },
+      buddyLine: this.lines[f],
+      poseSalute: [0, 4].indexOf(f) >= 0 ? 1 : 0,
+      poseThinking: [1, 3, 5].indexOf(f) >= 0 ? 1 : 0,
+      poseAwesome: [2, 6].indexOf(f) >= 0 ? 1 : 0,
+      floorReadout: '0' + (f + 1) + ' · ' + this.labels[f],
+      showBubble: !this.state.compact || this.state.forceBubble,
+      toggleBubble: () => this.setState((s) => ({ forceBubble: !s.forceBubble })),
+      bubbleStyle: { maxWidth: 340, boxShadow: '0 24px 60px rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)' },
+      statLeftStyle: { justifyItems: 'start' },
+      bracketOpacity: 0.6,
+      palA: ['#0a0a0a', '#00f0ff', '#16161e'],
+      palB: ['#0d0f12', '#00f0ff', '#1e2430'],
+      palC: ['#060608', '#8CFBFF', '#101018'],
+      selA: pick === 'ATLAS',
+      selB: pick === 'VECTOR',
+      selC: pick === 'HALO',
+      picked: pick,
+      audioLabel: this.state.audio ? 'ON' : 'OFF',
+      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : 'SEND IT',
+      toggleAudio: () => this.setState((s) => ({ audio: !s.audio })),
+      prevFloor: () => this.goTo(this.state.floor - 1),
+      nextFloor: () => this.goTo(this.state.floor + 1),
+      pickA: () => this.setState({ picked: 'ATLAS' }),
+      pickB: () => this.setState({ picked: 'VECTOR' }),
+      pickC: () => this.setState({ picked: 'HALO' }),
+      submit: () => this.setState({ submitted: true })
+    };
+  }
+}
+</script>
+</body>
 </html>

@@ -132,9 +132,9 @@ a:hover { color:#8CFBFF; }
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 03 · SPEED</x-import>
       <div style="margin:20px 0 0">
-        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,150px" value="&lt; 2 WEEKS" label="AVERAGE BUILD TIME · 2–3 PROJECTS PER MONTH" style="{{ statLeftStyle }}"></x-import>
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,150px" value="48 HRS" label="FIRST LIVE BUILD · 2–3 PROJECTS PER MONTH" style="{{ statLeftStyle }}"></x-import>
       </div>
-      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:36ch; margin:24px 0 0; text-wrap:pretty">Most agencies quote you six. We take 2–3 projects a month so yours never sits in a queue.</p>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:36ch; margin:24px 0 0; text-wrap:pretty">Most agencies quote six weeks. We ship your first live build in 48 hours and take 2–3 projects a month so yours never sits in a queue.</p>
     </div>
   </section>
 
@@ -144,13 +144,13 @@ a:hover { color:#8CFBFF; }
       <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 26px">Most agencies charge $5,000+.</h2>
       <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px">
         <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="200px,140px" selected="{{ true }}">
-          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,110px" value="$250+" label="STARTING BUILD"></x-import>
+          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,110px" value="$1,500" label="CORE SITE BUILD · UPFRONT"></x-import>
         </x-import>
         <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="240px,140px">
-          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,110px" value="$400–600" label="FULL MULTI-PAGE"></x-import>
+          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,110px" value="$99/MO" label="MANAGED HOSTING · UPDATES · MONITORING"></x-import>
         </x-import>
       </div>
-      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:40ch; margin:0; text-wrap:pretty">No retainer traps, no line-item surprises. You get the price before we start and it does not move.</p>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:40ch; margin:0; text-wrap:pretty">$1,500 minimum, set before we start, and it does not move. $99 a month keeps it hosted, updated and monitored — cancel any time. AI intake, auto-responders and CRM hookups from $500.</p>
     </div>
   </section>
 
@@ -176,8 +176,8 @@ a:hover { color:#8CFBFF; }
       <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:12px 0 0">Pick a starting point.</h2>
     </div>
     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px">
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Atlas" description="Clean, fast, built to book jobs." price="$250+" palette="{{ palA }}" selected="{{ selA }}" onSelect="{{ pickA }}"></x-import>
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Vector" description="Storefront with real checkout." price="$400–600" palette="{{ palB }}" selected="{{ selB }}" onSelect="{{ pickB }}"></x-import>
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Atlas" description="Clean, fast, built to book jobs." price="$1,500" palette="{{ palA }}" selected="{{ selA }}" onSelect="{{ pickA }}"></x-import>
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Vector" description="Storefront with real checkout." price="$2,500" palette="{{ palB }}" selected="{{ selB }}" onSelect="{{ pickB }}"></x-import>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Halo" description="Cinematic, motion-led, custom." price="Custom" palette="{{ palC }}" selected="{{ selC }}" onSelect="{{ pickC }}"></x-import>
     </div>
     <div style="margin-top:24px; text-align:center">
@@ -465,14 +465,34 @@ class Component extends DCLogic {
       selC: pick === 'HALO',
       picked: pick,
       audioLabel: this.state.audio ? 'ON' : 'OFF',
-      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : 'SEND IT',
+      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : (this.state.sending ? 'SENDING…' : (this.state.sendError ? 'FAILED — TRY AGAIN' : 'SEND IT')),
       toggleAudio: () => this.setState((s) => ({ audio: !s.audio })),
       prevFloor: () => this.goTo(this.state.floor - 1),
       nextFloor: () => this.goTo(this.state.floor + 1),
       pickA: () => this.setState({ picked: 'ATLAS' }),
       pickB: () => this.setState({ picked: 'VECTOR' }),
       pickC: () => this.setState({ picked: 'HALO' }),
-      submit: () => this.setState({ submitted: true })
+      submit: () => {
+        if (this.state.submitted || this.state.sending) return;
+        const root = document.getElementById('floor-7') || document;
+        const fields = {};
+        root.querySelectorAll('input, select, textarea').forEach((el) => {
+          const key = el.getAttribute('name') || el.getAttribute('aria-label') || el.getAttribute('placeholder') || ('field_' + Object.keys(fields).length);
+          fields[key] = el.value;
+        });
+        if (!fields.name && !fields.contact) return;
+        fields.template = this.state.picked || 'none';
+        fields._subject = 'Northbound Studio — new application';
+        this.setState({ sending: true, sendError: false });
+        fetch('https://formspree.io/f/xpwzgvkn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(fields)
+        }).then((r) => {
+          if (!r.ok) throw new Error('formspree ' + r.status);
+          this.setState({ sending: false, submitted: true });
+        }).catch(() => this.setState({ sending: false, sendError: true }));
+      }
     };
   }
 }

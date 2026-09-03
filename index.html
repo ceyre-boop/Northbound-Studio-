@@ -465,7 +465,7 @@ class Component extends DCLogic {
       selC: pick === 'HALO',
       picked: pick,
       audioLabel: this.state.audio ? 'ON' : 'OFF',
-      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : (this.state.sending ? 'SENDING…' : (this.state.sendError ? 'FAILED — TRY AGAIN' : 'SEND IT')),
+      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : (this.state.sending ? 'SENDING…' : (this.state.sendError ? 'FAILED — EMAIL CEYRE@NORTHBOUND-DEV.COM' : 'SEND IT')),
       toggleAudio: () => this.setState((s) => ({ audio: !s.audio })),
       prevFloor: () => this.goTo(this.state.floor - 1),
       nextFloor: () => this.goTo(this.state.floor + 1),

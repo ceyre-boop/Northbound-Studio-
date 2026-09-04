@@ -225,15 +225,24 @@ a:hover { color:#8CFBFF; }
     </div>
   </section>
 
-  <section id="floor-6" data-floor="6" data-screen-label="06 Templates" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:56px 0 200px">
+  <section id="floor-6" data-floor="6" data-screen-label="06 Directions" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:56px 0 200px">
     <div style="text-align:center; margin-bottom:22px">
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 06 · CHOOSE YOUR STYLE</x-import>
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 06 · DIRECTIONS</x-import>
       <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:12px 0 0">Pick a starting point. We build from here, not a template.</h2>
     </div>
     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px">
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Atlas" description="Clean, fast, built to book jobs." price="$1,500" palette="{{ palA }}" selected="{{ selA }}" onSelect="{{ pickA }}"></x-import>
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Vector" description="Storefront with real checkout." price="$2,500" palette="{{ palB }}" selected="{{ selB }}" onSelect="{{ pickB }}"></x-import>
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Halo" description="Cinematic, motion-led, custom." price="Custom" palette="{{ palC }}" selected="{{ selC }}" onSelect="{{ pickC }}"></x-import>
+      <div style="display:flex; flex-direction:column; gap:8px; min-width:0">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Atlas" description="Clean, fast, built to book jobs." price="$1,500" palette="{{ palA }}" selected="{{ selA }}" onSelect="{{ pickA }}"></x-import>
+        <a href="#case-atlas" onClick="{{ seeAtlas }}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF">See it built ↗</a>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; min-width:0">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Vector" description="Storefront with real checkout." price="$2,500" palette="{{ palB }}" selected="{{ selB }}" onSelect="{{ pickB }}"></x-import>
+        <a href="#case-vector" onClick="{{ seeVector }}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF">See it built ↗</a>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; min-width:0">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Halo" description="Cinematic, motion-led, custom." price="Custom" palette="{{ palC }}" selected="{{ selC }}" onSelect="{{ pickC }}"></x-import>
+        <a href="#case-halo" onClick="{{ seeHalo }}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF">See it built ↗</a>
+      </div>
     </div>
     <div style="margin-top:18px; text-align:center">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">SELECTED: {{ picked }}</x-import>
@@ -283,7 +292,7 @@ class Component extends DCLogic {
     "You made it to the bottom. Watch this — I am assembling the mark now. Tell me what you sell and I will start tonight."
   ];
 
-  labels = ['ARRIVAL', 'THE WORK', 'SPEED', 'PRICE', 'SUPPORT', 'TEMPLATES', 'ASSEMBLY'];
+  labels = ['ARRIVAL', 'THE WORK', 'SPEED', 'PRICE', 'SUPPORT', 'DIRECTIONS', 'ASSEMBLY'];
 
   // BUDDY's reserved bottom-corner zone: avatar (76) + gap (12) + bubble (340).
   // Floors reserve this much clear space via their own bottom padding.
@@ -629,6 +638,18 @@ class Component extends DCLogic {
     ctx.restore();
   }
 
+  // 'See it built' jumps back up to Floor 02 and wakes that case's preview.
+  seeCase(e, key) {
+    if (e && e.preventDefault) e.preventDefault();
+    this.goTo(1);
+    this.setState((st) => {
+      const next = {};
+      for (const k in (st.live || {})) next[k] = st.live[k];
+      next[key] = true;
+      return { live: next };
+    });
+  }
+
   scrollMode() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   }
@@ -747,6 +768,9 @@ class Component extends DCLogic {
       toggleAudio: () => this.setState((s) => ({ audio: !s.audio })),
       prevFloor: () => this.goTo(this.state.floor - 1),
       nextFloor: () => this.goTo(this.state.floor + 1),
+      seeAtlas: (e) => this.seeCase(e, 'atlas'),
+      seeVector: (e) => this.seeCase(e, 'vector'),
+      seeHalo: (e) => this.seeCase(e, 'halo'),
       pickA: () => this.setState({ picked: 'ATLAS' }),
       pickB: () => this.setState({ picked: 'VECTOR' }),
       pickC: () => this.setState({ picked: 'HALO' }),

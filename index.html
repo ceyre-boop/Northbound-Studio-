@@ -50,7 +50,7 @@ a:hover { color:#8CFBFF; }
 
   <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; pointer-events:auto">
     <div style="display:flex; align-items:center; gap:14px; padding:6px 8px 6px 18px; border:1px solid rgba(255,255,255,0.08); border-radius:999px; background:rgba(12,12,16,0.72); backdrop-filter:blur(20px); box-shadow:0 0 26px rgba(0,240,255,0.10)">
-      <a href="#floor-6" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#E8E8ED">Work</a>
+      <a href="#floor-2" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#E8E8ED">Work</a>
       <canvas ref="{{ waveRef }}" style="width:64px; height:20px; display:block; opacity:0.9"></canvas>
       <a href="#floor-7" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#E8E8ED">Contact</a>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="66px,30px" variant="ghost" size="sm" onClick="{{ toggleAudio }}">{{ audioLabel }}</x-import>
@@ -68,6 +68,7 @@ a:hover { color:#8CFBFF; }
   </div>
 </div>
 
+<sc-if value="{{ dockRight }}" hint-placeholder-val="{{ true }}">
 <div style="position:fixed; right:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-end; gap:12px; max-width:min(520px, 58vw)">
   <sc-if value="{{ showBubble }}" hint-placeholder-val="{{ true }}">
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
@@ -78,6 +79,19 @@ a:hover { color:#8CFBFF; }
     <img src="buddy-awesome.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
   </div>
 </div>
+</sc-if>
+<sc-if value="{{ dockLeft }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed; left:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-start; gap:12px; max-width:min(520px, 58vw)">
+  <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
+    <img src="buddy-salute.png" alt="BUDDY" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-thinking.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-awesome.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+  </div>
+  <sc-if value="{{ showBubble }}" hint-placeholder-val="{{ true }}">
+    <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
+  </sc-if>
+</div>
+</sc-if>
 
 <div style="position:relative; z-index:10; max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem)">
 
@@ -90,7 +104,7 @@ a:hover { color:#8CFBFF; }
         <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 28px; text-wrap:pretty">Design and development for small businesses that want to stand out online. Live in 48 hours. From $1,500. Text us when something breaks.</p>
         <div style="display:flex; gap:12px; flex-wrap:wrap">
           <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="170px,44px" as="a" href="#floor-7">Start a project</x-import>
-          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="150px,44px" variant="ghost" as="a" href="#floor-6">See the work ↓</x-import>
+          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="150px,44px" variant="ghost" as="a" href="#floor-2">See the work ↓</x-import>
         </div>
         <div style="margin-top:34px; display:flex; align-items:center; gap:12px">
           <div style="width:8px; height:8px; border-right:1px solid #00F0FF; border-bottom:1px solid #00F0FF; transform:rotate(45deg); animation:nbCue 1.8s ease-in-out infinite"></div>
@@ -452,7 +466,9 @@ class Component extends DCLogic {
       poseThinking: [1, 3, 5].indexOf(f) >= 0 ? 1 : 0,
       poseAwesome: [2, 6].indexOf(f) >= 0 ? 1 : 0,
       floorReadout: '0' + (f + 1) + ' · ' + this.labels[f],
-      showBubble: !this.state.compact || this.state.forceBubble,
+      showBubble: (!this.state.compact || this.state.forceBubble) && f !== 5 && f !== 6,
+      dockLeft: f === 1 || f === 3,
+      dockRight: !(f === 1 || f === 3),
       toggleBubble: () => this.setState((s) => ({ forceBubble: !s.forceBubble })),
       bubbleStyle: { maxWidth: 340, boxShadow: '0 24px 60px rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)' },
       statLeftStyle: { justifyItems: 'start' },

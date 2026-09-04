@@ -58,9 +58,9 @@ a:hover { color:#8CFBFF; }
     </div>
 
     <div style="display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(12,12,16,0.72); backdrop-filter:blur(20px); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E">
-      <span onClick="{{ prevFloor }}" style="cursor:pointer; color:#00F0FF; padding:0 2px">&laquo;</span>
+      <span onClick="{{ prevFloor }}" role="button" aria-label="Previous floor" aria-disabled="{{ atTop }}" data-nav="prev" style="{{ prevArrowStyle }}">&laquo;</span>
       <span style="color:#E8E8ED; min-width:150px; text-align:center">{{ floorReadout }}</span>
-      <span onClick="{{ nextFloor }}" style="cursor:pointer; color:#00F0FF; padding:0 2px">&raquo;</span>
+      <span onClick="{{ nextFloor }}" role="button" aria-label="Next floor" aria-disabled="{{ atEnd }}" data-nav="next" style="{{ nextArrowStyle }}">&raquo;</span>
     </div>
     <div style="display:flex; gap:5px">
       <div style="width:22px; height:2px; background:rgba(0,240,255,0.9); box-shadow:0 0 10px rgba(0,240,255,0.7)"></div>
@@ -592,10 +592,22 @@ class Component extends DCLogic {
     if (secs[n]) window.scrollTo({ top: window.scrollY + secs[n].getBoundingClientRect().top, behavior: this.scrollMode() });
   }
 
+  arrowStyle(disabled) {
+    return disabled
+      ? { cursor: 'default', color: '#4A4A5E', padding: '0 2px', opacity: 0.55, pointerEvents: 'none' }
+      : { cursor: 'pointer', color: '#00F0FF', padding: '0 2px' };
+  }
+
   renderVals() {
     const f = this.state.floor;
     const pick = this.state.picked;
+    const atTop = f === 0;
+    const atEnd = f === this.labels.length - 1;
     return {
+      atTop: atTop,
+      atEnd: atEnd,
+      prevArrowStyle: this.arrowStyle(atTop),
+      nextArrowStyle: this.arrowStyle(atEnd),
       spineRef: (el) => { this.spine = el; },
       logoRef: (el) => { this.logo = el; },
       waveRef: (el) => { this.wave = el; },

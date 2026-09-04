@@ -3,6 +3,16 @@
  * Everything an operator changes without touching index.html lives here.
  * Loaded from <head> before the inline component script; read via window.NB_CONFIG.
  */
+/* support.js fetches React from unpkg, which it can only discover after it has
+ * parsed — a third-party round trip on the critical path that held LCP above
+ * 4.5s. Its own __resources hook redirects those URLs to the copies vendored in
+ * /vendor, which are byte-identical (verified against the SRI hashes support.js
+ * pins). Same origin, already-warm connection, no extra dependency. */
+window.__resources = {
+  'https://unpkg.com/react@18.3.1/umd/react.production.min.js': 'vendor/react.production.min.js',
+  'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js': 'vendor/react-dom.production.min.js'
+};
+
 window.NB_CONFIG = {
 
   /* Floor 07 scarcity line. Integer 1-9 renders "Two spots left this month."

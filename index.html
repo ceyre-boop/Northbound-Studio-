@@ -14,10 +14,36 @@
 <meta name="twitter:title" content="Northbound Studio — The Descent">
 <meta name="twitter:description" content="Sites that sell while you sleep. Live in 48 hours, from $1,500. 2–3 projects a month, real support after launch.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060608'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
+<!-- support.js only discovers React after it parses, which serialised the
+     fetches behind it and pushed LCP past 4.5s. These start with the document;
+     js/site-config.js redirects support.js to the vendored copies. -->
+<link rel="preload" as="script" href="vendor/react.production.min.js">
+<link rel="preload" as="script" href="vendor/react-dom.production.min.js">
+<link rel="preload" as="image" href="buddy-awesome.webp" fetchpriority="high">
+<link rel="preload" as="script" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/_ds_bundle.js">
 <script src="./js/site-config.js"></script>
 <script src="./support.js"></script>
+<style>
+html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
+#nb-boot { position:fixed; inset:0; z-index:90; background:#060608; display:flex; align-items:center; justify-content:center; gap:12px; transition:opacity .35s cubic-bezier(0.22,1,0.36,1); }
+#nb-boot.gone { opacity:0; pointer-events:none; }
+</style>
+<script>
+/* Failsafe: the shell covers the page, so it must never outlive a boot that
+   fails. The component retires it on mount; this is the backstop. */
+addEventListener('load', function () {
+  setTimeout(function () {
+    var b = document.getElementById('nb-boot');
+    if (b) { b.classList.add('gone'); setTimeout(function () { b.remove(); }, 400); }
+  }, 2500);
+});
+</script>
 </head>
 <body>
+<div id="nb-boot" aria-hidden="true">
+  <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne',system-ui,sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em">N</div>
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI &rarr; WORLDWIDE</div>
+</div>
 <x-dc>
 <helmet>
 <link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/fonts.css">
@@ -92,18 +118,18 @@ a:hover { color:#8CFBFF; }
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
   </sc-if>
   <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
-    <img src="buddy-salute.png" alt="BUDDY" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-thinking.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-awesome.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
   </div>
 </div>
 </sc-if>
 <sc-if value="{{ dockLeft }}" hint-placeholder-val="{{ false }}">
 <div ref="{{ dockRef }}" data-buddy-dock="left" style="position:fixed; left:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-start; gap:12px; max-width:min(520px, 58vw)">
   <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
-    <img src="buddy-salute.png" alt="BUDDY" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-thinking.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-awesome.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
   </div>
   <sc-if value="{{ showBubble }}" hint-placeholder-val="{{ true }}">
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
@@ -133,7 +159,7 @@ a:hover { color:#8CFBFF; }
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="100%,540px" opacity="{{ bracketOpacity }}" style="min-width:0; width:100%">
       <div style="position:relative; width:100%; box-sizing:border-box; height:min(60vh,540px); display:grid; place-items:center">
         <div style="position:absolute; width:78%; height:60%; border-radius:50%; background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px)"></div>
-        <img src="buddy-awesome.png" alt="BUDDY, unit 04" style="position:relative; max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); animation:nbFloat 7s ease-in-out infinite">
+        <img src="buddy-awesome.webp" alt="BUDDY, unit 04" width="1073" height="1080" fetchpriority="high" decoding="async" style="position:relative; max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); animation:nbFloat 7s ease-in-out infinite">
       </div>
     </x-import>
   </section>
@@ -435,6 +461,13 @@ class Component extends DCLogic {
     window.addEventListener('touchstart', this.onTouchStart, { passive: true });
     window.addEventListener('touchend', this.onTouchEnd, { passive: true });
     window.addEventListener('hashchange', this.onHashChange);
+    const boot = document.getElementById('nb-boot');
+    if (boot) {
+      requestAnimationFrame(() => {
+        boot.classList.add('gone');
+        setTimeout(() => boot.remove(), 400);
+      });
+    }
     this.buildLogoPoints();
     this.onResize();
     this.onScroll();
@@ -534,7 +567,7 @@ class Component extends DCLogic {
     const amp = Math.min(W * 0.17, 210);
     const twists = 5.5;
     const phase = window.scrollY * 0.0042 + t * 0.12 + this.mouse.y * 0.2;
-    const segs = 300;
+    const segs = 180;
 
     const g = ctx.createLinearGradient(cx, 0, cx, H);
     g.addColorStop(0, 'rgba(0,240,255,0.16)');
@@ -564,7 +597,7 @@ class Component extends DCLogic {
     const A = strand(0, 0.62 * dim);
     const B = strand(Math.PI, 0.34 * dim);
 
-    for (let i = 0; i <= segs; i += 7) {
+    for (let i = 0; i <= segs; i += 4) {
       const p = A[i], q = B[i];
       const dep = Math.max(p.dep, q.dep);
       ctx.strokeStyle = 'rgba(0,240,255,' + (0.03 + dep * 0.13 * dim) + ')';
@@ -572,7 +605,7 @@ class Component extends DCLogic {
       ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
     }
 
-    for (let i = 0; i <= segs; i += 5) {
+    for (let i = 0; i <= segs; i += 3) {
       const p = A[i];
       if (p.dep < 0.86) continue;
       ctx.fillStyle = 'rgba(0,240,255,' + (p.dep - 0.86) * 4 * dim + ')';
@@ -607,6 +640,8 @@ class Component extends DCLogic {
 
   drawLogo(t) {
     const c = this.logo; if (!c || !this.logoPts) return;
+    const cr = c.getBoundingClientRect();
+    if (cr.bottom < -window.innerHeight || cr.top > window.innerHeight * 2) return;
     const ctx = c.getContext('2d');
     const d = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, c.width, c.height);

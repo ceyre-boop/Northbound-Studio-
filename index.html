@@ -259,7 +259,11 @@ class Component extends DCLogic {
       const mid = window.innerHeight * 0.45;
       let f = 0;
       secs.forEach((s, i) => { if (s.getBoundingClientRect().top <= mid) f = i; });
-      if (f !== this.state.floor) this.setState({ floor: f });
+      if (f !== this.state.floor) {
+        this.setState({ floor: f });
+        const hash = '#floor-' + (f + 1);
+        if (location.hash !== hash) history.replaceState(null, '', hash);
+      }
       const prog = document.documentElement.scrollHeight - window.innerHeight;
       if (this.progress) this.progress.style.transform = 'scaleX(' + (prog > 0 ? window.scrollY / prog : 0) + ')';
       const last = secs[secs.length - 1];
@@ -353,6 +357,7 @@ class Component extends DCLogic {
     this.buildLogoPoints();
     this.onResize();
     this.onScroll();
+    this.onHashChange();
     this.t0 = performance.now();
     this.tick = (now) => {
       const t = (now - this.t0) / 1000;

@@ -14,9 +14,36 @@
 <meta name="twitter:title" content="Northbound Studio — The Descent">
 <meta name="twitter:description" content="Sites that sell while you sleep. Live in 48 hours, from $1,500. 2–3 projects a month, real support after launch.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060608'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='6' fill='none' stroke='%2300f0ff' stroke-opacity='0.5'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='20' font-weight='800' fill='%2300f0ff' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
+<!-- support.js only discovers React after it parses, which serialised the
+     fetches behind it and pushed LCP past 4.5s. These start with the document;
+     js/site-config.js redirects support.js to the vendored copies. -->
+<link rel="preload" as="script" href="vendor/react.production.min.js">
+<link rel="preload" as="script" href="vendor/react-dom.production.min.js">
+<link rel="preload" as="image" href="buddy-awesome.webp" fetchpriority="high">
+<link rel="preload" as="script" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/_ds_bundle.js">
+<script src="./js/site-config.js"></script>
 <script src="./support.js"></script>
+<style>
+html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
+#nb-boot { position:fixed; inset:0; z-index:90; background:#060608; display:flex; align-items:center; justify-content:center; gap:12px; transition:opacity .35s cubic-bezier(0.22,1,0.36,1); }
+#nb-boot.gone { opacity:0; pointer-events:none; }
+</style>
+<script>
+/* Failsafe: the shell covers the page, so it must never outlive a boot that
+   fails. The component retires it on mount; this is the backstop. */
+addEventListener('load', function () {
+  setTimeout(function () {
+    var b = document.getElementById('nb-boot');
+    if (b) { b.classList.add('gone'); setTimeout(function () { b.remove(); }, 400); }
+  }, 2500);
+});
+</script>
 </head>
 <body>
+<div id="nb-boot" aria-hidden="true">
+  <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne',system-ui,sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em">N</div>
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI &rarr; WORLDWIDE</div>
+</div>
 <x-dc>
 <helmet>
 <link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/fonts.css">
@@ -33,6 +60,23 @@ a { color:#00F0FF; text-decoration:none; }
 a:hover { color:#8CFBFF; }
 @keyframes nbFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-14px); } }
 @keyframes nbCue { 0% { transform:rotate(45deg) translate(0,0); opacity:.2; } 50% { opacity:.9; } 100% { transform:rotate(45deg) translate(6px,6px); opacity:.2; } }
+
+/* On a phone the header row overflowed and pushed the floor arrows off-screen
+   entirely, so the descent could not be navigated by hand at all. */
+@media (max-width:640px) {
+  .nb-head-sub { display:none; }
+  .nb-readout { min-width:88px !important; }
+  .nb-progress { width:96px !important; }
+}
+
+/* Floor 02 case rail */
+.nb-case { transition:transform .35s cubic-bezier(0.16,1,0.3,1), border-color .25s ease, box-shadow .25s ease; transform-style:preserve-3d; }
+.nb-case:hover { border-color:rgba(0,240,255,0.55); box-shadow:0 12px 40px -8px rgba(0,240,255,0.15), 0 0 26px rgba(0,240,255,0.15); }
+.nb-case:hover .nb-open { color:#8CFBFF; }
+.nb-case:hover .nb-poster-hint { opacity:1; }
+.nb-rail { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+@media (max-width:900px) { .nb-rail { grid-template-columns:minmax(0,1fr); gap:14px; } }
+@media (prefers-reduced-motion: reduce) { .nb-case { transition:border-color .25s ease, box-shadow .25s ease; } }
 </style>
 </helmet>
 
@@ -45,7 +89,7 @@ a:hover { color:#8CFBFF; }
 <div style="position:fixed; top:24px; left:0; right:0; z-index:60; display:flex; align-items:flex-start; justify-content:space-between; padding:0 clamp(1.25rem,4vw,3rem); pointer-events:none">
   <div style="display:flex; align-items:center; gap:12px; pointer-events:auto">
     <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; text-shadow:0 0 18px rgba(0,240,255,0.6)">N</div>
-    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI → WORLDWIDE</div>
+    <div class="nb-head-sub" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI → WORLDWIDE</div>
   </div>
 
   <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; pointer-events:auto">
@@ -57,35 +101,35 @@ a:hover { color:#8CFBFF; }
     </div>
 
     <div style="display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(12,12,16,0.72); backdrop-filter:blur(20px); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E">
-      <span onClick="{{ prevFloor }}" style="cursor:pointer; color:#00F0FF; padding:0 2px">&laquo;</span>
-      <span style="color:#E8E8ED; min-width:150px; text-align:center">{{ floorReadout }}</span>
-      <span onClick="{{ nextFloor }}" style="cursor:pointer; color:#00F0FF; padding:0 2px">&raquo;</span>
+      <span onClick="{{ prevFloor }}" role="button" aria-label="Previous floor" aria-disabled="{{ atTop }}" data-nav="prev" style="{{ prevArrowStyle }}">&laquo;</span>
+      <span class="nb-readout" style="color:#E8E8ED; min-width:150px; text-align:center">{{ floorReadout }}</span>
+      <span onClick="{{ nextFloor }}" role="button" aria-label="Next floor" aria-disabled="{{ atEnd }}" data-nav="next" style="{{ nextArrowStyle }}">&raquo;</span>
     </div>
     <div style="display:flex; gap:5px">
       <div style="width:22px; height:2px; background:rgba(0,240,255,0.9); box-shadow:0 0 10px rgba(0,240,255,0.7)"></div>
-      <div style="width:154px; height:2px; background:rgba(255,255,255,0.08); position:relative"><div ref="{{ progressRef }}" style="position:absolute; inset:0; transform-origin:left; background:rgba(0,240,255,0.55)"></div></div>
+      <div class="nb-progress" style="width:154px; height:2px; background:rgba(255,255,255,0.08); position:relative"><div ref="{{ progressRef }}" style="position:absolute; inset:0; transform-origin:left; background:rgba(0,240,255,0.55)"></div></div>
     </div>
   </div>
 </div>
 
 <sc-if value="{{ dockRight }}" hint-placeholder-val="{{ true }}">
-<div style="position:fixed; right:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-end; gap:12px; max-width:min(520px, 58vw)">
+<div ref="{{ dockRef }}" data-buddy-dock="right" style="position:fixed; right:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-end; gap:12px; max-width:min(520px, 58vw)">
   <sc-if value="{{ showBubble }}" hint-placeholder-val="{{ true }}">
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
   </sc-if>
   <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
-    <img src="buddy-salute.png" alt="BUDDY" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-thinking.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-awesome.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
   </div>
 </div>
 </sc-if>
 <sc-if value="{{ dockLeft }}" hint-placeholder-val="{{ false }}">
-<div style="position:fixed; left:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-start; gap:12px; max-width:min(520px, 58vw)">
+<div ref="{{ dockRef }}" data-buddy-dock="left" style="position:fixed; left:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-start; gap:12px; max-width:min(520px, 58vw)">
   <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
-    <img src="buddy-salute.png" alt="BUDDY" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-thinking.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-awesome.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
   </div>
   <sc-if value="{{ showBubble }}" hint-placeholder-val="{{ true }}">
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
@@ -95,7 +139,7 @@ a:hover { color:#8CFBFF; }
 
 <div style="position:relative; z-index:10; max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem)">
 
-  <section id="floor-1" data-floor="1" data-screen-label="01 Arrival" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+  <section id="floor-1" data-floor="1" data-screen-label="01 Arrival" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
     <div style="position:relative">
       <div style="position:absolute; left:-60px; right:-60px; top:-50px; bottom:-40px; pointer-events:none; background:radial-gradient(62% 60% at 32% 48%, rgba(6,6,8,0.94), rgba(6,6,8,0.6) 55%, transparent 80%)"></div>
       <div style="position:relative">
@@ -115,44 +159,94 @@ a:hover { color:#8CFBFF; }
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="100%,540px" opacity="{{ bracketOpacity }}" style="min-width:0; width:100%">
       <div style="position:relative; width:100%; box-sizing:border-box; height:min(60vh,540px); display:grid; place-items:center">
         <div style="position:absolute; width:78%; height:60%; border-radius:50%; background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px)"></div>
-        <img src="buddy-awesome.png" alt="BUDDY, unit 04" style="position:relative; max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); animation:nbFloat 7s ease-in-out infinite">
+        <img src="buddy-awesome.webp" alt="BUDDY, unit 04" width="1073" height="1080" fetchpriority="high" decoding="async" style="position:relative; max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); animation:nbFloat 7s ease-in-out infinite">
       </div>
     </x-import>
   </section>
 
-  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 150px">
-    <div style="grid-column:2">
+  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:18px; padding:76px 0 150px">
+    <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 02 · THE WORK</x-import>
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 20px">What you actually need built.</h2>
-      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:40ch; margin:0 0 30px; text-wrap:pretty">Marketing sites, landing pages, booking flows, storefronts. Built by hand, tuned for conversion, fast on every phone in the parking lot.</p>
-      <div style="display:grid; gap:12px">
-        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
-          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">01</span>
-          <span style="font-size:15px">Marketing sites that load in under a second</span></span>
-        </x-import>
-        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
-          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">02</span>
-          <span style="font-size:15px">Booking, payments and forms that actually work</span></span>
-        </x-import>
-        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
-          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">03</span>
-          <span style="font-size:15px">Motion and 3D when the story needs it</span></span>
-        </x-import>
-      </div>
+      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(28px,3.2vw,46px); line-height:1.02; margin:12px 0 12px">Three we built. Open any of them.</h2>
+      <p style="font-size:16px; line-height:1.6; color:#7A7A8E; max-width:56ch; margin:0; text-wrap:pretty">Real businesses, real numbers. Hover a card to wake the live site inside it, or open it full size.</p>
+    </div>
+
+    <div class="nb-rail">
+      <sc-for list="{{ cases }}" as="c" hint-placeholder-count="3">
+        <div id="{{ c.domId }}" class="nb-case" onMouseEnter="{{ c.onEnter }}" onMouseMove="{{ c.onMove }}" onMouseLeave="{{ c.onLeave }}" onClick="{{ c.onEnter }}" style="{{ cardStyle }}">
+          <div style="display:flex; align-items:center; gap:6px; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(6,6,8,0.6)">
+            <span style="width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,0.14)"></span>
+            <span style="width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,0.14)"></span>
+            <span style="width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,0.14)"></span>
+            <span style="flex:1; margin-left:6px; padding:3px 9px; border-radius:999px; background:rgba(255,255,255,0.04); font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.1em; color:#4A4A5E; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ c.host }}</span>
+          </div>
+          <div style="{{ frameStyle }}">
+            <sc-if value="{{ c.live }}" hint-placeholder-val="{{ false }}">
+              <iframe src="{{ c.url }}" loading="lazy" tabindex="-1" scrolling="no" title="{{ c.business }} — live preview" style="{{ frameIframeStyle }}"></iframe>
+            </sc-if>
+            <sc-if value="{{ c.idle }}" hint-placeholder-val="{{ true }}">
+              <div style="{{ posterStyle }}">
+                <div style="height:9px; width:62%; border-radius:999px; background:rgba(0,240,255,0.55)"></div>
+                <div style="height:26px; width:40%; border-radius:6px; background:rgba(0,240,255,0.16); margin-top:12px"></div>
+                <div style="display:flex; gap:8px; margin-top:16px">
+                  <div style="height:44px; flex:1; border-radius:8px; background:rgba(255,255,255,0.05)"></div>
+                  <div style="height:44px; flex:1; border-radius:8px; background:rgba(255,255,255,0.05)"></div>
+                  <div style="height:44px; flex:1; border-radius:8px; background:rgba(255,255,255,0.05)"></div>
+                </div>
+                <div class="nb-poster-hint" style="margin-top:auto; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E; opacity:0.7; transition:opacity .25s ease">Hover to load preview</div>
+              </div>
+            </sc-if>
+          </div>
+          <div style="padding:14px 16px 16px">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
+              <span style="font-family:'Syne',sans-serif; font-weight:800; font-size:17px; letter-spacing:-0.02em">{{ c.business }}</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E">{{ c.direction }}</span>
+            </div>
+            <p style="font-size:13.5px; line-height:1.5; color:#7A7A8E; margin:7px 0 10px; text-wrap:pretty">{{ c.result }}</p>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF; opacity:0.75">{{ c.tech }}</div>
+            <a class="nb-open" href="{{ c.url }}" target="_blank" rel="noopener" style="display:inline-block; margin-top:11px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF">Open site ↗</a>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px">
+      <span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#7A7A8E"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#00F0FF">01</span>Marketing sites that load in under a second</span>
+      <span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#7A7A8E"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#00F0FF">02</span>Booking, payments and forms that actually work</span>
+      <span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#7A7A8E"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#00F0FF">03</span>Motion and 3D when the story needs it</span>
     </div>
   </section>
 
-  <section id="floor-3" data-floor="3" data-screen-label="03 Speed" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+  <section id="floor-3" data-floor="3" data-screen-label="03 Speed" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 03 · SPEED</x-import>
       <div style="margin:20px 0 0">
         <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,150px" value="48 HRS" label="FIRST LIVE BUILD · 2–3 PROJECTS PER MONTH" style="{{ statLeftStyle }}"></x-import>
       </div>
-      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:36ch; margin:24px 0 0; text-wrap:pretty">Most agencies quote six weeks. Your first live build is up within 48 hours of kickoff, and we only take 2–3 projects a month so yours never sits in a queue.</p>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:36ch; margin:22px 0 0; text-wrap:pretty">Most agencies quote six weeks. Your first live build is up within 48 hours of kickoff, and we only take 2–3 projects a month so yours never sits in a queue.</p>
+      <sc-if value="{{ hasPerf }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:26px; display:grid; gap:14px; max-width:440px">
+          <div>
+            <div style="margin-bottom:7px; font-size:13.5px; color:#7A7A8E">This page loaded in <span ref="{{ selfNumRef }}" style="font-family:'JetBrains Mono',monospace; font-size:14px; letter-spacing:0.04em; color:#00F0FF">0.00s</span> on your connection</div>
+            <div style="height:6px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden">
+              <div ref="{{ selfBarRef }}" style="height:100%; width:0%; border-radius:999px; background:#00F0FF; box-shadow:0 0 18px rgba(0,240,255,0.5)"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:7px">
+              <span style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E">Typical agency site</span>
+              <span ref="{{ agencyNumRef }}" style="font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:0.06em; color:#7A7A8E">0.00s</span>
+            </div>
+            <div style="height:6px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden">
+              <div ref="{{ agencyBarRef }}" style="height:100%; width:0%; border-radius:999px; background:rgba(255,255,255,0.16)"></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
     </div>
   </section>
 
-  <section id="floor-4" data-floor="4" data-screen-label="04 Price" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 150px">
+  <section id="floor-4" data-floor="4" data-screen-label="04 Price" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:110px 0 110px">
     <div style="grid-column:2">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 04 · PRICE</x-import>
       <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 26px">Most agencies charge $5,000+.</h2>
@@ -168,7 +262,7 @@ a:hover { color:#8CFBFF; }
     </div>
   </section>
 
-  <section id="floor-5" data-floor="5" data-screen-label="05 Support" style="min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+  <section id="floor-5" data-floor="5" data-screen-label="05 Support" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 05 · SUPPORT</x-import>
       <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 18px">We don't disappear after launch.</h2>
@@ -184,27 +278,36 @@ a:hover { color:#8CFBFF; }
     </div>
   </section>
 
-  <section id="floor-6" data-floor="6" data-screen-label="06 Templates" style="min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:120px 0 150px">
-    <div style="text-align:center; margin-bottom:40px">
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 06 · CHOOSE YOUR STYLE</x-import>
+  <section id="floor-6" data-floor="6" data-screen-label="06 Directions" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:56px 0 200px">
+    <div style="text-align:center; margin-bottom:22px">
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 06 · DIRECTIONS</x-import>
       <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:12px 0 0">Pick a starting point. We build from here, not a template.</h2>
     </div>
-    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px">
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Atlas" description="Clean, fast, built to book jobs." price="$1,500" palette="{{ palA }}" selected="{{ selA }}" onSelect="{{ pickA }}"></x-import>
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Vector" description="Storefront with real checkout." price="$2,500" palette="{{ palB }}" selected="{{ selB }}" onSelect="{{ pickB }}"></x-import>
-      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Halo" description="Cinematic, motion-led, custom." price="Custom" palette="{{ palC }}" selected="{{ selC }}" onSelect="{{ pickC }}"></x-import>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px">
+      <div style="display:flex; flex-direction:column; gap:8px; min-width:0">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Atlas" description="Clean, fast, built to book jobs." price="$1,500" palette="{{ palA }}" selected="{{ selA }}" onSelect="{{ pickA }}"></x-import>
+        <a href="#case-atlas" onClick="{{ seeAtlas }}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF">See it built ↗</a>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; min-width:0">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Vector" description="Storefront with real checkout." price="$2,500" palette="{{ palB }}" selected="{{ selB }}" onSelect="{{ pickB }}"></x-import>
+        <a href="#case-vector" onClick="{{ seeVector }}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF">See it built ↗</a>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; min-width:0">
+        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.TemplateCard" hint-size="100%,300px" name="Halo" description="Cinematic, motion-led, custom." price="Custom" palette="{{ palC }}" selected="{{ selC }}" onSelect="{{ pickC }}"></x-import>
+        <a href="#case-halo" onClick="{{ seeHalo }}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF">See it built ↗</a>
+      </div>
     </div>
-    <div style="margin-top:24px; text-align:center">
+    <div style="margin-top:18px; text-align:center">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">SELECTED: {{ picked }}</x-import>
     </div>
   </section>
 
-  <section id="floor-7" data-floor="7" data-screen-label="07 Assembly" style="min-height:110vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; padding:140px 0 170px">
+  <section id="floor-7" data-floor="7" data-screen-label="07 Assembly" style="box-sizing:border-box; min-height:110vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:30px; padding:120px 0 210px">
     <canvas ref="{{ logoRef }}" style="width:min(460px,66vw); height:min(460px,66vw); display:block"></canvas>
     <div style="text-align:center; max-width:560px">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 07 · ASSEMBLY COMPLETE</x-import>
       <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(32px,4vw,56px); line-height:1.02; margin:12px 0 16px">Let's build yours.</h2>
-      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; margin:0; text-wrap:pretty">Taking 2–3 projects a month. Tell us what you sell and we'll get back to you within the day.</p>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; margin:0; text-wrap:pretty">{{ spotsLine }} Tell us what you sell and we'll get back to you within the day.</p>
     </div>
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="min(520px,90vw),420px">
       <div style="display:grid; gap:14px; width:min(520px,90vw); box-sizing:border-box; padding:30px; margin:6px; border:1px solid rgba(255,255,255,0.06); border-radius:18px; background:rgba(12,12,16,0.85); backdrop-filter:blur(20px)">
@@ -219,6 +322,9 @@ a:hover { color:#8CFBFF; }
         <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="100%,46px" onClick="{{ submit }}" style="display:grid; margin-top:4px">{{ submitLabel }}</x-import>
       </div>
     </x-import>
+    <div style="width:min(520px,90vw)">
+      <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="100%,66px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER">{{ buddyClose }}</x-import>
+    </div>
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px" tone="dim">NORTHBOUND STUDIO · GRAND LEDGE, MI → WORLDWIDE</x-import>
   </section>
 
@@ -227,7 +333,7 @@ a:hover { color:#8CFBFF; }
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  state = { floor: 0, picked: 'ATLAS', audio: false, submitted: false, compact: false, forceBubble: false };
+  state = { floor: 0, picked: 'ATLAS', audio: false, submitted: false, compact: false, forceBubble: false, buddyBlocked: false, live: {} };
 
   lines = [
     "Hello friend! I am BUDDY, unit 04, and I will be building your website today. Ride the cable down — I will explain everything on the way.",
@@ -236,20 +342,35 @@ class Component extends DCLogic {
     "Fifteen hundred dollars. My friends at the big agencies charge five thousand. I have no overhead — I live inside the cable.",
     "If something breaks, you text me. I fix it. That is the whole support policy and I am very proud of it.",
     "Pick a starting point! There is no wrong answer. Statistically there is a slightly wrong answer, but I will fix it either way.",
-    "You made it to the bottom. Watch this — I am assembling the mark now. Tell me what you sell and I will start tonight."
+    "BUDDY, our intake assistant, replies within the hour. A human follows up the same day."
   ];
 
-  labels = ['ARRIVAL', 'THE WORK', 'SPEED', 'PRICE', 'SUPPORT', 'TEMPLATES', 'ASSEMBLY'];
+  labels = ['ARRIVAL', 'THE WORK', 'SPEED', 'PRICE', 'SUPPORT', 'DIRECTIONS', 'ASSEMBLY'];
+
+  // BUDDY's reserved bottom-corner zone: avatar (76) + gap (12) + bubble (340).
+  // Floors reserve this much clear space via their own bottom padding.
+  TILT = 6;
+
+  AGENCY_SECONDS = 3.8;
+  SPEED_SCALE = 4.2;
+
+  BUDDY_W = 428;
+  BUDDY_H = 104;
 
   componentDidMount() {
     this.mouse = { x: 0, y: 0 };
     this.logoP = 0;
+    this.frames = 0;
     this.onScroll = () => {
       const secs = document.querySelectorAll('[data-floor]');
       const mid = window.innerHeight * 0.45;
       let f = 0;
       secs.forEach((s, i) => { if (s.getBoundingClientRect().top <= mid) f = i; });
-      if (f !== this.state.floor) this.setState({ floor: f });
+      if (f !== this.state.floor) {
+        this.setState({ floor: f });
+        const hash = '#floor-' + (f + 1);
+        if (location.hash !== hash) history.replaceState(null, '', hash);
+      }
       const prog = document.documentElement.scrollHeight - window.innerHeight;
       if (this.progress) this.progress.style.transform = 'scaleX(' + (prog > 0 ? window.scrollY / prog : 0) + ')';
       const last = secs[secs.length - 1];
@@ -264,7 +385,7 @@ class Component extends DCLogic {
       this.mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
     };
     this.onResize = () => {
-      const compact = window.innerHeight < 700;
+      const compact = window.innerHeight < 700 || window.innerWidth < 900;
       if (compact !== this.state.compact) this.setState({ compact: compact, forceBubble: false });
       [this.spine, this.logo, this.wave].forEach((c) => {
         if (!c) return;
@@ -274,18 +395,94 @@ class Component extends DCLogic {
         c.height = Math.max(1, Math.round(r.height * d));
       });
     };
+    // --- Floor advance: wheel, swipe and keyboard all route through goTo() ---
+    this.navLock = 0;
+    this.step = (dir) => {
+      const now = performance.now();
+      if (now - this.navLock < 700) return true;
+      const target = this.state.floor + dir;
+      if (target < 0 || target >= this.labels.length) return true;
+      this.navLock = now;
+      this.goTo(target);
+      return true;
+    };
+    // A floor taller than the screen (Floor 07, or any floor on a short window)
+    // scrolls natively until its edge; the snap only takes over at the boundary.
+    this.roomLeft = (dir) => {
+      const sec = document.querySelectorAll('[data-floor]')[this.state.floor];
+      if (!sec) return false;
+      const r = sec.getBoundingClientRect();
+      const slack = 48;
+      return dir > 0 ? r.bottom > window.innerHeight + slack : r.top < -slack;
+    };
+    this.inField = (t) => !!(t && t.closest && t.closest('input, select, textarea, [contenteditable="true"]'));
+    this.onWheel = (e) => {
+      if (this.inField(e.target)) return;
+      if (Math.abs(e.deltaY) < 12) return;
+      const dir = e.deltaY > 0 ? 1 : -1;
+      if (this.roomLeft(dir)) return;
+      e.preventDefault();
+      this.step(dir);
+    };
+    this.onKey = (e) => {
+      if (this.inField(e.target)) return;
+      const k = e.key;
+      let dir = 0;
+      if (k === 'ArrowDown' || k === 'PageDown') dir = 1;
+      else if (k === 'ArrowUp' || k === 'PageUp') dir = -1;
+      else if (k === ' ' || k === 'Spacebar') dir = e.shiftKey ? -1 : 1;
+      else return;
+      e.preventDefault();
+      if (this.roomLeft(dir)) window.scrollBy({ top: dir * window.innerHeight * 0.8, behavior: this.scrollMode() });
+      else this.step(dir);
+    };
+    this.onTouchStart = (e) => { this.touchY = e.touches && e.touches[0] ? e.touches[0].clientY : null; };
+    this.onTouchEnd = (e) => {
+      const start = this.touchY;
+      this.touchY = null;
+      const end = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : null;
+      if (start == null || end == null) return;
+      const dy = start - end;
+      if (Math.abs(dy) < 50) return;
+      const dir = dy > 0 ? 1 : -1;
+      if (this.roomLeft(dir)) return;
+      this.step(dir);
+    };
+    this.onHashChange = () => {
+      const n = parseInt((location.hash.match(/^#floor-(\d+)$/) || [])[1], 10);
+      if (n >= 1 && n <= this.labels.length) this.goTo(n - 1);
+    };
+
     window.addEventListener('scroll', this.onScroll, { passive: true });
     window.addEventListener('mousemove', this.onMove, { passive: true });
     window.addEventListener('resize', this.onResize);
+    window.addEventListener('wheel', this.onWheel, { passive: false });
+    window.addEventListener('keydown', this.onKey);
+    window.addEventListener('touchstart', this.onTouchStart, { passive: true });
+    window.addEventListener('touchend', this.onTouchEnd, { passive: true });
+    window.addEventListener('hashchange', this.onHashChange);
+    const boot = document.getElementById('nb-boot');
+    if (boot) {
+      requestAnimationFrame(() => {
+        boot.classList.add('gone');
+        setTimeout(() => boot.remove(), 400);
+      });
+    }
     this.buildLogoPoints();
     this.onResize();
     this.onScroll();
+    this.onHashChange();
     this.t0 = performance.now();
     this.tick = (now) => {
       const t = (now - this.t0) / 1000;
       this.drawSpine(t);
       this.drawLogo(t);
       this.drawWave(t);
+      this.drawSpeed();
+      // Never let a measurement fault take the animation loop down with it.
+      if (++this.frames % 8 === 0 && !this.measureOff) {
+        try { this.measureBuddy(); } catch (e) { this.measureOff = true; console.error('measureBuddy', e); }
+      }
       this.raf = requestAnimationFrame(this.tick);
     };
     this.raf = requestAnimationFrame(this.tick);
@@ -298,6 +495,64 @@ class Component extends DCLogic {
     window.removeEventListener('scroll', this.onScroll);
     window.removeEventListener('mousemove', this.onMove);
     window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('wheel', this.onWheel);
+    window.removeEventListener('keydown', this.onKey);
+    window.removeEventListener('touchstart', this.onTouchStart);
+    window.removeEventListener('touchend', this.onTouchEnd);
+    window.removeEventListener('hashchange', this.onHashChange);
+  }
+
+  // Every element on the active floor that puts ink on the page and must stay
+  // readable. Canvas/img/svg are excluded on purpose: BUDDY floating over the
+  // hero art is the intended composition, over a headline or a price is not.
+  inkRects(sec) {
+    const out = [];
+    const keep = (r) => {
+      if (r.width >= 2 && r.height >= 2 && r.bottom > 0 && r.top < window.innerHeight) out.push(r);
+    };
+    sec.querySelectorAll('*').forEach((el) => {
+      const tag = el.tagName;
+      if (tag === 'CANVAS' || tag === 'IMG' || tag === 'SVG') return;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || tag === 'BUTTON') {
+        keep(el.getBoundingClientRect());
+        return;
+      }
+      if (el.childElementCount !== 0 || !(el.textContent || '').trim()) return;
+      // Per-line glyph boxes, not the element box: a centred headline in a
+      // full-width block would otherwise read as overlapping the corner it
+      // visibly clears by 200px.
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const rects = range.getClientRects();
+      for (let i = 0; i < rects.length; i++) keep(rects[i]);
+    });
+    return out;
+  }
+
+  // The bubble is clamped by reserved layout space per floor; this is the guard
+  // that catches viewports the reserved zone does not fit, and degrades BUDDY to
+  // avatar-only rather than letting him cover copy.
+  measureBuddy() {
+    const dock = this.dock;
+    if (!dock || !dock.isConnected) return;
+    const secs = document.querySelectorAll('[data-floor]');
+    const sec = secs[this.state.floor];
+    if (!sec) return;
+    // Measure the box BUDDY would occupy with the bubble shown, not the box he
+    // currently occupies — otherwise hiding the bubble frees the zone, which
+    // unhides it, which blocks it again, forever.
+    const d = dock.getBoundingClientRect();
+    if (!d.width || !d.height) return;
+    const side = dock.getAttribute('data-buddy-dock');
+    const W = Math.min(this.BUDDY_W, window.innerWidth - 40);
+    const left = side === 'left' ? d.left : d.right - W;
+    const z = { left: left, right: left + W, bottom: d.bottom, top: d.bottom - this.BUDDY_H };
+    const pad = 8;
+    const blocked = this.inkRects(sec).some((r) =>
+      r.right > z.left - pad && r.left < z.right + pad &&
+      r.bottom > z.top - pad && r.top < z.bottom + pad
+    );
+    if (blocked !== this.state.buddyBlocked) this.setState({ buddyBlocked: blocked });
   }
 
   drawSpine(t) {
@@ -312,7 +567,7 @@ class Component extends DCLogic {
     const amp = Math.min(W * 0.17, 210);
     const twists = 5.5;
     const phase = window.scrollY * 0.0042 + t * 0.12 + this.mouse.y * 0.2;
-    const segs = 300;
+    const segs = 180;
 
     const g = ctx.createLinearGradient(cx, 0, cx, H);
     g.addColorStop(0, 'rgba(0,240,255,0.16)');
@@ -342,7 +597,7 @@ class Component extends DCLogic {
     const A = strand(0, 0.62 * dim);
     const B = strand(Math.PI, 0.34 * dim);
 
-    for (let i = 0; i <= segs; i += 7) {
+    for (let i = 0; i <= segs; i += 4) {
       const p = A[i], q = B[i];
       const dep = Math.max(p.dep, q.dep);
       ctx.strokeStyle = 'rgba(0,240,255,' + (0.03 + dep * 0.13 * dim) + ')';
@@ -350,7 +605,7 @@ class Component extends DCLogic {
       ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
     }
 
-    for (let i = 0; i <= segs; i += 5) {
+    for (let i = 0; i <= segs; i += 3) {
       const p = A[i];
       if (p.dep < 0.86) continue;
       ctx.fillStyle = 'rgba(0,240,255,' + (p.dep - 0.86) * 4 * dim + ')';
@@ -385,6 +640,8 @@ class Component extends DCLogic {
 
   drawLogo(t) {
     const c = this.logo; if (!c || !this.logoPts) return;
+    const cr = c.getBoundingClientRect();
+    if (cr.bottom < -window.innerHeight || cr.top > window.innerHeight * 2) return;
     const ctx = c.getContext('2d');
     const d = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, c.width, c.height);
@@ -447,28 +704,169 @@ class Component extends DCLogic {
     ctx.restore();
   }
 
+  // 'See it built' jumps back up to Floor 02 and wakes that case's preview.
+  seeCase(e, key) {
+    if (e && e.preventDefault) e.preventDefault();
+    this.goTo(1);
+    this.setState((st) => {
+      const next = {};
+      for (const k in (st.live || {})) next[k] = st.live[k];
+      next[key] = true;
+      return { live: next };
+    });
+  }
+
+  // Scarcity line, driven by NB_CONFIG.SPOTS_LEFT so it is a one-line edit.
+  // null (or anything out of range) falls back to the evergreen sentence.
+  spotsLine() {
+    const n = (window.NB_CONFIG || {}).SPOTS_LEFT;
+    const words = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    if (typeof n !== 'number' || !isFinite(n) || n < 0 || n > 9 || n !== Math.floor(n)) {
+      return 'Taking 2–3 projects a month.';
+    }
+    return words[n] + (n === 1 ? ' spot' : ' spots') + ' left this month.';
+  }
+
+  loadSeconds() {
+    if (!window.performance || !performance.getEntriesByType) return null;
+    const nav = performance.getEntriesByType('navigation')[0];
+    if (!nav) return null;
+    let ms = nav.loadEventEnd - nav.startTime;
+    if (!(ms > 0)) ms = nav.domContentLoadedEventEnd - nav.startTime;
+    if (!(ms > 0)) ms = performance.now();
+    if (!(ms > 0)) return null;
+    return Math.min(ms / 1000, this.SPEED_SCALE);
+  }
+
+  // Counts both bars up once Floor 03 has been reached. Written straight to the
+  // nodes off the existing rAF loop; reduced motion gets the final numbers flat.
+  drawSpeed() {
+    if (this.self1 == null) return;
+    const secs = this.loadSeconds();
+    if (secs == null) return;
+    if (this.speedP == null) this.speedP = 0;
+    const armed = this.state.floor >= 2;
+    if (armed) {
+      const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.speedP = still ? 1 : Math.min(1, this.speedP + 0.016);
+    }
+    const e = 1 - Math.pow(1 - this.speedP, 3);
+    const a = secs * e;
+    const b = this.AGENCY_SECONDS * e;
+    if (this.self1) this.self1.textContent = a.toFixed(2) + 's';
+    if (this.self2) this.self2.style.width = (a / this.SPEED_SCALE * 100).toFixed(2) + '%';
+    if (this.ag1) this.ag1.textContent = b.toFixed(2) + 's';
+    if (this.ag2) this.ag2.style.width = (b / this.SPEED_SCALE * 100).toFixed(2) + '%';
+  }
+
+  scrollMode() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  }
+
   goTo(i) {
     const secs = document.querySelectorAll('[data-floor]');
     const n = Math.max(0, Math.min(secs.length - 1, i));
-    if (secs[n]) window.scrollTo({ top: window.scrollY + secs[n].getBoundingClientRect().top, behavior: 'smooth' });
+    if (secs[n]) window.scrollTo({ top: window.scrollY + secs[n].getBoundingClientRect().top, behavior: this.scrollMode() });
+  }
+
+  arrowStyle(disabled) {
+    return disabled
+      ? { cursor: 'default', color: '#4A4A5E', padding: '0 2px', opacity: 0.55, pointerEvents: 'none' }
+      : { cursor: 'pointer', color: '#00F0FF', padding: '0 2px' };
+  }
+
+  // Floor 02 rail. Previews stay as a poster until the visitor asks for one:
+  // three iframes in the initial DOM would cost more than the floor is worth.
+  caseVals() {
+    const cfg = window.NB_CONFIG || {};
+    const demos = cfg.DEMOS || {};
+    const live = this.state.live || {};
+    const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return (cfg.CASES || []).map((c) => ({
+      direction: c.direction,
+      business: c.business,
+      result: c.result,
+      tech: c.tech,
+      domId: 'case-' + c.demo,
+      host: c.demo + '.northbound-dev.com',
+      url: demos[c.demo] || '#',
+      live: !!live[c.demo],
+      idle: !live[c.demo],
+      onEnter: () => {
+        if (this.state.live && this.state.live[c.demo]) return;
+        this.setState((st) => {
+          const next = {};
+          for (const k in (st.live || {})) next[k] = st.live[k];
+          next[c.demo] = true;
+          return { live: next };
+        });
+      },
+      // Written straight to the node: a setState per mousemove would re-render
+      // the whole descent 60 times a second.
+      onMove: still ? null : (e) => {
+        const el = e.currentTarget;
+        const r = el.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        el.style.transform = 'perspective(900px) rotateY(' + (px * 2 * this.TILT).toFixed(2) + 'deg) rotateX(' + (-py * 2 * this.TILT).toFixed(2) + 'deg)';
+      },
+      onLeave: (e) => { e.currentTarget.style.transform = ''; }
+    }));
   }
 
   renderVals() {
     const f = this.state.floor;
     const pick = this.state.picked;
+    const atTop = f === 0;
+    const atEnd = f === this.labels.length - 1;
     return {
+      cases: this.caseVals(),
+      cardStyle: {
+        display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden',
+        border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18,
+        background: 'rgba(12,12,16,0.72)', backdropFilter: 'blur(20px)',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.6)', cursor: 'pointer'
+      },
+      frameStyle: {
+        position: 'relative', overflow: 'hidden', aspectRatio: '16 / 9',
+        borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0A0A0E'
+      },
+      // The demo is rendered at desktop width and scaled down, so the card shows
+      // the real layout rather than the demo's phone breakpoint.
+      frameIframeStyle: {
+        position: 'absolute', top: 0, left: 0, width: 1280, height: 800,
+        border: 0, transformOrigin: 'top left', transform: 'scale(0.32)',
+        pointerEvents: 'none'
+      },
+      posterStyle: {
+        position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+        padding: '16px 16px 12px', boxSizing: 'border-box',
+        background: 'linear-gradient(160deg, rgba(0,240,255,0.05), rgba(6,6,8,0) 60%)'
+      },
+      atTop: atTop,
+      atEnd: atEnd,
+      prevArrowStyle: this.arrowStyle(atTop),
+      nextArrowStyle: this.arrowStyle(atEnd),
       spineRef: (el) => { this.spine = el; },
       logoRef: (el) => { this.logo = el; },
       waveRef: (el) => { this.wave = el; },
       progressRef: (el) => { this.progress = el; },
+      dockRef: (el) => { this.dock = el; },
+      hasPerf: this.loadSeconds() != null,
+      spotsLine: this.spotsLine(),
+      selfNumRef: (el) => { this.self1 = el; },
+      selfBarRef: (el) => { this.self2 = el; },
+      agencyNumRef: (el) => { this.ag1 = el; },
+      agencyBarRef: (el) => { this.ag2 = el; },
       buddyLine: this.lines[f],
+      buddyClose: this.lines[this.lines.length - 1],
       poseSalute: [0, 4].indexOf(f) >= 0 ? 1 : 0,
       poseThinking: [1, 3, 5].indexOf(f) >= 0 ? 1 : 0,
       poseAwesome: [2, 6].indexOf(f) >= 0 ? 1 : 0,
       floorReadout: '0' + (f + 1) + ' · ' + this.labels[f],
-      showBubble: (!this.state.compact || this.state.forceBubble) && f !== 5 && f !== 6,
-      dockLeft: f === 1 || f === 3,
-      dockRight: !(f === 1 || f === 3),
+      showBubble: this.state.forceBubble || (!this.state.compact && !this.state.buddyBlocked),
+      dockLeft: f !== 6 && (f === 1 || f === 3),
+      dockRight: f !== 6 && !(f === 1 || f === 3),
       toggleBubble: () => this.setState((s) => ({ forceBubble: !s.forceBubble })),
       bubbleStyle: { maxWidth: 340, boxShadow: '0 24px 60px rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)' },
       statLeftStyle: { justifyItems: 'start' },
@@ -481,10 +879,13 @@ class Component extends DCLogic {
       selC: pick === 'HALO',
       picked: pick,
       audioLabel: this.state.audio ? 'ON' : 'OFF',
-      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : (this.state.sending ? 'SENDING…' : (this.state.sendError ? 'FAILED — EMAIL CEYRE@NORTHBOUND-DEV.COM' : 'SEND IT')),
+      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : (this.state.sending ? 'SENDING…' : (this.state.sendError ? 'FAILED — EMAIL CEYRE@NORTHBOUND-DEV.COM' : 'Send project details')),
       toggleAudio: () => this.setState((s) => ({ audio: !s.audio })),
       prevFloor: () => this.goTo(this.state.floor - 1),
       nextFloor: () => this.goTo(this.state.floor + 1),
+      seeAtlas: (e) => this.seeCase(e, 'atlas'),
+      seeVector: (e) => this.seeCase(e, 'vector'),
+      seeHalo: (e) => this.seeCase(e, 'halo'),
       pickA: () => this.setState({ picked: 'ATLAS' }),
       pickB: () => this.setState({ picked: 'VECTOR' }),
       pickC: () => this.setState({ picked: 'HALO' }),

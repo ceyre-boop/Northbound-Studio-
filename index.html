@@ -273,7 +273,7 @@ a:hover { color:#8CFBFF; }
     <div style="text-align:center; max-width:560px">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 07 · ASSEMBLY COMPLETE</x-import>
       <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(32px,4vw,56px); line-height:1.02; margin:12px 0 16px">Let's build yours.</h2>
-      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; margin:0; text-wrap:pretty">Taking 2–3 projects a month. Tell us what you sell and we'll get back to you within the day.</p>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; margin:0; text-wrap:pretty">{{ spotsLine }} Tell us what you sell and we'll get back to you within the day.</p>
     </div>
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="min(520px,90vw),420px">
       <div style="display:grid; gap:14px; width:min(520px,90vw); box-sizing:border-box; padding:30px; margin:6px; border:1px solid rgba(255,255,255,0.06); border-radius:18px; background:rgba(12,12,16,0.85); backdrop-filter:blur(20px)">
@@ -308,7 +308,7 @@ class Component extends DCLogic {
     "Fifteen hundred dollars. My friends at the big agencies charge five thousand. I have no overhead — I live inside the cable.",
     "If something breaks, you text me. I fix it. That is the whole support policy and I am very proud of it.",
     "Pick a starting point! There is no wrong answer. Statistically there is a slightly wrong answer, but I will fix it either way.",
-    "You made it to the bottom. Watch this — I am assembling the mark now. Tell me what you sell and I will start tonight."
+    "BUDDY, our intake assistant, replies within the hour. A human follows up the same day."
   ];
 
   labels = ['ARRIVAL', 'THE WORK', 'SPEED', 'PRICE', 'SUPPORT', 'DIRECTIONS', 'ASSEMBLY'];
@@ -673,6 +673,17 @@ class Component extends DCLogic {
     });
   }
 
+  // Scarcity line, driven by NB_CONFIG.SPOTS_LEFT so it is a one-line edit.
+  // null (or anything out of range) falls back to the evergreen sentence.
+  spotsLine() {
+    const n = (window.NB_CONFIG || {}).SPOTS_LEFT;
+    const words = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    if (typeof n !== 'number' || !isFinite(n) || n < 0 || n > 9 || n !== Math.floor(n)) {
+      return 'Taking 2–3 projects a month.';
+    }
+    return words[n] + (n === 1 ? ' spot' : ' spots') + ' left this month.';
+  }
+
   loadSeconds() {
     if (!window.performance || !performance.getEntriesByType) return null;
     const nav = performance.getEntriesByType('navigation')[0];
@@ -799,6 +810,7 @@ class Component extends DCLogic {
       progressRef: (el) => { this.progress = el; },
       dockRef: (el) => { this.dock = el; },
       hasPerf: this.loadSeconds() != null,
+      spotsLine: this.spotsLine(),
       selfNumRef: (el) => { this.self1 = el; },
       selfBarRef: (el) => { this.self2 = el; },
       agencyNumRef: (el) => { this.ag1 = el; },
@@ -824,7 +836,7 @@ class Component extends DCLogic {
       selC: pick === 'HALO',
       picked: pick,
       audioLabel: this.state.audio ? 'ON' : 'OFF',
-      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : (this.state.sending ? 'SENDING…' : (this.state.sendError ? 'FAILED — EMAIL CEYRE@NORTHBOUND-DEV.COM' : 'SEND IT')),
+      submitLabel: this.state.submitted ? 'SENT — BUDDY IS ON IT' : (this.state.sending ? 'SENDING…' : (this.state.sendError ? 'FAILED — EMAIL CEYRE@NORTHBOUND-DEV.COM' : 'Send project details')),
       toggleAudio: () => this.setState((s) => ({ audio: !s.audio })),
       prevFloor: () => this.goTo(this.state.floor - 1),
       nextFloor: () => this.goTo(this.state.floor + 1),

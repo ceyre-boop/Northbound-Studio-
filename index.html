@@ -189,7 +189,26 @@ a:hover { color:#8CFBFF; }
       <div style="margin:20px 0 0">
         <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,150px" value="48 HRS" label="FIRST LIVE BUILD · 2–3 PROJECTS PER MONTH" style="{{ statLeftStyle }}"></x-import>
       </div>
-      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:36ch; margin:24px 0 0; text-wrap:pretty">Most agencies quote six weeks. Your first live build is up within 48 hours of kickoff, and we only take 2–3 projects a month so yours never sits in a queue.</p>
+      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:36ch; margin:22px 0 0; text-wrap:pretty">Most agencies quote six weeks. Your first live build is up within 48 hours of kickoff, and we only take 2–3 projects a month so yours never sits in a queue.</p>
+      <sc-if value="{{ hasPerf }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:26px; display:grid; gap:14px; max-width:440px">
+          <div>
+            <div style="margin-bottom:7px; font-size:13.5px; color:#7A7A8E">This page loaded in <span ref="{{ selfNumRef }}" style="font-family:'JetBrains Mono',monospace; font-size:14px; letter-spacing:0.04em; color:#00F0FF">0.00s</span> on your connection</div>
+            <div style="height:6px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden">
+              <div ref="{{ selfBarRef }}" style="height:100%; width:0%; border-radius:999px; background:#00F0FF; box-shadow:0 0 18px rgba(0,240,255,0.5)"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:7px">
+              <span style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E">Typical agency site</span>
+              <span ref="{{ agencyNumRef }}" style="font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:0.06em; color:#7A7A8E">0.00s</span>
+            </div>
+            <div style="height:6px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden">
+              <div ref="{{ agencyBarRef }}" style="height:100%; width:0%; border-radius:999px; background:rgba(255,255,255,0.16)"></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
     </div>
   </section>
 
@@ -297,6 +316,9 @@ class Component extends DCLogic {
   // BUDDY's reserved bottom-corner zone: avatar (76) + gap (12) + bubble (340).
   // Floors reserve this much clear space via their own bottom padding.
   TILT = 6;
+
+  AGENCY_SECONDS = 3.8;
+  SPEED_SCALE = 4.2;
 
   BUDDY_W = 428;
   BUDDY_H = 104;
@@ -415,6 +437,7 @@ class Component extends DCLogic {
       this.drawSpine(t);
       this.drawLogo(t);
       this.drawWave(t);
+      this.drawSpeed();
       // Never let a measurement fault take the animation loop down with it.
       if (++this.frames % 8 === 0 && !this.measureOff) {
         try { this.measureBuddy(); } catch (e) { this.measureOff = true; console.error('measureBuddy', e); }
@@ -650,6 +673,38 @@ class Component extends DCLogic {
     });
   }
 
+  loadSeconds() {
+    if (!window.performance || !performance.getEntriesByType) return null;
+    const nav = performance.getEntriesByType('navigation')[0];
+    if (!nav) return null;
+    let ms = nav.loadEventEnd - nav.startTime;
+    if (!(ms > 0)) ms = nav.domContentLoadedEventEnd - nav.startTime;
+    if (!(ms > 0)) ms = performance.now();
+    if (!(ms > 0)) return null;
+    return Math.min(ms / 1000, this.SPEED_SCALE);
+  }
+
+  // Counts both bars up once Floor 03 has been reached. Written straight to the
+  // nodes off the existing rAF loop; reduced motion gets the final numbers flat.
+  drawSpeed() {
+    if (this.self1 == null) return;
+    const secs = this.loadSeconds();
+    if (secs == null) return;
+    if (this.speedP == null) this.speedP = 0;
+    const armed = this.state.floor >= 2;
+    if (armed) {
+      const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.speedP = still ? 1 : Math.min(1, this.speedP + 0.016);
+    }
+    const e = 1 - Math.pow(1 - this.speedP, 3);
+    const a = secs * e;
+    const b = this.AGENCY_SECONDS * e;
+    if (this.self1) this.self1.textContent = a.toFixed(2) + 's';
+    if (this.self2) this.self2.style.width = (a / this.SPEED_SCALE * 100).toFixed(2) + '%';
+    if (this.ag1) this.ag1.textContent = b.toFixed(2) + 's';
+    if (this.ag2) this.ag2.style.width = (b / this.SPEED_SCALE * 100).toFixed(2) + '%';
+  }
+
   scrollMode() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   }
@@ -743,6 +798,11 @@ class Component extends DCLogic {
       waveRef: (el) => { this.wave = el; },
       progressRef: (el) => { this.progress = el; },
       dockRef: (el) => { this.dock = el; },
+      hasPerf: this.loadSeconds() != null,
+      selfNumRef: (el) => { this.self1 = el; },
+      selfBarRef: (el) => { this.self2 = el; },
+      agencyNumRef: (el) => { this.ag1 = el; },
+      agencyBarRef: (el) => { this.ag2 = el; },
       buddyLine: this.lines[f],
       buddyClose: this.lines[this.lines.length - 1],
       poseSalute: [0, 4].indexOf(f) >= 0 ? 1 : 0,

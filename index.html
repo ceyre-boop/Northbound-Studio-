@@ -35,6 +35,14 @@ a:hover { color:#8CFBFF; }
 @keyframes nbFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-14px); } }
 @keyframes nbCue { 0% { transform:rotate(45deg) translate(0,0); opacity:.2; } 50% { opacity:.9; } 100% { transform:rotate(45deg) translate(6px,6px); opacity:.2; } }
 
+/* On a phone the header row overflowed and pushed the floor arrows off-screen
+   entirely, so the descent could not be navigated by hand at all. */
+@media (max-width:640px) {
+  .nb-head-sub { display:none; }
+  .nb-readout { min-width:88px !important; }
+  .nb-progress { width:96px !important; }
+}
+
 /* Floor 02 case rail */
 .nb-case { transition:transform .35s cubic-bezier(0.16,1,0.3,1), border-color .25s ease, box-shadow .25s ease; transform-style:preserve-3d; }
 .nb-case:hover { border-color:rgba(0,240,255,0.55); box-shadow:0 12px 40px -8px rgba(0,240,255,0.15), 0 0 26px rgba(0,240,255,0.15); }
@@ -55,7 +63,7 @@ a:hover { color:#8CFBFF; }
 <div style="position:fixed; top:24px; left:0; right:0; z-index:60; display:flex; align-items:flex-start; justify-content:space-between; padding:0 clamp(1.25rem,4vw,3rem); pointer-events:none">
   <div style="display:flex; align-items:center; gap:12px; pointer-events:auto">
     <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; text-shadow:0 0 18px rgba(0,240,255,0.6)">N</div>
-    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI → WORLDWIDE</div>
+    <div class="nb-head-sub" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI → WORLDWIDE</div>
   </div>
 
   <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; pointer-events:auto">
@@ -68,12 +76,12 @@ a:hover { color:#8CFBFF; }
 
     <div style="display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(12,12,16,0.72); backdrop-filter:blur(20px); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E">
       <span onClick="{{ prevFloor }}" role="button" aria-label="Previous floor" aria-disabled="{{ atTop }}" data-nav="prev" style="{{ prevArrowStyle }}">&laquo;</span>
-      <span style="color:#E8E8ED; min-width:150px; text-align:center">{{ floorReadout }}</span>
+      <span class="nb-readout" style="color:#E8E8ED; min-width:150px; text-align:center">{{ floorReadout }}</span>
       <span onClick="{{ nextFloor }}" role="button" aria-label="Next floor" aria-disabled="{{ atEnd }}" data-nav="next" style="{{ nextArrowStyle }}">&raquo;</span>
     </div>
     <div style="display:flex; gap:5px">
       <div style="width:22px; height:2px; background:rgba(0,240,255,0.9); box-shadow:0 0 10px rgba(0,240,255,0.7)"></div>
-      <div style="width:154px; height:2px; background:rgba(255,255,255,0.08); position:relative"><div ref="{{ progressRef }}" style="position:absolute; inset:0; transform-origin:left; background:rgba(0,240,255,0.55)"></div></div>
+      <div class="nb-progress" style="width:154px; height:2px; background:rgba(255,255,255,0.08); position:relative"><div ref="{{ progressRef }}" style="position:absolute; inset:0; transform-origin:left; background:rgba(0,240,255,0.55)"></div></div>
     </div>
   </div>
 </div>
@@ -765,7 +773,7 @@ class Component extends DCLogic {
         const r = el.getBoundingClientRect();
         const px = (e.clientX - r.left) / r.width - 0.5;
         const py = (e.clientY - r.top) / r.height - 0.5;
-        el.style.transform = 'perspective(900px) rotateY(' + (px * this.TILT).toFixed(2) + 'deg) rotateX(' + (-py * this.TILT).toFixed(2) + 'deg)';
+        el.style.transform = 'perspective(900px) rotateY(' + (px * 2 * this.TILT).toFixed(2) + 'deg) rotateX(' + (-py * 2 * this.TILT).toFixed(2) + 'deg)';
       },
       onLeave: (e) => { e.currentTarget.style.transform = ''; }
     }));

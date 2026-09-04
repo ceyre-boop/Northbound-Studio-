@@ -34,6 +34,15 @@ a { color:#00F0FF; text-decoration:none; }
 a:hover { color:#8CFBFF; }
 @keyframes nbFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-14px); } }
 @keyframes nbCue { 0% { transform:rotate(45deg) translate(0,0); opacity:.2; } 50% { opacity:.9; } 100% { transform:rotate(45deg) translate(6px,6px); opacity:.2; } }
+
+/* Floor 02 case rail */
+.nb-case { transition:transform .35s cubic-bezier(0.16,1,0.3,1), border-color .25s ease, box-shadow .25s ease; transform-style:preserve-3d; }
+.nb-case:hover { border-color:rgba(0,240,255,0.55); box-shadow:0 12px 40px -8px rgba(0,240,255,0.15), 0 0 26px rgba(0,240,255,0.15); }
+.nb-case:hover .nb-open { color:#8CFBFF; }
+.nb-case:hover .nb-poster-hint { opacity:1; }
+.nb-rail { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+@media (max-width:900px) { .nb-rail { grid-template-columns:minmax(0,1fr); gap:14px; } }
+@media (prefers-reduced-motion: reduce) { .nb-case { transition:border-color .25s ease, box-shadow .25s ease; } }
 </style>
 </helmet>
 
@@ -121,25 +130,56 @@ a:hover { color:#8CFBFF; }
     </x-import>
   </section>
 
-  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 150px">
-    <div style="grid-column:2">
+  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:18px; padding:76px 0 150px">
+    <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 02 · THE WORK</x-import>
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 20px">What you actually need built.</h2>
-      <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:40ch; margin:0 0 30px; text-wrap:pretty">Marketing sites, landing pages, booking flows, storefronts. Built by hand, tuned for conversion, fast on every phone in the parking lot.</p>
-      <div style="display:grid; gap:12px">
-        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
-          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">01</span>
-          <span style="font-size:15px">Marketing sites that load in under a second</span></span>
-        </x-import>
-        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
-          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">02</span>
-          <span style="font-size:15px">Booking, payments and forms that actually work</span></span>
-        </x-import>
-        <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="100%,58px" interactive="{{ true }}">
-          <span style="display:flex; align-items:center; gap:14px"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#00F0FF">03</span>
-          <span style="font-size:15px">Motion and 3D when the story needs it</span></span>
-        </x-import>
-      </div>
+      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(28px,3.2vw,46px); line-height:1.02; margin:12px 0 12px">Three we built. Open any of them.</h2>
+      <p style="font-size:16px; line-height:1.6; color:#7A7A8E; max-width:56ch; margin:0; text-wrap:pretty">Real businesses, real numbers. Hover a card to wake the live site inside it, or open it full size.</p>
+    </div>
+
+    <div class="nb-rail">
+      <sc-for list="{{ cases }}" as="c" hint-placeholder-count="3">
+        <div id="{{ c.domId }}" class="nb-case" onMouseEnter="{{ c.onEnter }}" onMouseMove="{{ c.onMove }}" onMouseLeave="{{ c.onLeave }}" onClick="{{ c.onEnter }}" style="{{ cardStyle }}">
+          <div style="display:flex; align-items:center; gap:6px; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(6,6,8,0.6)">
+            <span style="width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,0.14)"></span>
+            <span style="width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,0.14)"></span>
+            <span style="width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,0.14)"></span>
+            <span style="flex:1; margin-left:6px; padding:3px 9px; border-radius:999px; background:rgba(255,255,255,0.04); font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.1em; color:#4A4A5E; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ c.host }}</span>
+          </div>
+          <div style="{{ frameStyle }}">
+            <sc-if value="{{ c.live }}" hint-placeholder-val="{{ false }}">
+              <iframe src="{{ c.url }}" loading="lazy" tabindex="-1" scrolling="no" title="{{ c.business }} — live preview" style="{{ frameIframeStyle }}"></iframe>
+            </sc-if>
+            <sc-if value="{{ c.idle }}" hint-placeholder-val="{{ true }}">
+              <div style="{{ posterStyle }}">
+                <div style="height:9px; width:62%; border-radius:999px; background:rgba(0,240,255,0.55)"></div>
+                <div style="height:26px; width:40%; border-radius:6px; background:rgba(0,240,255,0.16); margin-top:12px"></div>
+                <div style="display:flex; gap:8px; margin-top:16px">
+                  <div style="height:44px; flex:1; border-radius:8px; background:rgba(255,255,255,0.05)"></div>
+                  <div style="height:44px; flex:1; border-radius:8px; background:rgba(255,255,255,0.05)"></div>
+                  <div style="height:44px; flex:1; border-radius:8px; background:rgba(255,255,255,0.05)"></div>
+                </div>
+                <div class="nb-poster-hint" style="margin-top:auto; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E; opacity:0.7; transition:opacity .25s ease">Hover to load preview</div>
+              </div>
+            </sc-if>
+          </div>
+          <div style="padding:14px 16px 16px">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
+              <span style="font-family:'Syne',sans-serif; font-weight:800; font-size:17px; letter-spacing:-0.02em">{{ c.business }}</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E">{{ c.direction }}</span>
+            </div>
+            <p style="font-size:13.5px; line-height:1.5; color:#7A7A8E; margin:7px 0 10px; text-wrap:pretty">{{ c.result }}</p>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF; opacity:0.75">{{ c.tech }}</div>
+            <a class="nb-open" href="{{ c.url }}" target="_blank" rel="noopener" style="display:inline-block; margin-top:11px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF">Open site ↗</a>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px">
+      <span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#7A7A8E"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#00F0FF">01</span>Marketing sites that load in under a second</span>
+      <span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#7A7A8E"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#00F0FF">02</span>Booking, payments and forms that actually work</span>
+      <span style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#7A7A8E"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#00F0FF">03</span>Motion and 3D when the story needs it</span>
     </div>
   </section>
 
@@ -231,7 +271,7 @@ a:hover { color:#8CFBFF; }
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  state = { floor: 0, picked: 'ATLAS', audio: false, submitted: false, compact: false, forceBubble: false, buddyBlocked: false };
+  state = { floor: 0, picked: 'ATLAS', audio: false, submitted: false, compact: false, forceBubble: false, buddyBlocked: false, live: {} };
 
   lines = [
     "Hello friend! I am BUDDY, unit 04, and I will be building your website today. Ride the cable down — I will explain everything on the way.",
@@ -247,6 +287,8 @@ class Component extends DCLogic {
 
   // BUDDY's reserved bottom-corner zone: avatar (76) + gap (12) + bubble (340).
   // Floors reserve this much clear space via their own bottom padding.
+  TILT = 6;
+
   BUDDY_W = 428;
   BUDDY_H = 104;
 
@@ -603,12 +645,74 @@ class Component extends DCLogic {
       : { cursor: 'pointer', color: '#00F0FF', padding: '0 2px' };
   }
 
+  // Floor 02 rail. Previews stay as a poster until the visitor asks for one:
+  // three iframes in the initial DOM would cost more than the floor is worth.
+  caseVals() {
+    const cfg = window.NB_CONFIG || {};
+    const demos = cfg.DEMOS || {};
+    const live = this.state.live || {};
+    const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return (cfg.CASES || []).map((c) => ({
+      direction: c.direction,
+      business: c.business,
+      result: c.result,
+      tech: c.tech,
+      domId: 'case-' + c.demo,
+      host: c.demo + '.northbound-dev.com',
+      url: demos[c.demo] || '#',
+      live: !!live[c.demo],
+      idle: !live[c.demo],
+      onEnter: () => {
+        if (this.state.live && this.state.live[c.demo]) return;
+        this.setState((st) => {
+          const next = {};
+          for (const k in (st.live || {})) next[k] = st.live[k];
+          next[c.demo] = true;
+          return { live: next };
+        });
+      },
+      // Written straight to the node: a setState per mousemove would re-render
+      // the whole descent 60 times a second.
+      onMove: still ? null : (e) => {
+        const el = e.currentTarget;
+        const r = el.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        el.style.transform = 'perspective(900px) rotateY(' + (px * this.TILT).toFixed(2) + 'deg) rotateX(' + (-py * this.TILT).toFixed(2) + 'deg)';
+      },
+      onLeave: (e) => { e.currentTarget.style.transform = ''; }
+    }));
+  }
+
   renderVals() {
     const f = this.state.floor;
     const pick = this.state.picked;
     const atTop = f === 0;
     const atEnd = f === this.labels.length - 1;
     return {
+      cases: this.caseVals(),
+      cardStyle: {
+        display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden',
+        border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18,
+        background: 'rgba(12,12,16,0.72)', backdropFilter: 'blur(20px)',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.6)', cursor: 'pointer'
+      },
+      frameStyle: {
+        position: 'relative', overflow: 'hidden', aspectRatio: '16 / 9',
+        borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0A0A0E'
+      },
+      // The demo is rendered at desktop width and scaled down, so the card shows
+      // the real layout rather than the demo's phone breakpoint.
+      frameIframeStyle: {
+        position: 'absolute', top: 0, left: 0, width: 1280, height: 800,
+        border: 0, transformOrigin: 'top left', transform: 'scale(0.32)',
+        pointerEvents: 'none'
+      },
+      posterStyle: {
+        position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+        padding: '16px 16px 12px', boxSizing: 'border-box',
+        background: 'linear-gradient(160deg, rgba(0,240,255,0.05), rgba(6,6,8,0) 60%)'
+      },
       atTop: atTop,
       atEnd: atEnd,
       prevArrowStyle: this.arrowStyle(atTop),

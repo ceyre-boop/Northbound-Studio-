@@ -1,0 +1,8 @@
+node_modules/
+test-results/
+playwright-report/
+playwright/
+tests/
+playwright.config.ts
+Plans/
+.github/

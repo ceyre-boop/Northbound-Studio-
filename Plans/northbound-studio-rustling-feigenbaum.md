@@ -1,199 +1,235 @@
-# Pass 1 — Bugs + a real Work floor
+# Pass 2 — the three concept builds
 
 ## Context
 
-`northbound-dev.com` is a 7-floor "descent": one static `index.html` whose whole app is an
-inline `class Component extends DCLogic` (the `support.js` runtime), rendering against the
-`_ds_bundle.js` design system. Floors are plain `<section min-height:100vh>` elements in
-normal document flow; floor state is derived in `onScroll` from which section top has crossed
-45vh.
+Pass 1 gave Floor 02 a portfolio rail with live previews, but the three things it
+previews are holding pages. Until they are real, Floor 02 is a frame around
+nothing and the whole site's central claim — "here is what we build" — is
+unevidenced. Pass 2 builds the three demos the rail points at.
 
-The site converts badly for two reasons this pass fixes. **It has no portfolio** — Floor 02
-("The Work") is three lines of copy and no evidence, so a visitor is asked to trust a $1,500
-quote having seen nothing built. And **the descent doesn't behave like a descent** — the
-metaphor promises floors, but the wheel free-scrolls through ~700px of empty space between
-them, so the one interaction that sells the concept is missing.
+They are the portfolio, so the bar is not "a demo": each must be a site a real
+owner of that trade would pay $1,500–$2,500 for, and the difference from a
+template has to land on a stranger's phone in five seconds.
 
-### What is already live (verified against https://northbound-dev.com/, matches `main` @ `18a28d0`)
+### The constraint that reshapes everything
 
-Commits `cd3284f` and `18a28d0` already shipped part of the brief. **Do not redo these:**
+The site is a single static GitHub Pages repo with **no build step** — the
+workflow uploads the repo as-is. The brief needs three things Pages cannot do:
 
-- **D copy** — "…up within 48 hours of kickoff, and we only take 2–3 projects a month…" (`index.html:151`)
-- **E copy** — "From $1,500. Fixed price, quoted before we start…" (`index.html:167`)
-- **C option labels** — "An online store" / "Something with motion or 3D" (`index.html:215,217`)
-- **C heading** — "Pick a starting point. We build from here, not a template." (`index.html:190`)
-- **A4** — nav `Work` and hero `See the work` both already `href="#floor-2"` (`index.html:53,107`)
+- **Vector's Stripe Checkout session and webhook endpoint** need a server.
+- **`/demos/atlas/studio` behind basic auth** needs request-time middleware.
+- **Keeping the `/demos/*` paths** needs a proxy in front; Pages can only
+  redirect, which would change the URL in the address bar.
 
-### What I reproduced in the live browser
+**Decision: move northbound-dev.com to Vercel.** Vercel CLI is already
+authenticated (`ceyre-boop`, team `taboost`). Four projects — the descent plus
+one per demo — with rewrites on the main project so `/demos/*` proxies to the
+framework project behind it. The paths in the brief survive exactly, and each
+demo gets the runtime its stack actually needs.
 
-- **A2 is real.** There is no wheel/touch/key handler anywhere — only `window.addEventListener('scroll')`.
-  Five wheel ticks moved the page 700px and left the readout on `01 · ARRIVAL`.
-- **A3 is half real.** `goTo()` already clamps (`Math.max(0, Math.min(len-1, i))`); clicking `«` at
-  `scrollY 0` does nothing and does **not** wrap — I could not reproduce a wrap, and there is no
-  wrap path in the code. What *is* missing is the affordance: both arrows render identical cyan at
-  both ends, so a dead click reads as a bug. Deliverable = the disabled state, not a clamp.
-- **A1 is "fixed" by deletion.** `showBubble` is `… && f !== 5 && f !== 6` (`index.html:469`) — the
-  bubble is *hidden entirely* on Floors 06 and 07. Nothing collides because BUDDY is gone from the
-  two floors that close the sale. Restore it and clamp it, per the brief.
+**The domain does not change.** `northbound-dev.com` stays the address, keeps its
+HTTPS, and stays yours at Squarespace — Vercel serves custom domains, so the only
+thing that moves is which records the domain points at. Nothing about the URL a
+visitor types is different, and the cutover is staged so the site is never down:
+Pages keeps serving until the Vercel copy is verified on a `*.vercel.app` URL,
+and the old records go straight back if anything is wrong.
 
-### Decision taken
-
-Demo sites ship as **in-repo paths now, subdomains in Pass 2**. GitHub Pages allows one custom
-domain per repo (`CNAME` = `northbound-dev.com`), so `atlas.`/`vector.`/`halo.` would need three
-more repos plus three Squarespace DNS records — out of scope for Pass 1. Cards point at
-`/demos/<name>/` through a single `DEMOS` map; Pass 2 flips the map's values to subdomain URLs
-and nothing else changes.
+Today: apex `northbound-dev.com` → `185.199.108-111.153` (Pages),
+`www` → `ceyre-boop.github.io`, nameservers at Squarespace.
 
 ---
 
-## Constraints
+## Architecture
 
-- **`js/*.js` and `css/style.css` are dead code** — `index.html` loads only `support.js` and the
-  `_ds` bundle. Do not edit or resurrect them.
-- **Design tokens only.** Colors come from `_ds/.../tokens/colors.css` — `--accent #00f0ff`,
-  `--accent-glow`, `--border`, `--bg-card`, `--radius-lg`, `--ease-expo`. Invent no new colors.
-- **DC template facts** (from `support.js`): `sc-if`/`sc-for` are the control-flow tags; `EVENT_MAP`
-  (`support.js:317`) supports `onMouseEnter`/`onMouseLeave`/`onKeyDown` etc., not just `onClick`;
-  `style="{{ obj }}"` binds a JS object (already used by `bubbleStyle`); raw HTML tags including
-  `<iframe>` pass straight through.
-- **No new runtime deps.** Playwright only, dev-only, installed with **bun** (`bun add -d`), never npm.
-- `node_modules/` must never reach Pages — add `.gitignore`. The workflow (`path: '.'`) is safe as-is
-  because CI runs no install step.
-- **This machine has macOS Reduce Motion ON** — `prefers-reduced-motion: reduce` matches locally, so
-  the reduced-motion branch is what you'll see by default. Test the motion branch by emulating
-  `reducedMotion: 'no-preference'` in Playwright, not by eyeballing locally.
+| Vercel project | Serves | Stack | Output |
+|---|---|---|---|
+| `nb-descent` | `/` — the existing descent, unchanged | static, no build | repo root |
+| `nb-atlas` | `/demos/atlas/*` | Astro + Sanity | static + 2 server routes |
+| `nb-vector` | `/demos/vector/*` | Astro + Stripe | hybrid (SSR endpoints) |
+| `nb-halo` | `/demos/halo/*` | Next.js + R3F | static + form route |
 
----
+`vercel.json` on `nb-descent` rewrites `/demos/<name>/:p*` to the matching
+project. Each demo sets its framework's base path (`base: '/demos/atlas'` in
+Astro, `basePath: '/demos/halo'` in Next) so its own links and assets resolve
+identically whether reached directly or through the proxy.
 
-## Work — one commit per section, branch `pass1-work-floor`
-
-### 0. Scaffold
-
-New `js/site-config.js`, loaded from `<head>` before the DC script, exposing `window.NB_CONFIG`:
-
-```js
-window.NB_CONFIG = {
-  SPOTS_LEFT: 2,                    // null → "Taking 2–3 projects a month."
-  DEMOS: { atlas: '/demos/atlas/', vector: '/demos/vector/', halo: '/demos/halo/' },
-  CASES: [ /* name, business, result, tech, demo key */ ],
-};
-```
-
-This is the one file F's "one-line update" and B's demo URLs both live in.
-
-### 1. A1 — BUDDY bubble clamp
-
-`index.html`, the two dock blocks (`:71-94`) and `renderVals` (`:456`).
-
-- Delete the `f !== 5 && f !== 6` hide from `showBubble`; BUDDY returns to all seven floors.
-- Add a measured clamp: on floor change and on resize, take the active section's lowest content
-  bound (`getBoundingClientRect().bottom` of its last element child) and set
-  `bubbleStyle.marginBottom` so the bubble sits above it, floored at the existing 20px.
-- Reserve the zone so the clamp has room: add bottom padding to Floors 06 and 07 sized to the
-  bubble box (~360×132 desktop).
-- Fallback, not the primary path: if after clamping the bubble would still overlap, drop to
-  avatar-only (today's behavior). Below 640px the bubble is avatar-only regardless.
-
-### 2. A2 — wheel / touch / keyboard floor advance
-
-New methods on `Component`, wired in `componentDidMount` and torn down in `componentWillUnmount`
-(which already removes its three listeners — match that discipline).
-
-- `this.navLock` timestamp; **700ms debounce**; every path routes through the existing `goTo()`.
-- `wheel` — `{ passive: false }`, `preventDefault()`, threshold ~`|deltaY| > 12` to ignore trackpad
-  micro-jitter. Bail out if `e.target.closest('input, select, textarea')`.
-- `touchstart`/`touchend` — vertical swipe over ~50px.
-- `keydown` — `ArrowUp`/`ArrowDown`/`PageUp`/`PageDown`/`Space` (`Shift+Space` = up); ignore when the
-  target is a form field so Floor 07's form still types normally.
-- **Reduced motion**: `goTo()` picks `behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
-  ? 'auto' : 'smooth'` — instant jump, no ride.
-
-### 3. A3 — arrow disabled states
-
-`renderVals` gains `atTop: f === 0` / `atEnd: f === this.labels.length - 1`. The `«`/`»` spans
-(`:60,62`) bind `style="{{ prevArrowStyle }}"` / `{{ nextArrowStyle }}` — dimmed to
-`var(--text-dim)` with `cursor:default; pointer-events:none` at the ends. Add `role="button"` and
-`aria-disabled`. The clamp in `goTo()` already exists and stays.
-
-### 4. A5 — deep links
-
-`#floor-1 … #floor-7` ids already exist. Add: `history.replaceState` of the hash on every floor
-change (in `onScroll`, only when `floor` actually changes, so history isn't spammed); a
-`hashchange` listener calling `goTo`; and an on-mount read of `location.hash` to open directly on
-a floor.
-
-### 5. B — Floor 02 becomes the portfolio
-
-Rebuild `index.html:123-143`. Keep the existing eyebrow and `h2`; replace the body.
-
-- Three case cards in a horizontal rail (`grid-template-columns: repeat(3,1fr)` desktop, single
-  column under 900px), driven by `NB_CONFIG.CASES` via `sc-for`.
-- Each card: a device frame holding a **poster-first** preview — an inline SVG/CSS skeleton poster
-  (no binary assets, no new deps) swapped for `<iframe loading="lazy" src=DEMOS[key]>` on
-  `onMouseEnter` / first tap. The iframe is never in the initial DOM, which is what protects the
-  Lighthouse number.
-- Below the frame: business name, one-line result, mono tech line ("Astro · Stripe · 0.4s LCP"),
-  and "Open site ↗".
-- Hover: parallax tilt capped at **6°** (`onMouseMove` → `rotateX/rotateY`, reset on
-  `onMouseLeave`) plus a cyan edge glow from `--glow-accent`. **Skip the tilt entirely under
-  `prefers-reduced-motion`.**
-- The three existing feature bullets move **below** the rail at reduced size.
-- Placeholder demo pages at `demos/atlas/index.html`, `demos/vector/index.html`,
-  `demos/halo/index.html` — token-styled "Coming in Pass 2" holding pages, not blank files.
-- Comment in `site-config.js` recording the Pass 2 subdomain switch (three sibling repos with
-  `CNAME` files + three Squarespace CNAME records).
-
-### 6. C — Floor 06 reframe
-
-- `labels[5]` `'TEMPLATES'` → `'DIRECTIONS'` (`:242`), `data-screen-label="06 Directions"` (`:187`),
-  eyebrow `FLOOR 06 · CHOOSE YOUR STYLE` → `FLOOR 06 · DIRECTIONS` (`:189`).
-- Each of Atlas/Vector/Halo gains a "See it built ↗" link to the matching Floor 02 case
-  (`#floor-2` + a card id such as `#case-atlas`). Names and the heading are already correct.
-
-### 7. D — Floor 03 live speed proof
-
-`index.html:145-153`. Keep the `48 HRS` `Stat`; replace the supporting line.
-
-- Read `performance.getEntriesByType('navigation')[0]`, take `loadEventEnd - startTime`, and
-  count up to "This page loaded in 0.41s on your connection" (2 decimals) via the existing
-  `requestAnimationFrame` tick loop rather than a new timer.
-- Second bar labeled "Typical agency site" crawling to 3.8s, same token palette.
-- **Fallback:** entry missing, zero, or `prefers-reduced-motion` → render the final numbers with
-  no animation; API entirely absent → the current static copy, unchanged.
-
-### 8. F — Floor 07
-
-- Subhead reads from `NB_CONFIG.SPOTS_LEFT`: an integer renders "Two spots left this month."
-  (number word-mapped), `null` renders "Taking 2–3 projects a month."
-- `lines[6]` → "BUDDY, our intake assistant, replies within the hour. A human follows up the same day."
-- `submitLabel` idle state `'SEND IT'` → **"Send project details"** (`:484`); sending/sent/error
-  states keep their current wording.
-
-### 9. Tests + QA
-
-- `bun add -d @playwright/test`; `.gitignore` for `node_modules/`, `test-results/`,
-  `playwright-report/`.
-- `tests/descent.spec.ts` at **1280×800 and 390×844**:
-  - floors 1→7 by wheel, by keyboard, and by nav `»`; readout and hash correct at each stop
-  - `«` at Floor 01 and `»` at Floor 07 change nothing and are `aria-disabled`
-  - **bounding-box assertion**: the bubble rect intersects no text node rect on any floor
-  - reduced-motion project (`reducedMotion: 'reduce'`) asserts instant jumps and no tilt
-- `bunx lighthouse` (ephemeral, not a repo dep) mobile run — **perf ≥ 90**. If lazy+poster doesn't
-  hold it, the iframe becomes click-to-load rather than hover-to-load; report the real number
-  either way.
-- Screenshots of all 7 floors at both sizes → `qa/pass1/` (committed as evidence; note that Pages
-  serves the whole repo, so they will be publicly reachable), plus a written list of anything off.
+Demo sources live in this repo under `demos/<name>/` (replacing today's holding
+pages), each its own workspace with its own `package.json`. The committed
+static holding pages are deleted once the real build is deployed.
 
 ---
 
-## Out of scope
+## Stage 0 — Vercel migration (before any demo work)
 
-R3F / cable / BUDDY 3D rewrite (Pass 3). No dependency beyond Playwright. No DNS changes.
+1. `.vercelignore` for `node_modules/`, `tests/`, `Plans/`, `playwright.config.ts`.
+   `vendor/` must ship — the descent loads React from it.
+2. Create `nb-descent`, deploy the repo root as a static project, and verify the
+   descent on its `*.vercel.app` URL: snap navigation in headed Chrome,
+   Lighthouse mobile still 93, `vendor/` React resolving.
+3. Only once that passes, repoint DNS at Squarespace — apex A → Vercel,
+   `www` CNAME → `cname.vercel-dns.com` — using the **`configure-site` skill**,
+   which already knows that panel. The live site stays on Pages until this step,
+   so there is no window where northbound-dev.com is down.
+4. After the cutover verifies, disable `.github/workflows/deploy-pages.yml` so
+   two pipelines are not fighting over one domain.
+
+**Rollback:** restore the four A records and the `www` CNAME; Pages is still
+serving from `main` untouched.
+
+---
+
+## Rules applied to all three demos
+
+Shared, and enforced by the Playwright suite rather than by memory:
+
+- **The fiction bar.** A persistent top bar on every demo page:
+  `CONCEPT BUILD BY NORTHBOUND STUDIO · <BUSINESS> IS A FICTIONAL BUSINESS ·
+  [Build yours →]` linking to `/#floor-7`. The only Northbound branding on the
+  page, and the only place that uses `_ds` tokens — each demo otherwise gets its
+  own palette and type so the three read as three studios' work.
+- **No fabricated credibility.** No reviews, testimonials, ratings, "as seen in",
+  client logos or results. Phones are `555`, address is
+  `123 Example St, Grand Ledge, MI`, email is `hello@northbound-dev.com`.
+  Same rule Pass 1 wrote into `js/site-config.js` — it now covers the demos too.
+- **Forms actually submit.** Each demo posts to its own server route, which
+  forwards to the existing Formspree endpoint (`xpwzgvkn`, already in
+  `index.html`) with a `demo` field so submissions are tagged. Server-side keeps
+  the endpoint out of the client. Real success state, no fake spinner.
+  *Note: Formspree's free tier caps monthly submissions — worth watching once
+  three demos share it.*
+- **`noindex`** on every demo page; `/demos` reachable, not ranked.
+- **Mobile first at 390×844**, desktop the enhancement.
+- **Accessibility floor:** keyboard-navigable, visible focus, `prefers-reduced-motion`
+  honoured, AA contrast, alt text on every image.
+- **Images** generated royalty-free, served AVIF/WebP with explicit dimensions
+  through Astro's/Next's image pipeline.
+- **Performance measured, then published.** Ship, run Lighthouse mobile ×3 on the
+  deployed URL, take the **median** LCP, and only then write it into the Floor 02
+  tech line. Never the other way round.
+
+---
+
+## Stage 1 — Atlas → Ridgeline Roofing (Astro + Sanity)
+
+Warm, high-contrast, photographic: charcoal + safety orange + off-white, heavy
+grotesk display, humanist body. Should feel like a company with trucks.
+
+**Pages:** Home · Services (replacement, repair, storm damage, gutters,
+inspections) · Service area · About · Book a call · Financing (explainer only,
+no figure that reads as an offer).
+
+**Home, in order:** full-bleed hero ("Roof problems don't wait. Neither do we.")
+with *Book a free inspection* and a tap-to-call `555` button, over a
+fiction-safe trust strip · dismissible storm banner shown only on `?storm=1`,
+so the client can see a seasonal switch · 5-card services grid · "Inspect →
+Quote on the spot → Fixed price, no surprises" · static SVG county map, no live
+embed · booking form · footer with hours and `LIC# 0000000`.
+
+**Booking form:** name, phone, address, issue chips (Leak / Storm / Replacement /
+Not sure), preferred time (Morning / Afternoon / ASAP). Three fields above the
+fold at 390px. Success state: *"Got it. We'll text you within the hour to confirm."*
+
+**The thing that sells it:** the sticky mobile bottom bar — Call and Book —
+appearing once the hero scrolls out.
+
+**Sanity:** schemas for services, service-area towns, hours, the storm banner and
+the trust strip. Studio at `/demos/atlas/studio`, gated by Astro middleware doing
+HTTP Basic auth against a Vercel env var. **The build never depends on a live CMS
+call** — it fetches at build time and falls back to a committed `content.json`,
+which is also what makes Atlas shippable before Sanity credentials exist.
+
+**Verify:** booking form submits on iOS Safari; tap-to-call opens the dialer;
+Lighthouse mobile perf **≥ 95**; LCP < 1.0s; CLS < 0.05; no third-party scripts.
+
+---
+
+## Stage 2 — Vector → Marrow Coffee (Astro + Stripe)
+
+**Blocked until Stripe test keys exist** (`sk_test_…` / `pk_test_…` in Vercel env).
+Everything else can be built against them.
+
+Editorial and quiet: bone, espresso, one muted sage accent; serif display,
+generous whitespace, product shots on plain backgrounds. Like a printed menu.
+
+**Pages:** Home · Shop · Product · Cart (right-hand drawer, not a page) ·
+Stripe hosted Checkout · Order confirmed · Visit · Our roasting.
+
+**Commerce:** 6 products (beans $16–22, a mug, a gift card) with 12oz/2lb and
+whole-bean/ground variants. Cart is a nanostore persisted to `localStorage`.
+Checkout hands off to **Stripe Checkout in test mode**; the drawer carries the
+honesty label that doubles as an invitation — *"Demo store — use card
+4242 4242 4242 4242."* Pickup vs shipping toggle changes the Stripe shipping
+options. The confirmation page reads the session, shows the summary and says
+*"This was a demo — nothing was charged."* A logged webhook endpoint proves
+there is a backend rather than a form-to-email. Footer: *"Built with: Astro,
+Stripe. That's it."*
+
+**Verify:** a full test-mode purchase on mobile; refresh mid-cart and the cart
+survives; Lighthouse mobile perf **≥ 90** with Stripe loaded.
+
+---
+
+## Stage 3 — Halo → Lumen Interiors (Next.js + R3F)
+
+Near-black, warm white type, one gold hairline. Light display serif, wide
+tracking. Everything earns its motion; nothing bounces.
+
+**Pages:** Home (one long scroll) · Projects · Project detail ×3 · Studio · Enquire.
+
+**Home scroll:** R3F room whose materials swap oak → walnut → stone on scroll,
+camera drifting on pointer, over *"Rooms that photograph like they feel."* ·
+three scroll-pinned project reveals with caption drawers · a horizontal strip of
+8 PBR material spheres that tilt on hover/tap · a three-step process with a
+hairline that draws in · the enquiry form (name, email, project-type chips,
+budget bands topped with "Not sure yet", message).
+
+**Constraints that are the actual work:** `prefers-reduced-motion` renders one
+static frame and turns pinned sections into ordinary ones. Mobile caps at 30fps
+with lower geometry and no post-processing. **No WebGL → poster image; the page
+must never be blank.** The R3F bundle loads below the fold and the hero LCP is a
+poster, never the canvas.
+
+**Verify:** 60fps desktop, no jank on an iPhone 12-class device, zero animation
+on the reduced-motion path, Lighthouse mobile perf **≥ 80** — and that number
+gets published as measured, since it is the trade Halo buyers accept.
+
+---
+
+## Wire-back (after each demo ships, not held for the last)
+
+- Floor 02 card: eyebrow `CONCEPT BUILD`, one line of *what it does*, the
+  **measured** median LCP, `Open site ↗`. Copy lives in `js/site-config.js`.
+- Floor 06 "See it built ↗" already cross-links; point it at the real demo.
+- Floor 07: choosing a direction pre-fills *"I'm interested in something like
+  [Atlas]"* — extends the existing `picked` state in `index.html`.
+- `/demos` added to the sitemap, `noindex` on the demos themselves.
+
+---
 
 ## Verification
 
-`git checkout pass1-work-floor && bunx playwright test` — green at both viewports, both motion
-settings. Then `bunx lighthouse http://localhost:8000 --preset=desktop --form-factor=mobile` for
-the perf number, and a Chrome pass over the deployed branch confirming the wheel descends one
-floor per gesture, the arrows dim at both ends, the URL hash tracks the floor, and BUDDY's bubble
-clears every headline on Floors 06 and 07. Report the actual command output, not "looks done".
+Per demo, before its PR merges: `bunx playwright test` green (the existing
+40-test suite plus a new `tests/demos.spec.ts` asserting each demo's primary
+form submits, the fiction bar is present and links to `/#floor-7`, and every
+demo page carries `noindex`); Lighthouse mobile ×3 on the **deployed** URL with
+the median recorded in the PR; a headed-Chrome pass on a real device viewport.
+
+The Pass 1 snap suite must stay green in headed Chrome throughout — the descent
+is now served by Vercel rather than Pages, and `tests/snap.spec.ts` is what
+proves the move did not break it.
+
+---
+
+## What I need from you, and when
+
+1. **Nothing to start.** Stage 0 and all of Atlas can be built and shipped
+   against the committed content fallback.
+2. **Before Sanity goes live on Atlas:** a Sanity project (I can create it via
+   CLI under your login) plus a read token, and a password for the Studio route.
+3. **Before Vector:** Stripe **test-mode** keys. Test mode only — no live key
+   should ever reach this repo.
+
+## Out of scope
+
+The R3F/cable/BUDDY rewrite on the main site is still Pass 3. No changes to the
+descent beyond the Floor 02/06/07 wire-back above.

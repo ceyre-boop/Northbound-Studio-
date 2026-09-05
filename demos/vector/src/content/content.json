@@ -1,0 +1,111 @@
+{
+  "business": {
+    "name": "Marrow Coffee",
+    "tagline": "Small-batch coffee, roasted Thursdays.",
+    "phone": "(555) 019-3340",
+    "phoneHref": "tel:+15550193340",
+    "email": "hello@northbound-dev.com",
+    "address": "123 Example St, Grand Ledge, MI",
+    "hours": [
+      { "days": "Tuesday – Friday", "time": "7:00am – 3:00pm" },
+      { "days": "Saturday & Sunday", "time": "8:00am – 2:00pm" },
+      { "days": "Monday", "time": "Closed — we're roasting" }
+    ],
+    "pickupNote": "Order by 2pm and it's ready the same afternoon. Shipping goes out Fridays."
+  },
+
+  "featured": {
+    "eyebrow": "This week's roast",
+    "sku": "ridgeback",
+    "note": "Picked in Huila, washed, and rested three weeks before it met our drum. It's the one we're drinking at the counter this week."
+  },
+
+  "story": {
+    "heading": "We roast on Thursdays, and only on Thursdays.",
+    "body": [
+      "One drum, twelve kilos at a time, in the back of the shop on Example Street. Thursday is roasting day because that is how long it takes to get through the week's green coffee properly, and because coffee wants a few days to rest before anyone drinks it.",
+      "That means what you order on a Friday was roasted the day before. It also means that when something sells out, it is genuinely gone until the following week. We would rather do that than keep a month of stock warm on a shelf.",
+      "We buy through two importers who publish what they pay the farm. When we know the number, it is on the bag."
+    ]
+  },
+
+  "products": [
+    {
+      "sku": "ridgeback",
+      "name": "Ridgeback",
+      "origin": "Huila, Colombia",
+      "process": "Washed",
+      "notes": "Red apple, brown sugar, clean finish",
+      "blurb": "The everyday bag. If you drink one coffee black in the morning and want it to taste like something, this is the one.",
+      "price": 1800,
+      "variants": { "size": ["12oz", "2lb"], "grind": ["Whole bean", "Ground"] },
+      "sizeUpcharge": 2200,
+      "swatch": "#7C4A2D",
+      "kind": "coffee"
+    },
+    {
+      "sku": "nightshift",
+      "name": "Night Shift",
+      "origin": "Sidama, Ethiopia",
+      "process": "Natural",
+      "notes": "Blueberry, cocoa, heavy body",
+      "blurb": "Roasted a shade darker for people who take milk and still want to taste the coffee through it.",
+      "price": 2000,
+      "variants": { "size": ["12oz", "2lb"], "grind": ["Whole bean", "Ground"] },
+      "sizeUpcharge": 2400,
+      "swatch": "#3F2B23",
+      "kind": "coffee"
+    },
+    {
+      "sku": "quarry",
+      "name": "Quarry",
+      "origin": "Nariño, Colombia · Sidama, Ethiopia",
+      "process": "Blend",
+      "notes": "Cherry, molasses, long sweetness",
+      "blurb": "Our espresso blend. Forgiving enough for a home machine, and it does not fall apart in a flat white.",
+      "price": 1900,
+      "variants": { "size": ["12oz", "2lb"], "grind": ["Whole bean", "Ground"] },
+      "sizeUpcharge": 2300,
+      "swatch": "#8C5A3C",
+      "kind": "coffee"
+    },
+    {
+      "sku": "decaf-hollow",
+      "name": "The Hollow",
+      "origin": "Cauca, Colombia",
+      "process": "Sugarcane decaf",
+      "notes": "Cocoa, plum, soft acidity",
+      "blurb": "Decaf that we actually drink. Sugarcane process, so it keeps the sweetness most decaf loses.",
+      "price": 1600,
+      "variants": { "size": ["12oz", "2lb"], "grind": ["Whole bean", "Ground"] },
+      "sizeUpcharge": 2000,
+      "swatch": "#5E4438",
+      "kind": "coffee"
+    },
+    {
+      "sku": "mug",
+      "name": "Marrow mug",
+      "origin": "Stoneware, 10oz",
+      "process": "",
+      "notes": "Speckled bone glaze",
+      "blurb": "The mug from the counter. Thick walled, keeps a flat white warm longer than it has any right to.",
+      "price": 2400,
+      "variants": {},
+      "swatch": "#D9D2C4",
+      "kind": "goods"
+    },
+    {
+      "sku": "giftcard",
+      "name": "Gift card",
+      "origin": "Digital, sent by email",
+      "process": "",
+      "notes": "$25 / $50",
+      "blurb": "For the person who has opinions about grinders. Arrives by email, no expiry.",
+      "price": 2500,
+      "variants": { "value": ["$25", "$50"] },
+      "valueUpcharge": 5000,
+      "swatch": "#A8B3A0",
+      "kind": "goods"
+    }
+  ]
+}

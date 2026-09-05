@@ -1,0 +1,92 @@
+---
+import Base from '../layouts/Base.astro';
+import Stripe from 'stripe';
+
+// Rendered per request so it can read the real session back from Stripe: a
+// confirmation page that only echoes localStorage is theatre.
+export const prerender = false;
+
+const base = import.meta.env.BASE_URL;
+const id = Astro.url.searchParams.get('session_id');
+const secret = import.meta.env.STRIPE_SECRET_KEY ?? process.env.STRIPE_SECRET_KEY;
+
+let session = null;
+let problem = null;
+if (!id) problem = 'No order reference in the link.';
+else if (!secret) problem = 'Checkout is not configured yet — Stripe test keys are pending.';
+else {
+  try {
+    session = await new Stripe(secret).checkout.sessions.retrieve(id, { expand: ['line_items'] });
+  } catch {
+    problem = 'We could not find that order.';
+  }
+}
+const money = (c, cur = 'usd') =>
+  ((c ?? 0) / 100).toLocaleString('en-US', { style: 'currency', currency: cur.toUpperCase() });
+---
+<Base title="Order confirmed" description="Your Marrow Coffee demo order.">
+  <section class="section">
+    <div class="wrap ok">
+      {session ? (
+        <>
+          <p class="eyebrow">Order received</p>
+          <h1>Thanks — that's in.</h1>
+          <p class="lede ok__lede">
+            {session.metadata?.fulfilment === 'ship'
+              ? "We'll email tracking when it ships on Friday."
+              : "It'll be on the pickup shelf at 123 Example St this afternoon."}
+          </p>
+
+          <div class="ok__card">
+            <ul class="ok__lines">
+              {(session.line_items?.data ?? []).map((li) => (
+                <li>
+                  <span>{li.quantity} × {li.description}</span>
+                  <span>{money(li.amount_total, session.currency ?? 'usd')}</span>
+                </li>
+              ))}
+            </ul>
+            <div class="ok__total">
+              <span>Total</span>
+              <strong>{money(session.amount_total, session.currency ?? 'usd')}</strong>
+            </div>
+            <p class="ok__ref">Reference <code>{session.id}</code></p>
+          </div>
+
+          <p class="ok__demo">
+            <strong>This was a demo — nothing was charged.</strong>
+            The payment ran in Stripe's test mode against a test card, and no money
+            moved in either direction.
+          </p>
+          <a class="btn btn--ghost" href={`${base}/shop`}>Back to the shop</a>
+        </>
+      ) : (
+        <>
+          <p class="eyebrow">Order</p>
+          <h1>We couldn't load that order.</h1>
+          <p class="lede ok__lede">{problem}</p>
+          <a class="btn btn--ghost" href={`${base}/shop`}>Back to the shop</a>
+        </>
+      )}
+    </div>
+  </section>
+
+  <script>
+    // The order is placed; the cart should not follow you back to the shop.
+    import { clear } from '../lib/cart.ts';
+    if (document.querySelector('.ok__lines')) clear();
+  </script>
+</Base>
+
+<style>
+  .ok { max-width: 640px; }
+  .ok__lede { margin: 0.9rem 0 2rem; }
+  .ok__card { border: 1px solid var(--line-soft); border-radius: var(--r); padding: 1.25rem; background: var(--bone-2); }
+  .ok__lines { list-style: none; margin: 0; padding: 0; }
+  .ok__lines li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line-soft); font-size: 0.96rem; }
+  .ok__total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 0.85rem; }
+  .ok__total strong { font-family: var(--display); font-size: 1.5rem; }
+  .ok__ref { margin: 0.75rem 0 0; font-size: 0.8rem; color: var(--muted); word-break: break-all; }
+  .ok__ref code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .ok__demo { margin: 1.5rem 0; padding: 0.9rem 1rem; border-left: 2px solid var(--sage); background: var(--bone-2); font-size: 0.93rem; }
+</style>

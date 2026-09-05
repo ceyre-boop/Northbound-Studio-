@@ -1,0 +1,89 @@
+<script>
+  import { lines, drawerOpen, fulfilment, setQty, remove, subtotal, count, money } from '../lib/cart.ts';
+
+  const drawer  = document.getElementById('cart-drawer');
+  const scrim   = document.getElementById('cart-scrim');
+  const body    = document.getElementById('cart-body');
+  const nEl     = document.getElementById('cart-count');
+  const sumEl   = document.getElementById('cart-subtotal');
+  const goBtn   = document.getElementById('cart-checkout');
+  const errEl   = document.getElementById('cart-error');
+
+  function renderLines(ls) {
+    if (!ls.length) {
+      body.innerHTML = '<p class="empty">Nothing in here yet.</p>';
+      return;
+    }
+    body.innerHTML = ls.map((l) => `
+      <div class="line">
+        <span class="line__n">${l.name}</span>
+        <span class="line__p">${money(l.price * l.qty)}</span>
+        <span class="line__v">${l.variant}</span>
+        <div class="line__qty">
+          <button type="button" data-act="dec" data-sku="${l.sku}" data-v="${l.variant}" aria-label="One fewer ${l.name}">−</button>
+          <output>${l.qty}</output>
+          <button type="button" data-act="inc" data-sku="${l.sku}" data-v="${l.variant}" aria-label="One more ${l.name}">+</button>
+          <button type="button" class="line__rm" data-act="rm" data-sku="${l.sku}" data-v="${l.variant}">Remove</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function render(ls) {
+    renderLines(ls);
+    nEl.textContent = String(count(ls));
+    sumEl.textContent = money(subtotal(ls));
+    goBtn.disabled = ls.length === 0;
+  }
+
+  lines.subscribe(render);
+
+  drawerOpen.subscribe((open) => {
+    drawer.dataset.open = String(open);
+    drawer.setAttribute('aria-hidden', String(!open));
+    if (open) drawer.removeAttribute('inert'); else drawer.setAttribute('inert', '');
+    scrim.hidden = !open;
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) drawer.querySelector('#cart-close')?.focus();
+  });
+
+  document.getElementById('cart-open')?.addEventListener('click', () => drawerOpen.set(true));
+  document.getElementById('cart-close')?.addEventListener('click', () => drawerOpen.set(false));
+  scrim.addEventListener('click', () => drawerOpen.set(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && drawerOpen.get()) drawerOpen.set(false); });
+
+  body.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const { act, sku, v } = b.dataset;
+    const cur = lines.get().find((l) => l.sku === sku && l.variant === v);
+    if (!cur) return;
+    if (act === 'inc') setQty(sku, v, cur.qty + 1);
+    if (act === 'dec') setQty(sku, v, cur.qty - 1);
+    if (act === 'rm')  remove(sku, v);
+  });
+
+  drawer.querySelectorAll('input[name="ful"]').forEach((r) =>
+    r.addEventListener('change', () => fulfilment.set(r.value)));
+
+  goBtn.addEventListener('click', async () => {
+    errEl.textContent = '';
+    goBtn.disabled = true;
+    const original = goBtn.textContent;
+    goBtn.textContent = 'Taking you to checkout…';
+    try {
+      const base = document.getElementById('cart-drawer')?.dataset.base ?? '';
+      const res = await fetch(`${base}/api/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lines: lines.get(), fulfilment: fulfilment.get() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || 'Checkout unavailable');
+      location.href = data.url;
+    } catch (err) {
+      errEl.textContent = String(err.message || err);
+      goBtn.disabled = false;
+      goBtn.textContent = original;
+    }
+  });
+</script>

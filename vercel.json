@@ -45,6 +45,18 @@
     {
       "source": "/demos/atlas/:path*",
       "destination": "https://nb-atlas.vercel.app/:path*"
+    },
+    {
+      "source": "/demos/vector",
+      "destination": "https://nb-vector.vercel.app/"
+    },
+    {
+      "source": "/demos/vector/",
+      "destination": "https://nb-vector.vercel.app/"
+    },
+    {
+      "source": "/demos/vector/:path*",
+      "destination": "https://nb-vector.vercel.app/:path*"
     }
   ]
 }

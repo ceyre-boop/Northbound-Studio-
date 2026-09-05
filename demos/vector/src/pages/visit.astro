@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import content from '../content/content.json';
+const b = content.business;
+---
+<Base title="Visit" description="Marrow Coffee — 123 Example St, Grand Ledge, MI. Hours and pickup.">
+  <section class="section">
+    <div class="wrap vi">
+      <div>
+        <p class="eyebrow">Visit</p>
+        <h1>123 Example St,<br />Grand Ledge.</h1>
+        <p class="lede vi__lede">On the corner, green door, two tables outside when it's warm. Pickup orders sit on the shelf by the till under your first name.</p>
+        <ul class="vi__hours">{b.hours.map((h) => <li><span>{h.days}</span><span>{h.time}</span></li>)}</ul>
+        <p class="vi__ph"><a href={b.phoneHref}>{b.phone}</a> · <a href={`mailto:${b.email}`}>{b.email}</a></p>
+      </div>
+      <!-- Drawn, not embedded: a map tile would be the only third-party
+           request on the site and would cost more than it tells you. -->
+      <svg class="vi__map" viewBox="0 0 320 300" role="img" aria-label="Sketch map: Marrow Coffee sits on the corner of Example Street and Bridge Street in Grand Ledge">
+        <rect width="320" height="300" fill="var(--bone-2)" />
+        <g stroke="var(--line)" stroke-width="1.5" fill="none">
+          <path d="M0 120 H320" /><path d="M0 210 H320" /><path d="M110 0 V300" /><path d="M230 0 V300" />
+        </g>
+        <rect x="110" y="120" width="120" height="90" fill="var(--bone)" stroke="var(--line)" />
+        <circle cx="118" cy="128" r="7" fill="var(--sage)" />
+        <g font-family="var(--body)" font-size="10" fill="var(--muted)">
+          <text x="8" y="114">EXAMPLE ST</text>
+          <text x="236" y="60" >BRIDGE ST</text>
+          <text x="130" y="170" fill="var(--ink)" font-size="12" font-weight="600">Marrow</text>
+          <text x="130" y="186">123 Example St</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+</Base>
+<style>
+  .vi { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); gap: clamp(2rem, 6vw, 4rem); align-items: start; }
+  .vi h1 { margin: 0.6rem 0 1rem; }
+  .vi__lede { margin-bottom: 1.75rem; }
+  .vi__hours { list-style: none; margin: 0 0 1.5rem; padding: 0; }
+  .vi__hours li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--line-soft); }
+  .vi__ph a { color: var(--sage-deep); }
+  .vi__map { width: 100%; height: auto; border: 1px solid var(--line-soft); border-radius: var(--r); }
+  @media (max-width: 820px) { .vi { grid-template-columns: 1fr; } }
+</style>

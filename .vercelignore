@@ -10,3 +10,4 @@ qa/
 # Atlas is its own Vercel project, reached through the /demos/atlas rewrite.
 # Its source must not ship inside the descent's bundle.
 demos/atlas/
+demos/vector/

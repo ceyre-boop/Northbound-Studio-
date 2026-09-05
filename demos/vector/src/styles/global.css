@@ -1,0 +1,71 @@
+/* Marrow Coffee — editorial and quiet. Bone paper, espresso ink, one muted
+   sage. Serif display, generous whitespace. It should read like a printed
+   menu, and look nothing like Atlas or the descent. */
+:root {
+  --bone: #F5F1E8;
+  --bone-2: #EBE5D8;
+  --espresso: #241C17;
+  --espresso-2: #3D302710;
+  --ink: #241C17;
+  --muted: #6B5D52;
+  --sage: #6E7F6A;
+  --sage-deep: #4E5C4B;
+  --line: rgba(36, 28, 23, 0.14);
+  --line-soft: rgba(36, 28, 23, 0.08);
+
+  --display: "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --wrap: 1080px;
+  --gut: clamp(1.15rem, 4vw, 2.5rem);
+  --r: 2px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bone); color: var(--ink);
+  font-family: var(--body); font-size: 16.5px; line-height: 1.65;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+
+h1, h2, h3 {
+  font-family: var(--display); font-weight: 400;
+  letter-spacing: -0.015em; line-height: 1.08; margin: 0; text-wrap: balance;
+}
+h1 { font-size: clamp(2.4rem, 6.5vw, 4rem); }
+h2 { font-size: clamp(1.7rem, 4vw, 2.6rem); }
+h3 { font-size: clamp(1.1rem, 2.2vw, 1.35rem); }
+p { margin: 0 0 1rem; text-wrap: pretty; }
+
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: var(--gut); }
+.eyebrow {
+  font-family: var(--body); font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage-deep);
+}
+.lede { font-size: clamp(1.02rem, 2vw, 1.18rem); color: var(--muted); max-width: 58ch; }
+.section { padding-block: clamp(3.25rem, 8vw, 6rem); }
+.rule { height: 1px; background: var(--line-soft); border: 0; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 50px; padding: 0.8rem 1.5rem;
+  font-family: var(--body); font-size: 0.97rem; font-weight: 600;
+  border: 1px solid transparent; border-radius: var(--r);
+  text-decoration: none; cursor: pointer;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+.btn--primary { background: var(--espresso); color: var(--bone); }
+.btn--primary:hover { background: #100C0A; }
+.btn--primary:disabled { opacity: .55; cursor: not-allowed; }
+.btn--ghost { border-color: var(--line); background: transparent; }
+.btn--ghost:hover { border-color: var(--ink); }
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--sage-deep); outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

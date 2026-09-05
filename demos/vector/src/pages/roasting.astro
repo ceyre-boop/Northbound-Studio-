@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import content from '../content/content.json';
+const { story } = content;
+---
+<Base title="Our roasting" description="Marrow Coffee roasts twelve kilos at a time, once a week, on Thursdays.">
+  <section class="section">
+    <div class="wrap ro">
+      <p class="eyebrow">Our roasting</p>
+      <h1>{story.heading}</h1>
+      {story.body.map((p) => <p class="ro__p">{p}</p>)}
+    </div>
+  </section>
+</Base>
+<style>
+  .ro { max-width: 62ch; }
+  .ro h1 { margin: 0.6rem 0 1.75rem; }
+  .ro__p { font-size: 1.06rem; margin-bottom: 1.2rem; }
+</style>

@@ -1,0 +1,101 @@
+---
+import Base from '../../layouts/Base.astro';
+import content from '../../content/content.json';
+
+export function getStaticPaths() {
+  return content.products.map((p) => ({ params: { sku: p.sku }, props: { p } }));
+}
+const { p } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const money = (c) => (c / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+const variantKeys = Object.keys(p.variants ?? {});
+---
+<Base title={p.name} description={`${p.name} — ${p.notes}. ${p.blurb}`}>
+  <section class="section">
+    <div class="wrap pd">
+      <div class="pd__shot" style={`--swatch:${p.swatch}`} aria-hidden="true"><span class="pd__bag"></span></div>
+
+      <div class="pd__buy">
+        <p class="eyebrow"><a class="pd__back" href={`${base}/shop`}>Shop</a></p>
+        <h1>{p.name}</h1>
+        <p class="pd__o">{[p.origin, p.process].filter(Boolean).join(' · ')}</p>
+        <p class="pd__notes">{p.notes}</p>
+        <p class="pd__blurb">{p.blurb}</p>
+
+        <form class="pd__form" id="buy" data-sku={p.sku} data-name={p.name} data-base={String(p.price)}
+              data-size-up={String(p.sizeUpcharge ?? '')} data-value-up={String(p.valueUpcharge ?? '')}>
+          {variantKeys.map((k) => (
+            <fieldset class="pd__set">
+              <legend class="eyebrow">{k}</legend>
+              <div class="pd__chips">
+                {p.variants[k].map((v, i) => (
+                  <label class="chip">
+                    <input type="radio" name={k} value={v} checked={i === 0} />
+                    <span>{v}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ))}
+          <p class="pd__price" id="pd-price">{money(p.price)}</p>
+          <button class="btn btn--primary pd__add" type="submit">Add to order</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { add } from '../../lib/cart.ts';
+    const form = document.getElementById('buy');
+    const priceEl = document.getElementById('pd-price');
+    const money = (c) => (c / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+    // Mirrors the server's pricing rule. The server is authoritative — this is
+    // only so the button does not lie about the number before you click it.
+    function resolve() {
+      const d = form.dataset;
+      const picked = [...new FormData(form).values()].map(String);
+      let price = Number(d.base);
+      if (picked.some((v) => v.includes('2lb')) && d.sizeUp) price = Number(d.sizeUp);
+      if (picked.some((v) => v.includes('$50')) && d.valueUp) price = Number(d.valueUp);
+      return { price, variant: picked.join(' · ') || 'One size' };
+    }
+    const sync = () => { priceEl.textContent = money(resolve().price); };
+    form.addEventListener('change', sync);
+    sync();
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const { price, variant } = resolve();
+      add({ sku: form.dataset.sku, name: form.dataset.name, variant, price });
+    });
+  </script>
+</Base>
+
+<style>
+  .pd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr); gap: clamp(2rem, 6vw, 4.5rem); align-items: start; }
+  .pd__shot { display: grid; place-items: center; aspect-ratio: 1; background: var(--bone-2); border: 1px solid var(--line-soft); border-radius: var(--r); }
+  .pd__bag {
+    width: 40%; aspect-ratio: 3 / 4; border-radius: 3px 3px 6px 6px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--swatch) 82%, #000) 0 13%, var(--swatch) 13% 100%);
+    box-shadow: inset -14px 0 30px rgba(0,0,0,.16), 0 16px 32px -16px rgba(36,28,23,.5);
+    position: relative;
+  }
+  .pd__bag::after { content: ""; position: absolute; left: 18%; right: 18%; top: 34%; height: 20%; background: rgba(245,241,232,.9); border-radius: 1px; }
+  .pd__back { color: var(--sage-deep); text-decoration: none; }
+  .pd h1 { margin: 0.5rem 0 0.35rem; }
+  .pd__o { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .pd__notes { font-family: var(--display); font-size: 1.15rem; margin: 0.75rem 0 1rem; }
+  .pd__blurb { color: var(--muted); }
+  .pd__form { display: grid; gap: 1.1rem; margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid var(--line-soft); }
+  .pd__set { border: 0; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+  .pd__set legend { padding: 0; }
+  .pd__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .chip span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1rem; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; font-size: 0.95rem; }
+  .chip input:checked + span { background: var(--espresso); color: var(--bone); border-color: var(--espresso); }
+  .chip input:focus-visible + span { outline: 2px solid var(--sage-deep); outline-offset: 3px; }
+  .pd__price { font-family: var(--display); font-size: 1.9rem; margin: 0; font-variant-numeric: tabular-nums; }
+  .pd__add { width: 100%; }
+  @media (max-width: 820px) { .pd { grid-template-columns: 1fr; } }
+</style>

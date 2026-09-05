@@ -1,0 +1,33 @@
+---
+const { business } = Astro.props;
+---
+<div class="fiction">
+  <div class="fiction__in">
+    <span class="fiction__txt">
+      <strong>Concept build by Northbound Studio</strong>
+      <span aria-hidden="true">·</span>
+      <span>{business} is a fictional business</span>
+    </span>
+    <a class="fiction__cta" href="https://northbound-dev.com/#floor-7">Build yours →</a>
+  </div>
+</div>
+<style>
+  .fiction {
+    background: #060608; color: #7A7A8E;
+    font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.22);
+  }
+  .fiction__in {
+    max-width: var(--wrap); margin: 0 auto; padding: 8px var(--gut);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .fiction__txt { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .fiction strong { color: #E8E8ED; font-weight: 600; }
+  .fiction__cta { color: #00F0FF; text-decoration: none; white-space: nowrap; }
+  .fiction__cta:hover { color: #8CFBFF; }
+  @media (max-width: 560px) {
+    .fiction__in { font-size: 9px; }
+    .fiction__txt span:nth-of-type(1) { display: none; }
+  }
+</style>

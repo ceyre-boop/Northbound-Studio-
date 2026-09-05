@@ -1,0 +1,42 @@
+---
+const { p, href } = Astro.props;
+const money = (c) => (c / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+---
+<a class="pc" href={href}>
+  <span class="pc__shot" style={`--swatch:${p.swatch}`} aria-hidden="true">
+    <span class="pc__bag"></span>
+  </span>
+  <span class="pc__meta">
+    <span class="pc__n">{p.name}</span>
+    <span class="pc__o">{p.origin}</span>
+    <span class="pc__notes">{p.notes}</span>
+    <span class="pc__p">{money(p.price)}</span>
+  </span>
+</a>
+<style>
+  .pc { display: grid; gap: 0.85rem; text-decoration: none; }
+  .pc__shot {
+    display: grid; place-items: center; aspect-ratio: 4 / 3;
+    background: var(--bone-2); border: 1px solid var(--line-soft); border-radius: var(--r);
+    transition: border-color .2s ease;
+  }
+  .pc:hover .pc__shot { border-color: var(--line); }
+  /* A drawn bag, not a stock photo: no budget for imagery this pass, and a
+     flat placeholder would look broken next to real copy. */
+  .pc__bag {
+    width: 42%; aspect-ratio: 3 / 4; border-radius: 3px 3px 5px 5px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--swatch) 82%, #000) 0 13%, var(--swatch) 13% 100%);
+    box-shadow: inset -10px 0 22px rgba(0,0,0,.16), 0 10px 22px -12px rgba(36,28,23,.5);
+    position: relative;
+  }
+  .pc__bag::after {
+    content: ""; position: absolute; left: 18%; right: 18%; top: 34%; height: 20%;
+    background: rgba(245,241,232,.9); border-radius: 1px;
+  }
+  .pc__meta { display: grid; gap: 0.12rem; }
+  .pc__n { font-family: var(--display); font-size: 1.22rem; }
+  .pc__o { font-size: 0.82rem; color: var(--muted); }
+  .pc__notes { font-size: 0.9rem; color: var(--muted); margin-top: 0.25rem; }
+  .pc__p { font-variant-numeric: tabular-nums; margin-top: 0.3rem; }
+</style>

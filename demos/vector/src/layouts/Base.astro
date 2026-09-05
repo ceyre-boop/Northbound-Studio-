@@ -1,0 +1,86 @@
+---
+import '@fontsource-variable/fraunces';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/600.css';
+import '../styles/global.css';
+import content from '../content/content.json';
+import FictionBar from '../components/FictionBar.astro';
+import CartDrawer from '../components/CartDrawer.astro';
+import CartScript from '../components/CartScript.astro';
+
+const { title, description } = Astro.props;
+const b = content.business;
+const base = import.meta.env.BASE_URL;
+const nav = [
+  { href: `${base}/shop`, label: 'Shop' },
+  { href: `${base}/roasting`, label: 'Our roasting' },
+  { href: `${base}/visit`, label: 'Visit' },
+];
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#F5F1E8" />
+  <title>{title} — Marrow Coffee</title>
+  <meta name="description" content={description} />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='2' fill='%23241C17'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='20' fill='%23F5F1E8' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <FictionBar business={b.name} />
+  <header class="hdr">
+    <div class="hdr__in">
+      <a class="hdr__mark" href={`${base}`}>Marrow<span>Coffee</span></a>
+      <nav class="hdr__nav" aria-label="Main">{nav.map((n) => <a href={n.href}>{n.label}</a>)}</nav>
+      <CartDrawer />
+    </div>
+  </header>
+
+  <main id="main"><slot /></main>
+
+  <footer class="ftr">
+    <div class="wrap ftr__in">
+      <div>
+        <p class="ftr__n">Marrow Coffee</p>
+        <p class="ftr__m">{b.address}<br /><a href={b.phoneHref}>{b.phone}</a></p>
+      </div>
+      <div>
+        <p class="eyebrow">Hours</p>
+        <ul class="ftr__h">{b.hours.map((h) => <li><span>{h.days}</span><span>{h.time}</span></li>)}</ul>
+      </div>
+      <div>
+        <p class="eyebrow">Built with</p>
+        <p class="ftr__m">Astro, Stripe. That's it.<br />No plugins, no page builder.</p>
+      </div>
+    </div>
+    <div class="wrap ftr__base">
+      <p>A concept build by <a href="https://northbound-dev.com/">Northbound Studio</a>. Marrow Coffee is not a real company and no order is ever charged.</p>
+    </div>
+  </footer>
+
+  <CartScript />
+</body>
+</html>
+
+<style>
+  .hdr { border-bottom: 1px solid var(--line-soft); background: var(--bone); }
+  .hdr__in { max-width: var(--wrap); margin: 0 auto; padding: 1rem var(--gut); display: flex; align-items: center; gap: 1.75rem; }
+  .hdr__mark { font-family: var(--display); font-size: 1.35rem; text-decoration: none; margin-right: auto; letter-spacing: -0.02em; }
+  .hdr__mark span { display: block; font-family: var(--body); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 1px; }
+  .hdr__nav { display: flex; gap: 1.4rem; font-size: 0.95rem; }
+  .hdr__nav a { text-decoration: none; }
+  .hdr__nav a:hover { color: var(--sage-deep); }
+  @media (max-width: 720px) { .hdr__nav { display: none; } }
+
+  .ftr { border-top: 1px solid var(--line-soft); padding-block: clamp(2.25rem, 6vw, 3.5rem) 1.25rem; margin-top: clamp(3rem, 8vw, 5rem); }
+  .ftr__in { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+  .ftr__n { font-family: var(--display); font-size: 1.2rem; margin-bottom: 0.5rem; }
+  .ftr__m { color: var(--muted); font-size: 0.93rem; }
+  .ftr__h { list-style: none; margin: 0.6rem 0 0; padding: 0; color: var(--muted); font-size: 0.93rem; }
+  .ftr__h li { display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.15rem; }
+  .ftr__base { border-top: 1px solid var(--line-soft); margin-top: 2.25rem; padding-top: 1rem; }
+  .ftr__base p { margin: 0; font-size: 0.82rem; color: var(--muted); }
+  @media (max-width: 700px) { .ftr__in { grid-template-columns: 1fr; gap: 1.5rem; } }
+</style>

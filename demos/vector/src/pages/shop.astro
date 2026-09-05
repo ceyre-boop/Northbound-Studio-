@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import content from '../content/content.json';
+import ProductCard from '../components/ProductCard.astro';
+const base = import.meta.env.BASE_URL;
+const coffee = content.products.filter((p) => p.kind === 'coffee');
+const goods = content.products.filter((p) => p.kind === 'goods');
+---
+<Base title="Shop" description="Marrow Coffee — beans, a mug, and gift cards. Order for pickup or shipping.">
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">Shop</p>
+      <h1>Everything we have this week.</h1>
+      <p class="lede shop__lede">Roasted Thursday. If something is missing it sold out, and it will be back next week rather than sitting warm on a shelf.</p>
+
+      <h2 class="shop__h">Coffee</h2>
+      <div class="grid">{coffee.map((p) => <ProductCard p={p} href={`${base}/product/${p.sku}`} />)}</div>
+
+      <h2 class="shop__h">Goods</h2>
+      <div class="grid">{goods.map((p) => <ProductCard p={p} href={`${base}/product/${p.sku}`} />)}</div>
+    </div>
+  </section>
+</Base>
+<style>
+  .shop__lede { margin: 0.9rem 0 0; }
+  .shop__h { margin: clamp(2.25rem, 5vw, 3.25rem) 0 1.5rem; font-size: clamp(1.3rem, 2.6vw, 1.7rem); }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.25rem, 3vw, 2.25rem); }
+  @media (max-width: 780px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+</style>

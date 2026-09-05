@@ -1,0 +1,94 @@
+---
+import Base from '../layouts/Base.astro';
+import content from '../content/content.json';
+import ProductCard from '../components/ProductCard.astro';
+const { business: b, featured, products } = content;
+const base = import.meta.env.BASE_URL;
+const hero = products.find((p) => p.sku === featured.sku);
+const three = products.filter((p) => p.kind === 'coffee').slice(0, 3);
+const money = (c) => (c / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+---
+<Base title="Small-batch coffee, roasted Thursdays" description="Marrow Coffee — small-batch coffee roasted weekly in Grand Ledge. Order for pickup or shipping.">
+  <section class="hero">
+    <div class="wrap hero__in">
+      <div class="hero__copy">
+        <p class="eyebrow">Grand Ledge, Michigan</p>
+        <h1>{b.tagline}</h1>
+        <p class="lede hero__lede">One drum, twelve kilos at a time. Order for pickup or ship, and it was roasted the day before it left.</p>
+        <div class="hero__cta">
+          <a class="btn btn--primary" href={`${base}/shop`}>Order coffee</a>
+          <a class="btn btn--ghost" href={`${base}/visit`}>Visit the shop</a>
+        </div>
+      </div>
+      <a class="hero__prod" href={`${base}/product/${hero.sku}`}>
+        <span class="hero__shot" style={`--swatch:${hero.swatch}`} aria-hidden="true"><span class="hero__bag"></span></span>
+        <span class="hero__meta">
+          <span class="eyebrow">{featured.eyebrow}</span>
+          <span class="hero__n">{hero.name}</span>
+          <span class="hero__o">{hero.origin} · {hero.process}</span>
+          <span class="hero__note">{featured.note}</span>
+          <span class="hero__p">{money(hero.price)}</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="rowhd">
+        <h2>On the shelf</h2>
+        <a class="rowhd__all" href={`${base}/shop`}>All coffee &amp; goods →</a>
+      </div>
+      <div class="grid3">
+        {three.map((p) => <ProductCard p={p} href={`${base}/product/${p.sku}`} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section pickup">
+    <div class="wrap pickup__in">
+      <div>
+        <p class="eyebrow">Pickup &amp; shipping</p>
+        <h2>{b.pickupNote}</h2>
+      </div>
+      <ul class="pickup__hours">
+        {b.hours.map((h) => <li><span>{h.days}</span><span>{h.time}</span></li>)}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { padding-block: clamp(2.5rem, 7vw, 5rem); }
+  .hero__in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); gap: clamp(2rem, 6vw, 4.5rem); align-items: center; }
+  .hero__lede { margin: 1.1rem 0 1.9rem; }
+  .hero__cta { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+  .hero__prod { display: grid; gap: 1.1rem; text-decoration: none; }
+  .hero__shot { display: grid; place-items: center; aspect-ratio: 5 / 4; background: var(--bone-2); border: 1px solid var(--line-soft); border-radius: var(--r); }
+  .hero__bag {
+    width: 38%; aspect-ratio: 3 / 4; border-radius: 3px 3px 6px 6px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--swatch) 82%, #000) 0 13%, var(--swatch) 13% 100%);
+    box-shadow: inset -12px 0 26px rgba(0,0,0,.16), 0 14px 28px -14px rgba(36,28,23,.5);
+    position: relative;
+  }
+  .hero__bag::after { content: ""; position: absolute; left: 18%; right: 18%; top: 34%; height: 20%; background: rgba(245,241,232,.9); border-radius: 1px; }
+  .hero__meta { display: grid; gap: 0.2rem; }
+  .hero__n { font-family: var(--display); font-size: 1.5rem; }
+  .hero__o { font-size: 0.85rem; color: var(--muted); }
+  .hero__note { font-size: 0.93rem; color: var(--muted); margin-top: 0.4rem; }
+  .hero__p { font-variant-numeric: tabular-nums; margin-top: 0.35rem; }
+  @media (max-width: 860px) { .hero__in { grid-template-columns: 1fr; } }
+
+  .rowhd { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1.75rem; }
+  .rowhd__all { font-size: 0.92rem; text-decoration: none; color: var(--sage-deep); white-space: nowrap; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.25rem, 3vw, 2.25rem); }
+  @media (max-width: 780px) { .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .grid3 { grid-template-columns: 1fr; } }
+
+  .pickup { background: var(--bone-2); }
+  .pickup__in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr); gap: clamp(1.5rem, 5vw, 4rem); align-items: center; }
+  .pickup h2 { margin-top: 0.5rem; }
+  .pickup__hours { list-style: none; margin: 0; padding: 0; }
+  .pickup__hours li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--line-soft); }
+  @media (max-width: 780px) { .pickup__in { grid-template-columns: 1fr; } }
+</style>

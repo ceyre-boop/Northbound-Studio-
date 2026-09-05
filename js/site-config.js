@@ -29,7 +29,7 @@ window.NB_CONFIG = {
    * pointing <name> at ceyre-boop.github.io. GitHub Pages allows one custom
    * domain per repo, which is why they cannot live in this one. */
   DEMOS: {
-    atlas: '/demos/atlas/',
+    atlas: '/demos/atlas',
     vector: '/demos/vector/',
     halo: '/demos/halo/'
   },

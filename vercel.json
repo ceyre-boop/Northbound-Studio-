@@ -39,6 +39,10 @@
       "destination": "https://nb-atlas.vercel.app/"
     },
     {
+      "source": "/demos/atlas/",
+      "destination": "https://nb-atlas.vercel.app/"
+    },
+    {
       "source": "/demos/atlas/:path*",
       "destination": "https://nb-atlas.vercel.app/:path*"
     }

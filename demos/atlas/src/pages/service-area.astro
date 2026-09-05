@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import content from '../content/content.json';
+import AreaMap from '../components/AreaMap.astro';
+const { serviceArea, business: b } = content;
+---
+<Base title="Service area" description="Ridgeline Roofing works across Eaton and Ingham counties, Michigan." sticky={true}>
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">Service area</p>
+      <h1>{serviceArea.heading}</h1>
+      <p class="lede pg__lede">{serviceArea.body}</p>
+      <AreaMap area={serviceArea} />
+      <p class="pg__or">Not on the list? Call <a href={b.phoneHref}>{b.phone}</a> — if we can't get to you we'll say so rather than waste your morning.</p>
+    </div>
+  </section>
+</Base>
+<style>
+  .pg__lede { margin: 0.9rem 0 2.5rem; }
+  .pg__or { margin-top: 2.5rem; font-family: var(--display); font-weight: 600; }
+  .pg__or a { color: var(--orange); }
+</style>

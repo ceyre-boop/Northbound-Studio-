@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMid slice" role="presentation">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#2E3A44"/>
+      <stop offset="0.55" stop-color="#4A4133"/>
+      <stop offset="1" stop-color="#1A1712"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="1" y1="0" x2="0.2" y2="0.8">
+      <stop offset="0" stop-color="#E4560E" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#E4560E" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="courses" width="64" height="26" patternUnits="userSpaceOnUse">
+      <rect width="64" height="26" fill="#211F19"/>
+      <rect width="64" height="1.5" y="24.5" fill="#0E0D0A" opacity="0.85"/>
+      <rect width="1.5" height="12" x="14" y="13" fill="#0E0D0A" opacity="0.6"/>
+      <rect width="1.5" height="12" x="46" y="13" fill="#0E0D0A" opacity="0.6"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="1100" fill="url(#sky)"/>
+  <rect width="1600" height="1100" fill="url(#sun)"/>
+
+  <!-- distant roofline -->
+  <path d="M0 700 L260 560 L520 700 L780 545 L1040 700 L1300 575 L1600 700 V1100 H0 Z" fill="#12100C" opacity="0.55"/>
+
+  <!-- main roof plane, shingle courses -->
+  <path d="M-40 1100 L620 430 L1660 1100 Z" fill="url(#courses)"/>
+  <path d="M-40 1100 L620 430 L1660 1100 Z" fill="#E4560E" opacity="0.05"/>
+
+  <!-- ridge -->
+  <path d="M600 452 L640 452 L1660 1100 L1600 1100 Z" fill="#2C2921"/>
+  <!-- hip line catching the light -->
+  <path d="M620 430 L1660 1100" stroke="#C9C2B2" stroke-width="3" opacity="0.28"/>
+
+  <!-- chimney with new flashing -->
+  <g>
+    <rect x="1046" y="600" width="132" height="196" fill="#3A2C24"/>
+    <rect x="1046" y="600" width="132" height="14" fill="#4B3A2F"/>
+    <path d="M1030 796 L1194 796 L1178 764 L1046 764 Z" fill="#8E8579" opacity="0.9"/>
+  </g>
+
+  <!-- ridge vent -->
+  <path d="M604 448 L1656 1096" stroke="#0E0D0A" stroke-width="10" opacity="0.5"/>
+
+  <!-- ladder edge, foreground -->
+  <g opacity="0.85">
+    <rect x="150" y="620" width="16" height="480" fill="#9AA0A6" transform="rotate(-9 158 860)"/>
+    <rect x="250" y="620" width="16" height="480" fill="#9AA0A6" transform="rotate(-9 258 860)"/>
+    <g fill="#B4BAC0">
+      <rect x="160" y="690" width="96" height="10" transform="rotate(-9 208 695)"/>
+      <rect x="172" y="790" width="96" height="10" transform="rotate(-9 220 795)"/>
+      <rect x="184" y="890" width="96" height="10" transform="rotate(-9 232 895)"/>
+      <rect x="196" y="990" width="96" height="10" transform="rotate(-9 244 995)"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,94 @@
+/* Ridgeline Roofing — warm, high-contrast, photographic.
+   Charcoal ground, safety orange accent, off-white paper.
+   Deliberately nothing like the Northbound descent: this is a company
+   with trucks, not a studio. */
+:root {
+  --ink: #16150F;
+  --ink-2: #2A2823;
+  --paper: #F6F3EC;
+  --paper-2: #EAE5D9;
+  --muted: #6E695C;
+  --line: rgba(22, 21, 15, 0.12);
+  --line-dark: rgba(246, 243, 236, 0.16);
+  --orange: #E4560E;
+  --orange-ink: #FFF6F1;
+  --orange-deep: #B33F06;
+
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --wrap: 1120px;
+  --gut: clamp(1.15rem, 4vw, 2.75rem);
+  --r: 4px;
+  --shadow: 0 18px 40px -18px rgba(22, 21, 15, 0.45);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.6;
+  font-synthesis-weight: none;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(2.25rem, 7.5vw, 4.4rem); }
+h2 { font-size: clamp(1.75rem, 4.6vw, 2.9rem); }
+h3 { font-size: clamp(1.15rem, 2.4vw, 1.4rem); }
+p { margin: 0 0 1rem; text-wrap: pretty; }
+
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: var(--gut); }
+.eyebrow {
+  font-family: var(--display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+.lede { font-size: clamp(1.05rem, 2.2vw, 1.24rem); color: var(--muted); max-width: 60ch; }
+
+/* Buttons ---------------------------------------------------------------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+  min-height: 52px; padding: 0.85rem 1.5rem;
+  font-family: var(--display); font-size: 1rem; font-weight: 600; letter-spacing: -0.01em;
+  border: 2px solid transparent; border-radius: var(--r);
+  text-decoration: none; cursor: pointer;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+.btn--primary { background: var(--orange); color: var(--orange-ink); }
+.btn--primary:hover { background: var(--orange-deep); }
+.btn--ghost { border-color: currentColor; background: transparent; }
+.btn--ghost:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.on-dark .btn--ghost:hover { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Sections --------------------------------------------------------------- */
+.section { padding-block: clamp(3.5rem, 9vw, 6.5rem); }
+.section--dark { background: var(--ink); color: var(--paper); }
+.section--paper2 { background: var(--paper-2); }
+
+.rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

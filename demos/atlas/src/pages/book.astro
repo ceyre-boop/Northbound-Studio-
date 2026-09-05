@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import content from '../content/content.json';
+import BookingForm from '../components/BookingForm.astro';
+const b = content.business;
+---
+<Base title="Book a free inspection" description="Book a free roof inspection with Ridgeline Roofing. About thirty minutes, no charge, no obligation.">
+  <section class="section">
+    <div class="wrap bk">
+      <div>
+        <p class="eyebrow">Book a call</p>
+        <h1>Free inspection.</h1>
+        <p class="lede bk__lede">We come out, go up, photograph what we find, and give you the number before we leave. About half an hour. No charge either way.</p>
+        <ul class="bk__list">
+          <li>We'll confirm by text within the hour</li>
+          <li>Most inspections happen the same week</li>
+          <li>If the roof has years left, we'll say so</li>
+        </ul>
+        <p class="bk__or">Rather talk to someone? <a href={b.phoneHref}>{b.phone}</a></p>
+      </div>
+      <div class="bk__form"><BookingForm /></div>
+    </div>
+  </section>
+</Base>
+<style>
+  .bk { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr); gap: clamp(1.75rem, 5vw, 4rem); align-items: start; }
+  .bk__lede { margin: 0.9rem 0 1.5rem; }
+  .bk__list { list-style: none; margin: 0 0 1.5rem; padding: 0; }
+  .bk__list li { padding: 0.6rem 0 0.6rem 1.75rem; position: relative; border-bottom: 1px solid var(--line); }
+  .bk__list li::before { content: ""; position: absolute; left: 0; top: 1.15rem; width: 9px; height: 9px; background: var(--orange); border-radius: 50%; }
+  .bk__or { font-family: var(--display); font-weight: 600; }
+  .bk__or a { color: var(--orange); }
+  .bk__form { background: var(--paper-2); padding: clamp(1.25rem, 3.5vw, 2rem); border-radius: var(--r); }
+  @media (max-width: 860px) { .bk { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,50 @@
+---
+const { business } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<footer class="ftr">
+  <div class="wrap ftr__in">
+    <div>
+      <p class="ftr__name">Ridgeline Roofing</p>
+      <p class="ftr__meta">{business.address}<br>{business.license}</p>
+      <p class="ftr__meta"><a href={business.phoneHref}>{business.phone}</a><br><a href={`mailto:${business.email}`}>{business.email}</a></p>
+    </div>
+    <div>
+      <p class="ftr__h">Hours</p>
+      <ul class="ftr__hours">
+        {business.hours.map((h) => <li><span>{h.days}</span><span>{h.time}</span></li>)}
+      </ul>
+    </div>
+    <div>
+      <p class="ftr__h">Pages</p>
+      <ul class="ftr__links">
+        <li><a href={`${base}/services`}>Services</a></li>
+        <li><a href={`${base}/service-area`}>Service area</a></li>
+        <li><a href={`${base}/about`}>About</a></li>
+        <li><a href={`${base}/financing`}>Financing</a></li>
+        <li><a href={`${base}/book`}>Book a call</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap ftr__base">
+    <p>A concept build by <a href="https://northbound-dev.com/">Northbound Studio</a>. Ridgeline Roofing is not a real company.</p>
+  </div>
+</footer>
+
+<style>
+  .ftr { background: var(--ink); color: var(--paper); padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
+  .ftr__in { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+  .ftr__name { font-family: var(--display); font-weight: 700; font-size: 1.2rem; margin-bottom: 0.6rem; }
+  .ftr__h { font-family: var(--display); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange); margin-bottom: 0.7rem; }
+  .ftr__meta { color: rgba(246, 243, 236, 0.68); font-size: 0.95rem; }
+  .ftr__meta a { text-decoration: none; }
+  .ftr__meta a:hover, .ftr__links a:hover { color: var(--orange); }
+  .ftr__hours, .ftr__links { list-style: none; margin: 0; padding: 0; font-size: 0.95rem; color: rgba(246, 243, 236, 0.68); }
+  .ftr__hours li { display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.2rem; }
+  .ftr__links li { padding-block: 0.2rem; }
+  .ftr__links a { text-decoration: none; }
+  .ftr__base { border-top: 1px solid var(--line-dark); margin-top: 2.5rem; padding-top: 1.2rem; }
+  .ftr__base p { font-size: 0.85rem; color: rgba(246, 243, 236, 0.5); margin: 0; }
+  .ftr__base a { color: rgba(246, 243, 236, 0.8); }
+  @media (max-width: 720px) { .ftr__in { grid-template-columns: 1fr; gap: 1.75rem; } }
+</style>

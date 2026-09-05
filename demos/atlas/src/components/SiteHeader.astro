@@ -1,0 +1,52 @@
+---
+const { phone, phoneHref } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const nav = [
+  { href: `${base}/services`, label: 'Services' },
+  { href: `${base}/service-area`, label: 'Service area' },
+  { href: `${base}/about`, label: 'About' },
+  { href: `${base}/financing`, label: 'Financing' },
+];
+---
+<header class="hdr">
+  <div class="hdr__in">
+    <a class="hdr__mark" href={`${base}`}>
+      <span class="hdr__glyph" aria-hidden="true">R</span>
+      <span class="hdr__name">Ridgeline<span>Roofing</span></span>
+    </a>
+    <nav class="hdr__nav" aria-label="Main">
+      {nav.map((n) => <a href={n.href}>{n.label}</a>)}
+    </nav>
+    <a class="hdr__tel" href={phoneHref}>{phone}</a>
+  </div>
+</header>
+
+<style>
+  .hdr { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .hdr__in {
+    max-width: var(--wrap); margin: 0 auto; padding: 0.85rem var(--gut);
+    display: flex; align-items: center; gap: 1.5rem;
+  }
+  .hdr__mark { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; margin-right: auto; }
+  .hdr__glyph {
+    width: 34px; height: 34px; flex: none; display: grid; place-items: center;
+    background: var(--orange); color: var(--orange-ink);
+    font-family: var(--display); font-weight: 700; font-size: 1.1rem; border-radius: 3px;
+  }
+  .hdr__name { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-size: 1.05rem; }
+  .hdr__name span { display: block; font-weight: 400; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .hdr__nav { display: flex; gap: 1.4rem; font-size: 0.95rem; }
+  .hdr__nav a { text-decoration: none; color: var(--ink-2); }
+  .hdr__nav a:hover { color: var(--orange); }
+  .hdr__tel {
+    font-family: var(--display); font-weight: 700; font-size: 1.02rem;
+    text-decoration: none; white-space: nowrap;
+  }
+  .hdr__tel:hover { color: var(--orange); }
+  @media (max-width: 860px) {
+    .hdr__nav { display: none; }
+  }
+  @media (max-width: 420px) {
+    .hdr__tel { display: none; }
+  }
+</style>

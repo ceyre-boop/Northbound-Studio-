@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import content from '../content/content.json';
+const { financing, business: b } = content;
+---
+<Base title="Paying for a roof" description="How homeowners usually pay for a roof — insurance, payment plans, third-party lenders, or repair now and replace later." sticky={true}>
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">Financing</p>
+      <h1>{financing.heading}</h1>
+      <p class="lede pg__lede">{financing.intro}</p>
+      <div class="fin">
+        {financing.options.map((o) => (
+          <div class="fin__card">
+            <h2>{o.title}</h2>
+            <p>{o.body}</p>
+          </div>
+        ))}
+      </div>
+      <p class="fin__note">
+        Ridgeline is a roofing company, not a lender or an insurance adjuster. Nothing on this
+        page is an offer of credit, a rate, or advice about your policy — it is a plain
+        description of how people usually handle it. Ask your bank and your insurer.
+      </p>
+      <p class="pg__or">Questions? Call <a href={b.phoneHref}>{b.phone}</a>.</p>
+    </div>
+  </section>
+</Base>
+<style>
+  .pg__lede { margin: 0.9rem 0 2.5rem; }
+  .fin { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .fin__card { background: var(--paper); padding: clamp(1.25rem, 3vw, 1.9rem); }
+  .fin__card h2 { font-size: 1.35rem; margin-bottom: 0.6rem; }
+  .fin__card p { color: var(--muted); margin: 0; }
+  .fin__note { margin-top: 2rem; padding: 1.1rem 1.25rem; background: var(--paper-2); border-left: 3px solid var(--orange); font-size: 0.93rem; color: var(--muted); border-radius: 0 var(--r) var(--r) 0; }
+  .pg__or { margin-top: 2rem; font-family: var(--display); font-weight: 600; }
+  .pg__or a { color: var(--orange); }
+  @media (max-width: 700px) { .fin { grid-template-columns: 1fr; } }
+</style>

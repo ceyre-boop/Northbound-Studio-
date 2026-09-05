@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import content from '../../content/content.json';
+import BookingForm from '../../components/BookingForm.astro';
+
+export function getStaticPaths() {
+  return content.services.map((s) => ({ params: { slug: s.slug }, props: { service: s } }));
+}
+const { service } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<Base title={service.title} description={service.summary} sticky={true}>
+  <section class="section">
+    <div class="wrap sv">
+      <div>
+        <p class="eyebrow"><a class="sv__back" href={`${base}/services`}>Services</a></p>
+        <h1>{service.title}</h1>
+        <p class="lede sv__lede">{service.summary}</p>
+        <p class="sv__body">{service.body}</p>
+        <ul class="sv__points">
+          {service.points.map((p) => <li>{p}</li>)}
+        </ul>
+        <p class="sv__time"><strong>Typical time on site:</strong> {service.timeline}</p>
+      </div>
+      <aside class="sv__aside">
+        <h2 class="sv__asideh">Book this</h2>
+        <BookingForm />
+      </aside>
+    </div>
+  </section>
+</Base>
+<style>
+  .sv { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); gap: clamp(2rem, 6vw, 4.5rem); align-items: start; }
+  .sv__back { color: var(--orange); text-decoration: none; }
+  .sv__lede { margin: 0.9rem 0 1.5rem; }
+  .sv__body { font-size: 1.05rem; }
+  .sv__points { list-style: none; margin: 1.75rem 0; padding: 0; border-top: 1px solid var(--line); }
+  .sv__points li { padding: 0.75rem 0 0.75rem 1.75rem; border-bottom: 1px solid var(--line); position: relative; }
+  .sv__points li::before { content: ""; position: absolute; left: 0; top: 1.35rem; width: 9px; height: 9px; background: var(--orange); border-radius: 50%; }
+  .sv__time { font-size: 0.97rem; color: var(--muted); }
+  .sv__aside { background: var(--paper-2); padding: clamp(1.25rem, 3.5vw, 1.9rem); border-radius: var(--r); position: sticky; top: 1.5rem; }
+  .sv__asideh { font-size: 1.3rem; margin-bottom: 1rem; }
+  @media (max-width: 900px) { .sv { grid-template-columns: 1fr; } .sv__aside { position: static; } }
+</style>

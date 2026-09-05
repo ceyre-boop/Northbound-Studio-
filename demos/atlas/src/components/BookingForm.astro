@@ -1,0 +1,114 @@
+---
+const { compact = false } = Astro.props;
+const issues = ['Leak', 'Storm', 'Replacement', 'Not sure'];
+const times = ['Morning', 'Afternoon', 'ASAP'];
+---
+<form class="bf" id="booking-form" novalidate data-compact={String(compact)}>
+  <div class="bf__row">
+    <label class="bf__f">
+      <span>Your name</span>
+      <input name="name" type="text" autocomplete="name" required placeholder="Dana Whitmore" />
+    </label>
+    <label class="bf__f">
+      <span>Phone</span>
+      <input name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(555) 000-0000" />
+    </label>
+  </div>
+  <label class="bf__f">
+    <span>Property address</span>
+    <input name="address" type="text" autocomplete="street-address" required placeholder="123 Example St, Grand Ledge" />
+  </label>
+
+  <fieldset class="bf__set">
+    <legend>What's going on?</legend>
+    <div class="bf__chips">
+      {issues.map((i, n) => (
+        <label class="chip">
+          <input type="radio" name="issue" value={i} checked={n === 0} />
+          <span>{i}</span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+
+  <fieldset class="bf__set">
+    <legend>Best time for us to come out</legend>
+    <div class="bf__chips">
+      {times.map((t, n) => (
+        <label class="chip">
+          <input type="radio" name="preferred" value={t} checked={n === 0} />
+          <span>{t}</span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+
+  <button class="btn btn--primary bf__submit" type="submit">Book my free inspection</button>
+  <p class="bf__note">No charge, no obligation. Most inspections take about half an hour.</p>
+  <p class="bf__status" id="bf-status" role="status" aria-live="polite"></p>
+</form>
+
+<script>
+  const form = document.getElementById('booking-form');
+  const status = document.getElementById('bf-status');
+  if (form && status) {
+    const btn = form.querySelector('button[type="submit"]');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Sending…';
+      status.dataset.state = '';
+      status.textContent = '';
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}/api/book`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        form.hidden = true;
+        status.dataset.state = 'ok';
+        status.textContent = "Got it. We'll text you within the hour to confirm.";
+        status.focus?.();
+      } catch {
+        status.dataset.state = 'err';
+        status.textContent = "That didn't send. Call (555) 014-7782 and we'll book you in.";
+        btn.disabled = false;
+        btn.textContent = original;
+      }
+    });
+  }
+</script>
+
+<style>
+  .bf { display: grid; gap: 1rem; }
+  .bf__row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .bf__f { display: grid; gap: 0.35rem; }
+  .bf__f > span, .bf__set legend {
+    font-family: var(--display); font-size: 0.74rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  }
+  .bf__f input {
+    min-height: 52px; padding: 0.7rem 0.9rem; font: inherit; color: var(--ink);
+    background: #fff; border: 1px solid var(--line); border-radius: var(--r);
+  }
+  .bf__f input:focus { border-color: var(--orange); }
+  .bf__set { border: 0; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+  .bf__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .chip span {
+    display: inline-flex; align-items: center; min-height: 46px; padding: 0 1rem;
+    border: 1px solid var(--line); border-radius: 999px; background: #fff;
+    font-size: 0.97rem; cursor: pointer; user-select: none;
+  }
+  .chip input:checked + span { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .chip input:focus-visible + span { outline: 3px solid var(--orange); outline-offset: 3px; }
+  .bf__submit { width: 100%; margin-top: 0.25rem; }
+  .bf__note { font-size: 0.88rem; color: var(--muted); margin: 0; }
+  .bf__status { margin: 0; font-family: var(--display); font-weight: 600; }
+  .bf__status[data-state="ok"] { color: #1E6B3A; font-size: 1.1rem; }
+  .bf__status[data-state="err"] { color: #A32B12; }
+  @media (max-width: 560px) { .bf__row { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,44 @@
+---
+// Shown only on ?storm=1 — a seasonal switch the owner can flip, and a way to
+// show a client what a CMS-controlled banner looks like without leaving it on.
+const { banner } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<div class="storm" id="storm" hidden>
+  <div class="wrap storm__in">
+    <div>
+      <p class="storm__h">{banner.heading}</p>
+      <p class="storm__b">{banner.body}</p>
+    </div>
+    <a class="btn btn--ghost storm__cta" href={`${base}/book`}>{banner.cta}</a>
+    <button class="storm__x" type="button" aria-label="Dismiss storm notice">&times;</button>
+  </div>
+</div>
+
+<script>
+  const el = document.getElementById('storm');
+  if (el) {
+    const on = new URLSearchParams(location.search).get('storm') === '1';
+    const dismissed = sessionStorage.getItem('storm-dismissed') === '1';
+    if (on && !dismissed) el.hidden = false;
+    el.querySelector('.storm__x')?.addEventListener('click', () => {
+      el.hidden = true;
+      try { sessionStorage.setItem('storm-dismissed', '1'); } catch {}
+    });
+  }
+</script>
+
+<style>
+  .storm { background: var(--orange); color: var(--orange-ink); }
+  .storm__in { display: flex; align-items: center; gap: 1.25rem; padding-block: 0.9rem; }
+  .storm__h { font-family: var(--display); font-weight: 700; font-size: 1.05rem; margin: 0 0 0.15rem; }
+  .storm__b { margin: 0; font-size: 0.95rem; opacity: 0.92; max-width: 60ch; }
+  .storm__cta { margin-left: auto; flex: none; min-height: 44px; padding: 0.5rem 1.1rem; }
+  .storm__cta:hover { background: var(--orange-ink); color: var(--orange-deep); border-color: var(--orange-ink); }
+  .storm__x { flex: none; background: none; border: 0; color: inherit; font-size: 1.6rem; line-height: 1; cursor: pointer; padding: 0 0.25rem; opacity: 0.8; }
+  .storm__x:hover { opacity: 1; }
+  @media (max-width: 780px) {
+    .storm__in { flex-wrap: wrap; }
+    .storm__cta { margin-left: 0; }
+  }
+</style>

@@ -1,0 +1,167 @@
+{
+  "business": {
+    "name": "Ridgeline Roofing",
+    "tagline": "Roof problems don't wait. Neither do we.",
+    "phone": "(555) 014-7782",
+    "phoneHref": "tel:+15550147782",
+    "email": "hello@northbound-dev.com",
+    "address": "123 Example St, Grand Ledge, MI",
+    "license": "LIC# 0000000",
+    "hours": [
+      { "days": "Monday – Friday", "time": "7:00am – 6:00pm" },
+      { "days": "Saturday", "time": "8:00am – 2:00pm" },
+      { "days": "Sunday", "time": "Emergencies only" }
+    ]
+  },
+
+  "trustStrip": [
+    "Licensed & insured",
+    "Serving Eaton & Ingham counties",
+    "Same-week inspections"
+  ],
+
+  "stormBanner": {
+    "enabled": true,
+    "heading": "Storm came through?",
+    "body": "We're running free damage inspections across Eaton and Ingham counties this week. Most take about 30 minutes.",
+    "cta": "Get on the list"
+  },
+
+  "services": [
+    {
+      "slug": "roof-replacement",
+      "title": "Roof replacement",
+      "summary": "A full tear-off and rebuild when patching stops making sense.",
+      "body": "When a roof is past twenty years, or the third repair in two seasons hasn't held, replacing it costs less than chasing it. We strip to the deck, replace anything soft, and rebuild with ice-and-water shield at the eaves and valleys. You get the old roof hauled away the same day and a written warranty before we invoice.",
+      "points": [
+        "Full tear-off to the deck, not a layover",
+        "Rotten decking replaced and shown to you before it's covered",
+        "Dumpster and magnet sweep included",
+        "Most houses finished in one to two days"
+      ],
+      "timeline": "1–2 days on site"
+    },
+    {
+      "slug": "roof-repair",
+      "title": "Roof repair",
+      "summary": "Leaks, missing shingles, failed flashing, nail pops.",
+      "body": "Most leaks aren't where the drip is. We find the entry point, fix the cause, and tell you honestly whether the roof has years left or whether you're better off putting the money toward a replacement. If it's the second one, we'll say so.",
+      "points": [
+        "Leak traced to the entry point, not just patched below it",
+        "Flashing, boot and valley work",
+        "Photos of what we found, before and after",
+        "Honest call on repair vs replace"
+      ],
+      "timeline": "Same week, often same day"
+    },
+    {
+      "slug": "storm-damage",
+      "title": "Storm damage",
+      "summary": "Wind and hail inspections, tarping, and insurance paperwork.",
+      "body": "After a storm we tarp first and assess second — stopping water getting in matters more than the paperwork. We document the damage properly so your claim has what it needs, and we'll meet the adjuster on site if that helps.",
+      "points": [
+        "Emergency tarping to stop further damage",
+        "Documented inspection with dated photographs",
+        "We meet your adjuster on site",
+        "No pressure to file if the damage doesn't warrant it"
+      ],
+      "timeline": "Tarping within 24 hours"
+    },
+    {
+      "slug": "gutters",
+      "title": "Gutters",
+      "summary": "Seamless gutters, guards, and downspouts that actually drain.",
+      "body": "A roof is only as good as where the water goes. We run seamless aluminium on site so there are no joints to fail, and we pitch and place downspouts so water lands away from the foundation instead of beside it.",
+      "points": [
+        "Seamless, formed on site — no sectional joints",
+        "Guards fitted where trees make them worth it",
+        "Downspouts routed away from the foundation",
+        "Usually a single day"
+      ],
+      "timeline": "1 day"
+    },
+    {
+      "slug": "inspections",
+      "title": "Inspections",
+      "summary": "A free, honest look before you buy, sell, or worry.",
+      "body": "Buying a house, selling one, or just not sure how long you've got? We'll go up, take photographs, and give you a plain-English read on what's up there and roughly how many seasons are left. No charge, and no obligation to hire us.",
+      "points": [
+        "Free, about 30 minutes",
+        "Photographs of everything we find",
+        "A number of seasons, not a sales pitch",
+        "Written summary the same day"
+      ],
+      "timeline": "About 30 minutes"
+    }
+  ],
+
+  "howItWorks": [
+    {
+      "step": "01",
+      "title": "Inspect",
+      "body": "We come out, go up, and photograph what's actually happening. Usually about thirty minutes, and it's free."
+    },
+    {
+      "step": "02",
+      "title": "Quote on the spot",
+      "body": "You get the number before we leave the driveway. Written, itemised, and it doesn't change after we start."
+    },
+    {
+      "step": "03",
+      "title": "Fixed price, no surprises",
+      "body": "If we open the roof and find rot, we show you and it's already in the quote. Nothing gets added mid-job."
+    }
+  ],
+
+  "serviceArea": {
+    "heading": "Where we work",
+    "body": "Eaton and Ingham counties, and a little past the edges when it makes sense. If you're not sure, call — we'll tell you straight whether we can get to you.",
+    "counties": [
+      {
+        "name": "Eaton County",
+        "towns": ["Grand Ledge", "Charlotte", "Eaton Rapids", "Potterville", "Dimondale", "Olivet", "Bellevue"]
+      },
+      {
+        "name": "Ingham County",
+        "towns": ["Lansing", "East Lansing", "Okemos", "Holt", "Mason", "Williamston", "Haslett", "Leslie"]
+      }
+    ]
+  },
+
+  "about": {
+    "heading": "Three trucks, eleven years, one county line either side of home.",
+    "body": [
+      "Ridgeline started in 2015 with one truck and a ladder rack that didn't quite fit it. We still work the same way: the person who quotes your roof is on the roof when it gets done.",
+      "We stay deliberately small. Three crews means we can promise a same-week inspection and actually keep it, and it means nobody is subcontracting your house out to a crew we've never met.",
+      "We're licensed and insured, we pull permits, and we clean up. That shouldn't be a selling point, but here we are."
+    ],
+    "stats": [
+      { "value": "2015", "label": "Working in Eaton County since" },
+      { "value": "3", "label": "Crews, all in-house" },
+      { "value": "48hr", "label": "Typical inspection turnaround" }
+    ]
+  },
+
+  "financing": {
+    "heading": "Paying for a roof",
+    "intro": "A roof is rarely a purchase anyone planned. Here is how people usually handle it — no offers, no rates, just the options.",
+    "options": [
+      {
+        "title": "Insurance",
+        "body": "If the damage is storm-related, this is usually the first call. We document the damage properly and we'll meet your adjuster on site. We don't file the claim for you and we won't tell you a claim exists when it doesn't."
+      },
+      {
+        "title": "Payment plans",
+        "body": "We can split a replacement across the job — a deposit, a payment at tear-off, and the balance on completion. No interest, because it isn't a loan, it's just the invoice in pieces."
+      },
+      {
+        "title": "Third-party lenders",
+        "body": "Plenty of homeowners use a home-improvement loan or a HELOC. We're not a lender and we don't take a commission for pointing you at one, so ask your bank first — they'll usually beat anything arranged through a contractor."
+      },
+      {
+        "title": "Repair now, replace later",
+        "body": "Sometimes the right answer is a proper repair that buys three or four seasons while you plan the replacement. We'll tell you when that's the honest option."
+      }
+    ]
+  }
+}

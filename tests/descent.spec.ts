@@ -86,23 +86,8 @@ async function inkRects(page: Page, floorIndex: number) {
 }
 
 test.describe('the descent', () => {
-  test('the wheel advances exactly one floor per gesture, 01 to 07', async ({ page }) => {
-    await ready(page);
-    expect(await readout(page)).toBe('01 · ' + FLOORS[0]);
-    const oneScreen = await page.evaluate(() =>
-      [...document.querySelectorAll('[data-floor]')].slice(0, 6)
-        .every((s) => s.getBoundingClientRect().height <= window.innerHeight + 8));
-
-    for (let i = 1; i < FLOORS.length; i++) {
-      const gestures = await gestureUntilChange(page, () => page.mouse.wheel(0, 400));
-      expect(gestures, `wheel should reach floor ${i + 1}`).toBeGreaterThan(0);
-      // Where a floor really is one screen, it must cost exactly one gesture.
-      if (oneScreen && i < 6) expect(gestures).toBe(1);
-      expect(await readout(page)).toBe(`0${i + 1} · ${FLOORS[i]}`);
-    }
-    // And it stops at the bottom rather than wrapping.
-    expect(await gestureUntilChange(page, () => page.mouse.wheel(0, 400), 3)).toBe(0);
-  });
+  // Wheel behaviour moved to snap.spec.ts: it is CSS scroll-snap now, which
+  // headless Chromium does not run, so it can only be asserted in real Chrome.
 
   test('the keyboard advances floors and Space walks down', async ({ page }) => {
     await ready(page);
@@ -150,8 +135,7 @@ test.describe('the descent', () => {
     await ready(page, '#floor-5');
     expect(await readout(page)).toBe('05 · SUPPORT');
 
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(SETTLE);
+    expect(await gestureUntilChange(page, () => page.keyboard.press('ArrowDown'))).toBeGreaterThan(0);
     expect(new URL(page.url()).hash).toBe('#floor-6');
 
     await page.evaluate(() => { location.hash = '#floor-2'; });

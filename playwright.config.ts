@@ -19,15 +19,27 @@ export default defineConfig({
   },
   projects: [
     {
+      // CSS scroll-snap is compositor-driven: neither headless Chromium nor a
+      // headless channel runs it, so the snap assertions need real headed
+      // Chrome. Everything else stays headless and fast.
+      name: 'snap-chrome',
+      testMatch: /snap\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 },
+             channel: 'chrome', headless: false },
+    },
+    {
       name: 'desktop',
+      testIgnore: /snap\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, reducedMotion: 'no-preference' },
     },
     {
       name: 'mobile',
+      testIgnore: /snap\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, reducedMotion: 'no-preference', hasTouch: true },
     },
     {
       name: 'desktop-reduced',
+      testIgnore: /snap\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' },
     },
   ],

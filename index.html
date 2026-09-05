@@ -69,6 +69,26 @@ a:hover { color:#8CFBFF; }
   .nb-progress { width:96px !important; }
 }
 
+/* The descent snaps in CSS. The JS wheel/touch handlers this replaces handed
+   off between native scroll and a smooth-snap animation at a 48px edge
+   threshold, and trackpad inertia kept firing during the animation, so the two
+   fought each other on any floor taller than the window. The compositor does
+   not have that problem. */
+html { scroll-snap-type: y mandatory; }
+section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* On a short window the floors genuinely did not fit, which is what gave the old
+   JS handoff something to get wrong. Buy the height back from the padding.
+   Anything still taller than the window scrolls natively and snaps at its edge —
+   the snap engine, unlike the old handler, does not fight inertia. */
+@media (max-height: 780px) {
+  section[data-floor] { padding-top: 64px !important; padding-bottom: 64px !important; }
+  section[data-floor="2"] { padding-bottom: 128px !important; }
+  section[data-floor="6"] { padding-bottom: 128px !important; }
+  section[data-floor="7"] { padding-bottom: 120px !important; }
+}
+
 /* Floor 02 case rail */
 .nb-case { transition:transform .35s cubic-bezier(0.16,1,0.3,1), border-color .25s ease, box-shadow .25s ease; transform-style:preserve-3d; }
 .nb-case:hover { border-color:rgba(0,240,255,0.55); box-shadow:0 12px 40px -8px rgba(0,240,255,0.15), 0 0 26px rgba(0,240,255,0.15); }
@@ -80,7 +100,10 @@ a:hover { color:#8CFBFF; }
 </style>
 </helmet>
 
-<div style="position:relative; background:#060608; color:#E8E8ED; font-family:'Instrument Sans', system-ui, sans-serif; overflow-x:hidden">
+<!-- clip, not hidden: overflow-x:hidden computes overflow-y to auto, which made
+     this wrapper the sections' scroll container and silently swallowed the
+     scroll-snap-type set on <html>. clip does not create a scroll container. -->
+<div style="position:relative; background:#060608; color:#E8E8ED; font-family:'Instrument Sans', system-ui, sans-serif; overflow-x:clip">
 
 <canvas ref="{{ spineRef }}" style="position:fixed; inset:0; width:100%; height:100%; z-index:1; pointer-events:none"></canvas>
 <div style="position:fixed; inset:0; z-index:0; pointer-events:none; background:radial-gradient(60% 50% at 50% 0%, rgba(0,240,255,0.10), transparent 70%), radial-gradient(50% 40% at 50% 100%, rgba(0,240,255,0.06), transparent 70%)"></div>
@@ -164,11 +187,11 @@ a:hover { color:#8CFBFF; }
     </x-import>
   </section>
 
-  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:18px; padding:76px 0 150px">
+  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:76px 0 132px">
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 02 · THE WORK</x-import>
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(28px,3.2vw,46px); line-height:1.02; margin:12px 0 12px">Three we built. Open any of them.</h2>
-      <p style="font-size:16px; line-height:1.6; color:#7A7A8E; max-width:56ch; margin:0; text-wrap:pretty">Real businesses, real numbers. Hover a card to wake the live site inside it, or open it full size.</p>
+      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(28px,3.2vw,46px); line-height:1.02; margin:12px 0 12px">Three concept builds. Open any of them.</h2>
+      <p style="font-size:16px; line-height:1.6; color:#7A7A8E; max-width:56ch; margin:0; text-wrap:pretty">Invented businesses, built end to end to show how we work. No borrowed logos, no numbers we cannot stand behind. Hover a card to wake the live build.</p>
     </div>
 
     <div class="nb-rail">
@@ -200,7 +223,7 @@ a:hover { color:#8CFBFF; }
           <div style="padding:14px 16px 16px">
             <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
               <span style="font-family:'Syne',sans-serif; font-weight:800; font-size:17px; letter-spacing:-0.02em">{{ c.business }}</span>
-              <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E">{{ c.direction }}</span>
+              <span style="flex:none; font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E; border:1px solid rgba(255,255,255,0.10); border-radius:999px; padding:3px 7px">{{ c.direction }} · Concept</span>
             </div>
             <p style="font-size:13.5px; line-height:1.5; color:#7A7A8E; margin:7px 0 10px; text-wrap:pretty">{{ c.result }}</p>
             <div style="font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF; opacity:0.75">{{ c.tech }}</div>
@@ -416,14 +439,6 @@ class Component extends DCLogic {
       return dir > 0 ? r.bottom > window.innerHeight + slack : r.top < -slack;
     };
     this.inField = (t) => !!(t && t.closest && t.closest('input, select, textarea, [contenteditable="true"]'));
-    this.onWheel = (e) => {
-      if (this.inField(e.target)) return;
-      if (Math.abs(e.deltaY) < 12) return;
-      const dir = e.deltaY > 0 ? 1 : -1;
-      if (this.roomLeft(dir)) return;
-      e.preventDefault();
-      this.step(dir);
-    };
     this.onKey = (e) => {
       if (this.inField(e.target)) return;
       const k = e.key;
@@ -436,18 +451,6 @@ class Component extends DCLogic {
       if (this.roomLeft(dir)) window.scrollBy({ top: dir * window.innerHeight * 0.8, behavior: this.scrollMode() });
       else this.step(dir);
     };
-    this.onTouchStart = (e) => { this.touchY = e.touches && e.touches[0] ? e.touches[0].clientY : null; };
-    this.onTouchEnd = (e) => {
-      const start = this.touchY;
-      this.touchY = null;
-      const end = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : null;
-      if (start == null || end == null) return;
-      const dy = start - end;
-      if (Math.abs(dy) < 50) return;
-      const dir = dy > 0 ? 1 : -1;
-      if (this.roomLeft(dir)) return;
-      this.step(dir);
-    };
     this.onHashChange = () => {
       const n = parseInt((location.hash.match(/^#floor-(\d+)$/) || [])[1], 10);
       if (n >= 1 && n <= this.labels.length) this.goTo(n - 1);
@@ -456,10 +459,7 @@ class Component extends DCLogic {
     window.addEventListener('scroll', this.onScroll, { passive: true });
     window.addEventListener('mousemove', this.onMove, { passive: true });
     window.addEventListener('resize', this.onResize);
-    window.addEventListener('wheel', this.onWheel, { passive: false });
     window.addEventListener('keydown', this.onKey);
-    window.addEventListener('touchstart', this.onTouchStart, { passive: true });
-    window.addEventListener('touchend', this.onTouchEnd, { passive: true });
     window.addEventListener('hashchange', this.onHashChange);
     const boot = document.getElementById('nb-boot');
     if (boot) {
@@ -495,10 +495,7 @@ class Component extends DCLogic {
     window.removeEventListener('scroll', this.onScroll);
     window.removeEventListener('mousemove', this.onMove);
     window.removeEventListener('resize', this.onResize);
-    window.removeEventListener('wheel', this.onWheel);
     window.removeEventListener('keydown', this.onKey);
-    window.removeEventListener('touchstart', this.onTouchStart);
-    window.removeEventListener('touchend', this.onTouchEnd);
     window.removeEventListener('hashchange', this.onHashChange);
   }
 
@@ -788,7 +785,7 @@ class Component extends DCLogic {
       result: c.result,
       tech: c.tech,
       domId: 'case-' + c.demo,
-      host: c.demo + '.northbound-dev.com',
+      host: 'northbound-dev.com' + (demos[c.demo] || '/'),
       url: demos[c.demo] || '#',
       live: !!live[c.demo],
       idle: !live[c.demo],
@@ -828,7 +825,7 @@ class Component extends DCLogic {
         boxShadow: '0 24px 60px rgba(0,0,0,0.6)', cursor: 'pointer'
       },
       frameStyle: {
-        position: 'relative', overflow: 'hidden', aspectRatio: '16 / 9',
+        position: 'relative', overflow: 'hidden', aspectRatio: '16 / 7.5',
         borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0A0A0E'
       },
       // The demo is rendered at desktop width and scaled down, so the card shows

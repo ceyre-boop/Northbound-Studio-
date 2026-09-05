@@ -34,29 +34,32 @@ window.NB_CONFIG = {
     halo: '/demos/halo/'
   },
 
-  /* Floor 02 case studies. `demo` keys into DEMOS above; `direction` matches the
-   * Floor 06 card name so the two floors cross-link.
-   * Copy and metrics are placeholders until the Pass 2 builds land. */
+  /* Floor 02 concept builds. `demo` keys into DEMOS above; `direction` matches
+   * the Floor 06 card name so the two floors cross-link.
+   *
+   * These are CONCEPT BUILDS for invented businesses, and the cards say so.
+   * Do not put a result, a metric or a client name here that did not happen —
+   * a fabricated "booked 34 jobs" is the one claim that cannot be defended. */
   CASES: [
     {
       direction: 'Atlas',
       business: 'Ridgeline Roofing',
-      result: 'Booked 34 jobs in the first month.',
-      tech: 'Astro · Sanity · 0.4s LCP',
+      result: 'A trades site built around one job: booking the call.',
+      tech: 'Astro · Sanity · static',
       demo: 'atlas'
     },
     {
       direction: 'Vector',
       business: 'Marrow Coffee',
-      result: 'Online orders tripled after launch.',
-      tech: 'Astro · Stripe · 0.6s LCP',
+      result: 'A small storefront with real checkout, no plugin sprawl.',
+      tech: 'Astro · Stripe · static',
       demo: 'vector'
     },
     {
       direction: 'Halo',
       business: 'Lumen Interiors',
-      result: 'Average session time went from 22s to 1m48s.',
-      tech: 'Next.js · R3F · 1.1s LCP',
+      result: 'A motion-led showcase for work seen best in motion.',
+      tech: 'Next.js · React Three Fiber',
       demo: 'halo'
     }
   ]

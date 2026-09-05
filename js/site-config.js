@@ -45,7 +45,9 @@ window.NB_CONFIG = {
       direction: 'Atlas',
       business: 'Ridgeline Roofing',
       result: 'A trades site built around one job: booking the call.',
-      tech: 'Astro · Sanity · static',
+      // Measured, not claimed: median of three Lighthouse mobile runs against
+      // the deployed URL. Never write a number here that has not been measured.
+      tech: 'Astro · Sanity · 1.2s LCP',
       demo: 'atlas'
     },
     {

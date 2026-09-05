@@ -134,7 +134,7 @@ const base = import.meta.env.BASE_URL;
   .svc__card { background: var(--paper); padding: clamp(1.25rem, 3vw, 1.9rem); text-decoration: none; display: flex; flex-direction: column; gap: 0.5rem; transition: background-color .18s ease; }
   .svc__card:hover { background: #fff; }
   .svc__card p { color: var(--muted); margin: 0; flex: 1; }
-  .svc__more { font-family: var(--display); font-size: 0.76rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange); margin-top: 0.75rem; }
+  .svc__more { font-family: var(--display); font-size: 0.76rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange-text); margin-top: 0.75rem; }
   @media (max-width: 900px) { .svc { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 600px) { .svc { grid-template-columns: 1fr; } }
 
@@ -152,7 +152,7 @@ const base = import.meta.env.BASE_URL;
   .book { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr); gap: clamp(1.75rem, 5vw, 4rem); align-items: start; }
   .book__copy h2 { margin: 0.6rem 0 1rem; }
   .book__or { margin-top: 1.5rem; font-family: var(--display); font-weight: 600; }
-  .book__or a { color: var(--orange); }
+  .book__or a { color: var(--orange-text); }
   .book__form { background: var(--paper-2); padding: clamp(1.25rem, 3.5vw, 2rem); border-radius: var(--r); }
   @media (max-width: 860px) { .book { grid-template-columns: 1fr; } }
 </style>

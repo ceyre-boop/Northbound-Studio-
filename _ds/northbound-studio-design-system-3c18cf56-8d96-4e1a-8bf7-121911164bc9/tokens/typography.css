@@ -3,8 +3,8 @@
    (body & UI), JetBrains Mono (uppercase labels, prices, captions). */
 :root {
   /* ---- Families ---- */
-  --font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* @kind font */
-  --display: "Syne", var(--font); /* @kind font */
+  --font: "Instrument Sans", "Instrument Sans Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* @kind font */
+  --display: "Syne", "Syne Fallback", var(--font); /* @kind font */
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; /* @kind font */
 
   /* Semantic aliases */

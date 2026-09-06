@@ -19,14 +19,52 @@
      js/site-config.js redirects support.js to the vendored copies. -->
 <link rel="preload" as="script" href="vendor/react.production.min.js">
 <link rel="preload" as="script" href="vendor/react-dom.production.min.js">
-<link rel="preload" as="image" href="buddy-awesome.webp" fetchpriority="high">
+<link rel="preload" as="image" href="buddy-awesome.webp" fetchpriority="high"
+      imagesrcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w"
+      imagesizes="(max-width: 860px) 40vw, 560px">
+<!-- The hero headline is the LCP element and it is set in Syne, so the face has
+     to start with the document rather than being discovered three hops later. -->
+<link rel="preload" as="font" type="font/woff2" href="fonts/syne.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans.woff2" crossorigin>
 <link rel="preload" as="script" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/_ds_bundle.js">
-<script src="./js/site-config.js"></script>
-<script src="./support.js"></script>
+<script defer src="./js/site-config.js"></script>
+<script defer src="./support.js"></script>
 <style>
 html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
-#nb-boot { position:fixed; inset:0; z-index:90; background:#060608; display:flex; align-items:center; justify-content:center; gap:12px; transition:opacity .35s cubic-bezier(0.22,1,0.36,1); }
+/* The shell is not a spinner: it is Floor 01, in real HTML, laid out to the
+   same geometry the React render produces. That makes the headline the LCP
+   element and lets it paint on the first frame instead of waiting for React,
+   support.js and an 81KB component bundle to parse. The mounted app then
+   renders identical markup underneath and the shell retires — nothing moves,
+   because nothing needed to move. */
+#nb-boot { position:fixed; inset:0; z-index:90; background:#060608; overflow:hidden; transition:opacity .35s cubic-bezier(0.22,1,0.36,1); }
 #nb-boot.gone { opacity:0; pointer-events:none; }
+#nb-boot .nbb-wrap { max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem); height:100%; box-sizing:border-box;
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; }
+#nb-boot .nbb-eyebrow { font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-size:10px; font-weight:500;
+  letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF; }
+#nb-boot h1 { font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em;
+  font-size:clamp(40px,5vw,74px); line-height:0.98; margin:14px 0 22px; color:#E8E8ED; }
+#nb-boot p { font-family:'Instrument Sans','Instrument Sans Fallback',system-ui,sans-serif; font-size:17px;
+  line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 28px; }
+#nb-boot .nbb-cta { display:flex; gap:12px; flex-wrap:wrap; }
+#nb-boot .nbb-btn { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0.85rem 1.6rem;
+  border-radius:999px; font-family:'Instrument Sans','Instrument Sans Fallback',system-ui,sans-serif; font-size:15px;
+  font-weight:600; background:#00F0FF; color:#04181B; }
+#nb-boot .nbb-btn--ghost { background:transparent; color:#E8E8ED; border:1px solid rgba(255,255,255,0.12); }
+#nb-boot .nbb-mark { position:absolute; top:24px; left:0; right:0; padding:0 clamp(1.25rem,4vw,3rem);
+  display:flex; align-items:center; gap:12px; }
+#nb-boot .nbb-n { width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid;
+  place-items:center; font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; }
+#nb-boot .nbb-sub { font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-size:10px; letter-spacing:0.14em;
+  text-transform:uppercase; color:#7A7A8E; line-height:1.5; }
+#nb-boot .nbb-art { position:relative; display:grid; place-items:center; height:min(60vh,540px); min-width:0; }
+#nb-boot .nbb-art img { position:relative; max-width:100%; max-height:100%; object-fit:contain;
+  filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); }
+#nb-boot .nbb-glow { position:absolute; width:78%; height:60%; border-radius:50%;
+  background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px); }
+@media (max-width:860px) { #nb-boot .nbb-sub { display:none; } }
+@media (prefers-reduced-motion: reduce) { #nb-boot { transition:none; } }
 </style>
 <script>
 /* Failsafe: the shell covers the page, so it must never outlive a boot that
@@ -41,8 +79,28 @@ addEventListener('load', function () {
 </head>
 <body>
 <div id="nb-boot" aria-hidden="true">
-  <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne',system-ui,sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em">N</div>
-  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI &rarr; WORLDWIDE</div>
+  <div class="nbb-mark">
+    <div class="nbb-n">N</div>
+    <div class="nbb-sub">NORTHBOUND STUDIO<br>GRAND LEDGE, MI &rarr; WORLDWIDE</div>
+  </div>
+  <div class="nbb-wrap">
+    <div>
+      <div class="nbb-eyebrow">FLOOR 01 &middot; ARRIVAL</div>
+      <h1>Sites that sell<br>while you<br>sleep.</h1>
+      <p>Design and development for small businesses that want to stand out online. Live in 48 hours. From $1,500. Text us when something breaks.</p>
+      <div class="nbb-cta">
+        <span class="nbb-btn">Start a project</span>
+        <span class="nbb-btn nbb-btn--ghost">See the work &darr;</span>
+      </div>
+    </div>
+    <div class="nbb-art">
+      <div class="nbb-glow"></div>
+      <img src="buddy-awesome.webp"
+           srcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w"
+           sizes="(max-width: 860px) 40vw, 560px"
+           alt="" width="1073" height="1080" fetchpriority="high" decoding="async">
+    </div>
+  </div>
 </div>
 <x-dc>
 <helmet>
@@ -111,7 +169,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
 
 <div style="position:fixed; top:24px; left:0; right:0; z-index:60; display:flex; align-items:flex-start; justify-content:space-between; padding:0 clamp(1.25rem,4vw,3rem); pointer-events:none">
   <div style="display:flex; align-items:center; gap:12px; pointer-events:auto">
-    <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; text-shadow:0 0 18px rgba(0,240,255,0.6)">N</div>
+    <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; text-shadow:0 0 18px rgba(0,240,255,0.6)">N</div>
     <div class="nb-head-sub" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI → WORLDWIDE</div>
   </div>
 
@@ -167,7 +225,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
       <div style="position:absolute; left:-60px; right:-60px; top:-50px; bottom:-40px; pointer-events:none; background:radial-gradient(62% 60% at 32% 48%, rgba(6,6,8,0.94), rgba(6,6,8,0.6) 55%, transparent 80%)"></div>
       <div style="position:relative">
         <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 01 · ARRIVAL</x-import>
-        <h1 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(40px,5vw,74px); line-height:0.98; margin:14px 0 22px">Sites that sell<br>while you<br>sleep.</h1>
+        <h1 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(40px,5vw,74px); line-height:0.98; margin:14px 0 22px;">Sites that sell<br>while you<br>sleep.</h1>
         <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 28px; text-wrap:pretty">Design and development for small businesses that want to stand out online. Live in 48 hours. From $1,500. Text us when something breaks.</p>
         <div style="display:flex; gap:12px; flex-wrap:wrap">
           <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="170px,44px" as="a" href="#floor-7">Start a project</x-import>
@@ -182,7 +240,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="100%,540px" opacity="{{ bracketOpacity }}" style="min-width:0; width:100%">
       <div style="position:relative; width:100%; box-sizing:border-box; height:min(60vh,540px); display:grid; place-items:center">
         <div style="position:absolute; width:78%; height:60%; border-radius:50%; background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px)"></div>
-        <img src="buddy-awesome.webp" alt="BUDDY, unit 04" width="1073" height="1080" fetchpriority="high" decoding="async" style="position:relative; max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); animation:nbFloat 7s ease-in-out infinite">
+        <img src="buddy-awesome.webp" srcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w" sizes="(max-width: 860px) 40vw, 560px" alt="BUDDY, unit 04" width="1073" height="1080" fetchpriority="high" decoding="async" style="position:relative; max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); animation:nbFloat 7s ease-in-out infinite">
       </div>
     </x-import>
   </section>
@@ -190,7 +248,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
   <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:76px 0 132px">
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 02 · THE WORK</x-import>
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(28px,3.2vw,46px); line-height:1.02; margin:12px 0 12px">Three concept builds. Open any of them.</h2>
+      <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(28px,3.2vw,46px); line-height:1.02; margin:12px 0 12px">Three concept builds. Open any of them.</h2>
       <p style="font-size:16px; line-height:1.6; color:#7A7A8E; max-width:56ch; margin:0; text-wrap:pretty">Invented businesses, built end to end to show how we work. No borrowed logos, no numbers we cannot stand behind. Hover a card to wake the live build.</p>
     </div>
 
@@ -222,7 +280,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
           </div>
           <div style="padding:14px 16px 16px">
             <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
-              <span style="font-family:'Syne',sans-serif; font-weight:800; font-size:17px; letter-spacing:-0.02em">{{ c.business }}</span>
+              <span style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; font-size:17px; letter-spacing:-0.02em">{{ c.business }}</span>
               <span style="flex:none; font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E; border:1px solid rgba(255,255,255,0.10); border-radius:999px; padding:3px 7px">{{ c.direction }} · Concept</span>
             </div>
             <p style="font-size:13.5px; line-height:1.5; color:#7A7A8E; margin:7px 0 10px; text-wrap:pretty">{{ c.result }}</p>
@@ -272,7 +330,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
   <section id="floor-4" data-floor="4" data-screen-label="04 Price" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:110px 0 110px">
     <div style="grid-column:2">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 04 · PRICE</x-import>
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 26px">Most agencies charge $5,000+.</h2>
+      <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 26px">Most agencies charge $5,000+.</h2>
       <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px">
         <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Card" hint-size="200px,140px" selected="{{ true }}">
           <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Stat" hint-size="100%,110px" value="$1,500" label="CORE SITE BUILD · UPFRONT"></x-import>
@@ -288,7 +346,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
   <section id="floor-5" data-floor="5" data-screen-label="05 Support" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 05 · SUPPORT</x-import>
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 18px">We don't disappear after launch.</h2>
+      <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 18px">We don't disappear after launch.</h2>
       <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 26px; text-wrap:pretty">Something breaks? Text us. We fix it.</p>
       <div style="display:flex; flex-direction:column; gap:10px; max-width:420px">
         <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="70%,44px" side="in" author="You">our checkout page is down 😳</x-import>
@@ -304,7 +362,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
   <section id="floor-6" data-floor="6" data-screen-label="06 Directions" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:56px 0 200px">
     <div style="text-align:center; margin-bottom:22px">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 06 · DIRECTIONS</x-import>
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:12px 0 0">Pick a starting point. We build from here, not a template.</h2>
+      <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:12px 0 0">Pick a starting point. We build from here, not a template.</h2>
     </div>
     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px">
       <div style="display:flex; flex-direction:column; gap:8px; min-width:0">
@@ -329,7 +387,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     <canvas ref="{{ logoRef }}" style="width:min(460px,66vw); height:min(460px,66vw); display:block"></canvas>
     <div style="text-align:center; max-width:560px">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 07 · ASSEMBLY COMPLETE</x-import>
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(32px,4vw,56px); line-height:1.02; margin:12px 0 16px">Let's build yours.</h2>
+      <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(32px,4vw,56px); line-height:1.02; margin:12px 0 16px">Let's build yours.</h2>
       <p style="font-size:17px; line-height:1.6; color:#7A7A8E; margin:0; text-wrap:pretty">{{ spotsLine }} Tell us what you sell and we'll get back to you within the day.</p>
     </div>
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="min(520px,90vw),420px">

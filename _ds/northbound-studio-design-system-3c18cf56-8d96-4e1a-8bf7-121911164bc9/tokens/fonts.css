@@ -1,4 +1,56 @@
-/* Northbound Studio — webfonts
+/* Northbound Studio — webfonts, self-hosted.
    Syne (display), Instrument Sans (body/UI), JetBrains Mono (labels/code).
-   Sourced from Google Fonts, matching the live site's font stack. */
-@import url("https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+   These were an @import to fonts.googleapis.com, which is the worst shape a
+   font load can take: the browser had to fetch this file, parse it, discover
+   the import, fetch Google's CSS, parse that, and only then fetch the faces —
+   three serial round trips across two third-party origins, all of it blocking
+   the headline. Self-hosted they start with the document.
+
+   All three are variable fonts, so one file covers each weight range. */
+
+@font-face {
+  font-family: 'Syne';
+  src: url('/fonts/syne.woff2') format('woff2-variations');
+  font-weight: 600 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('/fonts/instrument-sans.woff2') format('woff2-variations');
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono.woff2') format('woff2-variations');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Metric-matched fallbacks. Without these the swap from the system font to
+   Syne reflows the hero headline, which is where the site's 0.027 CLS came
+   from. size-adjust makes the fallback occupy the same box, so the swap is
+   invisible and shifts nothing. */
+@font-face {
+  font-family: 'Syne Fallback';
+  src: local('Arial Bold'), local('Helvetica Bold'), local('Arial');
+  size-adjust: 104%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Instrument Sans Fallback';
+  src: local('Helvetica Neue'), local('Arial');
+  size-adjust: 100%;
+  ascent-override: 95%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}

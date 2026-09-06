@@ -28,6 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans.woff2" crossorigin>
 <link rel="preload" as="script" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/_ds_bundle.js">
 <script defer src="./js/site-config.js"></script>
+<script defer src="./js/motion.js"></script>
 <script defer src="./support.js"></script>
 <style>
 html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
@@ -58,8 +59,8 @@ html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
   place-items:center; font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; }
 #nb-boot .nbb-sub { font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-size:10px; letter-spacing:0.14em;
   text-transform:uppercase; color:#7A7A8E; line-height:1.5; }
-#nb-boot .nbb-art { position:relative; display:grid; place-items:center; height:min(60vh,540px); min-width:0; }
-#nb-boot .nbb-art img { position:relative; max-width:100%; max-height:100%; object-fit:contain;
+#nb-boot .nbb-art { position:relative; display:grid; place-items:center; height:min(60vh,540px); min-width:0; overflow:hidden; }
+#nb-boot .nbb-art img { position:relative; display:block; width:100%; height:100%; max-height:min(60vh,540px); object-fit:contain;
   filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); }
 #nb-boot .nbb-glow { position:absolute; width:78%; height:60%; border-radius:50%;
   background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px); }
@@ -116,8 +117,9 @@ html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
 body { font-family:'Instrument Sans', system-ui, sans-serif; }
 a { color:#00F0FF; text-decoration:none; }
 a:hover { color:#8CFBFF; }
-@keyframes nbFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-14px); } }
-@keyframes nbCue { 0% { transform:rotate(45deg) translate(0,0); opacity:.2; } 50% { opacity:.9; } 100% { transform:rotate(45deg) translate(6px,6px); opacity:.2; } }
+/* nbFloat and nbCue used to be @keyframes. They are driven from the render
+   loop now so they share one clock with everything else, and so they stop
+   dead under reduced motion instead of running at a different rate. */
 
 /* On a phone the header row overflowed and pushed the floor arrows off-screen
    entirely, so the descent could not be navigated by hand at all. */
@@ -148,13 +150,14 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
 }
 
 /* Floor 02 case rail */
-.nb-case { transition:transform .35s cubic-bezier(0.16,1,0.3,1), border-color .25s ease, box-shadow .25s ease; transform-style:preserve-3d; }
-.nb-case:hover { border-color:rgba(0,240,255,0.55); box-shadow:0 12px 40px -8px rgba(0,240,255,0.15), 0 0 26px rgba(0,240,255,0.15); }
+.nb-case { transform-style:preserve-3d; will-change:transform; }
+/* edge glow is sprung from the loop via --g, not a hover transition */
+.nb-case { border-color:rgba(255,255,255,calc(0.06 + var(--g,0) * 0.49)); box-shadow:0 calc(var(--g,0) * 12px) calc(var(--g,0) * 40px) -8px rgba(0,240,255,calc(var(--g,0) * 0.15)), 0 0 calc(var(--g,0) * 26px) rgba(0,240,255,calc(var(--g,0) * 0.15)); }
 .nb-case:hover .nb-open { color:#8CFBFF; }
-.nb-case:hover .nb-poster-hint { opacity:1; }
+
 .nb-rail { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
 @media (max-width:900px) { .nb-rail { grid-template-columns:minmax(0,1fr); gap:14px; } }
-@media (prefers-reduced-motion: reduce) { .nb-case { transition:border-color .25s ease, box-shadow .25s ease; } }
+
 </style>
 </helmet>
 
@@ -199,18 +202,18 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
   </sc-if>
   <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
-    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}" data-pose="salute">
+    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}" data-pose="thinking">
+    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}" data-pose="awesome">
   </div>
 </div>
 </sc-if>
 <sc-if value="{{ dockLeft }}" hint-placeholder-val="{{ false }}">
 <div ref="{{ dockRef }}" data-buddy-dock="left" style="position:fixed; left:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-start; gap:12px; max-width:min(520px, 58vw)">
   <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
-    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
-    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}; transition:opacity .45s cubic-bezier(0.22,1,0.36,1)">
+    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}" data-pose="salute">
+    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}" data-pose="thinking">
+    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}" data-pose="awesome">
   </div>
   <sc-if value="{{ showBubble }}" hint-placeholder-val="{{ true }}">
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
@@ -220,7 +223,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
 
 <div style="position:relative; z-index:10; max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem)">
 
-  <section id="floor-1" data-floor="1" data-screen-label="01 Arrival" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+  <section id="floor-1" data-floor="1" data-screen-label="01 Arrival" style="overflow:hidden; box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
     <div style="position:relative">
       <div style="position:absolute; left:-60px; right:-60px; top:-50px; bottom:-40px; pointer-events:none; background:radial-gradient(62% 60% at 32% 48%, rgba(6,6,8,0.94), rgba(6,6,8,0.6) 55%, transparent 80%)"></div>
       <div style="position:relative">
@@ -232,20 +235,20 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
           <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="150px,44px" variant="ghost" as="a" href="#floor-2">See the work ↓</x-import>
         </div>
         <div style="margin-top:34px; display:flex; align-items:center; gap:12px">
-          <div style="width:8px; height:8px; border-right:1px solid #00F0FF; border-bottom:1px solid #00F0FF; transform:rotate(45deg); animation:nbCue 1.8s ease-in-out infinite"></div>
+          <div style="width:8px; height:8px; border-right:1px solid #00F0FF; border-bottom:1px solid #00F0FF; transform:rotate(45deg);" ref="{{ cueRef }}"></div>
           <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px" tone="dim">Scroll ↓</x-import>
         </div>
       </div>
     </div>
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.HudFrame" hint-size="100%,540px" opacity="{{ bracketOpacity }}" style="min-width:0; width:100%">
-      <div style="position:relative; width:100%; box-sizing:border-box; height:min(60vh,540px); display:grid; place-items:center">
+      <div style="position:relative; width:100%; box-sizing:border-box; height:min(60vh,540px); max-height:100%; overflow:hidden; display:grid; place-items:center">
         <div style="position:absolute; width:78%; height:60%; border-radius:50%; background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px)"></div>
-        <img src="buddy-awesome.webp" srcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w" sizes="(max-width: 860px) 40vw, 560px" alt="BUDDY, unit 04" width="1073" height="1080" fetchpriority="high" decoding="async" style="position:relative; max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); animation:nbFloat 7s ease-in-out infinite">
+        <img ref="{{ heroArtRef }}" src="buddy-awesome.webp" srcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w" sizes="(max-width: 860px) 40vw, 560px" alt="BUDDY, unit 04" width="1073" height="1080" fetchpriority="high" decoding="async" style="position:relative; display:block; width:100%; height:100%; max-height:min(60vh,540px); object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28));">
       </div>
     </x-import>
   </section>
 
-  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:76px 0 132px">
+  <section id="floor-2" data-floor="2" data-screen-label="02 The Work" style="overflow:hidden; box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:76px 0 132px">
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 02 · THE WORK</x-import>
       <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(28px,3.2vw,46px); line-height:1.02; margin:12px 0 12px">Three concept builds. Open any of them.</h2>
@@ -274,7 +277,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
                   <div style="height:44px; flex:1; border-radius:8px; background:rgba(255,255,255,0.05)"></div>
                   <div style="height:44px; flex:1; border-radius:8px; background:rgba(255,255,255,0.05)"></div>
                 </div>
-                <div class="nb-poster-hint" style="margin-top:auto; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E; opacity:0.7; transition:opacity .25s ease">Hover to load preview</div>
+                <div class="nb-poster-hint" style="margin-top:auto; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:#4A4A5E; opacity:calc(0.7 + var(--g,0) * 0.3)">Hover to load preview</div>
               </div>
             </sc-if>
           </div>
@@ -298,7 +301,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     </div>
   </section>
 
-  <section id="floor-3" data-floor="3" data-screen-label="03 Speed" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+  <section id="floor-3" data-floor="3" data-screen-label="03 Speed" style="overflow:hidden; box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 03 · SPEED</x-import>
       <div style="margin:20px 0 0">
@@ -327,7 +330,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     </div>
   </section>
 
-  <section id="floor-4" data-floor="4" data-screen-label="04 Price" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:110px 0 110px">
+  <section id="floor-4" data-floor="4" data-screen-label="04 Price" style="overflow:hidden; box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:110px 0 110px">
     <div style="grid-column:2">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 04 · PRICE</x-import>
       <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 26px">Most agencies charge $5,000+.</h2>
@@ -343,7 +346,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     </div>
   </section>
 
-  <section id="floor-5" data-floor="5" data-screen-label="05 Support" style="box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+  <section id="floor-5" data-floor="5" data-screen-label="05 Support" style="overflow:hidden; box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
     <div>
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 05 · SUPPORT</x-import>
       <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:14px 0 18px">We don't disappear after launch.</h2>
@@ -359,7 +362,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     </div>
   </section>
 
-  <section id="floor-6" data-floor="6" data-screen-label="06 Directions" style="box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:56px 0 200px">
+  <section id="floor-6" data-floor="6" data-screen-label="06 Directions" style="overflow:hidden; box-sizing:border-box; min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:56px 0 200px">
     <div style="text-align:center; margin-bottom:22px">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 06 · DIRECTIONS</x-import>
       <h2 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(30px,3.4vw,50px); line-height:1.02; margin:12px 0 0">Pick a starting point. We build from here, not a template.</h2>
@@ -383,7 +386,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     </div>
   </section>
 
-  <section id="floor-7" data-floor="7" data-screen-label="07 Assembly" style="box-sizing:border-box; min-height:110vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:30px; padding:120px 0 210px">
+  <section id="floor-7" data-floor="7" data-screen-label="07 Assembly" style="overflow:hidden; box-sizing:border-box; min-height:110vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:30px; padding:120px 0 210px">
     <canvas ref="{{ logoRef }}" style="width:min(460px,66vw); height:min(460px,66vw); display:block"></canvas>
     <div style="text-align:center; max-width:560px">
       <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Eyebrow" hint-size="auto,18px">FLOOR 07 · ASSEMBLY COMPLETE</x-import>
@@ -533,6 +536,10 @@ class Component extends DCLogic {
     this.t0 = performance.now();
     this.tick = (now) => {
       const t = (now - this.t0) / 1000;
+      const dt = this.last ? (now - this.last) / 1000 : 1 / 60;
+      this.last = now;
+      const M = window.NB_MOTION;
+      if (M) { M.step(dt, now); this.driveMotion(t, M); }
       this.drawSpine(t);
       this.drawLogo(t);
       this.drawWave(t);
@@ -555,6 +562,47 @@ class Component extends DCLogic {
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('keydown', this.onKey);
     window.removeEventListener('hashchange', this.onHashChange);
+  }
+
+  // What used to be @keyframes nbFloat / nbCue, plus every hover transition on
+  // the case rail — all on one clock, all stopped dead by reduced motion.
+  driveMotion(t, M) {
+    const still = M.reduced;
+
+    if (this.heroArt) {
+      const y = still ? 0 : Math.sin(t * (Math.PI * 2) / 7) * 14;
+      this.heroArt.style.transform = 'translate3d(0,' + y.toFixed(2) + 'px,0)';
+    }
+
+    if (this.cue) {
+      const u = still ? 0 : (Math.sin(t * 3.5) * 0.5 + 0.5);
+      this.cue.style.transform = 'rotate(45deg) translate(' + (u * 6).toFixed(2) + 'px,' + (u * 6).toFixed(2) + 'px)';
+      this.cue.style.opacity = (0.2 + u * 0.7).toFixed(3);
+    }
+
+    const cards = document.querySelectorAll('.nb-case');
+    for (let i = 0; i < cards.length; i++) {
+      const el = cards[i];
+      const id = el.id || ('case' + i);
+      // Stiff and lightly damped on purpose: the overshoot is the point.
+      const rx = M.spring(id + ':rx', this.tiltTargets?.[id]?.rx || 0, 210, 16);
+      const ry = M.spring(id + ':ry', this.tiltTargets?.[id]?.ry || 0, 210, 16);
+      const g = M.spring(id + ':g', this.tiltTargets?.[id]?.g || 0, 190, 24);
+      el.style.transform = (rx || ry)
+        ? 'perspective(900px) rotateY(' + ry.toFixed(3) + 'deg) rotateX(' + rx.toFixed(3) + 'deg)'
+        : '';
+      el.style.setProperty('--g', g.toFixed(4));
+    }
+
+    if (this.dock) {
+      const f = this.state.floor;
+      const want = { salute: [0, 4].indexOf(f) >= 0 ? 1 : 0, thinking: [1, 3, 5].indexOf(f) >= 0 ? 1 : 0, awesome: [2, 6].indexOf(f) >= 0 ? 1 : 0 };
+      const imgs = this.dock.querySelectorAll('img[data-pose]');
+      for (let i = 0; i < imgs.length; i++) {
+        const k = imgs[i].getAttribute('data-pose');
+        imgs[i].style.opacity = M.spring('pose:' + k, want[k] || 0, 120, 26).toFixed(3);
+      }
+    }
   }
 
   // Every element on the active floor that puts ink on the page and must stay
@@ -847,7 +895,13 @@ class Component extends DCLogic {
       url: demos[c.demo] || '#',
       live: !!live[c.demo],
       idle: !live[c.demo],
-      onEnter: () => {
+      onEnter: (e) => {
+        const el = e && e.currentTarget;
+        if (el && el.id) {
+          this.tiltTargets = this.tiltTargets || {};
+          const cur = this.tiltTargets[el.id] || { rx: 0, ry: 0 };
+          this.tiltTargets[el.id] = { rx: cur.rx, ry: cur.ry, g: 1 };
+        }
         if (this.state.live && this.state.live[c.demo]) return;
         this.setState((st) => {
           const next = {};
@@ -858,14 +912,20 @@ class Component extends DCLogic {
       },
       // Written straight to the node: a setState per mousemove would re-render
       // the whole descent 60 times a second.
+      // Handlers only set targets now. The loop integrates and writes, so a
+      // fast pointer cannot outrun the frame budget.
       onMove: still ? null : (e) => {
         const el = e.currentTarget;
         const r = el.getBoundingClientRect();
         const px = (e.clientX - r.left) / r.width - 0.5;
         const py = (e.clientY - r.top) / r.height - 0.5;
-        el.style.transform = 'perspective(900px) rotateY(' + (px * 2 * this.TILT).toFixed(2) + 'deg) rotateX(' + (-py * 2 * this.TILT).toFixed(2) + 'deg)';
+        this.tiltTargets = this.tiltTargets || {};
+        this.tiltTargets[el.id] = { rx: -py * 2 * this.TILT, ry: px * 2 * this.TILT, g: 1 };
       },
-      onLeave: (e) => { e.currentTarget.style.transform = ''; }
+      onLeave: (e) => {
+        this.tiltTargets = this.tiltTargets || {};
+        this.tiltTargets[e.currentTarget.id] = { rx: 0, ry: 0, g: 0 };
+      }
     }));
   }
 
@@ -907,6 +967,8 @@ class Component extends DCLogic {
       waveRef: (el) => { this.wave = el; },
       progressRef: (el) => { this.progress = el; },
       dockRef: (el) => { this.dock = el; },
+      cueRef: (el) => { this.cue = el; },
+      heroArtRef: (el) => { this.heroArt = el; },
       hasPerf: this.loadSeconds() != null,
       spotsLine: this.spotsLine(),
       selfNumRef: (el) => { this.self1 = el; },

@@ -166,3 +166,11 @@
 #nb-hud-render { min-width: 6ch; }
 #nb-hud-loaded { min-width: 6ch; }
 #nb-hud-floor  { min-width: 2ch; }
+
+/* Below 640px the HUD is 260px of telemetry competing with the floor nav for a
+   390px header, and the nav loses — the "»" arrow ended up outside the
+   viewport and unclickable, the same failure the header hit in Pass 1. The
+   readouts are a desktop affordance; navigation is not. */
+@media (max-width: 640px) {
+  .nb-hud { display: none; }
+}

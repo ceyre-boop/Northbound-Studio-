@@ -605,7 +605,7 @@ class Component extends DCLogic {
 
     safe('interact', () => {
       window.NB_INTERACT && window.NB_INTERACT.init({
-        magnetic: '[data-nav], .nb-open, a[href^="#floor"]'
+        magnetic: '.nb-open, a[href^="#floor"]'
       });
     });
 

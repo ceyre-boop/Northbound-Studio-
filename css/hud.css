@@ -155,3 +155,14 @@
     animation: none !important;
   }
 }
+
+/* The RENDER value changes every quarter second and its width changed with it,
+   which the CLS gate caught as a real shift. Tabular numerals keep the digits
+   equal; this keeps the box equal too. */
+/* Every live value changes width as it updates, and each change is a real
+   layout shift the gate catches. Reserving the widest plausible box for all
+   four means the HUD can tick without ever moving anything. */
+.nb-hud__value { display: inline-block; text-align: right; }
+#nb-hud-render { min-width: 6ch; }
+#nb-hud-loaded { min-width: 6ch; }
+#nb-hud-floor  { min-width: 2ch; }

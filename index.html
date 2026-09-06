@@ -24,6 +24,11 @@
      to start with the document rather than being discovered three hops later. -->
 <script defer src="./js/site-config.js"></script>
 <script defer src="./js/motion.js"></script>
+<script defer src="./js/field.js"></script>
+<script defer src="./js/ripple.js"></script>
+<script defer src="./js/interact.js"></script>
+<script defer src="./js/hud.js"></script>
+<link rel="stylesheet" href="./css/hud.css">
 <script defer src="./support.js"></script>
 <style>
 html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
@@ -164,9 +169,12 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
 <div style="position:fixed; inset:0; z-index:70; pointer-events:none; opacity:0.035; background:url(data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='4'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url%28%23n%29'/%3E%3C/svg%3E)"></div>
 
 <div style="position:fixed; top:24px; left:0; right:0; z-index:60; display:flex; align-items:flex-start; justify-content:space-between; padding:0 clamp(1.25rem,4vw,3rem); pointer-events:none">
-  <div style="display:flex; align-items:center; gap:12px; pointer-events:auto">
+  <div style="display:flex; flex-direction:column; align-items:flex-start; gap:10px; pointer-events:auto">
+   <div style="display:flex; align-items:center; gap:12px">
     <div style="width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid; place-items:center; font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; text-shadow:0 0 18px rgba(0,240,255,0.6)">N</div>
     <div class="nb-head-sub" style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#7A7A8E; line-height:1.5">NORTHBOUND STUDIO<br>GRAND LEDGE, MI → WORLDWIDE</div>
+   </div>
+   <div data-hud-host></div>
   </div>
 
   <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; pointer-events:auto">
@@ -522,6 +530,10 @@ class Component extends DCLogic {
         setTimeout(() => boot.remove(), 400);
       });
     }
+    // Layers come up only once the hero has painted. Each one is optional by
+    // construction: a missing or failing module leaves the site exactly as it
+    // was rather than taking the page down with it.
+    this.bringUpLayers();
     this.buildLogoPoints();
     this.onResize();
     this.onScroll();
@@ -559,6 +571,60 @@ class Component extends DCLogic {
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('keydown', this.onKey);
     window.removeEventListener('hashchange', this.onHashChange);
+  }
+
+  // A budget probe, not a device sniff: sample the frame loop we are already
+  // running and only light up the GPU field if this machine is comfortably
+  // above the floor with headroom to spare. Re-checked once, late, so a cold
+  // first second does not permanently disqualify a capable device.
+  canAffordField() {
+    const m = window.NB_MOTION;
+    if (!m || m.reduced) return false;
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return false;
+    const dm = navigator.deviceMemory;
+    if (typeof dm === 'number' && dm <= 4) return false;
+    const hc = navigator.hardwareConcurrency;
+    if (typeof hc === 'number' && hc <= 4) return false;
+    return m.fps === 0 || m.fps >= 55;
+  }
+
+  bringUpLayers() {
+    const safe = (name, fn) => { try { fn(); } catch (e) { console.error('layer ' + name, e); } };
+
+    safe('field', () => {
+      if (!window.NB_FIELD || !this.canAffordField()) return;
+      window.NB_FIELD.init({});
+      // The field reads descent position, so it parallaxes with the floors.
+      window.NB_MOTION && window.NB_MOTION.onFrame(() => {
+        if (!window.NB_FIELD.ok) return;
+        const prog = document.documentElement.scrollHeight - window.innerHeight;
+        window.NB_FIELD.setScroll(prog > 0 ? window.scrollY / prog : 0);
+        window.NB_FIELD.setFloor(this.state.floor);
+      });
+    });
+
+    safe('interact', () => {
+      window.NB_INTERACT && window.NB_INTERACT.init({
+        magnetic: '[data-nav], .nb-open, a[href^="#floor"]'
+      });
+    });
+
+    safe('hud', () => {
+      const host = document.querySelector('[data-hud-host]');
+      if (!host || !window.NB_HUD) return;
+      window.NB_HUD.mount({
+        host: host,
+        status: () => this.spotsLine(),
+        floor: () => this.state.floor + 1
+      });
+    });
+
+    safe('ripple', () => {
+      if (!window.NB_RIPPLE) return;
+      document.querySelectorAll('.nb-case .nb-poster, .nb-case [class*="poster"]').forEach((el) => {
+        window.NB_RIPPLE.attach(el, {});
+      });
+    });
   }
 
   // What used to be @keyframes nbFloat / nbCue, plus every hover transition on

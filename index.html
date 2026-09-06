@@ -17,16 +17,11 @@
 <!-- support.js only discovers React after it parses, which serialised the
      fetches behind it and pushed LCP past 4.5s. These start with the document;
      js/site-config.js redirects support.js to the vendored copies. -->
-<link rel="preload" as="script" href="vendor/react.production.min.js">
-<link rel="preload" as="script" href="vendor/react-dom.production.min.js">
 <link rel="preload" as="image" href="buddy-awesome.webp" fetchpriority="high"
       imagesrcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w"
       imagesizes="(max-width: 860px) 40vw, 560px">
 <!-- The hero headline is the LCP element and it is set in Syne, so the face has
      to start with the document rather than being discovered three hops later. -->
-<link rel="preload" as="font" type="font/woff2" href="fonts/syne.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans.woff2" crossorigin>
-<link rel="preload" as="script" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/_ds_bundle.js">
 <script defer src="./js/site-config.js"></script>
 <script defer src="./js/motion.js"></script>
 <script defer src="./support.js"></script>
@@ -41,7 +36,7 @@ html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
 #nb-boot { position:fixed; inset:0; z-index:90; background:#060608; overflow:hidden; transition:opacity .35s cubic-bezier(0.22,1,0.36,1); }
 #nb-boot.gone { opacity:0; pointer-events:none; }
 #nb-boot .nbb-wrap { max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem); height:100%; box-sizing:border-box;
-  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; }
+  display:grid; grid-template-columns:minmax(0,1fr); align-items:center; justify-items:center; gap:60px; }
 #nb-boot .nbb-eyebrow { font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-size:10px; font-weight:500;
   letter-spacing:0.14em; text-transform:uppercase; color:#00F0FF; }
 #nb-boot h1 { font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em;
@@ -71,6 +66,13 @@ html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
 /* Failsafe: the shell covers the page, so it must never outlive a boot that
    fails. The component retires it on mount; this is the backstop. */
 addEventListener('load', function () {
+  // Fonts join after first paint. 94KB of woff2 competing with the LCP image
+  // on a slow link delays app mount, and font-display:optional means a late
+  // face is skipped for this view regardless.
+  var fc = document.createElement('link');
+  fc.rel = 'stylesheet';
+  fc.href = '_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/fonts.css';
+  document.head.appendChild(fc);
   setTimeout(function () {
     var b = document.getElementById('nb-boot');
     if (b) { b.classList.add('gone'); setTimeout(function () { b.remove(); }, 400); }
@@ -85,15 +87,6 @@ addEventListener('load', function () {
     <div class="nbb-sub">NORTHBOUND STUDIO<br>GRAND LEDGE, MI &rarr; WORLDWIDE</div>
   </div>
   <div class="nbb-wrap">
-    <div>
-      <div class="nbb-eyebrow">FLOOR 01 &middot; ARRIVAL</div>
-      <h1>Sites that sell<br>while you<br>sleep.</h1>
-      <p>Design and development for small businesses that want to stand out online. Live in 48 hours. From $1,500. Text us when something breaks.</p>
-      <div class="nbb-cta">
-        <span class="nbb-btn">Start a project</span>
-        <span class="nbb-btn nbb-btn--ghost">See the work &darr;</span>
-      </div>
-    </div>
     <div class="nbb-art">
       <div class="nbb-glow"></div>
       <img src="buddy-awesome.webp"
@@ -105,7 +98,7 @@ addEventListener('load', function () {
 </div>
 <x-dc>
 <helmet>
-<link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/fonts.css">
+
 <link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/colors.css">
 <link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/typography.css">
 <link rel="stylesheet" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/tokens/spacing.css">
@@ -202,18 +195,18 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
   </sc-if>
   <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
-    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}" data-pose="salute">
-    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}" data-pose="thinking">
-    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}" data-pose="awesome">
+    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" loading="lazy" fetchpriority="low" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}" data-pose="salute">
+    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" loading="lazy" fetchpriority="low" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}" data-pose="thinking">
+    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" loading="lazy" fetchpriority="low" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}" data-pose="awesome">
   </div>
 </div>
 </sc-if>
 <sc-if value="{{ dockLeft }}" hint-placeholder-val="{{ false }}">
 <div ref="{{ dockRef }}" data-buddy-dock="left" style="position:fixed; left:clamp(1.25rem,4vw,3rem); bottom:20px; z-index:60; display:flex; align-items:flex-end; justify-content:flex-start; gap:12px; max-width:min(520px, 58vw)">
   <div onClick="{{ toggleBubble }}" style="position:relative; width:76px; height:76px; flex:none; border-radius:16px; border:1px solid rgba(0,240,255,0.30); background:rgba(12,12,16,0.8); backdrop-filter:blur(20px); overflow:hidden; cursor:pointer; box-shadow:0 0 30px rgba(0,240,255,0.16), 0 24px 60px rgba(0,0,0,0.6)">
-    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}" data-pose="salute">
-    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}" data-pose="thinking">
-    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}" data-pose="awesome">
+    <img src="buddy-salute-sm.webp" alt="BUDDY" width="76" height="76" decoding="async" loading="lazy" fetchpriority="low" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseSalute }}" data-pose="salute">
+    <img src="buddy-thinking-sm.webp" alt="" width="76" height="76" decoding="async" loading="lazy" fetchpriority="low" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 12%; opacity:{{ poseThinking }}" data-pose="thinking">
+    <img src="buddy-awesome-sm.webp" alt="" width="76" height="76" decoding="async" loading="lazy" fetchpriority="low" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 16%; opacity:{{ poseAwesome }}" data-pose="awesome">
   </div>
   <sc-if value="{{ showBubble }}" hint-placeholder-val="{{ true }}">
     <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Bubble" hint-size="330px,86px" side="out" author="BUDDY · UNIT 04 · YOUR DEVELOPER" style="{{ bubbleStyle }}">{{ buddyLine }}</x-import>
@@ -266,7 +259,7 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
           </div>
           <div style="{{ frameStyle }}">
             <sc-if value="{{ c.live }}" hint-placeholder-val="{{ false }}">
-              <iframe src="{{ c.url }}" loading="lazy" tabindex="-1" scrolling="no" title="{{ c.business }} — live preview" style="{{ frameIframeStyle }}"></iframe>
+              <iframe data-src="{{ c.url }}" loading="lazy" tabindex="-1" scrolling="no" title="{{ c.business }} — live preview" style="{{ frameIframeStyle }}"></iframe>
             </sc-if>
             <sc-if value="{{ c.idle }}" hint-placeholder-val="{{ true }}">
               <div style="{{ posterStyle }}">
@@ -545,6 +538,10 @@ class Component extends DCLogic {
       this.drawWave(t);
       this.drawSpeed();
       // Never let a measurement fault take the animation loop down with it.
+      if (this.frames % 4 === 0) {
+        const f = document.querySelector('#floor-2 iframe[data-src]');
+        if (f) { const u = f.getAttribute('data-src'); if (u && u.indexOf('{{') < 0) { f.src = u; f.removeAttribute('data-src'); } }
+      }
       if (++this.frames % 8 === 0 && !this.measureOff) {
         try { this.measureBuddy(); } catch (e) { this.measureOff = true; console.error('measureBuddy', e); }
       }
@@ -897,6 +894,11 @@ class Component extends DCLogic {
       idle: !live[c.demo],
       onEnter: (e) => {
         const el = e && e.currentTarget;
+        // Promote data-src to src once, after the template has resolved.
+        if (el) {
+          const f = el.querySelector('iframe[data-src]');
+          if (f) { const u = f.getAttribute('data-src'); if (u && u.indexOf('{{') < 0) { f.src = u; f.removeAttribute('data-src'); } }
+        }
         if (el && el.id) {
           this.tiltTargets = this.tiltTargets || {};
           const cur = this.tiltTargets[el.id] || { rx: 0, ry: 0 };

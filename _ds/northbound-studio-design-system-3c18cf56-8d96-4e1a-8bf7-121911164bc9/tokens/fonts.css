@@ -14,7 +14,7 @@
   src: url('/fonts/syne.woff2') format('woff2-variations');
   font-weight: 600 800;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 @font-face {
@@ -22,7 +22,7 @@
   src: url('/fonts/instrument-sans.woff2') format('woff2-variations');
   font-weight: 400 600;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 @font-face {
@@ -30,7 +30,7 @@
   src: url('/fonts/jetbrains-mono.woff2') format('woff2-variations');
   font-weight: 400 500;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 /* Metric-matched fallbacks. Without these the swap from the system font to

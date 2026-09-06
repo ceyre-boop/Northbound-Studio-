@@ -15,9 +15,32 @@
   'use strict';
 
   var IDLE_MS = 120;      // pause length before input settles into a snap
-  var STIFFNESS = 170;
-  var DAMPING = 26;
+  // Two spring regimes, not one. While the user is actively driving the
+  // offset (wheel/touch still landing within IDLE_MS) the spring is heavier
+  // and overdamped — a flick should glide and decay like it has friction,
+  // never bounce. Once input goes idle and we commit to a floor, the spring
+  // switches to a lighter, slightly underdamped regime so the last stretch
+  // reads as a magnetic pull-in (one soft overshoot) rather than a linear
+  // stop. Both are far from critically-damped-and-done, which is what made
+  // the old single-spring version feel like it "arrived" instead of settled.
+  var FREE_STIFFNESS = 120;
+  var FREE_DAMPING = 30;   // ratio ~1.37 (overdamped) — no bounce while free-scrolling
+  var SNAP_STIFFNESS = 210;
+  var SNAP_DAMPING = 24;   // ratio ~0.83 (underdamped) — one soft overshoot into the floor
+  // A tall floor's middle is not a snap point — only its edges are. Idle
+  // inside a floor taller than the viewport should just settle where the
+  // input left it; only within this many px of an actual floor boundary
+  // does idle commit to the magnetic snap.
+  var SNAP_RADIUS = 140;
   var KEY = 'nb-scroll';
+  var SKEW_KEY = 'nb-scroll-skew';
+  // Velocity (px/s) that maps to the full skew cap. Above this the skew is
+  // clamped rather than growing further — mass has a ceiling, not a dial
+  // that keeps turning with a harder flick.
+  var SKEW_VELOCITY_SPAN = 2600;
+  var SKEW_MAX_DEG = 1.4;      // deliberately small — a suggestion of weight, not a transform party
+  var SKEW_STIFFNESS = 90;
+  var SKEW_DAMPING = 20;       // ratio ~1.05, just past critical — unskews smoothly, never rebounds past 0
   var FORM_SELECTOR = 'input, select, textarea, [contenteditable="true"]';
 
   var api = {
@@ -90,6 +113,7 @@
   function markInput() {
     s.lastInputAt = performance.now();
     s.settled = false;
+    s.snapping = false; // fresh input always reopens the free-scroll regime
   }
 
   function onWheel(e) {
@@ -167,14 +191,38 @@
     if (!s) return;
     try {
       if (!s.settled && now - s.lastInputAt > IDLE_MS) {
-        // Retarget only — the spring keeps its current velocity, so the snap
-        // blends into whatever inertia is already running instead of cutting
-        // it off and starting a fresh, jerky animation.
-        setTarget(s.floorStarts[nearestFloorIndex(s.target)]);
+        var nearest = nearestFloorIndex(s.target);
+        var dist = Math.abs(s.floorStarts[nearest] - s.target);
+        // Only commit to the magnetic snap near an actual floor boundary.
+        // Resting mid-way through a floor taller than the viewport is a
+        // valid, deliberate place to stop — it must not get yanked back to
+        // that floor's top the moment the wheel goes quiet.
+        if (dist > 0 && dist <= SNAP_RADIUS) {
+          // Retarget only — the spring keeps its current velocity, so the
+          // snap blends into whatever inertia is already running instead of
+          // cutting it off and starting a fresh, jerky animation.
+          setTarget(s.floorStarts[nearest]);
+          s.snapping = true;
+        }
         s.settled = true;
       }
-      var value = window.NB_MOTION.spring(KEY, s.target, STIFFNESS, DAMPING);
-      s.container.style.transform = 'translate3d(0,' + (-value) + 'px,0)';
+
+      var k = s.snapping ? SNAP_STIFFNESS : FREE_STIFFNESS;
+      var d = s.snapping ? SNAP_DAMPING : FREE_DAMPING;
+      var value = window.NB_MOTION.spring(KEY, s.target, k, d);
+
+      // Skew rides the scroll spring's own velocity (real px/s from the
+      // integrator, not a re-derived estimate) through a second, heavier
+      // spring so it lags the motion slightly — like the top of the stack
+      // dragging behind the base — then unskews on the same curve as it
+      // settles, rather than snapping to zero.
+      var scrollSpring = window.NB_MOTION.springs.get(KEY);
+      var vel = scrollSpring ? scrollSpring.v : 0;
+      var rawSkew = clamp(vel / SKEW_VELOCITY_SPAN, -1, 1) * SKEW_MAX_DEG;
+      var skew = window.NB_MOTION.spring(SKEW_KEY, rawSkew, SKEW_STIFFNESS, SKEW_DAMPING);
+
+      s.container.style.transform =
+        'translate3d(0,' + (-value) + 'px,0) skewY(' + skew.toFixed(3) + 'deg)';
       api.offset = value;
       api.progress = s.maxOffset > 0 ? clamp(value / s.maxOffset, 0, 1) : 0;
       api.current = computeCurrent(value);
@@ -215,6 +263,7 @@
       maxOffset: 0,
       lastInputAt: 0,
       settled: true,
+      snapping: true,
       lastFloor: 0,
       prevHtmlOverflow: html.style.overflow,
       prevBodyOverflow: body.style.overflow,
@@ -267,8 +316,9 @@
     if (!s) return;
     var idx = clamp(i, 0, s.floorStarts.length - 1);
     setTarget(s.floorStarts[idx]);
-    s.settled = true; // already the snap target, nothing left to idle towards
     markInput();
+    s.settled = true;  // already the snap target, nothing left to idle towards
+    s.snapping = true; // an explicit jump is always a magnetic commit to a floor
   }
 
   window.NB_SCROLL = api;

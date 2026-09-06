@@ -1,178 +1,169 @@
-# Pass 3 — Active Theory–tier motion, inside a hard performance budget
+# northbound-dev.com — the Active Theory build
 
 ## Context
 
-The descent reads as a competent scroll site. It should read as a studio that can
-build things other people cannot — because that claim is the product. Pass 3 buys
-that with motion physics, shader depth and HUD precision, and changes no copy, no
-structure and no conversion flow.
+The generic pass is done and it shows. The site is competent and fast, and it
+reads like a document. It needs to read like a real-time graphics application,
+because the studio's whole claim is that it can build what other people cannot.
 
-The constraint that shapes everything: **two of the three hard budgets are already
-missed today, before any of this work.** Median of three Lighthouse mobile runs
-against `northbound-dev.com`:
+The bar is activetheory.net. I measured it rather than assuming it:
 
-| | today | target |
+| | activetheory.net | northbound-dev.com today |
 |---|---|---|
-| Performance | 96 | ≥ 95 |
-| **LCP** | **2.57s** | **< 1.2s** |
-| **CLS** | **0.027** | **0** |
-| TBT | 59ms | — |
-| JS (gzipped) | 148.2 KB | < 250 KB |
+| LCP | 0.20s | 0.52s (4G) / 1.14s (slow 4G) |
+| CLS | 0.000 | 0.000 |
+| JS | **708 KB** (936 KB total, 18 requests) | 150 KB gzipped |
+| canvases on landing | **0** | 2 |
 
-The cause is architectural, not incidental: the descent is entirely client-rendered,
-so nothing paints until React (46KB) + `support.js` (19KB) + `_ds_bundle.js` (81KB)
-have parsed and run. Every phase below *spends* budget. None of them earn any back.
-So Phase 0 comes first — otherwise Phase 1 ships already in violation and, by the
-brief's own rule, would have to be reverted the moment it lands.
+Two things fall out of that, and both shape this plan.
 
-Byte headroom is 101.8 KB. The plan spends roughly 55 KB of it.
+**The reference does not keep the budget the brief imposes.** Active Theory ship
+nearly 3× the 250 KB cap and still land LCP at 0.20s, because bytes loaded after
+first paint cost nothing on the metrics a user feels. **Decision: the byte cap
+moves to 400 KB gzipped — still well under the reference — and the gates that
+stay hard are the ones that are felt: LCP < 1.2s, CLS 0, 60fps at 4× CPU.**
 
----
-
-## What is already here, and gets reused rather than rebuilt
-
-Pass 1 left most of the machinery this brief asks for:
-
-- **A global rAF loop already exists** (`index.html`, `this.tick`) driving
-  `drawSpine` / `drawLogo` / `drawWave` / `drawSpeed` / `measureBuddy`, with a
-  fault guard that disables a faulting measurement rather than killing the loop.
-  Phase 1 adds the spring integrator to this loop; it does not build a second one.
-- **Live readouts exist**: `loadSeconds()` (real navigation timing), `spotsLine()`
-  (from `js/site-config.js`), `floorReadout`. Phase 3's HUD wires to these — no
-  new sources, nothing hardcoded.
-- **A boot shell exists** (`#nb-boot`) painting the brand before React. Phase 0
-  grows it into a real pre-rendered hero instead of replacing it.
-- **The motion surface is small**: 10 `transition:` declarations and 2 `@keyframes`
-  in the whole file. Phase 1's audit is an afternoon, not a rewrite.
-- Direct-to-node writes are the established pattern here (the Floor 02 tilt, the
-  speed bars) precisely because a `setState` per frame re-renders the descent at
-  60fps. All spring output follows it.
+**Their landing page has no canvas at all.** Their craft is not "put a shader on
+it" — it is orchestration, restraint and timing. A specialist told to bolt on
+GPU effects will produce something louder than the reference and worse. That is
+written into every layer spec below as an explicit failure mode.
 
 ---
 
-## Three places the brief collides with what is on the ground
+## What already exists, and must not be rebuilt
 
-These are handled as described below, not silently reinterpreted:
+Three of the five layers already have their core module, written this session:
 
-1. **"Smooth scroll with inertia between floors"** reopens a bug you diagnosed
-   yourself. Pass 1 removed the JS wheel handler *because* it handed off between
-   native scroll and a snap animation, and trackpad inertia kept firing mid-flight
-   so the two fought. CSS `scroll-snap` replaced it and is what makes the descent
-   land square on every floor today.
-   **Approach:** keep CSS snap as the transport. Get the elevator feel from Phase 4
-   instead — a spring settle/overshoot applied to the floor's *content transform*
-   on arrival, which is the part that reads as physical, without JS re-taking the
-   scroll. If it genuinely is not enough, that is a deliberate second conversation.
+- `js/motion.js` — spring integrator (semi-implicit Euler, fixed 120Hz
+  sub-stepping so feel is frame-rate independent), a registry, cursor position
+  and velocity published as `--cx/--cy/--cv`, `onFrame` subscribers, live FPS.
+  **This is the only render loop.** No specialist may start a second one.
+- `js/scroll.js` — virtual scroll. JS owns scroll completely rather than handing
+  off to native, which is the specific bug that broke the earlier attempt:
+  trackpad inertia kept firing during a JS animation and the two fought. Snapping
+  retargets the same spring rather than starting a second animation, so momentum
+  is pulled toward a floor edge instead of stopped dead.
+- `js/hud.js` + `css/hud.css` — live telemetry block, 8px scale, corner brackets,
+  hairline dividers, tabular numerals. Box is sized from CSS before any value is
+  written, so it cannot shift.
+- `js/field.js` — **designed, not yet written.** Plan mode caught that specialist
+  mid-flight, so it produced a design instead of the file: one fullscreen
+  triangle, uniforms `u_res/u_time/u_cursor/u_scroll/u_floor`, a log-radial depth
+  grid converging on a cursor-driven vanishing point, two-octave value-noise
+  drift, chromatic aberration as a quadratic-in-`p` offset costing three
+  evaluations of one shared brightness function rather than three passes, and an
+  explicit luminance cap so it can never fight text contrast. Layer 1 implements
+  exactly that design rather than starting over.
 
-2. **"Displacement/ripple shader on case-card previews"** cannot be done as
-   written. Those previews are live `<iframe>`s; their pixels are not readable
-   into a WebGL texture at any origin.
-   **Approach:** the shader runs on the card's **poster** — a ripple on hover that
-   dissolves into the iframe once it loads. Identical to the eye, possible in fact.
-
-3. **"Remove every transition on interactive elements"** must spare one: the
-   `#nb-boot` fade. It is the failsafe that stops a failed boot leaving a
-   full-screen shell over the page.
-
----
-
-## Phase 0 — earn the budget back
-
-The prerequisite. No visible motion change; the numbers move instead.
-
-- **Pre-render Floor 01.** The hero's markup is static — headline, lede, both CTAs,
-  trust strip — but today it exists only inside the DC template and cannot paint
-  until the whole runtime boots. Emit it as real HTML inside `#nb-boot` so it is
-  the LCP element and paints on the first frame. The React render then mounts
-  *over* identical markup, so the swap is invisible and shifts nothing.
-- **Kill the 0.027 CLS.** Reserve the boot shell's exact box, and give the fonts a
-  `size-adjust` fallback so the swap does not reflow the headline.
-- Defer `_ds_bundle.js` behind the hero paint; it is 81KB of components none of
-  which the first screen needs.
-
-**Gate:** LCP < 1.2s, CLS 0, perf ≥ 95. If pre-rendering cannot get under 1.2s,
-say so with the number rather than proceeding into a budget that cannot hold.
-
-## Phase 1 — motion physics
-
-- A `spring(current, target, velocity, stiffness, damping)` integrator and a
-  `lerp`, both stepped by the **existing** `tick` with a fixed timestep so
-  behaviour does not change with frame rate.
-- Registry of animated properties written straight to nodes each frame. Nav,
-  cards, Buddy, form, floor content all read from it.
-- Replace the 10 transitions and 2 keyframes (except `#nb-boot`). Hover and press
-  on cards and CTAs get real overshoot — springs, not ease-out.
-- Cursor: global x/y + velocity published as `--cx`, `--cy`, `--cv` on `:root`
-  (written once per frame, not per event) and held for Phase 2's uniform. Cards,
-  borders and Buddy's tilt react to proximity.
-- Floor readout and progress derive from scroll position, which they already do.
-
-**Cost:** ~0 KB. **Gate:** 60fps at 4× CPU throttle; reduced-motion path identical.
-
-## Phase 2 — shader depth
-
-- Full-viewport OGL background: dark grid/noise responding to cursor and scroll.
-  **Loaded after the hero paints**, so it cannot touch LCP. Pauses on
-  `visibilitychange`. No WebGL → the existing CSS radial gradient stays, which is
-  already the fallback the page ships.
-- Film grain + very light chromatic aberration as a post pass **on the canvas
-  only** — texture, not effect.
-- Ripple on the case-card poster (see collision 2 above).
-- **Floor 03 becomes a real instrument**: needle/bar driven by the same
-  `loadSeconds()` the count-up already uses, against the 3.8s agency bar.
-
-**Cost:** ~20 KB (OGL, tree-shaken). **Gate:** the LCP element must not change.
-
-## Phase 3 — HUD precision
-
-- Put the layout on an 8px grid; audit spacing at 390 / 768 / 1280 / 1512.
-- Monospace HUD under the wordmark: `STATUS` ← `spotsLine()`, `LOADED` ←
-  `loadSeconds()`, `RENDER` ← FPS measured in the tick, `FLOOR` ← current floor.
-  All four are live values that already exist. Nothing fake.
-- Corner brackets on cards, crosshair near interactive elements, hairline dividers
-  with metadata tags per floor.
-- Tighter display tracking, `font-variant-numeric: tabular-nums` on every readout,
-  optical alignment on the hero.
-
-**Cost:** ~0 KB. **Watch:** the HUD is new text in the header — it must not become
-the LCP element or reintroduce shift.
-
-## Phase 4 — reactive state
-
-- Hovering a case card shifts the background light source, nudges its neighbours,
-  and changes Buddy's expression — all through the Phase 1 registry.
-- Floor arrival: spring settle/overshoot on the floor content, readout ticks,
-  optional audio cue behind the **existing** sound toggle, default off.
-- Form success/error animate through the same spring system.
-
-**Cost:** GSAP + ScrollTrigger (~35 KB) **only if** the hand-rolled springs prove
-insufficient for the orchestration. Prefer shipping without it.
+Also already true and worth protecting: the descent's hero is pre-rendered into
+the boot shell, fonts are self-hosted with metric fallbacks, and every floor
+carries `overflow:hidden` after a hero image escaped its section and painted 633px
+of robot over Floor 02's headline at 1076×494.
 
 ---
 
-## Files
+## Two corrections to the execution shape
 
-Almost all of this is `index.html` — the descent is one file plus `js/site-config.js`
-and the `_ds` bundle. New: `js/motion.js` (spring integrator, registry, cursor) and
-`js/field.js` (OGL background), both deferred. `js/site-config.js` gains nothing;
-it stays the operator's file.
+**Branch off the tip, not `main`.** `main` is 8 commits behind — it has neither the
+Pass 2 demos nor Phase 0/1. Branching specialists off it would silently revert
+both. First action is to fast-forward `main` to include `pass2-demos` and
+`pass3-motion`, so "off main" means what it should.
 
-The three demos under `demos/` are out of scope and must not regress — Atlas is at
-perf 100 and its numbers are published on Floor 02.
+**Five specialists cannot run at once.** The harness caps concurrent subagents at
+4. That is not a problem, because the merge order 5 → 2 → 1 → 3 → 4 is a genuine
+dependency chain: Layer 2 needs the frame loop Layer 5 protects, Layer 1 needs
+Layer 2's scroll signal, Layers 3 and 4 need both. Specialists are staged in that
+order, two to three in flight at a time.
 
-## Verification, after every phase
+**Ownership is by file, not just by branch.** `index.html` is 1035 lines and is
+the entire site — five branches editing it is a merge failure waiting to happen.
+Each specialist owns its own module files outright; **integration into
+`index.html` is done once, by me, per merge.** Branches stay trivially mergeable.
 
-- Lighthouse mobile ×3 on the **deployed** URL, median recorded: perf ≥ 95, CLS 0,
-  LCP < 1.2s. A phase that breaks the budget gets reverted, and the number is
-  reported either way rather than rounded.
-- FPS sampled in-page at 4× CPU throttle on a 390×844 viewport; 60fps sustained.
-- `prefers-reduced-motion`: all motion off, layout byte-identical. The Pass 1
-  suite (`tests/descent.spec.ts`, `tests/snap.spec.ts`) must stay green — snap
-  assertions run in real headed Chrome because headless does not run the snap
-  engine at all.
-- Real iPhone Safari and low-end Android Chrome pass before a phase is called done.
+---
+
+## The layers
+
+Each specialist receives its layer spec verbatim, the codebase, the existing
+utilities above, and the rule that **copy, structure and conversion flow are
+untouchable**. Definition of done is "indistinguishable in craft from an Active
+Theory production site" — and because that is not self-checkable, each layer also
+carries concrete acceptance criteria.
+
+### Layer 5 — Performance & grace *(merges first, gates everything after)*
+Owns `tests/perf.spec.ts` and the measurement harness. Establishes the before
+numbers, then re-runs after every subsequent merge and holds the veto.
+**Accepts when:** LCP < 1.2s on real 4G throttling, CLS 0, 60fps sustained at 4×
+CPU on 390×844, JS ≤ 400 KB gzipped, and clean fallbacks proven for no-WebGL,
+touch-only, and `prefers-reduced-motion`.
+
+### Layer 2 — Inertial motion *(`js/scroll.js`, `js/motion.js`)*
+Finish and harden what exists: velocity-driven skew on scroll, magnetic CTAs that
+pull toward the cursor within a radius, spring hover/press with real overshoot on
+every interactive element. Remove the last CSS transitions except the boot-shell
+failsafe.
+**Accepts when:** no `transition:` or `@keyframes` remains on any interactive
+element; every motion is spring-driven and frame-rate independent; a 120Hz display
+and a 60Hz phone produce the same settle time.
+
+### Layer 1 — GPU visual depth *(`js/field.js`, shaders)*
+Full-viewport fragment shader field, cursor-lit, scroll-parallaxed, with film
+grain and chromatic aberration under the perceptual threshold. Case-card posters
+displace on hover via shader rather than opacity.
+**Explicit failure mode:** anything that reads as "an effect" is a fail. The
+reference ships no canvas on its landing page; restraint is the craft.
+**Accepts when:** it survives Layer 5's budget, degrades to the existing CSS
+gradient with no WebGL, renders one static frame under reduced motion, and a
+viewer cannot name the effect without being told it is there.
+
+### Layer 3 — Technical precision *(`css/hud.css`, `js/hud.js`)*
+Strict 8px grid at every breakpoint, sub-pixel typography, tabular numerals
+everywhere, corner brackets, crosshairs, hairline dividers with monospace
+metadata. Every readout live: `STATUS` from `spotsLine()`, `LOADED` from real
+navigation timing, `RENDER` from measured FPS, `FLOOR` from scroll position.
+**Accepts when:** a spacing audit at 390/768/1280/1512 finds no off-grid value,
+and no readout anywhere on the site is hardcoded.
+
+### Layer 4 — Reactive state
+Cursor shifts the field's light source; hovering a case card nudges its
+neighbours and changes BUDDY's expression; floor arrival settles with overshoot
+and ticks the readout; form states animate through the same springs. Optional
+spatial audio behind the existing toggle, default off.
+**Accepts when:** one action visibly moves at least three independent elements,
+and the whole system still passes Layer 5.
+
+---
+
+## Verification, at every merge
+
+- Lighthouse mobile ×3 on the deployed URL, median recorded — perf ≥ 95, CLS 0.
+- Real 4G and slow-4G throttling with 4× CPU for LCP; FPS sampled in-page.
+- `prefers-reduced-motion`: all motion off, layout identical.
+- The Pass 1 suite stays green — `tests/descent.spec.ts` and `tests/snap.spec.ts`,
+  the latter in real headed Chrome because headless does not run the snap engine.
+  **Note:** Layer 2 replaces CSS snap with virtual scroll, so `snap.spec.ts` must
+  be rewritten against the new transport, not deleted.
+- Viewport sweep for overflow at 1076×494 and 768×500 — the sizes that caught the
+  hero bug — plus the standard four.
+- A specialist's work that breaks Layer 5 is reverted, and the number is reported
+  rather than rounded.
+
+## Reporting back
+
+Per layer: what shipped, before/after FPS, LCP and bundle size, screenshots of
+the hero and one case card at 100% zoom, and anything cut for budget with the
+reason.
 
 ## Out of scope
 
-Copy, structure, conversion flow. The demos. Vector's Stripe wiring, which is
-still waiting on a `sk_test_` key.
+Copy, structure, conversion flow. The three demos under `demos/` — Atlas is at
+perf 100 and its measured LCP is published on Floor 02. Vector's Stripe wiring,
+still waiting on an `sk_test_` key.
+
+## Known gap this plan does not close
+
+There is no image-generation credential configured, so photographic assets are
+still drawn SVG/CSS placeholders on Atlas and Vector. Layer 1 makes the descent
+itself procedural, which is the right answer for a studio site — but a roofing
+company's site with no photograph of a roof stays a weak sell, and that is a
+decision waiting on you, not a task waiting on me.

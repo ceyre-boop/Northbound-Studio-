@@ -1,0 +1,157 @@
+/* hud.css — 8px spacing scale, HUD instrument panel, technical accent classes.
+   Self-contained: falls back to literal values via var(..., fallback) so this
+   file works even if style.css hasn't loaded yet (fonts especially — the HUD
+   may mount before Syne/Instrument Sans/JetBrains Mono are ready). */
+
+:root {
+  --s1: 8px;
+  --s2: 16px;
+  --s3: 24px;
+  --s4: 32px;
+  --s5: 40px;
+  --s6: 48px;
+  --s7: 56px;
+  --s8: 64px;
+  --s9: 72px;
+  --s10: 80px;
+}
+
+/* --- 8px grid utilities --------------------------------------------------- */
+/* Prefixed .nb- so these never collide with unrelated utility classes. */
+.nb-m1 { margin: var(--s1); } .nb-mt1 { margin-top: var(--s1); } .nb-mb1 { margin-bottom: var(--s1); }
+.nb-m2 { margin: var(--s2); } .nb-mt2 { margin-top: var(--s2); } .nb-mb2 { margin-bottom: var(--s2); }
+.nb-m3 { margin: var(--s3); } .nb-mt3 { margin-top: var(--s3); } .nb-mb3 { margin-bottom: var(--s3); }
+.nb-m4 { margin: var(--s4); } .nb-mt4 { margin-top: var(--s4); } .nb-mb4 { margin-bottom: var(--s4); }
+.nb-p1 { padding: var(--s1); } .nb-pt1 { padding-top: var(--s1); } .nb-pb1 { padding-bottom: var(--s1); }
+.nb-p2 { padding: var(--s2); } .nb-pt2 { padding-top: var(--s2); } .nb-pb2 { padding-bottom: var(--s2); }
+.nb-p3 { padding: var(--s3); } .nb-pt3 { padding-top: var(--s3); } .nb-pb3 { padding-bottom: var(--s3); }
+.nb-p4 { padding: var(--s4); } .nb-pt4 { padding-top: var(--s4); } .nb-pb4 { padding-bottom: var(--s4); }
+.nb-gap1 { gap: var(--s1); }
+.nb-gap2 { gap: var(--s2); }
+.nb-gap3 { gap: var(--s3); }
+
+/* --- HUD block ------------------------------------------------------------
+   Four rows at a fixed line-height, fixed padding, fixed width — the box's
+   footprint is set the instant it's inserted, before any real value lands,
+   so filling in STATUS/LOADED/RENDER/FLOOR text never shifts layout. */
+.nb-hud {
+  --hud-row-h: 20px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 260px;
+  padding: var(--s2, 16px);
+  background: var(--bg-card, #0c0c10);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  font-family: var(--mono, "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: var(--hud-row-h);
+  /* Reserve the exact height for 4 rows + dividers up front. */
+  height: calc(4 * var(--hud-row-h) + 3 * 1px + 2 * 16px);
+  overflow: hidden;
+  position: relative;
+}
+
+.nb-hud__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--hud-row-h);
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+}
+
+.nb-hud__row:last-child { border-bottom: 0; }
+
+.nb-hud__label {
+  color: var(--text-dim, #4a4a5e);
+  white-space: nowrap;
+}
+
+.nb-hud__value {
+  color: var(--accent, #00f0ff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 68%;
+  text-align: right;
+}
+
+/* STATUS is prose, not a live metric — keep it text-colored, cyan is
+   reserved for the values that are actually changing frame to frame. */
+.nb-hud__row:first-child .nb-hud__value {
+  color: var(--text, #e8e8ed);
+}
+
+/* --- technical accent classes --------------------------------------------- */
+
+/* Targeting-reticle corner brackets. Low-alpha cyan, hairline, short arms —
+   reads as an instrument-panel frame rather than a decorative border. */
+.nb-brackets {
+  position: relative;
+}
+.nb-brackets::before,
+.nb-brackets::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  border-color: rgba(0, 240, 255, 0.35);
+  border-style: solid;
+}
+.nb-brackets::before {
+  top: 0;
+  left: 0;
+  border-width: 1px 0 0 1px;
+}
+.nb-brackets::after {
+  bottom: 0;
+  right: 0;
+  border-width: 0 1px 1px 0;
+}
+
+/* Hairline rule with a small mono metadata tag riding on it. Usage:
+   <div class="nb-divider" data-label="02 / 07"></div> */
+.nb-divider {
+  position: relative;
+  height: 1px;
+  background: var(--border, rgba(255, 255, 255, 0.06));
+  margin: var(--s3, 24px) 0;
+}
+.nb-divider::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 50%;
+  right: var(--s1, 8px);
+  transform: translateY(-50%);
+  background: var(--bg, #060608);
+  padding: 0 var(--s1, 8px);
+  font-family: var(--mono, "JetBrains Mono", ui-monospace, monospace);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim, #4a4a5e);
+}
+
+/* Non-jittering digits — pairs with any live numeric readout. */
+.nb-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Tightened display type with optical hanging punctuation, where supported. */
+.nb-display-tight {
+  font-family: var(--display, "Syne", sans-serif);
+  letter-spacing: -0.03em;
+  hanging-punctuation: first allow-end;
+}
+
+/* All motion here is decorative polish, not layout-bearing — disable it
+   outright under reduced motion rather than trying to keep a lesser version. */
+@media (prefers-reduced-motion: reduce) {
+  .nb-hud, .nb-brackets, .nb-divider, .nb-hud__row {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -10,6 +10,16 @@
  * The wrapper is driven by the shared spring in motion.js rather than a
  * second rAF loop, so it inherits the same fixed-timestep integration that
  * keeps every other animation on this site frame-rate independent.
+ *
+ * Contract: sections are `[data-section]` elements (falls back to the
+ * older `[data-floor]` markup if none are found, so this still runs
+ * pre-rebuild). Hardening on top of the original merge: trackpad pinch
+ * (ctrlKey wheel) is let through to the browser instead of hijacked, a
+ * single wheel/touch delta is clamped so one wildly-reported event can't
+ * fling the target several floors at once, elements under
+ * `[data-scroll-ignore]` keep their own internal scroll, and `onProgress`
+ * fires every tick (not just on floor change) so a choreography layer can
+ * scrub effects continuously against the exact offset.
  */
 (function () {
   'use strict';
@@ -42,10 +52,21 @@
   var SKEW_STIFFNESS = 90;
   var SKEW_DAMPING = 20;       // ratio ~1.05, just past critical — unskews smoothly, never rebounds past 0
   var FORM_SELECTOR = 'input, select, textarea, [contenteditable="true"]';
+  // A single wheel/touch sample can arrive with an enormous delta — a
+  // high-resolution mouse wheel or a synthetic test event — and an
+  // unclamped delta turns one tick into a multi-floor jump the spring then
+  // has to fight its way back from. Bounding it per-event keeps the input
+  // mapping sane without touching the spring's own free-scroll feel.
+  var MAX_WHEEL_DELTA = 2400;
+  // Elements that manage their own internal scroll (a code sample, a long
+  // legal block, an embedded demo) opt out with this attribute so this
+  // module never steals their wheel/touch input.
+  var SCROLL_IGNORE_SELECTOR = '[data-scroll-ignore]';
 
   var api = {
     init: init,
     destroy: destroy,
+    remeasure: remeasure,
     scrollToFloor: scrollToFloor,
     current: 0,
     offset: 0,
@@ -60,6 +81,14 @@
   function isFormField(el) {
     while (el && el.nodeType === 1) {
       if (el.matches && el.matches(FORM_SELECTOR)) return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  function isScrollIgnored(el) {
+    while (el && el.nodeType === 1) {
+      if (el.matches && el.matches(SCROLL_IGNORE_SELECTOR)) return true;
       el = el.parentElement;
     }
     return false;
@@ -117,11 +146,16 @@
   }
 
   function onWheel(e) {
-    if (isFormField(e.target)) return;
+    if (isFormField(e.target) || isScrollIgnored(e.target)) return;
+    // A trackpad pinch is delivered as a ctrlKey wheel event in every
+    // browser that implements it. Hijacking it would break page zoom for
+    // exactly the people who rely on it most; let the browser have it.
+    if (e.ctrlKey) return;
     e.preventDefault(); // native scroll is off; there is nothing to defer to
     var d = e.deltaY;
     if (e.deltaMode === 1) d *= 18;             // DOM_DELTA_LINE ~ one text line
     else if (e.deltaMode === 2) d *= window.innerHeight; // DOM_DELTA_PAGE
+    d = clamp(d, -MAX_WHEEL_DELTA, MAX_WHEEL_DELTA);
     setTarget(s.target + d);
     markInput();
   }
@@ -150,7 +184,7 @@
 
   var touch = null;
   function onTouchStart(e) {
-    if (isFormField(e.target)) return;
+    if (isFormField(e.target) || isScrollIgnored(e.target)) return;
     var t = e.touches[0];
     touch = { y: t.clientY, t: performance.now(), v: 0, startTarget: s.target };
   }
@@ -186,6 +220,11 @@
   }
 
   function onResize() { if (s) measure(); }
+
+  // Public escape hatch for callers that mutate section content after init
+  // (an accordion opening, a lazily-loaded demo card growing taller) and
+  // need floor boundaries recomputed without a full destroy/init cycle.
+  function remeasure() { if (s) measure(); }
 
   function tick(dt, now) {
     if (!s) return;
@@ -231,6 +270,12 @@
         s.lastFloor = idx;
         if (typeof s.onFloorChange === 'function') s.onFloorChange(idx);
       }
+      // Fired every tick (not just on floor change) so a choreography layer
+      // can scrub continuous, position-linked effects — a mask wipe that
+      // tracks the exact scroll offset, not just a discrete enter/leave step.
+      if (typeof s.onProgress === 'function') {
+        s.onProgress(api.progress, api.offset, api.current);
+      }
     } catch (err) {
       console.error('scroll tick', err); // never let a throw drop this subscriber
     }
@@ -245,9 +290,12 @@
       return api;
     }
 
+    // [data-section] is the current contract; [data-floor] is kept as a
+    // fallback so this still runs against markup from before the rebuild.
     var sections = opts.sections
       ? (typeof opts.sections === 'string' ? toArray(document.querySelectorAll(opts.sections)) : toArray(opts.sections))
-      : toArray(document.querySelectorAll('[data-floor]'));
+      : toArray(document.querySelectorAll('[data-section]'));
+    if (!sections.length) sections = toArray(document.querySelectorAll('[data-floor]'));
     if (!sections.length) { api.enabled = false; return api; }
 
     var container = opts.container || sections[0].parentElement;
@@ -258,6 +306,7 @@
       container: container,
       sections: sections,
       onFloorChange: opts.onFloorChange,
+      onProgress: opts.onProgress,
       target: 0,
       floorStarts: [],
       maxOffset: 0,

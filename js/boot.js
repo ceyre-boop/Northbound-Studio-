@@ -71,7 +71,7 @@ function bringUp() {
 
   safe('showcase', () => {
     const host = document.getElementById('showcase-host');
-    if (host && window.NB_SHOWCASE) window.NB_SHOWCASE.init({ host });
+    if (host && window.NB_SHOWCASE) window.NB_SHOWCASE.init({ root: host });
   });
 
   safe('choreo', () => {

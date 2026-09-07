@@ -72,7 +72,71 @@
   <section class="hero" data-section="hero" id="hero-host" aria-label="Northbound Studio"></section>
 
   <!-- THE WORK. showcase.js composes three concept builds in place. -->
-  <section class="showcase" data-section="work" id="showcase-host" aria-label="Selected work"></section>
+  <section class="showcase" data-section="work" data-showcase id="showcase-host" aria-labelledby="work-heading">
+    <h2 id="work-heading" class="sr-only">Selected work</h2>
+    <div class="showcase__list">
+    <article class="showcase__case" data-showcase-case="atlas" data-showcase-light="hard" data-section-wipe>
+      <div class="showcase__stage" data-showcase-stage data-showcase-trigger data-cursor="expand">
+        <!-- The poster is a real screenshot of the deployed build, so the
+             shader grazes the actual site rather than an invented texture. -->
+        <img class="showcase__poster" data-showcase-poster
+             src="posters/atlas.webp" alt="The Ridgeline Roofing concept build"
+             width="1280" height="800" loading="lazy" decoding="async">
+        <iframe class="showcase__frame" data-showcase-frame
+                data-src="/demos/atlas" title="Ridgeline Roofing — live preview"
+                loading="lazy" tabindex="-1" scrolling="no"></iframe>
+      </div>
+      <div class="showcase__meta">
+        <p class="showcase__eyebrow" data-reveal="mask-x">Concept build</p>
+        <h3 class="showcase__business" data-reveal="split">Ridgeline Roofing</h3>
+        <p class="showcase__result" data-reveal="rise">A trades site built around one job: booking the call.</p>
+        <p class="showcase__tech" data-reveal="rise">Astro · Sanity</p>
+        <a class="showcase__open" data-showcase-open
+           href="/demos/atlas" target="_blank" rel="noopener">Open live site &nearr;</a>
+      </div>
+    </article>
+    <article class="showcase__case" data-showcase-case="vector" data-showcase-light="soft" data-section-wipe>
+      <div class="showcase__stage" data-showcase-stage data-showcase-trigger data-cursor="expand">
+        <!-- The poster is a real screenshot of the deployed build, so the
+             shader grazes the actual site rather than an invented texture. -->
+        <img class="showcase__poster" data-showcase-poster
+             src="posters/vector.webp" alt="The Marrow Coffee concept build"
+             width="1280" height="800" loading="lazy" decoding="async">
+        <iframe class="showcase__frame" data-showcase-frame
+                data-src="/demos/vector" title="Marrow Coffee — live preview"
+                loading="lazy" tabindex="-1" scrolling="no"></iframe>
+      </div>
+      <div class="showcase__meta">
+        <p class="showcase__eyebrow" data-reveal="mask-x">Concept build</p>
+        <h3 class="showcase__business" data-reveal="split">Marrow Coffee</h3>
+        <p class="showcase__result" data-reveal="rise">A small storefront with real checkout, no plugin sprawl.</p>
+        <p class="showcase__tech" data-reveal="rise">Astro · Stripe</p>
+        <a class="showcase__open" data-showcase-open
+           href="/demos/vector" target="_blank" rel="noopener">Open live site &nearr;</a>
+      </div>
+    </article>
+    <article class="showcase__case" data-showcase-case="halo" data-showcase-light="hairline" data-section-wipe>
+      <div class="showcase__stage" data-showcase-stage data-showcase-trigger data-cursor="expand">
+        <!-- The poster is a real screenshot of the deployed build, so the
+             shader grazes the actual site rather than an invented texture. -->
+        <img class="showcase__poster" data-showcase-poster
+             src="posters/halo.webp" alt="The Lumen Interiors concept build"
+             width="1280" height="800" loading="lazy" decoding="async">
+        <iframe class="showcase__frame" data-showcase-frame
+                data-src="/demos/halo/" title="Lumen Interiors — live preview"
+                loading="lazy" tabindex="-1" scrolling="no"></iframe>
+      </div>
+      <div class="showcase__meta">
+        <p class="showcase__eyebrow" data-reveal="mask-x">Concept build</p>
+        <h3 class="showcase__business" data-reveal="split">Lumen Interiors</h3>
+        <p class="showcase__result" data-reveal="rise">A motion-led showcase for work seen best in motion.</p>
+        <p class="showcase__tech" data-reveal="rise">Next.js · React Three Fiber</p>
+        <a class="showcase__open" data-showcase-open
+           href="/demos/halo/" target="_blank" rel="noopener">Open live site &nearr;</a>
+      </div>
+    </article>
+    </div>
+  </section>
 
   <!-- THE ARGUMENT — speed / price / support as one continuous read. -->
   <section class="argument" data-section="argument" aria-labelledby="argument-heading">

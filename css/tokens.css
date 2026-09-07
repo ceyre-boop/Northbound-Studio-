@@ -1,6 +1,6 @@
 /* ============================================================
-   NORTHBOUND STUDIO — DESIGN TOKENS
-   Identity system: The Needle.
+   NORTHBOUND STUDIO — DESIGN TOKENS  (v2)
+   Identity system: The Fragment — light emerging from true black.
    Single source of truth. Every other stylesheet imports this file
    and consumes tokens by name — never by raw value.
    See brand/README.md for rationale, contrast math, and font licences.
@@ -8,71 +8,65 @@
 
 :root {
   /* ---------------------------------------------------------
-     COLOUR — neutrals (warm ink, not blue-black)
+     COLOUR — ground. True black, not a tinted near-black.
      --------------------------------------------------------- */
-  --color-ink-950: #0b0a0c;   /* page background */
-  --color-ink-900: #131114;   /* raised panels */
-  --color-ink-800: #1c1a1f;   /* cards / surfaces */
-  --color-ink-700: #29262c;   /* borders, dividers */
-  --color-ink-600: #3c3841;   /* hovered borders */
-  --color-ink-500: #58525b;   /* disabled fills, decorative rules */
-
-  --color-paper-100: #f5f1ec; /* rare warm light surface (inverted chips, OG light block) */
-  --color-paper-050: #fbf8f4;
+  --color-void: #000000;      /* page background — the reference bar's ground */
+  --color-black-1: #050506;   /* raised panels — barely lifted off void */
+  --color-black-2: #0c0c0f;   /* cards / surfaces */
+  --color-black-3: #17171b;   /* highest raised surface (modals, popovers) */
+  --color-line-1: rgba(255, 255, 255, 0.08);  /* hairline borders on black */
+  --color-line-2: rgba(255, 255, 255, 0.16);  /* hovered borders */
 
   /* ---------------------------------------------------------
      COLOUR — text
      --------------------------------------------------------- */
-  --color-text-primary: #f2ede6;    /* 16.96:1 on ink-950 — headlines, body on dark */
-  --color-text-secondary: #a39a94;  /* 7.16:1 on ink-950 — supporting copy */
-  --color-text-tertiary: #6b6169;   /* 3.33:1 on ink-950 — DECORATIVE ONLY, large (>=24px) or non-text */
-  --color-text-inverse: #0b0a0c;    /* text set on beacon/paper fills */
+  --color-text-primary: #f1f2f4;    /* 18.75:1 on void — headlines, body */
+  --color-text-secondary: #9a9ba3;  /* 7.59:1 on void — supporting copy */
+  --color-text-tertiary: #64656e;   /* 3.63:1 on void — DECORATIVE / large text only */
+  --color-text-inverse: #050506;    /* text set on Ion fills */
 
   /* ---------------------------------------------------------
-     COLOUR — hues, each with an assigned job (no single accent)
+     COLOUR — the one chromatic idea, expressed as light
+     Ion is the identity's single hue: a cool electric cyan that
+     ONLY ever appears as light — gradients, glows, rim-strokes —
+     never a flat icon fill. Fringe is the interference partner:
+     a violet-magenta that exists ONLY at edges (chromatic
+     aberration where the light meets the void), never a fill,
+     never a button, never body colour. Two flat brand colours
+     was the v1 mistake; this is one hue plus its own refraction.
      --------------------------------------------------------- */
-  /* Beacon — warm signal-orange. The one call-to-action colour: apply, submit, primary buttons. */
-  --color-beacon-500: #ff8a3d;      /* 8.42:1 on ink-950 */
-  --color-beacon-600: #e6752b;      /* 6.53:1 on ink-950 — hover/active */
-  --color-beacon-soft: rgba(255, 138, 61, 0.14);
-  --color-beacon-glow: rgba(255, 138, 61, 0.35);
+  --color-ion-500: #6fe3ff;         /* 14.11:1 on void — interactive/CTA light */
+  --color-ion-600: #35b8de;         /* 9.06:1 on void — hover/pressed */
+  --color-ion-soft: rgba(111, 227, 255, 0.12);
+  --color-ion-glow: rgba(111, 227, 255, 0.35);
 
-  /* Signal — cool sky-blue. Interactive/informational: links, focus rings, in-progress states. */
-  --color-signal-500: #4fa8ff;      /* 7.88:1 on ink-950 */
-  --color-signal-600: #2f8ce0;
-  --color-signal-soft: rgba(79, 168, 255, 0.14);
-  --color-signal-glow: rgba(79, 168, 255, 0.3);
+  --color-fringe-500: #ff7ad1;      /* 8.96:1 on void — EDGE-ONLY, decorative, never text/UI fill */
+  --color-fringe-soft: rgba(255, 122, 209, 0.1);
 
-  /* Drift — violet. The unexpected relationship: rare, used only for delight/easter-eggs/badges,
-     never for anything a user must act on. Never paired 1:1 with Beacon in the same component. */
-  --color-drift-500: #c792ea;       /* 8.21:1 on ink-950 */
-  --color-drift-600: #a86bd1;
-  --color-drift-soft: rgba(199, 146, 234, 0.14);
-  --color-drift-glow: rgba(199, 146, 234, 0.3);
-
-  /* Signal state colours (functional, not brand hues) */
+  /* Functional state colours (not brand hues, used sparingly for status only) */
   --color-success: #4ade80;
   --color-danger: #ff6b6b;
 
   /* ---------------------------------------------------------
-     COLOUR — surfaces made from the above (semantic aliases)
+     COLOUR — semantic surface aliases
      --------------------------------------------------------- */
-  --color-bg-base: var(--color-ink-950);
-  --color-bg-raised: var(--color-ink-900);
-  --color-bg-surface: var(--color-ink-800);
-  --color-bg-scrim: rgba(11, 10, 12, 0.64); /* lay over the GLSL hero so body copy clears AA — see README */
-  --color-border-subtle: var(--color-ink-700);
-  --color-border-strong: var(--color-ink-600);
-  --color-focus-ring: var(--color-signal-500);
+  --color-bg-base: var(--color-void);
+  --color-bg-raised: var(--color-black-1);
+  --color-bg-surface: var(--color-black-2);
+  --color-bg-elevated: var(--color-black-3);
+  --color-bg-scrim: rgba(0, 0, 0, 0.68); /* lay over the GLSL hero so body copy clears AA — see README */
+  --color-border-subtle: var(--color-line-1);
+  --color-border-strong: var(--color-line-2);
+  --color-focus-ring: var(--color-ion-500);
 
   /* ---------------------------------------------------------
      TYPE — families
-     JetBrains Mono (display + mono) / Instrument Sans (text)
-     Self-hosted, SIL OFL 1.1. See brand/README.md § Type sourcing.
+     Instrument Sans (text) stays; display is bespoke SVG lettering,
+     not a live font — see brand/README.md § Type sourcing.
      --------------------------------------------------------- */
   --font-text: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-display: "JetBrains Mono", "Northbound Grid", var(--font-mono);
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: "Northbound Display", var(--font-text); /* bespoke wordmark/headline lettering — SVG, not a webfont file */
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; /* utility only: data, timestamps, code — never display */
 
   --tracking-tight: -0.01em;   /* display headlines */
   --tracking-normal: 0em;
@@ -125,14 +119,13 @@
   --radius-pill: 999px; /* badges, dots, avatar-scale only — not primary buttons */
 
   /* ---------------------------------------------------------
-     ELEVATION — warm-tinted shadows (never pure black) + colour glows
+     ELEVATION — true-black shadows + Ion/Fringe light glows
      --------------------------------------------------------- */
-  --elevation-1: 0 1px 2px rgba(13, 10, 8, 0.4);
-  --elevation-2: 0 8px 24px -8px rgba(13, 10, 8, 0.55);
-  --elevation-3: 0 24px 60px -12px rgba(13, 10, 8, 0.65);
-  --elevation-glow-beacon: 0 0 32px var(--color-beacon-glow);
-  --elevation-glow-signal: 0 0 32px var(--color-signal-glow);
-  --elevation-glow-drift: 0 0 32px var(--color-drift-glow);
+  --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.6);
+  --elevation-2: 0 8px 24px -8px rgba(0, 0, 0, 0.75);
+  --elevation-3: 0 24px 60px -12px rgba(0, 0, 0, 0.85);
+  --elevation-glow-ion: 0 0 32px var(--color-ion-glow);
+  --elevation-glow-fringe: 0 0 24px var(--color-fringe-soft);
 
   /* ---------------------------------------------------------
      MOTION — easing + duration (matches scroll choreography)

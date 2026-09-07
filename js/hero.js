@@ -178,14 +178,15 @@
   var BASE_DESIGN_W = 640, BASE_DESIGN_H = 360; // 16:9, scaled per tier below
   var DESIGN_W = BASE_DESIGN_W, DESIGN_H = BASE_DESIGN_H; // set by startGl() per tier
   var ALPHA_THRESHOLD = 16;                    // 0-255, skip near-transparent px
-  // Per-fragment cap, matches --hero-bg-luminance-ceiling exactly — this is
-  // not a body-copy-only allowance, it is the ceiling. A settled mark this
-  // dense already reads as solid well under it: with this many particles
-  // overlapping along each stroke, "confident and near-solid" comes from
-  // density and point size closing the gaps, not from pushing any single
-  // fragment's luminance past the identity's own rule that colour is light,
-  // not a flat fill. Never raise this — widen coverage instead.
-  var LUMA_CAP = 0.15;
+  // --hero-bg-luminance-ceiling governs the field *behind body copy* — the
+  // identity's own README says to clamp to it "wherever the hero renders text
+  // directly on top of the particle field". This hero renders no text over the
+  // particles: the caption sits below the mark on pure black. Capping the mark
+  // at the background ceiling made the subject dimmer than the static wordmark
+  // it replaced, which inverted the point of the layer. The mark is lit to the
+  // identity's own Ion value; the caption's contrast is untouched because
+  // nothing overlaps it.
+  var LUMA_CAP = 0.62;
   var RISE_PER_SEC = 5.5;                      // energy attack (scroll kick in)
   var DECAY_PER_SEC = 1.8;                     // energy release (settle back)
   var CROSSFADE_MS = 320;

@@ -62,7 +62,9 @@ test.describe('the rebuilt site', () => {
       'A new marketing site', 'An online store',
       'A rebuild of what I have', 'Something with motion or 3D',
     ]);
-    await page.locator('#opt-1').check();
+    // The radio is visually hidden behind a styled pill label — clicking the
+    // label is what a person actually does, so that is what is tested.
+    await page.locator('label[for="opt-1"]').click();
     await expect(page.locator('#opt-1')).toBeChecked();
     await page.locator('#contact-email').fill('someone@example.com');
     await expect(page.locator('#project-submit')).toHaveText(/send project details/i);

@@ -1,0 +1,534 @@
+/* ============================================================
+   NORTHBOUND STUDIO — NARRATIVE LAYOUT
+   The argument (speed / price / support) and the contact finale.
+   Composed against css/tokens.css — every value below is a named
+   token. See layout/COMPOSITION.md for the section-by-section spec
+   and the markup contract this stylesheet expects.
+
+   Mobile-first: base rules target 390px. Breakpoints widen the
+   composition; they never rebuild it as a "squeezed desktop."
+
+   [data-reveal] elements are rendered here in their final, correct,
+   fully-visible position. This file never sets an initial hidden
+   state — that is the motion layer's job, applied additively, so
+   the page is correct with zero JS (CLS 0, no-JS-required layout).
+   ============================================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   THE ARGUMENT — one continuous read, not three boxes
+   ============================================================ */
+
+.argument {
+  position: relative;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gut);
+  padding-block: clamp(4rem, 6vw + 2rem, 7rem);
+
+  /* Mobile: a single stacked column. The thread becomes a border-image
+     rule down the left edge instead of a floating grid line — see below. */
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* spacing between beats is asymmetric and set per-beat, below */
+  border-left: 2px solid transparent;
+  border-image: linear-gradient(
+      to bottom,
+      var(--color-line-2) 0%,
+      var(--color-ion-500) 100%
+    )
+    1 100%;
+}
+
+.argument__thread {
+  /* Desktop-only vertical thread; see the border-image fallback above
+     for < 1024px, where this element is hidden entirely. */
+  display: none;
+}
+
+.beat {
+  max-width: 46ch;
+}
+
+.beat__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--space-4);
+}
+
+/* --- Beat 1: Speed — the shout ------------------------------------- */
+
+.beat--speed {
+  margin-top: var(--space-8);
+}
+
+.beat__figure {
+  margin: 0 0 var(--space-5);
+  line-height: var(--leading-tight);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.beat__figure-num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-6xl);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+  text-shadow: 0 0 48px var(--color-ion-glow);
+}
+
+.beat__figure-unit {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-widest);
+  color: var(--color-ion-500);
+  text-transform: uppercase;
+}
+
+.beat__lede {
+  font-family: var(--font-text);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4);
+}
+
+.beat__body {
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 38ch;
+}
+
+/* --- Beat 2: Price — the comparison is the point -------------------- */
+
+.beat--price {
+  margin-top: var(--space-10);
+}
+
+.beat__compare {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+}
+
+.beat__was {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  color: var(--color-text-tertiary);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-text-tertiary);
+}
+
+.beat__arrow {
+  font-size: var(--text-lg);
+  color: var(--color-text-tertiary);
+}
+
+.beat__now {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-5xl);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+  text-shadow: 0 0 40px var(--color-ion-glow);
+}
+
+/* --- Beat 3: Support — the whisper, and the void beside it ---------- */
+
+.beat--support {
+  margin-top: var(--space-9);
+  max-width: 40ch;
+}
+
+.beat__chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+}
+
+.chat__bubble {
+  font-family: var(--font-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-raised);
+  color: var(--color-text-secondary);
+  max-width: 32ch;
+  margin: 0;
+}
+
+.chat__bubble--you {
+  align-self: flex-start;
+}
+
+.chat__bubble--buddy {
+  align-self: flex-start;
+  border-color: var(--color-line-2);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px var(--color-ion-soft) inset;
+}
+
+/* ============================================================
+   THE FINALE — contact, arrival not a footer
+   ============================================================ */
+
+.finale {
+  position: relative;
+  overflow: clip; /* the decorative glow must never push a scrollbar */
+  padding-block: clamp(5rem, 8vw + 2rem, 9rem);
+  padding-inline: var(--gut);
+}
+
+.finale__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 18% 12%,
+    var(--color-ion-soft) 0%,
+    transparent 55%
+  );
+}
+
+.finale__inner {
+  position: relative;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.finale__intro {
+  max-width: 60ch;
+}
+
+.finale__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--space-4);
+}
+
+.finale__heading {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-6xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-5);
+}
+
+.finale__spots {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--color-ion-500);
+  /* reserve one line so js/site-config.js's spots line fills in with
+     zero layout shift, whether it renders or stays empty */
+  min-height: calc(var(--text-md) * var(--leading-snug));
+  margin: 0 0 var(--space-4);
+}
+
+.finale__body {
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 48ch;
+}
+
+/* --- The form: arrives after the pause, lower and to the side -------- */
+
+.finale__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 42rem;
+}
+
+.finale__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.finale__options-legend {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  width: 100%;
+}
+
+.option {
+  position: relative;
+}
+
+.option__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.option__label {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-sm);
+  line-height: 1;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-raised);
+  cursor: pointer;
+  transition: border-color var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.option__input:checked + .option__label {
+  border-color: var(--color-ion-500);
+  color: var(--color-text-primary);
+  box-shadow: var(--elevation-glow-ion);
+}
+
+.option__input:focus-visible + .option__label {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.finale__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.finale__field-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.finale__field-input {
+  font-family: var(--font-text);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  resize: vertical;
+}
+
+.finale__field-input--area {
+  min-height: 6rem;
+}
+
+.finale__field-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-color: var(--color-ion-500);
+}
+
+.finale__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.finale__submit {
+  font-family: var(--font-text);
+  font-weight: 700;
+  font-size: var(--text-base);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-text-inverse);
+  background: var(--color-ion-500);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: var(--space-4) var(--space-7);
+  cursor: pointer;
+  box-shadow: var(--elevation-glow-ion);
+  transition: background var(--duration-base) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.finale__submit:hover {
+  background: var(--color-ion-600);
+}
+
+.finale__submit:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.finale__status {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-success);
+  margin: 0;
+  /* reserve a line so the success message never shifts the layout in */
+  min-height: calc(var(--text-xs) * var(--leading-snug));
+}
+
+/* ============================================================
+   BREAKPOINTS — the composition widens, it never becomes a
+   squeezed desktop. Each step turns on more of the zig-zag.
+   ============================================================ */
+
+/* Tablet: hint the zig-zag with alternating inline offsets, still
+   single-column, no real grid needed yet. */
+@media (min-width: 48rem) {
+  .beat--speed {
+    margin-right: 12%;
+  }
+  .beat--price {
+    margin-left: 12%;
+    text-align: right;
+  }
+  .beat__compare,
+  .beat__chat {
+    justify-content: flex-end;
+  }
+  .beat--price .beat__was,
+  .beat--price .beat__arrow,
+  .beat--price .beat__now,
+  .beat--price .beat__lede,
+  .beat--price .beat__body {
+    margin-left: auto;
+  }
+  .beat--support {
+    margin-right: 30%;
+  }
+
+  .finale__heading {
+    max-width: 22ch;
+  }
+}
+
+/* Desktop: the real 12-column argument grid and the vertical thread. */
+@media (min-width: 64rem) {
+  .argument {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: var(--space-6);
+    border-left: 0;
+    border-image: none;
+  }
+
+  .argument__thread {
+    display: block;
+    grid-column: 7 / 8;
+    grid-row: 1 / -1;
+    justify-self: start;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      var(--color-line-2) 0%,
+      var(--color-ion-500) 55%,
+      var(--color-ion-glow) 100%
+    );
+  }
+
+  .beat {
+    max-width: none;
+  }
+
+  /* Beat 1 — left of the thread. */
+  .beat--speed {
+    grid-column: 1 / 7;
+    grid-row: 1;
+    margin-top: 0;
+    margin-right: var(--space-8);
+  }
+
+  /* Beat 2 — right of the thread: the zig-zag. */
+  .beat--price {
+    grid-column: 7 / 13;
+    grid-row: 2;
+    margin-top: var(--space-10);
+    margin-left: var(--space-8);
+    text-align: left;
+  }
+  .beat--price .beat__was,
+  .beat--price .beat__arrow,
+  .beat--price .beat__now,
+  .beat--price .beat__lede,
+  .beat--price .beat__body {
+    margin-left: 0;
+  }
+  .beat--price .beat__compare,
+  .beat--price .beat__chat {
+    justify-content: flex-start;
+  }
+
+  /* Beat 3 — settles back left of the thread; the row's right two-thirds
+     are held empty. This is the most aggressive negative space on the
+     argument section — see layout/COMPOSITION.md. */
+  .beat--support {
+    grid-column: 1 / 6;
+    grid-row: 3;
+    margin-top: var(--space-9);
+    margin-right: 0;
+    max-width: none;
+  }
+
+  .finale__inner {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: var(--space-6);
+  }
+
+  .finale__intro {
+    grid-column: 1 / 7;
+    grid-row: 1;
+    max-width: none;
+  }
+
+  /* Shares the same grid row as the intro but is pushed down with a
+     margin — the arrival pause. Never a fixed height, so it degrades
+     gracefully rather than depending on JS or the intro's exact height. */
+  .finale__form {
+    grid-column: 7 / 13;
+    grid-row: 1;
+    margin-top: clamp(6rem, 10vw, 11rem);
+    max-width: none;
+  }
+
+  .finale__heading {
+    max-width: 14ch;
+  }
+}

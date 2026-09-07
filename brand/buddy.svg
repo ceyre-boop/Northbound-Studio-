@@ -1,43 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" role="img" aria-label="Buddy, the Northbound wayfinding beacon">
-  <title>Buddy — the beacon</title>
-  <desc>Buddy is the Needle mark, personified: a small beacon that lives on the site and always points the visitor onward. Vector/procedural, built for animation: halo pulses, antenna wobbles, body bobs, eyes track the cursor, feet kick on scroll.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" role="img" aria-label="Buddy, the Northbound presence">
+  <title>Buddy — a fragment that has come loose</title>
+  <desc>Buddy is not a mascot with a face. He is a small piece of the same light as the mark: a shard with a living core, trailed by drifting particles. Moods are driven by the core's brightness and colour temperature, the shard's tilt, and the length of its trail — never by eyes or a mouth. Layer IDs are built for that: buddy-core (breathing/mood), buddy-fragment (tilt/orientation), buddy-trail (motion state), buddy-glow (ambient halo).</desc>
 
   <defs>
-    <radialGradient id="buddy-body-fill" cx="35%" cy="30%" r="75%">
-      <stop offset="0%" stop-color="var(--color-beacon-500, #ff8a3d)"/>
-      <stop offset="100%" stop-color="var(--color-beacon-600, #e6752b)"/>
+    <radialGradient id="buddy-core-fill" cx="50%" cy="42%" r="60%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="35%" stop-color="var(--color-ion-500, #6fe3ff)"/>
+      <stop offset="100%" stop-color="var(--color-ion-600, #35b8de)" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="buddy-shard-fill" cx="60%" cy="18%" r="90%">
+      <stop offset="0%" stop-color="#0b1013"/>
+      <stop offset="60%" stop-color="#030405"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <linearGradient id="buddy-rim" x1="0%" y1="0%" x2="10%" y2="100%">
+      <stop offset="0%" stop-color="#eafcff"/>
+      <stop offset="45%" stop-color="var(--color-ion-500, #6fe3ff)"/>
+      <stop offset="100%" stop-color="var(--color-ion-600, #35b8de)" stop-opacity="0.1"/>
+    </linearGradient>
+    <filter id="buddy-blur-lg" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <filter id="buddy-blur-sm" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
   </defs>
 
-  <!-- halo: the beacon glow, pulses in motion pass -->
+  <!-- ambient halo: the beacon this creature is a piece of -->
   <g id="buddy-glow">
-    <ellipse cx="100" cy="182" rx="58" ry="14" fill="var(--color-beacon-soft, rgba(255,138,61,0.14))"/>
-    <circle cx="100" cy="112" r="76" fill="var(--color-signal-soft, rgba(79,168,255,0.14))"/>
+    <circle cx="104" cy="118" r="70" fill="var(--color-ion-soft, rgba(111,227,255,0.12))" filter="url(#buddy-blur-lg)"/>
   </g>
 
-  <!-- antenna: a miniature Needle, Buddy's "hat" -->
-  <g id="buddy-antenna">
-    <line x1="100" y1="46" x2="100" y2="14" stroke="var(--color-ink-600, #3c3841)" stroke-width="3" stroke-linecap="round"/>
-    <path d="M100 2 L90 16 L100 30 Z" fill="var(--color-beacon-500, #ff8a3d)"/>
-    <path d="M100 2 L110 16 L100 30 Z" fill="var(--color-signal-500, #4fa8ff)"/>
+  <!-- trail: drifting embers peeling off behind — this is what carries "motion" states -->
+  <g id="buddy-trail">
+    <circle cx="70" cy="176" r="3.5" fill="var(--color-ion-500, #6fe3ff)" opacity="0.5"/>
+    <circle cx="58" cy="192" r="2.2" fill="var(--color-ion-500, #6fe3ff)" opacity="0.32"/>
+    <circle cx="49" cy="206" r="1.3" fill="var(--color-ion-500, #6fe3ff)" opacity="0.18"/>
+    <circle cx="92" cy="182" r="1.6" fill="var(--color-fringe-500, #ff7ad1)" opacity="0.22"/>
   </g>
 
-  <!-- body: single geometric blob, the character's whole silhouette -->
-  <circle id="buddy-body" cx="100" cy="112" r="66" fill="url(#buddy-body-fill)"/>
-
-  <!-- feet: small directional chevrons, kick during walk/hover cycles -->
-  <g id="buddy-feet">
-    <path id="buddy-foot-left" d="M74 172 L58 196 L78 196 L88 176 Z" fill="var(--color-ink-700, #29262c)"/>
-    <path id="buddy-foot-right" d="M126 172 L142 196 L122 196 L112 176 Z" fill="var(--color-ink-700, #29262c)"/>
+  <!-- the fragment: a small, asymmetric shard, mostly void -->
+  <g id="buddy-fragment">
+    <path d="M104 40 L128 78 L110 88 L120 132 L92 168 L74 116 L88 98 L70 74 Z" fill="url(#buddy-shard-fill)"/>
+    <!-- unlit face, barely visible -->
+    <path d="M92 168 L74 116 L88 98 L70 74 L104 40" fill="none" stroke="#1c2226" stroke-width="1.25"/>
+    <!-- lit face -->
+    <path d="M104 40 L128 78 L110 88 L120 132 L92 168" fill="none" stroke="url(#buddy-rim)" stroke-width="2" stroke-linejoin="miter"/>
+    <!-- fringe, single brightest edge only -->
+    <path d="M104 40 L128 78" fill="none" stroke="var(--color-fringe-500, #ff7ad1)" stroke-width="1"
+          opacity="0.4" style="mix-blend-mode: screen" transform="translate(1,0.6)"/>
   </g>
 
-  <!-- face -->
-  <g id="buddy-face">
-    <circle id="buddy-eye-left" cx="78" cy="104" r="7" fill="var(--color-ink-950, #0b0a0c)"/>
-    <circle id="buddy-eye-right" cx="122" cy="104" r="7" fill="var(--color-ink-950, #0b0a0c)"/>
-    <path id="buddy-mouth" d="M82 130 Q100 144 118 130" stroke="var(--color-ink-950, #0b0a0c)" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- core: the "presence" — this is the single element that breathes / shifts mood -->
+  <g id="buddy-core">
+    <circle cx="100" cy="96" r="15" fill="url(#buddy-core-fill)" filter="url(#buddy-blur-sm)"/>
+    <circle cx="100" cy="96" r="4.5" fill="#ffffff"/>
   </g>
-
-  <!-- cheek/rim light: the unexpected cool relationship on a warm body -->
-  <path d="M148 88 A66 66 0 0 1 148 148" stroke="var(--color-signal-500, #4fa8ff)" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.55"/>
 </svg>

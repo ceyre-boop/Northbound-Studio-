@@ -1,175 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 565.00 89.00" role="img" aria-label="Northbound">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 598 100" role="img" aria-label="Northbound">
   <title>Northbound — wordmark</title>
-  <desc>Custom grid-constructed lettering built on a 5x7 module — the same engineered logic as the Needle mark, set in the display role normally reserved for JetBrains Mono.</desc>
-  <g fill="var(--color-text-primary, #f2ede6)">
-    <rect x="12.00" y="12.00" width="8" height="8"/>
-    <rect x="50.00" y="12.00" width="8" height="8"/>
-    <rect x="12.00" y="21.50" width="8" height="8"/>
-    <rect x="21.50" y="21.50" width="8" height="8"/>
-    <rect x="50.00" y="21.50" width="8" height="8"/>
-    <rect x="12.00" y="31.00" width="8" height="8"/>
-    <rect x="31.00" y="31.00" width="8" height="8"/>
-    <rect x="50.00" y="31.00" width="8" height="8"/>
-    <rect x="12.00" y="40.50" width="8" height="8"/>
-    <rect x="31.00" y="40.50" width="8" height="8"/>
-    <rect x="50.00" y="40.50" width="8" height="8"/>
-    <rect x="12.00" y="50.00" width="8" height="8"/>
-    <rect x="31.00" y="50.00" width="8" height="8"/>
-    <rect x="50.00" y="50.00" width="8" height="8"/>
-    <rect x="12.00" y="59.50" width="8" height="8"/>
-    <rect x="40.50" y="59.50" width="8" height="8"/>
-    <rect x="50.00" y="59.50" width="8" height="8"/>
-    <rect x="12.00" y="69.00" width="8" height="8"/>
-    <rect x="50.00" y="69.00" width="8" height="8"/>
-    <rect x="76.50" y="12.00" width="8" height="8"/>
-    <rect x="86.00" y="12.00" width="8" height="8"/>
-    <rect x="95.50" y="12.00" width="8" height="8"/>
-    <rect x="67.00" y="21.50" width="8" height="8"/>
-    <rect x="105.00" y="21.50" width="8" height="8"/>
-    <rect x="67.00" y="31.00" width="8" height="8"/>
-    <rect x="105.00" y="31.00" width="8" height="8"/>
-    <rect x="67.00" y="40.50" width="8" height="8"/>
-    <rect x="105.00" y="40.50" width="8" height="8"/>
-    <rect x="67.00" y="50.00" width="8" height="8"/>
-    <rect x="105.00" y="50.00" width="8" height="8"/>
-    <rect x="67.00" y="59.50" width="8" height="8"/>
-    <rect x="105.00" y="59.50" width="8" height="8"/>
-    <rect x="76.50" y="69.00" width="8" height="8"/>
-    <rect x="86.00" y="69.00" width="8" height="8"/>
-    <rect x="95.50" y="69.00" width="8" height="8"/>
-    <rect x="122.00" y="12.00" width="8" height="8"/>
-    <rect x="131.50" y="12.00" width="8" height="8"/>
-    <rect x="141.00" y="12.00" width="8" height="8"/>
-    <rect x="150.50" y="12.00" width="8" height="8"/>
-    <rect x="122.00" y="21.50" width="8" height="8"/>
-    <rect x="160.00" y="21.50" width="8" height="8"/>
-    <rect x="122.00" y="31.00" width="8" height="8"/>
-    <rect x="160.00" y="31.00" width="8" height="8"/>
-    <rect x="122.00" y="40.50" width="8" height="8"/>
-    <rect x="131.50" y="40.50" width="8" height="8"/>
-    <rect x="141.00" y="40.50" width="8" height="8"/>
-    <rect x="150.50" y="40.50" width="8" height="8"/>
-    <rect x="122.00" y="50.00" width="8" height="8"/>
-    <rect x="141.00" y="50.00" width="8" height="8"/>
-    <rect x="122.00" y="59.50" width="8" height="8"/>
-    <rect x="150.50" y="59.50" width="8" height="8"/>
-    <rect x="122.00" y="69.00" width="8" height="8"/>
-    <rect x="160.00" y="69.00" width="8" height="8"/>
-    <rect x="177.00" y="12.00" width="8" height="8"/>
-    <rect x="186.50" y="12.00" width="8" height="8"/>
-    <rect x="196.00" y="12.00" width="8" height="8"/>
-    <rect x="205.50" y="12.00" width="8" height="8"/>
-    <rect x="215.00" y="12.00" width="8" height="8"/>
-    <rect x="196.00" y="21.50" width="8" height="8"/>
-    <rect x="196.00" y="31.00" width="8" height="8"/>
-    <rect x="196.00" y="40.50" width="8" height="8"/>
-    <rect x="196.00" y="50.00" width="8" height="8"/>
-    <rect x="196.00" y="59.50" width="8" height="8"/>
-    <rect x="196.00" y="69.00" width="8" height="8"/>
-    <rect x="232.00" y="12.00" width="8" height="8"/>
-    <rect x="270.00" y="12.00" width="8" height="8"/>
-    <rect x="232.00" y="21.50" width="8" height="8"/>
-    <rect x="270.00" y="21.50" width="8" height="8"/>
-    <rect x="232.00" y="31.00" width="8" height="8"/>
-    <rect x="270.00" y="31.00" width="8" height="8"/>
-    <rect x="232.00" y="40.50" width="8" height="8"/>
-    <rect x="241.50" y="40.50" width="8" height="8"/>
-    <rect x="251.00" y="40.50" width="8" height="8"/>
-    <rect x="260.50" y="40.50" width="8" height="8"/>
-    <rect x="270.00" y="40.50" width="8" height="8"/>
-    <rect x="232.00" y="50.00" width="8" height="8"/>
-    <rect x="270.00" y="50.00" width="8" height="8"/>
-    <rect x="232.00" y="59.50" width="8" height="8"/>
-    <rect x="270.00" y="59.50" width="8" height="8"/>
-    <rect x="232.00" y="69.00" width="8" height="8"/>
-    <rect x="270.00" y="69.00" width="8" height="8"/>
-    <rect x="287.00" y="12.00" width="8" height="8"/>
-    <rect x="296.50" y="12.00" width="8" height="8"/>
-    <rect x="306.00" y="12.00" width="8" height="8"/>
-    <rect x="315.50" y="12.00" width="8" height="8"/>
-    <rect x="287.00" y="21.50" width="8" height="8"/>
-    <rect x="325.00" y="21.50" width="8" height="8"/>
-    <rect x="287.00" y="31.00" width="8" height="8"/>
-    <rect x="325.00" y="31.00" width="8" height="8"/>
-    <rect x="287.00" y="40.50" width="8" height="8"/>
-    <rect x="296.50" y="40.50" width="8" height="8"/>
-    <rect x="306.00" y="40.50" width="8" height="8"/>
-    <rect x="315.50" y="40.50" width="8" height="8"/>
-    <rect x="287.00" y="50.00" width="8" height="8"/>
-    <rect x="325.00" y="50.00" width="8" height="8"/>
-    <rect x="287.00" y="59.50" width="8" height="8"/>
-    <rect x="325.00" y="59.50" width="8" height="8"/>
-    <rect x="287.00" y="69.00" width="8" height="8"/>
-    <rect x="296.50" y="69.00" width="8" height="8"/>
-    <rect x="306.00" y="69.00" width="8" height="8"/>
-    <rect x="315.50" y="69.00" width="8" height="8"/>
-    <rect x="351.50" y="12.00" width="8" height="8"/>
-    <rect x="361.00" y="12.00" width="8" height="8"/>
-    <rect x="370.50" y="12.00" width="8" height="8"/>
-    <rect x="342.00" y="21.50" width="8" height="8"/>
-    <rect x="380.00" y="21.50" width="8" height="8"/>
-    <rect x="342.00" y="31.00" width="8" height="8"/>
-    <rect x="380.00" y="31.00" width="8" height="8"/>
-    <rect x="342.00" y="40.50" width="8" height="8"/>
-    <rect x="380.00" y="40.50" width="8" height="8"/>
-    <rect x="342.00" y="50.00" width="8" height="8"/>
-    <rect x="380.00" y="50.00" width="8" height="8"/>
-    <rect x="342.00" y="59.50" width="8" height="8"/>
-    <rect x="380.00" y="59.50" width="8" height="8"/>
-    <rect x="351.50" y="69.00" width="8" height="8"/>
-    <rect x="361.00" y="69.00" width="8" height="8"/>
-    <rect x="370.50" y="69.00" width="8" height="8"/>
-    <rect x="397.00" y="12.00" width="8" height="8"/>
-    <rect x="435.00" y="12.00" width="8" height="8"/>
-    <rect x="397.00" y="21.50" width="8" height="8"/>
-    <rect x="435.00" y="21.50" width="8" height="8"/>
-    <rect x="397.00" y="31.00" width="8" height="8"/>
-    <rect x="435.00" y="31.00" width="8" height="8"/>
-    <rect x="397.00" y="40.50" width="8" height="8"/>
-    <rect x="435.00" y="40.50" width="8" height="8"/>
-    <rect x="397.00" y="50.00" width="8" height="8"/>
-    <rect x="435.00" y="50.00" width="8" height="8"/>
-    <rect x="397.00" y="59.50" width="8" height="8"/>
-    <rect x="435.00" y="59.50" width="8" height="8"/>
-    <rect x="406.50" y="69.00" width="8" height="8"/>
-    <rect x="416.00" y="69.00" width="8" height="8"/>
-    <rect x="425.50" y="69.00" width="8" height="8"/>
-    <rect x="452.00" y="12.00" width="8" height="8"/>
-    <rect x="490.00" y="12.00" width="8" height="8"/>
-    <rect x="452.00" y="21.50" width="8" height="8"/>
-    <rect x="461.50" y="21.50" width="8" height="8"/>
-    <rect x="490.00" y="21.50" width="8" height="8"/>
-    <rect x="452.00" y="31.00" width="8" height="8"/>
-    <rect x="471.00" y="31.00" width="8" height="8"/>
-    <rect x="490.00" y="31.00" width="8" height="8"/>
-    <rect x="452.00" y="40.50" width="8" height="8"/>
-    <rect x="471.00" y="40.50" width="8" height="8"/>
-    <rect x="490.00" y="40.50" width="8" height="8"/>
-    <rect x="452.00" y="50.00" width="8" height="8"/>
-    <rect x="471.00" y="50.00" width="8" height="8"/>
-    <rect x="490.00" y="50.00" width="8" height="8"/>
-    <rect x="452.00" y="59.50" width="8" height="8"/>
-    <rect x="480.50" y="59.50" width="8" height="8"/>
-    <rect x="490.00" y="59.50" width="8" height="8"/>
-    <rect x="452.00" y="69.00" width="8" height="8"/>
-    <rect x="490.00" y="69.00" width="8" height="8"/>
-    <rect x="507.00" y="12.00" width="8" height="8"/>
-    <rect x="516.50" y="12.00" width="8" height="8"/>
-    <rect x="526.00" y="12.00" width="8" height="8"/>
-    <rect x="535.50" y="12.00" width="8" height="8"/>
-    <rect x="507.00" y="21.50" width="8" height="8"/>
-    <rect x="545.00" y="21.50" width="8" height="8"/>
-    <rect x="507.00" y="31.00" width="8" height="8"/>
-    <rect x="545.00" y="31.00" width="8" height="8"/>
-    <rect x="507.00" y="40.50" width="8" height="8"/>
-    <rect x="545.00" y="40.50" width="8" height="8"/>
-    <rect x="507.00" y="50.00" width="8" height="8"/>
-    <rect x="545.00" y="50.00" width="8" height="8"/>
-    <rect x="507.00" y="59.50" width="8" height="8"/>
-    <rect x="545.00" y="59.50" width="8" height="8"/>
-    <rect x="507.00" y="69.00" width="8" height="8"/>
-    <rect x="516.50" y="69.00" width="8" height="8"/>
-    <rect x="526.00" y="69.00" width="8" height="8"/>
-    <rect x="535.50" y="69.00" width="8" height="8"/>
+  <desc>Bespoke monoline letterforms, drawn as outlines, not set in a font or built from a dot grid. Straight skeleton strokes with technical-drafting arcs for the bowls (R, B, U, D) and counter (O), rendered as light on black the same way the mark is.</desc>
+
+  <defs>
+    <linearGradient id="word-rim" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#eafcff"/>
+      <stop offset="55%" stop-color="var(--color-ion-500, #6fe3ff)"/>
+      <stop offset="100%" stop-color="var(--color-ion-600, #35b8de)"/>
+    </linearGradient>
+    <filter id="word-glow" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="2.6"/>
+    </filter>
+  </defs>
+
+  <g fill="none" stroke="var(--color-ion-500, #6fe3ff)" stroke-width="6" opacity="0.3" filter="url(#word-glow)" stroke-linecap="square" stroke-linejoin="miter">
+    <g transform="translate(18,18)"><path d="M0,64 L0,0 L40,64 L40,0"/></g>
+    <g transform="translate(76,18)"><ellipse cx="20" cy="32" rx="16" ry="30"/></g>
+    <g transform="translate(134,18)"><path d="M0,0 L0,64 M0,0 L21,0 A15,15 0 0 1 21,30 L0,30 M9,30 L40,64"/></g>
+    <g transform="translate(192,18)"><path d="M0,0 L40,0 M20,0 L20,64"/></g>
+    <g transform="translate(250,18)"><path d="M0,0 L0,64 M40,0 L40,64 M0,32 L40,32"/></g>
+    <g transform="translate(308,18)"><path d="M0,0 L0,64 M0,0 L19,0 A14,14 0 0 1 19,28 L0,28 M0,28 L21,28 A18,18 0 0 1 21,64 L0,64"/></g>
+    <g transform="translate(366,18)"><ellipse cx="20" cy="32" rx="16" ry="30"/></g>
+    <g transform="translate(424,18)"><path d="M0,0 L0,42 A20,20 0 0 0 40,42 L40,0"/></g>
+    <g transform="translate(482,18)"><path d="M0,64 L0,0 L40,64 L40,0"/></g>
+    <g transform="translate(540,18)"><path d="M0,0 L0,64 M0,0 L13,0 A27,32 0 0 1 13,64 L0,64"/></g>
+  </g>
+
+  <g fill="none" stroke="url(#word-rim)" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter">
+    <g transform="translate(18,18)"><path d="M0,64 L0,0 L40,64 L40,0"/></g>
+    <g transform="translate(76,18)"><ellipse cx="20" cy="32" rx="16" ry="30"/></g>
+    <g transform="translate(134,18)"><path d="M0,0 L0,64 M0,0 L21,0 A15,15 0 0 1 21,30 L0,30 M9,30 L40,64"/></g>
+    <g transform="translate(192,18)"><path d="M0,0 L40,0 M20,0 L20,64"/></g>
+    <g transform="translate(250,18)"><path d="M0,0 L0,64 M40,0 L40,64 M0,32 L40,32"/></g>
+    <g transform="translate(308,18)"><path d="M0,0 L0,64 M0,0 L19,0 A14,14 0 0 1 19,28 L0,28 M0,28 L21,28 A18,18 0 0 1 21,64 L0,64"/></g>
+    <g transform="translate(366,18)"><ellipse cx="20" cy="32" rx="16" ry="30"/></g>
+    <g transform="translate(424,18)"><path d="M0,0 L0,42 A20,20 0 0 0 40,42 L40,0"/></g>
+    <g transform="translate(482,18)"><path d="M0,64 L0,0 L40,64 L40,0"/></g>
+    <g transform="translate(540,18)"><path d="M0,0 L0,64 M0,0 L13,0 A27,32 0 0 1 13,64 L0,64"/></g>
   </g>
 </svg>

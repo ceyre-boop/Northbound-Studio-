@@ -152,34 +152,47 @@
 
   function deviceTier() {
     if (window.NB_GL) return window.NB_GL.deviceTier();
-    var w = Math.min(window.innerWidth, window.innerHeight);
+    // See js/gl/gl-core.js's deviceTier for why this reads innerWidth, not
+    // min(width, height) — the min() form miscategorised widescreen desktop
+    // viewports (e.g. 1440x900) as "mid".
+    var w = window.innerWidth;
     var cores = navigator.hardwareConcurrency || 4;
     if (w <= 480 || cores <= 3) return 'low';
-    if (w <= 1024 || cores <= 6) return 'mid';
+    if (w <= 900 || cores <= 4) return 'mid';
     return 'high';
   }
 
   // ---------------------------------------------------------------------
   // Tunables
   // ---------------------------------------------------------------------
-  var TIER_TARGET_COUNT = { low: 1800, mid: 4200, high: 8200 };
-  var DESIGN_W = 640, DESIGN_H = 360;         // offscreen raster composition
-  var ALPHA_THRESHOLD = 18;                    // 0-255, skip near-transparent px
-  // The 0.15 token caps brightness *behind body copy*. Nothing in this
-  // composition sits behind the plain-text caption (it's rendered on pure
-  // black beneath the art box), and the particle mark itself is display-
-  // scale content, so it gets the "large/bold display type" allowance the
-  // README raises the ceiling to (0.26) rather than the body-copy ceiling.
-  // If a future integration ever overlays running text on top of the
-  // canvas, drop that text through --color-bg-scrim as the README already
-  // prescribes for the rest of the identity system — don't lower this.
-  var LUMA_CAP = 0.26;
+  // Raster resolution AND target particle count both scale per tier. Count
+  // alone was not enough: at the old 640x360 raster the mark+wordmark only
+  // produce ~12.5k above-threshold pixels total, so raising the target past
+  // that just re-drew the same sparse set — the monoline strokes are only a
+  // couple of source pixels wide at that resolution, which is what read as
+  // visible gaps between particles at 1440px wide. Higher raster resolution
+  // gives the thin strokes more real sample positions to fill from; higher
+  // target count then actually has somewhere to go.
+  var TIER_RASTER_SCALE = { low: 1, mid: 1.8, high: 2.75 };
+  var TIER_TARGET_COUNT = { low: 4200, mid: 16000, high: 42000 };
+  var BASE_DESIGN_W = 640, BASE_DESIGN_H = 360; // 16:9, scaled per tier below
+  var DESIGN_W = BASE_DESIGN_W, DESIGN_H = BASE_DESIGN_H; // set by startGl() per tier
+  var ALPHA_THRESHOLD = 16;                    // 0-255, skip near-transparent px
+  // Per-fragment cap, matches --hero-bg-luminance-ceiling exactly — this is
+  // not a body-copy-only allowance, it is the ceiling. A settled mark this
+  // dense already reads as solid well under it: with this many particles
+  // overlapping along each stroke, "confident and near-solid" comes from
+  // density and point size closing the gaps, not from pushing any single
+  // fragment's luminance past the identity's own rule that colour is light,
+  // not a flat fill. Never raise this — widen coverage instead.
+  var LUMA_CAP = 0.15;
   var RISE_PER_SEC = 5.5;                      // energy attack (scroll kick in)
   var DECAY_PER_SEC = 1.8;                     // energy release (settle back)
   var CROSSFADE_MS = 320;
   var SLOW_FRAME_MS = 22;
-  var SLOW_STREAK = 30;
+  var SLOW_STREAK = 24;
   var MIN_SCALE = 0.55;
+  var MIN_PARTICLE_FRACTION = 0.35; // vertex-count floor for the slow-frame backoff below
 
   var F = {
     ok: false,
@@ -207,14 +220,19 @@
     var ctx = c.getContext('2d');
     ctx.clearRect(0, 0, DESIGN_W, DESIGN_H);
 
-    var mh = 148;
+    // Layout is proportioned against the 640-wide base design and scaled up
+    // by k so raising DESIGN_W (the per-tier raster resolution) changes
+    // sample density, never composition/layout.
+    var k = DESIGN_W / BASE_DESIGN_W;
+
+    var mh = 148 * k;
     var mw = mh * (markImg.naturalWidth / markImg.naturalHeight || 0.75);
-    var mx = DESIGN_W / 2 - mw / 2, my = 22;
+    var mx = DESIGN_W / 2 - mw / 2, my = 22 * k;
     ctx.drawImage(markImg, mx, my, mw, mh);
 
-    var ww = 428;
+    var ww = 428 * k;
     var wh = ww * (wordImg.naturalHeight / wordImg.naturalWidth || 0.167);
-    var wx = DESIGN_W / 2 - ww / 2, wy = my + mh + 20;
+    var wx = DESIGN_W / 2 - ww / 2, wy = my + mh + 20 * k;
     ctx.drawImage(wordImg, wx, wy, ww, wh);
 
     return ctx.getImageData(0, 0, DESIGN_W, DESIGN_H);
@@ -262,7 +280,31 @@
       rand[n * 3 + 2] = Math.random();
       n++;
     }
+
+    // Candidates are scanned row-major (top to bottom), so without this a
+    // prefix of the buffer is spatially biased to the top rows only. Shuffle
+    // once here so tick()'s slow-frame backoff can safely shrink the live
+    // draw count to a prefix — instant, no rebuild — and still get an even,
+    // representative subsample of the whole mark instead of losing its
+    // bottom half first.
+    for (var sw = n - 1; sw > 0; sw--) {
+      var pick = Math.floor(Math.random() * (sw + 1));
+      if (pick === sw) continue;
+      swapParticle(home, color, alpha, rand, sw, pick);
+    }
+
     return { home: home, color: color, alpha: alpha, rand: rand, count: n };
+  }
+
+  function swapParticle(home, color, alpha, rand, a, b) {
+    var t;
+    t = home[a * 2]; home[a * 2] = home[b * 2]; home[b * 2] = t;
+    t = home[a * 2 + 1]; home[a * 2 + 1] = home[b * 2 + 1]; home[b * 2 + 1] = t;
+    for (var c = 0; c < 3; c++) {
+      t = color[a * 3 + c]; color[a * 3 + c] = color[b * 3 + c]; color[b * 3 + c] = t;
+      t = rand[a * 3 + c]; rand[a * 3 + c] = rand[b * 3 + c]; rand[b * 3 + c] = t;
+    }
+    t = alpha[a]; alpha[a] = alpha[b]; alpha[b] = t;
   }
 
   // -- DOM ------------------------------------------------------------------
@@ -453,11 +495,25 @@
     var frameMs = performance.now() - t0;
     if (frameMs > SLOW_FRAME_MS) {
       s.slowStreak++;
-      if (s.slowStreak >= SLOW_STREAK && s.scaleFactor > MIN_SCALE) {
-        s.scaleFactor = Math.max(MIN_SCALE, s.scaleFactor * 0.6);
+      if (s.slowStreak >= SLOW_STREAK) {
+        // Two independent levers: canvas resolution (fragment/fill cost)
+        // and live particle count (vertex cost — a fixed cost regardless of
+        // canvas resolution, since gl.drawArrays still processes every
+        // point). Resolution backs off first; once it bottoms out, start
+        // trimming the draw count from the pre-shuffled buffer, which is a
+        // safe, spatially-even subsample, never a rebuild.
+        if (s.scaleFactor > MIN_SCALE) {
+          s.scaleFactor = Math.max(MIN_SCALE, s.scaleFactor * 0.6);
+          resize();
+          try { console.warn('hero.js: sustained frame cost, scaling canvas resolution to ' + s.scaleFactor); } catch (e) {}
+        } else {
+          var floor = Math.round(s.particleTotal * MIN_PARTICLE_FRACTION);
+          if (s.particleCount > floor) {
+            s.particleCount = Math.max(floor, Math.round(s.particleCount * 0.75));
+            try { console.warn('hero.js: sustained frame cost, trimming live particle count to ' + s.particleCount); } catch (e) {}
+          }
+        }
         s.slowStreak = 0;
-        resize();
-        try { console.warn('hero.js: sustained frame cost, scaling canvas resolution to ' + s.scaleFactor); } catch (e) {}
       }
     } else {
       s.slowStreak = 0;
@@ -564,8 +620,11 @@
 
     var buffers;
     try {
-      var imageData = rasterComposition(s.mark, s.word);
       var tier = deviceTier();
+      var rasterScale = TIER_RASTER_SCALE[tier] || TIER_RASTER_SCALE.mid;
+      DESIGN_W = Math.round(BASE_DESIGN_W * rasterScale);
+      DESIGN_H = Math.round(BASE_DESIGN_H * rasterScale);
+      var imageData = rasterComposition(s.mark, s.word);
       buffers = buildParticleBuffers(imageData, TIER_TARGET_COUNT[tier] || TIER_TARGET_COUNT.mid);
     } catch (e) {
       fail('raster/particle build failed: ' + e.message);
@@ -591,8 +650,12 @@
 
     s.canvas = canvas;
     s.gl = gl;
-    s.particleCount = buffers.count;
-    s.pointBase = 2.8; // CSS px, scaled by dpr in-shader
+    s.particleTotal = buffers.count; // fixed; the slow-frame floor is a fraction of this
+    s.particleCount = buffers.count; // live draw count, may be trimmed under load
+    // At tens of thousands of particles the strokes should read continuous,
+    // not speckled — sized so neighbouring samples along a stroke overlap
+    // rather than leave visible gaps at the higher tier densities above.
+    s.pointBase = 3.4; // CSS px, scaled by dpr in-shader
     s.u = {
       res: gl.getUniformLocation(prog, 'u_res'),
       time: gl.getUniformLocation(prog, 'u_time'),

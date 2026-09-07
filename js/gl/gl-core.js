@@ -56,12 +56,19 @@
 
   /** Coarse, cheap device tier — good enough to pick a particle budget with,
    *  not a benchmark. Callers should still adapt downward at runtime if
-   *  frames run long (see field.js's slow-frame streak pattern). */
+   *  frames run long (see field.js's slow-frame streak pattern).
+   *
+   *  Uses viewport WIDTH, not min(width, height): most desktop/laptop
+   *  windows are wider than 1024 but shorter than it too (e.g. 1440x900),
+   *  and min() was classifying nearly every widescreen monitor as "mid" —
+   *  the exact bug that made the hero read as a phone-tier sparse point
+   *  cloud on desktop. Width is what actually tracks device class here;
+   *  a narrow *tall* window (a phone held upright) is still correctly "low". */
   function deviceTier() {
-    var w = Math.min(window.innerWidth, window.innerHeight);
+    var w = window.innerWidth;
     var cores = navigator.hardwareConcurrency || 4;
     if (w <= 480 || cores <= 3) return 'low';
-    if (w <= 1024 || cores <= 6) return 'mid';
+    if (w <= 900 || cores <= 4) return 'mid';
     return 'high';
   }
 

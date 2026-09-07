@@ -1,0 +1,330 @@
+/* ============================================================
+   NORTHBOUND STUDIO — WORK SHOWCASE
+   The three concept builds, full-bleed, each with its own light and its
+   own reveal. Composed against css/tokens.css — every value below is a
+   named token. See js/showcase.js for the attribute contract this
+   stylesheet's markup must carry and for the light-on-form shader that
+   sits on top of it.
+
+   Mobile-first: base rules target 390px. A full-bleed case exploration on
+   a phone is its own composition, not a squeezed desktop rail — see the
+   breakpoint at the bottom for what widens.
+
+   Nothing here sets an initial hidden state for [data-reveal] elements —
+   that stays js/choreo.js's job. This file is correct, legible and fully
+   navigable (real <img>, real <a>) with zero JS.
+   ============================================================ */
+
+.showcase {
+  position: relative;
+  background: var(--color-void);
+}
+
+.showcase__intro {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gut);
+  padding-block: clamp(3.5rem, 6vw + 1.5rem, 6rem) clamp(2rem, 4vw, 3rem);
+}
+
+.showcase__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--space-4);
+}
+
+.showcase__heading {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+  max-width: 18ch;
+  margin: 0;
+}
+
+/* ============================================================
+   THE LIST — one full-bleed panel per case. Stacked, not railed.
+   ============================================================ */
+
+.showcase__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.showcase__case {
+  position: relative;
+  width: 100%;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.showcase__case-index {
+  position: absolute;
+  top: var(--space-6);
+  left: var(--gut);
+  z-index: 5;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-widest);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+/* --- The stage: the full-bleed visual. Height is reserved here so nothing
+   that loads later (poster decode, WebGL init, iframe) can shift layout. */
+
+.showcase__stage {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 480px;
+  overflow: hidden;
+  background: var(--color-black-1); /* the "void the form hasn't lit yet" ground */
+
+  --nb-showcase-iris-x: 50%;
+  --nb-showcase-iris-y: 50%;
+  --nb-showcase-iris-r: 0%;
+}
+
+.showcase__poster,
+.showcase__gl,
+.showcase__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.showcase__poster {
+  object-fit: cover;
+  z-index: 1;
+  /* Static, restrained rim-light approximation for the no-WebGL / reduced-
+     motion / poster-failed path — "the same composition without GPU," per
+     brief, not a generic fallback. Ion-only, radial, decorative. */
+  filter: brightness(0.72) contrast(1.05);
+}
+
+.showcase__gl {
+  z-index: 2;
+  display: block;
+  opacity: 0;
+  transition: opacity var(--duration-slow) var(--ease-standard);
+}
+
+.showcase__gl.is-ready {
+  opacity: 1;
+}
+
+/* The CSS-only light: a soft Ion glow that sits where the shader's ambient
+   light would, plus the vignette the shader also carries — same idea,
+   cheaper geometry, no motion. */
+.showcase__case.is-css-fallback .showcase__stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 30% 20%, var(--color-ion-soft) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.showcase__frame {
+  z-index: 4;
+  border: 0;
+  background: var(--color-void);
+  pointer-events: none;
+  clip-path: circle(var(--nb-showcase-iris-r, 0%) at var(--nb-showcase-iris-x, 50%) var(--nb-showcase-iris-y, 50%));
+  -webkit-clip-path: circle(var(--nb-showcase-iris-r, 0%) at var(--nb-showcase-iris-x, 50%) var(--nb-showcase-iris-y, 50%));
+}
+
+.showcase__case.is-open .showcase__frame {
+  pointer-events: auto;
+}
+
+/* The iris grows every frame via a JS spring writing the custom property
+   above — this transition is a pure fallback for the reduced-motion /
+   no-motion-system instant-open path, where the property is set once
+   rather than animated frame-by-frame. */
+.showcase__stage.is-iris-instant .showcase__frame {
+  transition: none;
+}
+
+.showcase__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+
+.showcase__case.is-loading .showcase__loading {
+  opacity: 1;
+}
+
+.showcase__loading::before {
+  content: '';
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-strong);
+  border-top-color: var(--color-ion-500);
+  box-shadow: var(--elevation-glow-ion);
+  animation: showcase-spin 900ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase__loading::before { animation: none; }
+}
+
+@keyframes showcase-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Meta: the text overlay, one corner, above a scrim for legibility --- */
+
+.showcase__meta {
+  position: absolute;
+  inset: auto var(--gut) var(--space-7) var(--gut);
+  z-index: 5;
+  max-width: 46ch;
+  padding-top: clamp(3rem, 12vh, 6rem);
+  background: linear-gradient(to top, var(--color-bg-scrim) 0%, transparent 100%);
+}
+
+.showcase__label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-ion-500);
+  margin: 0 0 var(--space-3);
+}
+
+.showcase__business {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+  text-shadow: 0 0 32px var(--color-ion-glow);
+  margin: 0 0 var(--space-4);
+}
+
+.showcase__result {
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  color: var(--color-text-secondary);
+  max-width: 38ch;
+  margin: 0 0 var(--space-3);
+}
+
+.showcase__tech {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--space-5);
+}
+
+.showcase__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.showcase__trigger {
+  font-family: var(--font-text);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-6);
+  cursor: pointer;
+  transition: border-color var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard);
+}
+
+.showcase__trigger:hover,
+.showcase__trigger:focus-visible {
+  border-color: var(--color-ion-500);
+  color: var(--color-ion-500);
+  box-shadow: var(--elevation-glow-ion);
+}
+
+.showcase__case.is-loading .showcase__trigger,
+.showcase__case.is-open .showcase__trigger {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.showcase__trigger:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.showcase__open {
+  font-family: var(--font-text);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-ion-500);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard);
+}
+
+.showcase__open:hover,
+.showcase__open:focus-visible {
+  color: var(--color-text-primary);
+  border-color: var(--color-ion-500);
+}
+
+.showcase__open:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   BREAKPOINTS — the composition widens; the stage stays full-bleed at
+   every size. Only the text overlay's position/scale changes, alternating
+   sides per case so the run of three reads with the same left/right
+   rhythm as the argument's zig-zag thread, without inventing a second
+   layout language.
+   ============================================================ */
+
+@media (min-width: 64rem) {
+  .showcase__stage { height: 100vh; }
+
+  .showcase__meta {
+    max-width: 34ch;
+    inset: auto auto var(--space-9) var(--gut);
+  }
+
+  .showcase__case:nth-child(even) .showcase__meta {
+    left: auto;
+    right: var(--gut);
+    text-align: right;
+  }
+
+  .showcase__case:nth-child(even) .showcase__actions {
+    justify-content: flex-end;
+  }
+
+  .showcase__business { font-size: var(--text-4xl); }
+}

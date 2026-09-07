@@ -258,25 +258,41 @@
     });
   }
 
-  function watchReveals(root) {
-    if (!('IntersectionObserver' in window)) {
-      // No IO support: reveal everything immediately rather than leaving
-      // content permanently clipped.
-      var now = performance.now();
-      st.reveals.forEach(function (item) { armReveal(item, now); });
-      return null;
-    }
-    var io = new IntersectionObserver(function (entries) {
-      var now = performance.now();
-      entries.forEach(function (entry) {
-        var item = st.revealByEl.get(entry.target);
-        if (!item) return;
-        if (entry.isIntersecting) armReveal(item, now);
-        else disarmReveal(item);
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-    st.reveals.forEach(function (item) { io.observe(item.el); });
-    return io;
+  // Trigger threshold, expressed the same way the old IntersectionObserver
+  // options were: 12% of the element's own height must be inside a root
+  // shrunk by 8% off its bottom edge.
+  var REVEAL_VISIBLE_RATIO = 0.12;
+  var REVEAL_ROOT_BOTTOM_INSET = 0.08;
+
+  // Deliberately NOT IntersectionObserver. Every [data-reveal] element's
+  // *hidden* state is a zero-height clip-path (see applyGeom/geomRise —
+  // "inset(0 0 100% 0)" has zero visible area by definition). An observer
+  // computes intersection against that same zero-area box, so the ratio is
+  // pinned at 0 forever and the browser stops bothering to recheck it —
+  // isIntersecting never turns true, no matter how far the element scrolls
+  // into view. That is exactly what broke this the first time: it looked
+  // like a wiring bug (item.revealed never set) but the entries never
+  // arrived in the first place, because clip-path doesn't touch layout —
+  // getBoundingClientRect() reports the full, unclipped box regardless of
+  // how the element is clipped — so reading it directly, the same way
+  // js/scroll.js and js/interact.js already do on this page for the same
+  // "geometry under a transform/clip can't be trusted to a lazy browser
+  // API" reason, is both correct and consistent with the rest of this
+  // layer. This runs once per frame from the existing onFrame subscription,
+  // not a second timer.
+  function checkReveals(now) {
+    var vh = window.innerHeight;
+    var rootBottom = vh * (1 - REVEAL_ROOT_BOTTOM_INSET);
+    st.reveals.forEach(function (item) {
+      var r = item.el.getBoundingClientRect();
+      if (r.height <= 0) return; // not laid out yet; nothing to measure
+      var visibleTop = Math.max(r.top, 0);
+      var visibleBottom = Math.min(r.bottom, rootBottom);
+      var visibleHeight = Math.max(0, visibleBottom - visibleTop);
+      var ratio = visibleHeight / r.height;
+      if (ratio >= REVEAL_VISIBLE_RATIO) armReveal(item, now);
+      else disarmReveal(item);
+    });
   }
 
   // --- section boundary curtain -----------------------------------------
@@ -367,11 +383,21 @@
   }
 
   // --- lifecycle -----------------------------------------------------------
+  // Time source: `now` is read locally via performance.now() rather than
+  // trusted from the `now` argument NB_MOTION.onFrame hands this callback.
+  // motion.js's own driver changed under this module (it went from
+  // externally-stepped to self-driving) and nothing here contracts what
+  // clock, epoch, or even arity that argument has going forward — sourcing
+  // it locally, once per tick, and threading that single value through
+  // checkReveals/tickReveals/tickCurtain removes the dependency on the
+  // driver's contract entirely rather than assuming it stays compatible.
   function tick(dt, now) {
     if (!st) return;
     try {
-      tickReveals(now);
-      tickCurtain(now);
+      var t = performance.now();
+      checkReveals(t);
+      tickReveals(t);
+      tickCurtain(t);
       tickCursor();
     } catch (err) {
       console.error('choreo tick', err);
@@ -380,6 +406,11 @@
 
   function init(opts) {
     opts = opts || {};
+    // Idempotent: a second init() call (a duplicate boot.js invocation,
+    // a hot-reload) must not leave the previous instance's observer and
+    // listeners orphaned while this module's state moves on without them.
+    if (st) destroy();
+
     var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var root = opts.root || document;
 
@@ -394,8 +425,6 @@
     }
 
     var reveals = buildReveals(root);
-    var revealByEl = new Map();
-    reveals.forEach(function (item) { revealByEl.set(item.el, item); });
 
     var sectionEls = resolve(opts.sections || '[data-section]', root);
     var loadedSection = sectionEls.length
@@ -406,8 +435,6 @@
 
     st = {
       reveals: reveals,
-      revealByEl: revealByEl,
-      io: null,
       curtain: null,
       curtainTarget: 0,
       curtainRetreating: false,
@@ -420,7 +447,10 @@
       firstFloorChange: true
     };
 
-    st.io = watchReveals(root);
+    // Elements not yet visible on load must not sit revealed-by-default —
+    // run one synchronous check now rather than waiting for the first tick,
+    // so nothing above the fold flashes hidden-then-shown.
+    checkReveals(performance.now());
 
     if (opts.curtain !== false) {
       st.curtain = buildCurtain(root);
@@ -456,7 +486,6 @@
 
   function destroy() {
     if (!st) return;
-    if (st.io) st.io.disconnect();
     if (st.unsubMotion) st.unsubMotion();
     st.cursorUnbinds.forEach(function (fn) { fn(); });
 

@@ -19,6 +19,16 @@ window.NB_CONFIG = {
    * Set to null to render the evergreen "Taking 2-3 projects a month." instead. */
   SPOTS_LEFT: 2,
 
+  /* Where the contact form posts. Set this and the finale starts delivering.
+   *
+   * It is null on purpose. The Formspree id this project shipped with
+   * (xpwzgvkn) returns FORM_NOT_FOUND — it has been dead for the whole build,
+   * and a form that posts into a void while showing a success message is worse
+   * than one that admits it cannot deliver. With this null the finale shows an
+   * honest error and points at the mailbox instead. Paste a live endpoint here
+   * to switch it on. */
+  FORM_ENDPOINT: null,
+
   /* Where the live demo builds are served from.
    *
    * PASS 2 — switching to subdomains is a one-line change per entry:

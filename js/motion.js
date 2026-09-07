@@ -120,6 +120,43 @@
     }
   }
 
+  /* This module used to be stepped by the old React component's rAF loop. That
+     host is deleted, so it drives itself now — otherwise no spring ever
+     integrates and every layer built on it silently does nothing: the scroll
+     never transforms, reveals never open, the hero never simulates. An
+     external driver can still claim it by calling step() directly; the
+     self-drive stands down the moment it sees that happen. */
+  var selfRaf = 0, lastNow = 0, externallyDriven = false;
+
+  function loop(now) {
+    selfRaf = requestAnimationFrame(loop);
+    if (externallyDriven) return;
+    var dt = lastNow ? (now - lastNow) / 1000 : 1 / 60;
+    lastNow = now;
+    step(dt, now);
+  }
+
+  var rawStep = step;
+  step = function (dt, now) {
+    if (arguments.length && now !== undefined && !selfRaf) externallyDriven = true;
+    return rawStep(dt, now);
+  };
+
+  function start() { if (!selfRaf) { lastNow = 0; selfRaf = requestAnimationFrame(loop); } }
+  function stop() { if (selfRaf) { cancelAnimationFrame(selfRaf); selfRaf = 0; } }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop(); else start();
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+
+  M.start = start;
+  M.stop = stop;
   M.spring = spring;
   M.valueOf = valueOf;
   M.lerp = lerp;

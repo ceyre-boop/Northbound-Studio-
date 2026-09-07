@@ -1,0 +1,71 @@
+/* Northbound — structural CSS for js/choreo.js and js/buddy.js.
+ *
+ * Almost everything these two modules do is written straight to inline
+ * styles per frame (see the "never setState" rule in js/motion.js) — this
+ * file only holds what needs to exist once, up front: the cursor dot and
+ * curtain overlay choreo.js creates itself (index.html is owned elsewhere,
+ * so these nodes are injected at init, not hand-authored in markup), plus
+ * the couple of structural rules split-text needs on its word wrappers.
+ *
+ * Imports css/tokens.css values by name — nothing here is a raw hex or a
+ * made-up duration.
+ */
+
+/* ---------- cursor presence ---------- */
+.nb-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  border-radius: 50%;
+  background: var(--color-ion-500, #6fe3ff);
+  box-shadow: 0 0 18px var(--color-ion-glow, rgba(111, 227, 255, 0.35));
+  pointer-events: none;
+  z-index: 9500;
+  mix-blend-mode: screen;
+  will-change: transform;
+  /* Position/scale are written every frame in JS; this only guards the
+     very first paint before the first tick lands. */
+  transform: translate3d(-9999px, -9999px, 0) translate(-50%, -50%) scale(0);
+}
+
+@media (prefers-reduced-motion: reduce), (hover: none) and (pointer: coarse) {
+  .nb-cursor { display: none; }
+}
+
+/* ---------- section-boundary curtain ---------- */
+.nb-curtain {
+  position: fixed;
+  inset: 0;
+  background: var(--color-void, #000);
+  pointer-events: none;
+  z-index: 9000;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
+  -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
+  will-change: clip-path;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-curtain { display: none; }
+}
+
+/* ---------- split-text word wrappers (js/choreo.js splitWords) ---------- */
+/* The wrapper clips a word's rise; the inner span is the one the spring
+   transform is written to. Both are created in JS — these rules just make
+   sure they behave as a run of inline text rather than stacked blocks. */
+[data-reveal="split"] > span {
+  overflow: hidden;
+}
+[data-reveal="split"] > span > span {
+  will-change: transform;
+}
+
+/* ---------- generic reveal targets ---------- */
+/* clip-path / transform are written per element in JS at init and on every
+   tick while animating; this only sets up GPU compositing ahead of that so
+   the first clip isn't the layer's promotion moment. */
+[data-reveal] {
+  will-change: clip-path, transform;
+}

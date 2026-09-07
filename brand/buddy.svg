@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" role="img" aria-label="Buddy, the Northbound wayfinding beacon">
+  <title>Buddy — the beacon</title>
+  <desc>Buddy is the Needle mark, personified: a small beacon that lives on the site and always points the visitor onward. Vector/procedural, built for animation: halo pulses, antenna wobbles, body bobs, eyes track the cursor, feet kick on scroll.</desc>
+
+  <defs>
+    <radialGradient id="buddy-body-fill" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="var(--color-beacon-500, #ff8a3d)"/>
+      <stop offset="100%" stop-color="var(--color-beacon-600, #e6752b)"/>
+    </radialGradient>
+  </defs>
+
+  <!-- halo: the beacon glow, pulses in motion pass -->
+  <g id="buddy-glow">
+    <ellipse cx="100" cy="182" rx="58" ry="14" fill="var(--color-beacon-soft, rgba(255,138,61,0.14))"/>
+    <circle cx="100" cy="112" r="76" fill="var(--color-signal-soft, rgba(79,168,255,0.14))"/>
+  </g>
+
+  <!-- antenna: a miniature Needle, Buddy's "hat" -->
+  <g id="buddy-antenna">
+    <line x1="100" y1="46" x2="100" y2="14" stroke="var(--color-ink-600, #3c3841)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M100 2 L90 16 L100 30 Z" fill="var(--color-beacon-500, #ff8a3d)"/>
+    <path d="M100 2 L110 16 L100 30 Z" fill="var(--color-signal-500, #4fa8ff)"/>
+  </g>
+
+  <!-- body: single geometric blob, the character's whole silhouette -->
+  <circle id="buddy-body" cx="100" cy="112" r="66" fill="url(#buddy-body-fill)"/>
+
+  <!-- feet: small directional chevrons, kick during walk/hover cycles -->
+  <g id="buddy-feet">
+    <path id="buddy-foot-left" d="M74 172 L58 196 L78 196 L88 176 Z" fill="var(--color-ink-700, #29262c)"/>
+    <path id="buddy-foot-right" d="M126 172 L142 196 L122 196 L112 176 Z" fill="var(--color-ink-700, #29262c)"/>
+  </g>
+
+  <!-- face -->
+  <g id="buddy-face">
+    <circle id="buddy-eye-left" cx="78" cy="104" r="7" fill="var(--color-ink-950, #0b0a0c)"/>
+    <circle id="buddy-eye-right" cx="122" cy="104" r="7" fill="var(--color-ink-950, #0b0a0c)"/>
+    <path id="buddy-mouth" d="M82 130 Q100 144 118 130" stroke="var(--color-ink-950, #0b0a0c)" stroke-width="4" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- cheek/rim light: the unexpected cool relationship on a warm body -->
+  <path d="M148 88 A66 66 0 0 1 148 148" stroke="var(--color-signal-500, #4fa8ff)" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.55"/>
+</svg>

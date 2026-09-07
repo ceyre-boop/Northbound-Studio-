@@ -1,0 +1,156 @@
+/* ============================================================
+   NORTHBOUND STUDIO — DESIGN TOKENS
+   Identity system: The Needle.
+   Single source of truth. Every other stylesheet imports this file
+   and consumes tokens by name — never by raw value.
+   See brand/README.md for rationale, contrast math, and font licences.
+   ============================================================ */
+
+:root {
+  /* ---------------------------------------------------------
+     COLOUR — neutrals (warm ink, not blue-black)
+     --------------------------------------------------------- */
+  --color-ink-950: #0b0a0c;   /* page background */
+  --color-ink-900: #131114;   /* raised panels */
+  --color-ink-800: #1c1a1f;   /* cards / surfaces */
+  --color-ink-700: #29262c;   /* borders, dividers */
+  --color-ink-600: #3c3841;   /* hovered borders */
+  --color-ink-500: #58525b;   /* disabled fills, decorative rules */
+
+  --color-paper-100: #f5f1ec; /* rare warm light surface (inverted chips, OG light block) */
+  --color-paper-050: #fbf8f4;
+
+  /* ---------------------------------------------------------
+     COLOUR — text
+     --------------------------------------------------------- */
+  --color-text-primary: #f2ede6;    /* 16.96:1 on ink-950 — headlines, body on dark */
+  --color-text-secondary: #a39a94;  /* 7.16:1 on ink-950 — supporting copy */
+  --color-text-tertiary: #6b6169;   /* 3.33:1 on ink-950 — DECORATIVE ONLY, large (>=24px) or non-text */
+  --color-text-inverse: #0b0a0c;    /* text set on beacon/paper fills */
+
+  /* ---------------------------------------------------------
+     COLOUR — hues, each with an assigned job (no single accent)
+     --------------------------------------------------------- */
+  /* Beacon — warm signal-orange. The one call-to-action colour: apply, submit, primary buttons. */
+  --color-beacon-500: #ff8a3d;      /* 8.42:1 on ink-950 */
+  --color-beacon-600: #e6752b;      /* 6.53:1 on ink-950 — hover/active */
+  --color-beacon-soft: rgba(255, 138, 61, 0.14);
+  --color-beacon-glow: rgba(255, 138, 61, 0.35);
+
+  /* Signal — cool sky-blue. Interactive/informational: links, focus rings, in-progress states. */
+  --color-signal-500: #4fa8ff;      /* 7.88:1 on ink-950 */
+  --color-signal-600: #2f8ce0;
+  --color-signal-soft: rgba(79, 168, 255, 0.14);
+  --color-signal-glow: rgba(79, 168, 255, 0.3);
+
+  /* Drift — violet. The unexpected relationship: rare, used only for delight/easter-eggs/badges,
+     never for anything a user must act on. Never paired 1:1 with Beacon in the same component. */
+  --color-drift-500: #c792ea;       /* 8.21:1 on ink-950 */
+  --color-drift-600: #a86bd1;
+  --color-drift-soft: rgba(199, 146, 234, 0.14);
+  --color-drift-glow: rgba(199, 146, 234, 0.3);
+
+  /* Signal state colours (functional, not brand hues) */
+  --color-success: #4ade80;
+  --color-danger: #ff6b6b;
+
+  /* ---------------------------------------------------------
+     COLOUR — surfaces made from the above (semantic aliases)
+     --------------------------------------------------------- */
+  --color-bg-base: var(--color-ink-950);
+  --color-bg-raised: var(--color-ink-900);
+  --color-bg-surface: var(--color-ink-800);
+  --color-bg-scrim: rgba(11, 10, 12, 0.64); /* lay over the GLSL hero so body copy clears AA — see README */
+  --color-border-subtle: var(--color-ink-700);
+  --color-border-strong: var(--color-ink-600);
+  --color-focus-ring: var(--color-signal-500);
+
+  /* ---------------------------------------------------------
+     TYPE — families
+     JetBrains Mono (display + mono) / Instrument Sans (text)
+     Self-hosted, SIL OFL 1.1. See brand/README.md § Type sourcing.
+     --------------------------------------------------------- */
+  --font-text: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "JetBrains Mono", "Northbound Grid", var(--font-mono);
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --tracking-tight: -0.01em;   /* display headlines */
+  --tracking-normal: 0em;
+  --tracking-wide: 0.08em;     /* buttons, nav */
+  --tracking-widest: 0.2em;    /* mono eyebrows, labels */
+
+  --leading-tight: 1.05;
+  --leading-snug: 1.25;
+  --leading-normal: 1.6;
+
+  /* ---------------------------------------------------------
+     TYPE — scale (1.25 / major-third, base 16px), fluid via clamp
+     --------------------------------------------------------- */
+  --text-xs: 0.75rem;                                     /* 12px — legal, timestamps */
+  --text-sm: 0.875rem;                                     /* 14px — captions */
+  --text-base: 1rem;                                       /* 16px — body */
+  --text-md: clamp(1.1rem, 1rem + 0.4vw, 1.25rem);          /* 18–20px — lede */
+  --text-lg: clamp(1.3rem, 1.15rem + 0.6vw, 1.5625rem);     /* 21–25px — subhead */
+  --text-xl: clamp(1.5rem, 1.2rem + 1.2vw, 1.953rem);       /* 24–31px */
+  --text-2xl: clamp(1.75rem, 1.3rem + 1.9vw, 2.441rem);     /* 28–39px */
+  --text-3xl: clamp(2.1rem, 1.4rem + 2.9vw, 3.052rem);      /* 34–49px */
+  --text-4xl: clamp(2.6rem, 1.5rem + 4.4vw, 3.815rem);      /* 42–61px */
+  --text-5xl: clamp(3.2rem, 1.5rem + 6.8vw, 4.768rem);      /* 51–76px */
+  --text-6xl: clamp(3.8rem, 1.4rem + 9.6vw, 5.96rem);       /* 61–95px — hero display */
+
+  /* ---------------------------------------------------------
+     SPACE — 4px base unit
+     --------------------------------------------------------- */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.5rem;    /* 24px */
+  --space-6: 2rem;      /* 32px */
+  --space-7: 3rem;      /* 48px */
+  --space-8: 4rem;      /* 64px */
+  --space-9: 6rem;      /* 96px */
+  --space-10: 8rem;     /* 128px */
+
+  --maxw: 1180px;
+  --gut: clamp(1.25rem, 4vw, 3rem);
+
+  /* ---------------------------------------------------------
+     RADII — mostly square/engineered; pill reserved for tags/pips
+     --------------------------------------------------------- */
+  --radius-xs: 2px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px; /* badges, dots, avatar-scale only — not primary buttons */
+
+  /* ---------------------------------------------------------
+     ELEVATION — warm-tinted shadows (never pure black) + colour glows
+     --------------------------------------------------------- */
+  --elevation-1: 0 1px 2px rgba(13, 10, 8, 0.4);
+  --elevation-2: 0 8px 24px -8px rgba(13, 10, 8, 0.55);
+  --elevation-3: 0 24px 60px -12px rgba(13, 10, 8, 0.65);
+  --elevation-glow-beacon: 0 0 32px var(--color-beacon-glow);
+  --elevation-glow-signal: 0 0 32px var(--color-signal-glow);
+  --elevation-glow-drift: 0 0 32px var(--color-drift-glow);
+
+  /* ---------------------------------------------------------
+     MOTION — easing + duration (matches scroll choreography)
+     --------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  --duration-fast: 150ms;
+  --duration-base: 280ms;
+  --duration-slow: 480ms;
+  --duration-cinematic: 900ms;
+
+  /* ---------------------------------------------------------
+     HERO / GLSL PARTICLE FIELD — legibility contract
+     Max relative luminance the particle field may reach anywhere
+     text-primary is set directly on top of it (see brand/README.md).
+     --------------------------------------------------------- */
+  --hero-bg-luminance-ceiling: 0.15;
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Northbound Studio mark: The Needle">
+  <title>Northbound — The Needle</title>
+  <desc>A compass needle abstracted into a bicolour diamond: warm Beacon on one face, cool Signal on the other, pivoting on a dark axis. Always pointing true.</desc>
+  <g id="needle">
+    <!-- Beacon half (warm, grounded) -->
+    <path id="needle-beacon" d="M48 6 L20 48 L48 90 Z" fill="var(--color-beacon-500, #ff8a3d)"/>
+    <!-- Signal half (cool, ascending) -->
+    <path id="needle-signal" d="M48 6 L76 48 L48 90 Z" fill="var(--color-signal-500, #4fa8ff)"/>
+    <!-- facet lines: engineered / folded-metal cue -->
+    <path d="M48 6 L48 90" stroke="var(--color-ink-950, #0b0a0c)" stroke-width="1.5" opacity="0.35"/>
+    <path d="M20 48 L48 34 L76 48" stroke="var(--color-ink-950, #0b0a0c)" stroke-width="1.25" opacity="0.25" fill="none"/>
+    <!-- pivot -->
+    <circle id="needle-pivot" cx="48" cy="48" r="7" fill="var(--color-ink-950, #0b0a0c)"/>
+  </g>
+</svg>

@@ -120,6 +120,49 @@
     }
   }
 
+  /* This module used to be stepped by the old React component's rAF loop. That
+     host is deleted, so it drives itself now — otherwise no spring ever
+     integrates and every layer built on it silently does nothing: the scroll
+     never transforms, reveals never open, the hero never simulates. It also
+     covers the pre-mount window and the failsafe path where the component
+     never mounts at all. An external driver takes over by calling claim(). */
+  var selfRaf = 0, lastNow = 0, externallyDriven = false;
+
+  function loop(now) {
+    selfRaf = requestAnimationFrame(loop);
+    if (externallyDriven) return;
+    var dt = lastNow ? (now - lastNow) / 1000 : 1 / 60;
+    lastNow = now;
+    step(dt, now);
+  }
+
+  /* The old handshake tried to auto-detect an external driver with
+     `!selfRaf` — but selfRaf is non-zero for as long as the self-loop is
+     running, so it could never latch. Both drivers then stepped the same
+     springs each frame: every spring integrated twice and M.fps read ~120.
+     scripts/perf.mjs reads exactly that value, so the 60fps gate passed
+     fraudulently. Claiming is now explicit. */
+  function claim() {
+    externallyDriven = true;
+    stop();
+  }
+
+  function start() { if (!selfRaf) { lastNow = 0; selfRaf = requestAnimationFrame(loop); } }
+  function stop() { if (selfRaf) { cancelAnimationFrame(selfRaf); selfRaf = 0; } }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop(); else start();
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+
+  M.start = start;
+  M.stop = stop;
+  M.claim = claim;
   M.spring = spring;
   M.valueOf = valueOf;
   M.lerp = lerp;

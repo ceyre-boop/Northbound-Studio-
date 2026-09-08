@@ -597,7 +597,7 @@ class Component extends DCLogic {
       if (M) { M.step(dt, now); this.driveMotion(t, M); }
       this.drawLogo(t);
       this.drawWave(t);
-      this.drawSpeed();
+      this.drawSpeed(dt);
       // Never let a measurement fault take the animation loop down with it.
       if (++this.frames % 8 === 0 && !this.measureOff) {
         try { this.measureBuddy(); } catch (e) { this.measureOff = true; console.error('measureBuddy', e); }
@@ -871,7 +871,7 @@ class Component extends DCLogic {
 
   // Counts both bars up once Floor 03 has been reached. Written straight to the
   // nodes off the existing rAF loop; reduced motion gets the final numbers flat.
-  drawSpeed() {
+  drawSpeed(dt) {
     if (this.self1 == null) return;
     const secs = this.loadSeconds();
     if (secs == null) return;
@@ -879,7 +879,10 @@ class Component extends DCLogic {
     const armed = this.state.floor >= 2;
     if (armed) {
       const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      this.speedP = still ? 1 : Math.min(1, this.speedP + 0.016);
+      // Per second, not per frame. A fixed step per frame makes the count-up
+      // run at whatever rate the page happens to be painting, which turned
+      // into a test failure the moment the hero got a shader behind it.
+      this.speedP = still ? 1 : Math.min(1, this.speedP + (dt || 1 / 60) / 1.05);
     }
     const e = 1 - Math.pow(1 - this.speedP, 3);
     const a = secs * e;

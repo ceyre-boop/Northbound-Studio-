@@ -29,6 +29,12 @@
 <link rel="preload" as="script" href="_ds/northbound-studio-design-system-3c18cf56-8d96-4e1a-8bf7-121911164bc9/_ds_bundle.js">
 <script defer src="./js/site-config.js"></script>
 <script defer src="./js/motion.js"></script>
+<script defer src="./js/gl/gl-core.js"></script>
+<script defer src="./js/gl/afford.js"></script>
+<script defer src="./js/gl/northlight-shaders.js"></script>
+<script defer src="./js/northlight.js"></script>
+<script defer src="./js/interact.js"></script>
+<script defer src="./js/reveal.js"></script>
 <script defer src="./support.js"></script>
 <style>
 html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
@@ -40,29 +46,62 @@ html, body { margin:0; padding:0; background:#060608; color:#E8E8ED; }
    because nothing needed to move. */
 #nb-boot { position:fixed; inset:0; z-index:90; background:#060608; overflow:hidden; transition:opacity .35s cubic-bezier(0.22,1,0.36,1); }
 #nb-boot.gone { opacity:0; pointer-events:none; }
-#nb-boot .nbb-wrap { max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem); height:100%; box-sizing:border-box;
-  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; }
-#nb-boot h1 { font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em;
-  font-size:clamp(40px,5vw,74px); line-height:0.98; margin:14px 0 22px; color:#E8E8ED; }
+#nb-boot .nbb-wrap { max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem); }
+
+#nb-boot h1 { color:#E8E8ED; }
 #nb-boot p { font-family:'Instrument Sans','Instrument Sans Fallback',system-ui,sans-serif; font-size:17px;
   line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 28px; }
 #nb-boot .nbb-cta { display:flex; gap:12px; flex-wrap:wrap; }
-#nb-boot .nbb-btn { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0.85rem 1.6rem;
+/* border-box, or min-height:44px lands on top of 0.85rem of padding and the
+   shell's pills come out 73px tall against the mounted buttons' 44 — 29px of
+   column height, half of which the centred grid turns into a headline jump. */
+#nb-boot .nbb-btn { display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box; min-height:44px; padding:0.85rem 1.6rem;
   border-radius:999px; font-family:'Instrument Sans','Instrument Sans Fallback',system-ui,sans-serif; font-size:15px;
-  font-weight:600; background:#00F0FF; color:#04181B; }
-#nb-boot .nbb-btn--ghost { background:transparent; color:#E8E8ED; border:1px solid rgba(255,255,255,0.12); }
+  font-weight:600; background:#00F0FF; color:#04181B;
+  /* The design-system Button uses line-height:1 and a 1px transparent border.
+     Matching both is what makes the shell's pill the same 44px box. */
+  line-height:1; border:1px solid transparent; }
+#nb-boot .nbb-btn--ghost { background:transparent; color:#E8E8ED; border-color:rgba(255,255,255,0.12); }
 #nb-boot .nbb-mark { position:absolute; top:24px; left:0; right:0; padding:0 clamp(1.25rem,4vw,3rem);
   display:flex; align-items:center; gap:12px; }
 #nb-boot .nbb-n { width:38px; height:38px; border:1px solid rgba(0,240,255,0.45); border-radius:10px; display:grid;
   place-items:center; font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; font-size:19px; color:#00F0FF; letter-spacing:0.1em; }
 #nb-boot .nbb-sub { font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-size:10px; letter-spacing:0.14em;
   text-transform:uppercase; color:#7A7A8E; line-height:1.5; }
-#nb-boot .nbb-art { position:relative; display:grid; place-items:center; height:min(60vh,540px); min-width:0; overflow:hidden; }
-#nb-boot .nbb-art img { position:relative; display:block; width:100%; height:100%; max-height:min(60vh,540px); object-fit:contain;
+#nb-boot .nbb-art { min-width:0; }
+#nb-boot .nbb-art img { position:relative; display:block; width:100%; height:100%; object-fit:contain;
   filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28)); }
 #nb-boot .nbb-glow { position:absolute; width:78%; height:60%; border-radius:50%;
   background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px); }
 @media (max-width:860px) { #nb-boot .nbb-sub { display:none; } }
+/* The hero grid and type scale live here so the boot shell and the mounted
+   hero are driven by one set of rules and cannot drift apart again.
+   The authored <br>s want three lines. With the real Syne loaded the old
+   scale overflowed the column at every width and wrapped to four — six on a
+   phone, where the two-column grid left the copy just 145px to live in. The
+   fallback face is narrower, so it fitted three lines and then reflowed when
+   Syne arrived, which is a layout shift on the LCP element. */
+.nb-hero-grid { box-sizing:border-box; min-height:100vh; padding:120px 0 40px;
+  display:grid; grid-template-columns:minmax(0,1.14fr) minmax(0,0.86fr);
+  align-items:center; gap:60px; }
+.nb-hero-h1 { font-family:'Syne','Syne Fallback',sans-serif; font-weight:800;
+  letter-spacing:-0.03em; font-size:clamp(34px,4.3vw,58px); line-height:0.98;
+  margin:14px 0 22px; }
+/* Stacked, the art has to give up height or the hero stops being one screen
+   and the descent loses its footing on a phone. */
+.nb-hero-artbox { position:relative; width:100%; box-sizing:border-box; overflow:hidden;
+  display:grid; place-items:center; height:min(60vh,540px); }
+.nb-hero-artbox img { max-height:min(60vh,540px); }
+@media (max-width:860px) {
+  /* The bottom padding is BUDDY's dock, reserved. He sits at bottom:20px and
+     stands ~104px tall, and stacked the CTA row lands exactly there — the
+     collision avoidance can move him sideways but there is nowhere sideways
+     to go on a phone. Give him the room instead. */
+  .nb-hero-grid { grid-template-columns:minmax(0,1fr); gap:20px; padding:84px 0 150px; }
+  .nb-hero-art { order:-1; }
+  .nb-hero-artbox { height:min(26vh,220px); }
+  .nb-hero-artbox img { max-height:min(26vh,220px); }
+}
 @media (prefers-reduced-motion: reduce) { #nb-boot { transition:none; } }
 </style>
 <script>
@@ -83,21 +122,27 @@ addEventListener('load', function () {
     <div class="nbb-sub">NORTHBOUND STUDIO<br>GRAND LEDGE, MI &rarr; WORLDWIDE</div>
   </div>
   <div class="nbb-wrap">
-    <div>
-      <h1>Sites that sell<br>while you<br>sleep.</h1>
+   <div class="nbb-grid nb-hero-grid">
+    <div style="position:relative">
+     <div style="position:relative">
+      <h1 class="nb-hero-h1">Sites that sell<br>while you<br>sleep.</h1>
       <p>Design and development for small businesses that want to stand out online. Live in 48 hours. From $1,500. Text us when something breaks.</p>
       <div class="nbb-cta">
         <span class="nbb-btn">Start a project</span>
         <span class="nbb-btn nbb-btn--ghost">See the work &darr;</span>
       </div>
+     </div>
     </div>
-    <div class="nbb-art">
+    <div class="nbb-art nb-hero-art">
+     <div class="nb-hero-artbox">
       <div class="nbb-glow"></div>
       <img src="buddy-awesome.webp"
            srcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w"
            sizes="(max-width: 860px) 40vw, 560px"
            alt="" width="1073" height="1080" fetchpriority="high" decoding="async">
+     </div>
     </div>
+   </div>
   </div>
 </div>
 <x-dc>
@@ -219,22 +264,26 @@ section[data-floor] { scroll-snap-align: start; scroll-snap-stop: always; }
 
 <div style="position:relative; z-index:10; max-width:1180px; margin:0 auto; padding:0 clamp(1.25rem,4vw,3rem)">
 
-  <section id="floor-1" data-floor="1" data-screen-label="01 Arrival" style="overflow:hidden; box-sizing:border-box; min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:60px; padding:120px 0 40px">
+  <section id="floor-1" data-floor="1" data-screen-label="01 Arrival" class="nb-hero-grid" style="overflow:hidden">
     <div style="position:relative">
       <div style="position:absolute; left:-60px; right:-60px; top:-50px; bottom:-40px; pointer-events:none; background:radial-gradient(62% 60% at 32% 48%, rgba(6,6,8,0.94), rgba(6,6,8,0.6) 55%, transparent 80%)"></div>
       <div style="position:relative">
-        <h1 style="font-family:'Syne','Syne Fallback',sans-serif; font-weight:800; letter-spacing:-0.03em; font-size:clamp(40px,5vw,74px); line-height:0.98; margin:14px 0 22px;">Sites that sell<br>while you<br>sleep.</h1>
-        <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 28px; text-wrap:pretty">Design and development for small businesses that want to stand out online. Live in 48 hours. From $1,500. Text us when something breaks.</p>
-        <div style="display:flex; gap:12px; flex-wrap:wrap">
-          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="170px,44px" as="a" href="#floor-7">Start a project</x-import>
-          <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="150px,44px" variant="ghost" as="a" href="#floor-2">See the work ↓</x-import>
+        <h1 class="nb-hero-h1" ref="{{ heroHeadRef }}">Sites that sell<br>while you<br>sleep.</h1>
+        <p style="font-size:17px; line-height:1.6; color:#7A7A8E; max-width:38ch; margin:0 0 28px; text-wrap:pretty" ref="{{ heroSubRef }}">Design and development for small businesses that want to stand out online. Live in 48 hours. From $1,500. Text us when something breaks.</p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap" ref="{{ ctaRowRef }}">
+          <span class="nb-btn" data-nb-cta style="display:inline-flex; will-change:transform">
+            <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="170px,44px" as="a" href="#floor-7" style="{{ ctaFlat }}">Start a project</x-import>
+          </span>
+          <span class="nb-btn" data-nb-cta style="display:inline-flex; will-change:transform">
+            <x-import component-from-global-scope="NorthboundStudioDesignSystem_3c18cf.Button" hint-size="150px,44px" variant="ghost" as="a" href="#floor-2" style="{{ ctaFlat }}">See the work ↓</x-import>
+          </span>
         </div>
       </div>
     </div>
-    <div style="position:relative; min-width:0; width:100%">
-      <div style="position:relative; width:100%; box-sizing:border-box; height:min(60vh,540px); max-height:100%; overflow:hidden; display:grid; place-items:center">
+    <div class="nb-hero-art" style="position:relative; min-width:0; width:100%">
+      <div class="nb-hero-artbox">
         <div style="position:absolute; width:78%; height:60%; border-radius:50%; background:radial-gradient(circle, rgba(0,240,255,0.20), transparent 70%); filter:blur(20px)"></div>
-        <img ref="{{ heroArtRef }}" src="buddy-awesome.webp" srcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w" sizes="(max-width: 860px) 40vw, 560px" alt="BUDDY, unit 04" width="1073" height="1080" fetchpriority="high" decoding="async" style="position:relative; display:block; width:100%; height:100%; max-height:min(60vh,540px); object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28));">
+        <img ref="{{ heroArtRef }}" src="buddy-awesome.webp" srcset="buddy-awesome-320w.webp 320w, buddy-awesome-720w.webp 720w, buddy-awesome.webp 1073w" sizes="(max-width: 860px) 40vw, 560px" alt="BUDDY, unit 04" width="1073" height="1080" fetchpriority="high" decoding="async" style="position:relative; display:block; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 24px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(0,240,255,0.28));">
       </div>
     </div>
   </section>
@@ -469,6 +518,7 @@ class Component extends DCLogic {
         c.width = Math.max(1, Math.round(r.width * d));
         c.height = Math.max(1, Math.round(r.height * d));
       });
+      this.syncSafeRect();
     };
     // --- Floor advance: wheel, swipe and keyboard all route through goTo() ---
     this.navLock = 0;
@@ -516,6 +566,11 @@ class Component extends DCLogic {
     const boot = document.getElementById('nb-boot');
     if (boot) {
       requestAnimationFrame(() => {
+        // Armed while the shell is still opaque and covering the page, so the
+        // split and its parked start-state happen behind a cover. Nothing
+        // moved anyway — reveal.js measures and reverts if it did — but this
+        // means nothing is seen to move either.
+        if (window.NB_REVEAL) window.NB_REVEAL.arm(this.heroHead);
         boot.classList.add('gone');
         setTimeout(() => boot.remove(), 400);
       });
@@ -529,6 +584,15 @@ class Component extends DCLogic {
       const t = (now - this.t0) / 1000;
       const dt = this.last ? (now - this.last) / 1000 : 1 / 60;
       this.last = now;
+      // Published before step(): step() runs every onFrame subscriber, and
+      // Northlight draws inside one of them. Publishing after would render
+      // every frame against last frame's scroll position.
+      const NL = window.NB_NORTHLIGHT;
+      if (NL && NL.ok) {
+        const prog = document.documentElement.scrollHeight - window.innerHeight;
+        NL.setScroll(prog > 0 ? window.scrollY / prog : 0);
+        NL.setFloor(this.state.floor);
+      }
       const M = window.NB_MOTION;
       if (M) { M.step(dt, now); this.driveMotion(t, M); }
       this.drawLogo(t);
@@ -545,8 +609,41 @@ class Component extends DCLogic {
     // Without the claim both step the same springs and NB_MOTION.fps reads
     // double, which is the number the perf gate trusts.
     if (window.NB_MOTION && window.NB_MOTION.claim) window.NB_MOTION.claim();
+    this.bringUpLayers();
     this.raf = requestAnimationFrame(this.tick);
     this.sizePoll = setInterval(this.onResize, 800);
+  }
+
+  // Each layer is isolated: a throw in one must never reach the loop that
+  // draws the rest of the page.
+  bringUpLayers() {
+    const safe = (window.NB_AFFORD && window.NB_AFFORD.safe)
+      || ((name, fn) => { try { fn(); } catch (e) { console.error('layer ' + name, e); } });
+
+    safe('northlight', () => {
+      if (!window.NB_NORTHLIGHT) return;
+      window.NB_NORTHLIGHT.init({});
+      this.syncSafeRect();
+    });
+
+    safe('interact', () => {
+      // Scoped tight on purpose. A broader selector would catch the header
+      // links and .nb-case children, and the descent tilt test asserts those
+      // carry no transform. The nav arrows are excluded too: they hold
+      // React-managed styles and the disabled one is pointer-events:none, so
+      // a magnetic lean on a dead arrow just looks broken.
+      window.NB_INTERACT && window.NB_INTERACT.init({
+        magnetic: '#floor-1 [data-nb-cta]',
+        interactive: '#floor-1 [data-nb-cta]'
+      });
+    });
+  }
+
+  // Never per frame: getBoundingClientRect() inside the rAF loop is a forced
+  // synchronous layout that costs more than the shader draw does.
+  syncSafeRect() {
+    const NL = window.NB_NORTHLIGHT;
+    if (NL && NL.ok) NL.setSafeRect(this.heroHead, this.heroSub, this.ctaRow);
   }
 
   componentWillUnmount() {
@@ -898,6 +995,13 @@ class Component extends DCLogic {
       progressRef: (el) => { this.progress = el; },
       dockRef: (el) => { this.dock = el; },
       heroArtRef: (el) => { this.heroArt = el; },
+      heroHeadRef: (el) => { this.heroHead = el; },
+      heroSubRef: (el) => { this.heroSub = el; },
+      ctaRowRef: (el) => { this.ctaRow = el; },
+      // The DS style prop spreads last, so this reliably wins: the button
+      // keeps its colour and glow transitions and gives up transform, which
+      // the magnetic spring now owns on the wrapper span.
+      ctaFlat: { transform: 'none', transition: 'box-shadow .25s, background .25s, border-color .25s, color .25s' },
       hasPerf: this.loadSeconds() != null,
       spotsLine: this.spotsLine(),
       selfNumRef: (el) => { this.self1 = el; },

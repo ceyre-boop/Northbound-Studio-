@@ -21,6 +21,19 @@ import { chromium } from '@playwright/test';
 
 // --- gates -------------------------------------------------------------
 
+/* A protected Vercel preview needs the caller's short-lived OIDC token on
+   every navigation, so each context below merges in whatever PERF_HEADERS
+   carries. Empty in the normal case, which leaves the harness unchanged. */
+const EXTRA_HEADERS = (() => {
+  try { return JSON.parse(process.env.PERF_HEADERS || '{}'); }
+  catch { return {}; }
+})();
+
+function ctxOpts(opts = {}) {
+  const headers = { ...EXTRA_HEADERS, ...(opts.extraHTTPHeaders || {}) };
+  return Object.keys(headers).length ? { ...opts, extraHTTPHeaders: headers } : opts;
+}
+
 export const GATES = {
   lcp4g: { label: 'LCP — regular 4G (9 Mbps / 85ms RTT), 4x CPU', threshold: 1200, unit: 'ms' },
   lcpSlow4g: { label: 'LCP — slow 4G (1.6 Mbps / 150ms RTT), 4x CPU', threshold: 1200, unit: 'ms' },
@@ -93,7 +106,7 @@ async function installObservers(page) {
 
 /** One LCP measurement under a given CDP network profile + 4x CPU. */
 async function measureLcpOnce(browser, netProfile) {
-  const context = await browser.newContext();
+  const context = await browser.newContext(ctxOpts());
   const page = await context.newPage();
   await installObservers(page);
   const client = await context.newCDPSession(page);
@@ -119,7 +132,7 @@ export async function measureLCP(browser, url, profileKey) {
 }
 
 export async function measureCLS(browser, url) {
-  const context = await browser.newContext();
+  const context = await browser.newContext(ctxOpts());
   const page = await context.newPage();
   await installObservers(page);
   await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
@@ -130,7 +143,7 @@ export async function measureCLS(browser, url) {
 }
 
 export async function measureFPS(browser, url) {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const context = await browser.newContext(ctxOpts({ viewport: { width: 390, height: 844 } }));
   const page = await context.newPage();
   const client = await context.newCDPSession(page);
   await client.send('Emulation.setCPUThrottlingRate', { rate: CPU_RATE });
@@ -148,7 +161,7 @@ export async function measureFPS(browser, url) {
 }
 
 export async function measureJSBytes(browser, url) {
-  const context = await browser.newContext({ extraHTTPHeaders: { 'Accept-Encoding': 'gzip' } });
+  const context = await browser.newContext(ctxOpts({ extraHTTPHeaders: { 'Accept-Encoding': 'gzip' } }));
   const page = await context.newPage();
   const client = await context.newCDPSession(page);
   await client.send('Network.enable');
@@ -199,7 +212,7 @@ async function sweepOverflowAt(page) {
 }
 
 export async function sweepOverflow(browser, url, viewports = OVERFLOW_VIEWPORTS) {
-  const context = await browser.newContext();
+  const context = await browser.newContext(ctxOpts());
   const page = await context.newPage();
   await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
   const breaches = [];
@@ -216,7 +229,7 @@ export async function sweepOverflow(browser, url, viewports = OVERFLOW_VIEWPORTS
 /** WebGL-disabled, touch-only, and reduced-motion fallback proofs. */
 export async function checkFallback(browser, url, kind) {
   const contextOpts = kind === 'touch' ? { hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } } : {};
-  const context = await browser.newContext(contextOpts);
+  const context = await browser.newContext(ctxOpts(contextOpts));
   const page = await context.newPage();
 
   const consoleErrors = [];

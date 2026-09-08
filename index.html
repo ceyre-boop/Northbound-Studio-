@@ -550,6 +550,11 @@ class Component extends DCLogic {
       }
       this.raf = requestAnimationFrame(this.tick);
     };
+    // One driver only. motion.js self-drives before mount so springs and
+    // cursor smoothing are live during boot; from here this loop owns it.
+    // Without the claim both step the same springs and NB_MOTION.fps reads
+    // double, which is the number the perf gate trusts.
+    if (window.NB_MOTION && window.NB_MOTION.claim) window.NB_MOTION.claim();
     this.raf = requestAnimationFrame(this.tick);
     this.sizePoll = setInterval(this.onResize, 800);
   }
@@ -557,6 +562,7 @@ class Component extends DCLogic {
   componentWillUnmount() {
     cancelAnimationFrame(this.raf);
     clearInterval(this.sizePoll);
+    if (window.NB_MOTION && window.NB_MOTION.start) window.NB_MOTION.start();
     window.removeEventListener('scroll', this.onScroll);
     window.removeEventListener('mousemove', this.onMove);
     window.removeEventListener('resize', this.onResize);

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "measuredAt": "2026-09-12T22:52:48.964Z",
-  "commit": "9543747",
+  "measuredAt": "2026-09-12T23:01:23.655Z",
+  "commit": "3199443",
   "url": "https://northbound-dev.com/",
   "harness": {
     "cpuThrottleRate": 4,
@@ -18,8 +18,8 @@
   },
   "frame": {
     "p50Ms": 8.3,
-    "p95Ms": 10.1,
-    "p99Ms": 14.8,
+    "p95Ms": 10.2,
+    "p99Ms": 10.3,
     "samples": 817
   },
   "acts": {
@@ -31,12 +31,12 @@
     "drift": {
       "label": "Drift",
       "p50Ms": 0,
-      "p95Ms": 0.3
+      "p95Ms": 0.1
     },
     "solution": {
       "label": "Solution",
       "p50Ms": 0,
-      "p95Ms": 0.3
+      "p95Ms": 0.2
     },
     "work": {
       "label": "The work",

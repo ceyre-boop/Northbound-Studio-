@@ -301,3 +301,44 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   .act--arrival { min-height: 100svh; }
   .scroll-hint { display: none; }
 }
+
+/* --- phones --------------------------------------------------------------
+   Written after a real pass on a 390-wide device against the live site, not
+   from a breakpoint guess. Nothing here changes the desktop page. */
+
+/* The measurement caption and its date were two inline spans with no
+   separator between them, so on a narrow column they ran together as
+   "...regular 4G Measured September 12, 2026" and read as one broken
+   sentence. The date gets its own line. */
+.proof__caption time { display: block; margin-top: 4px; }
+
+@media (pointer: coarse) {
+  /* Touch targets. The nav and the two work-card titles were 20-24px tall —
+     fine for a cursor, a coin toss for a thumb. 44px is the smallest target
+     both Apple and Google publish, and these are the links the page actually
+     wants tapped. The padding is symmetrical so nothing moves: the rule
+     applies before first paint, and the CLS gate stays at zero. */
+  .masthead nav { gap: 4px; margin-left: -12px; }
+  .masthead nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 12px;
+  }
+  .work-card h3 a {
+    display: inline-block;
+    min-height: 44px;
+    padding-block: 9px;
+  }
+  .colophon a, .proof__method a { display: inline-block; padding-block: 6px; }
+}
+
+@media (max-width: 420px) {
+  /* The hero headline is the page's one piece of scale, but at this width
+     four full-bleed lines pushed both calls to action under the fold on a
+     phone. Trimming the clamp ceiling keeps the type dominant and puts the
+     buttons back on the first screen. */
+  h1 { font-size: clamp(2.2rem, 11vw, 3.1rem); }
+  .cta-row { gap: 10px; }
+  .btn { padding: 15px 20px; }
+}

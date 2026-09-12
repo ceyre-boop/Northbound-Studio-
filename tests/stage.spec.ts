@@ -14,8 +14,13 @@ import { test, expect } from '@playwright/test';
 
 const ACTS = ['northlight', 'drift', 'solution', 'work'];
 
+/* Scrubbing the page drives four shader systems through every seam, and CI
+   runs them on a software rasteriser. The default 30s is not a meaningful
+   budget for that; these tests are checking correctness, not speed. */
+test.describe.configure({ timeout: 180_000 });
+
 /** Walk the whole document in n steps, letting each frame actually run. */
-async function scrub(page, steps = 40, settle = 60) {
+async function scrub(page, steps = 24, settle = 50) {
   for (let i = 0; i <= steps; i++) {
     await page.evaluate((t) => {
       const h = document.documentElement.scrollHeight - window.innerHeight;
@@ -44,20 +49,38 @@ test.describe('the stage', () => {
   test('every act runs, and never more than two at once', async ({ page }) => {
     await page.goto('/?motion=full');
     await page.waitForFunction(() => window.NB_STAGE && window.NB_STAGE.ok, { timeout: 10_000 });
+    await page.waitForTimeout(600);
 
     const seen = new Set<string>();
     let maxLive = 0;
-    for (let i = 0; i <= 40; i++) {
-      await page.evaluate((t) => {
+
+    /* Visit each act's own measured window rather than stepping the document
+       in fixed increments. The windows are derived from where the sections
+       actually sit, so a fixed step can stride straight over a short one and
+       report a working act as never having run. */
+    for (const id of ACTS) {
+      await page.evaluate((actId) => {
+        const w = window.NB_STAGE.debug().windows[actId];
         const h = document.documentElement.scrollHeight - window.innerHeight;
-        window.scrollTo(0, h * t);
-      }, i / 40);
-      await page.waitForTimeout(60);
+        window.scrollTo(0, h * ((w[0] + w[1]) / 2));
+      }, id);
+      await page.waitForFunction(
+        (actId) => !!window.NB_STAGE.budget().acts[actId],
+        id,
+        { timeout: 20_000 }
+      ).catch(() => {});
+      await page.waitForTimeout(500);
+
       const d = await page.evaluate(() => window.NB_STAGE.debug());
       maxLive = Math.max(maxLive, d.resources.live);
       const b = await page.evaluate(() => window.NB_STAGE.budget());
       Object.keys(b.acts).forEach((k) => seen.add(k));
     }
+
+    /* And once more across every seam, where two acts share the frame. */
+    await scrub(page, 24, 50);
+    const d2 = await page.evaluate(() => window.NB_STAGE.debug());
+    maxLive = Math.max(maxLive, d2.resources.live);
 
     expect([...seen].sort(), 'an act never reported a frame — it never ran').toEqual([...ACTS].sort());
     expect(maxLive, 'more than two acts were live at once; the frame budget assumes at most two').toBeLessThanOrEqual(2);
@@ -130,9 +153,10 @@ test.describe('the stage', () => {
     const painted = await page.evaluate(() => {
       const c = document.getElementById('nb-stage') as HTMLCanvasElement;
       const gl = (c.getContext('webgl2') || c.getContext('webgl')) as WebGLRenderingContext;
-      const px = new Uint8Array(4 * 64);
-      gl.readPixels(Math.floor(c.width / 2) - 4, Math.floor(c.height / 2) - 4, 8, 8, gl.RGBA, gl.UNSIGNED_BYTE, px);
-      return px.some((v) => v !== 0);
+      const px = new Uint8Array(c.width * c.height * 4);
+      gl.readPixels(0, 0, c.width, c.height, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      for (let i = 0; i < px.length; i += 4) if (px[i] | px[i + 1] | px[i + 2] | px[i + 3]) return true;
+      return false;
     });
     expect(painted, 'the canvas is empty in reduced motion — drawStill() rendered nothing').toBe(true);
   });

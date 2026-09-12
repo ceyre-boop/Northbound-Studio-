@@ -1,0 +1,46 @@
+/* act-drift.css — Act II, "Most of them are dark."
+ *
+ * Scoped entirely to [data-act="drift"] and its descendants, per the
+ * parallel-build contract: this file never touches .act, #nb-stage or any
+ * other act's selectors, all of which live in the frozen css/stage.css.
+ *
+ * The particle field itself is drawn on the shared canvas behind the page,
+ * not in this subtree, so nothing here can shift layout after first paint —
+ * this stylesheet is purely about how the act's own DOM (copy, and the
+ * no-WebGL fallback ground) reads while that canvas does its work.
+ */
+
+[data-act="drift"] {
+  position: relative;
+}
+
+/* A faint vertical vignette behind the copy so it stays legible over a dense
+   part of the field without the field itself ever being dimmed globally —
+   that would flatten the "a few lit, most dark" read the copy is making. */
+[data-act="drift"] .act__ink {
+  position: relative;
+  z-index: 1;
+}
+[data-act="drift"] .act__ink::before {
+  content: "";
+  position: absolute;
+  inset: -10% -8%;
+  z-index: -1;
+  background: radial-gradient(60% 70% at 30% 50%, rgba(5, 9, 12, 0.55), transparent 72%);
+  pointer-events: none;
+}
+
+/* --- no-WebGL / init-failure ground ---------------------------------------
+   fallback(ctx) sets this attribute; no canvas is drawing behind the act, so
+   the section needs its own quiet field of "dark, mostly" to stand in for
+   the particle system without reading as a broken or empty background. */
+[data-act="drift"][data-drift-fallback="static"] {
+  background:
+    radial-gradient(1px 1px at 12% 22%, rgba(140, 220, 210, 0.9), transparent 100%),
+    radial-gradient(1px 1px at 76% 64%, rgba(140, 220, 210, 0.55), transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(140, 220, 210, 0.35), transparent 100%),
+    radial-gradient(1px 1px at 88% 18%, rgba(140, 220, 210, 0.7), transparent 100%),
+    radial-gradient(1px 1px at 58% 40%, rgba(140, 220, 210, 0.28), transparent 100%),
+    radial-gradient(80% 60% at 20% 50%, rgba(30, 111, 99, 0.14), transparent 70%);
+  background-repeat: no-repeat;
+}

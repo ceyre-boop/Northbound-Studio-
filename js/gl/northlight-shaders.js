@@ -13,11 +13,14 @@
  * reactive term displaces the domain; nothing is ever added on top as a
  * sprite, which is what keeps it reading as one material rather than as a
  * pile of effects.
+ *
+ * ES module, not a window.NB_* global: the Stage imports acts (and whatever
+ * they import) as modules, and index.html — frozen for the duration of the
+ * parallel build — no longer carries a <script> tag for this file. It is
+ * consumed by js/acts/northlight.js via `import`.
  */
-(function () {
-  'use strict';
 
-  var VERT = [
+var VERT = [
     'attribute vec2 a_pos;',
     'varying vec2 v_uv;',
     'void main() {',
@@ -26,7 +29,7 @@
     '}'
   ].join('\n');
 
-  var FRAG = [
+var FRAG = [
     '%DEFINES%',
     'precision highp float;',
     '',
@@ -42,6 +45,7 @@
     'uniform float u_floor;       // fractional floor index — per-floor seed',
     'uniform vec4  u_safe;        // measured text box: cx, cy, rx, ry (p-space)',
     'uniform float u_luma;        // hard luminance ceiling',
+    'uniform float u_alpha;       // Stage cross-fade — 0..1, multiplies final colour',
     '',
     '/* Integer-ish hash. The sin() version is the classic, and it is also the',
     '   single most expensive line in a shader that evaluates noise per layer',
@@ -142,9 +146,13 @@
     '  float luma = dot(col, vec3(0.299, 0.587, 0.114));',
     '  if (luma > cap) col *= cap / max(luma, 1e-4);',
     '',
-    '  gl_FragColor = vec4(max(col, 0.0), 1.0);',
+    '  /* Premultiplied alpha, to match the Stage baseline blend (ONE,',
+    '     ONE_MINUS_SRC_ALPHA): both channels carry u_alpha so the seam into',
+    '     Drift is a true cross-fade, not a colour that suddenly dims into a',
+    '     wash of the destination act. */',
+    '  col = max(col, 0.0) * u_alpha;',
+    '  gl_FragColor = vec4(col, u_alpha);',
     '}'
   ].join('\n');
 
-  window.NB_NORTHLIGHT_SHADERS = { VERT: VERT, FRAG: FRAG };
-})();
+export { VERT, FRAG };

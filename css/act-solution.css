@@ -1,0 +1,49 @@
+/* act-solution.css — Act III, "Three ways in."
+ *
+ * Scoped to [data-act="solution"] and its descendants only, per the shell's
+ * contract in css/stage.css. The section's real content — the heading, the
+ * three priced packages, the note underneath — is plain DOM at every tier
+ * and every mode; nothing here may cause the CLS the shell has already
+ * budgeted at zero, so every rule below is paint-only (color/opacity),
+ * never a size, margin or display change.
+ *
+ * `.solution-heading--gl` is added to the <h2> by js/acts/solution.js, at
+ * runtime, only after init() has actually succeeded and only when
+ * ctx.mode === 'full' — never unconditionally here. In reduced motion the
+ * class is never added, so the rule below never applies and the heading
+ * stays exactly what it already was: opaque, readable, plain text.
+ */
+
+[data-act="solution"] {
+  position: relative;
+}
+
+/* The canvas underneath is doing the "dissolving into the machine" work;
+   the real heading becomes the surface it dissolves through rather than a
+   second, competing layer of type. Colour only — weight, size and layout
+   are untouched, so this cannot shift anything. */
+[data-act="solution"] .solution-heading--gl {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(232, 239, 242, 0.14);
+}
+
+/* No-WebGL / init-failure path. The Stage sets data-act-state="static"
+   before calling fallback() or when requires are unmet — this act declares
+   no requires, so in practice this is the init()-threw path, e.g. a font
+   or OffscreenCanvas failure. The heading was never touched in that case
+   (the --gl class is only added after init() succeeds), so no override is
+   needed for it; this just gives the section the same quiet static ground
+   the other acts get in css/stage.css's [data-gl="off"] rules. */
+[data-act="solution"][data-act-state="static"] {
+  background: linear-gradient(180deg, rgba(10, 18, 24, 0.35), transparent 60%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Belt and suspenders: even if some future edit adds the class before
+     checking mode, reduced motion must never make the commercial heart of
+     the page harder to read. */
+  [data-act="solution"] .solution-heading--gl {
+    color: var(--paper, #E8EFF2);
+    -webkit-text-stroke: 0;
+  }
+}

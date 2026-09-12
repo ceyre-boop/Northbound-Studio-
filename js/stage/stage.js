@@ -125,6 +125,7 @@
   var vw = 0, vh = 0, dpr = 1;
   var progress = 0, velocity = 0, lastProgress = 0;
   var paused = Object.create(null), pauseCount = 0;
+  var lastLiveKey = "";
 
   // --- capability probe ----------------------------------------------------
 
@@ -221,7 +222,14 @@
       depth: false,
       stencil: false,
       premultipliedAlpha: true,
-      preserveDrawingBuffer: false,
+      /* In reduced motion each act draws one composed frame and then nothing
+         ever again, so the frame has to survive. Without this the browser
+         hands back a cleared buffer on the very next composite and the
+         visitor gets a blank canvas — which is exactly the failure the still
+         path exists to avoid, and the one hardest to notice, because the DOM
+         on top of it still looks fine. It costs nothing here: in this mode we
+         are not drawing per frame at all. */
+      preserveDrawingBuffer: mode === 'reduced',
       powerPreference: 'high-performance'
     };
     var c = canvas.getContext('webgl2', attrs);
@@ -286,8 +294,17 @@
 
       warn: function (m) { console.warn('[' + rec.act.manifest.id + '] ' + m); },
 
+      /* a_pos is pinned to attribute 0 for every program built through the
+         Stage. Attribute state is global to the context but locations are
+         per-program and driver-assigned, so an act that sets its attribute up
+         once and then switches programs is relying on all of them agreeing.
+         Pinning makes them agree. Acts that query getAttribLocation get 0 and
+         are unaffected; the name simply does not exist in programs that use a
+         different one, and binding an absent name is a no-op. */
       program: function (vert, frag, label) {
-        var p = window.NB_GL.buildProgram(gl, vert, frag, rec.act.manifest.id + ':' + (label || 'p'));
+        var p = window.NB_GL.buildProgram(
+          gl, vert, frag, rec.act.manifest.id + ':' + (label || 'p'), { a_pos: 0 }
+        );
         res.programs.push(p);
         return p;
       },
@@ -460,6 +477,55 @@
     return Math.min(smoothstep(w[0] - BAND, w[0], p), 1 - smoothstep(w[1], w[1] + BAND, p));
   }
 
+  /* An act's scroll window is measured from its own section, not declared as a
+     fraction of the document.
+
+     Hardcoding them looked fine and was wrong: the numbers in cast.js were
+     guesses at where five sections would land, and the real layout put Act
+     III's heading a full viewport and a half above the screen by the time the
+     Stage believed that act was on stage. It rendered its type exactly where
+     its type was — off the top of the window — so the canvas was blank with no
+     error, no failed link, and nothing to find in a log. Measuring means the
+     windows cannot drift when the copy changes length, which it will.
+
+     An act is live from the moment its section starts entering the viewport
+     until the moment it has fully left. Adjacent sections therefore overlap by
+     nothing, and the Stage's BAND widens each seam into the cross-fade. */
+  function measureWindows() {
+    var span = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+    var vh = window.innerHeight;
+    var measured = [];
+
+    records.forEach(function (r) {
+      var el = document.querySelector('[data-act="' + r.id + '"]');
+      if (!el) { r.win = r.manifest.window; return; }
+      var rect = el.getBoundingClientRect();
+      var top = rect.top + window.scrollY;
+      /* The act owns the scroll while its section's body crosses the middle of
+         the screen. Using "enters the viewport" to "fully leaves" instead gives
+         every act a window two viewports long, so neighbours overlap by a whole
+         screen and three acts end up live at once — which is one more than the
+         frame budget assumes. Measuring against the midline makes consecutive
+         windows butt exactly, and the Stage's BAND is then the only overlap. */
+      r.win = [
+        Math.max(0, Math.min(1, (top - vh * 0.5) / span)),
+        Math.max(0, Math.min(1, (top + rect.height - vh * 0.5) / span))
+      ];
+      measured.push(r);
+    });
+
+    /* Whatever runs last holds the stage through the closing section and the
+       footer. Letting it end at its own section's edge would leave the canvas
+       empty behind the contact form, which reads as the page having broken
+       rather than having finished. */
+    if (measured.length) {
+      measured.sort(function (a, b) { return a.win[0] - b.win[0]; });
+      measured[measured.length - 1].win[1] = 1;
+    }
+  }
+
+  function winOf(rec) { return rec.win || rec.manifest.window; }
+
   function localOf(w, p) {
     var span = (w[1] - w[0]) || 1;
     var t = (p - w[0]) / span;
@@ -474,6 +540,7 @@
     var w = window.innerWidth, h = window.innerHeight;
     if (!force && w === vw && h === vh && nd === dpr) return;
     vw = w; vh = h; dpr = nd;
+    measureWindows();
     canvas.width = Math.max(1, Math.round(w * dpr));
     canvas.height = Math.max(1, Math.round(h * dpr));
     canvas.style.width = w + 'px';
@@ -549,32 +616,106 @@
 
     var step = mode === 'reduced' ? 0 : dt;
     var live = [], heavy = 0, now = performance.now();
+    var wanted = [], evictable = [], idle = [], i, rec, man;
 
-    for (var i = 0; i < acts.length; i++) {
-      var rec = records.get(acts[i]);
+    /* Pass 1 — who wants to be on stage, and who is far enough away to give up
+       a slot. Classify before acting: deciding and evicting in the same loop
+       is how the deadlock below got written in the first place. */
+    for (i = 0; i < acts.length; i++) {
+      rec = records.get(acts[i]);
       if (rec.failed) continue;
-      var man = rec.mod ? rec.act.manifest : rec.manifest;
-      var f = fadeFor(man.window, progress);
+      man = rec.mod ? rec.act.manifest : rec.manifest;
+      rec._man = man;
+      var win = winOf(rec);
 
-      if (progress >= man.window[0] - (man.preload || WARM) &&
-          progress <= man.window[1] + (man.preload || WARM)) {
-        ensureLoaded(rec);
-        if (rec.mod && !rec.live) bringUp(rec);
+      var near = progress >= win[0] - (man.preload || WARM) &&
+                 progress <= win[1] + (man.preload || WARM);
+      var far = progress < win[0] - COLD || progress > win[1] + COLD;
+
+      if (near) {
         rec.outSince = 0;
-      } else if (progress < man.window[0] - COLD || progress > man.window[1] + COLD) {
+        if (!rec.live) wanted.push(rec);
+      } else if (far) {
         if (!rec.outSince) rec.outSince = now;
-        /* Four brakes before teardown: out of range, dwelt there long enough,
-           the user has stopped moving, and a slot is actually contended. */
-        if (rec.live && now - rec.outSince > DWELL_COLD && velocity < CALM &&
-            slots[0] !== null && slots[1] !== null) {
-          teardown(rec);
-        }
+        if (rec.live) evictable.push(rec);
       }
 
-      if (f > 0 && rec.live) {
+      /* Anything live that is contributing nothing to this frame is a
+         legitimate donor when a slot is contended. Restricting donors to the
+         `far` set left a dead zone between the two margins where an act held a
+         slot it could not be asked to give up: at 91% of the scroll the
+         particle field was neither near enough to want its slot nor far enough
+         to lose it, so Act IV never got on stage at all and the page simply
+         ended after the fluid. Donors are ordered furthest-from-view first. */
+      if (rec.live && fadeFor(win, progress) === 0) {
+        rec._dist = Math.min(Math.abs(progress - win[0]), Math.abs(progress - win[1]));
+        idle.push(rec);
+      }
+    }
+    idle.sort(function (a, b) { return b._dist - a._dist; });
+
+    /* Pass 2 — bring up what is wanted, evicting to make room if we must.
+       There are only two slots, and the eviction used to require that the
+       visitor had stopped scrolling. During a continuous scroll the velocity
+       never falls, so the first two acts held both slots forever and acts III
+       and IV could never come up at all — the page silently ended after the
+       particle field. Contention now overrides the anti-thrash brakes: an act
+       that is a full COLD margin outside its own window is not going to be
+       drawn, so if something else needs its slot it gives it up now. */
+    for (i = 0; i < wanted.length; i++) {
+      rec = wanted[i];
+      ensureLoaded(rec);
+      if (!rec.mod) continue;
+      if (slots[0] !== null && slots[1] !== null) {
+        var give = idle.shift();
+        if (!give) break;          // both slots held by acts that are actually drawing
+        var gi = evictable.indexOf(give);
+        if (gi >= 0) evictable.splice(gi, 1);
+        teardown(give);
+      }
+      bringUp(rec);
+    }
+
+    /* Pass 3 — the unhurried path. Nothing is waiting, so an act only goes
+       when it has been out of range a while and the visitor has settled. */
+    for (i = 0; i < evictable.length; i++) {
+      rec = evictable[i];
+      if (rec.live && now - rec.outSince > DWELL_COLD && velocity < CALM) teardown(rec);
+    }
+
+    for (i = 0; i < acts.length; i++) {
+      rec = records.get(acts[i]);
+      if (rec.failed || !rec.live) continue;
+      man = rec._man || rec.manifest;
+      var f = fadeFor(winOf(rec), progress);
+      if (f > 0) {
         live.push({ rec: rec, fade: f, man: man });
         if (man.cost >= 4) heavy++;
       }
+    }
+
+    /* Reduced motion: each act composes one frame and holds it. The context
+       was created with preserveDrawingBuffer, so when there is nothing new to
+       compose we return before touching the canvas at all — no clear, no draw,
+       no GL work whatsoever for a visitor who asked for no motion. Clearing
+       here unconditionally is what made the still frame blank: it was drawn
+       once and wiped on the very next frame. */
+    if (mode === 'reduced') {
+      var stale = false;
+      var key = '';
+      for (i = 0; i < live.length; i++) {
+        key += live[i].man.id + '|';
+        if (!live[i].rec.still) stale = true;
+      }
+      /* An act leaving the live set is also stale state: its pixels are still
+         on the preserved buffer and nothing else would ever clear them. */
+      if (key !== lastLiveKey) { stale = true; lastLiveKey = key; }
+      if (!stale) return;
+      composeStill(live);
+      spans[spanAt] = performance.now() - t0;
+      spanAt = (spanAt + 1) % spans.length;
+      if (spanN < spans.length) spanN++;
+      return;
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -601,24 +742,9 @@
       L.rec.ctx.share = L.man.cost >= 4 ? share : 1;
       L.rec.ctx.tier = tier;
 
-      /* Reduced motion still tracks scroll — it just does not advance its own
-         time. The act composes one still frame and holds it. That is the
-         difference between a still frame that is composed and one that is
-         empty, and it is the frame most visitors to this site will see. */
-      if (mode === 'reduced') {
-        if (L.rec.still) continue;
-        try {
-          gl.activeTexture(gl.TEXTURE0 + L.rec.slot * 4);
-          if (L.rec.act.drawStill) L.rec.act.drawStill(L.rec.ctx);
-          else { L.rec.act.update(0, localOf(L.man.window, progress), L.rec.ctx); L.rec.act.draw(1, L.rec.ctx); }
-          L.rec.still = true;
-        } catch (e) { onFrameFail(L.rec, e); }
-        continue;
-      }
-
       var a0 = performance.now();
       try {
-        L.rec.act.update(step, localOf(L.man.window, progress), L.rec.ctx);
+        L.rec.act.update(step, localOf(winOf(L.rec), progress), L.rec.ctx);
         gl.activeTexture(gl.TEXTURE0 + L.rec.slot * 4);
         var before = strict ? snapshot() : null;
         L.rec.act.draw(L.fade, L.rec.ctx);
@@ -632,6 +758,50 @@
     spans[spanAt] = performance.now() - t0;
     spanAt = (spanAt + 1) % spans.length;
     if (spanN < spans.length) spanN++;
+  }
+
+  /* One composed frame per live act, drawn together so that a newly-arrived
+     neighbour cannot wipe the one already standing. Every live act is redrawn
+     whenever any of them is stale, because the clear takes them all.
+     drawStill is the act's poster: it does not track scroll and it does not
+     advance time. Scroll-linked composition is motion, and this is the path
+     for a visitor who asked for none. */
+  function composeStill(live) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE);
+    gl.disable(gl.SCISSOR_TEST);
+    gl.depthMask(false);
+    gl.colorMask(true, true, true, true);
+    gl.enable(gl.BLEND);
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    for (var i = 0; i < live.length; i++) {
+      var L = live[i], id = L.man.id;
+      L.rec.ctx.share = 1;
+      L.rec.ctx.tier = tier;
+      var a0 = performance.now();
+      try {
+        gl.activeTexture(gl.TEXTURE0 + L.rec.slot * 4);
+        if (L.rec.act.drawStill) {
+          L.rec.act.drawStill(L.rec.ctx);
+        } else {
+          L.rec.act.update(0, localOf(winOf(L.rec), progress), L.rec.ctx);
+          L.rec.act.draw(1, L.rec.ctx);
+        }
+        L.rec.still = true;
+      } catch (e) { onFrameFail(L.rec, e); continue; }
+
+      /* Composing a still costs something too — Act III runs a short burst of
+         its solver to settle the frame — and an act that reports nothing here
+         is indistinguishable from an act that never ran. */
+      if (!perAct[id]) perAct[id] = { buf: new Float32Array(240), at: 0, n: 0, label: L.man.label };
+      record(perAct[id], performance.now() - a0);
+    }
   }
 
   function onFrameFail(rec, e) {
@@ -652,13 +822,16 @@
       document.body.insertBefore(canvas, document.body.firstChild);
     }
 
+    /* Mode before context: it decides preserveDrawingBuffer, which can only be
+       set at creation time. */
+    mode = computeMode();
+
     gl = makeContext();
     if (!gl) { fail(); return; }
 
     caps = probe();
     makeQuad();
     tier = computeTier();
-    mode = computeMode();
     strict = /[?&]strict=1\b/.test(location.search);
     ok = true;
 
@@ -670,9 +843,18 @@
     canvas.addEventListener('webglcontextlost', onLost, false);
     canvas.addEventListener('webglcontextrestored', onRestored, false);
 
+    measureWindows();
     resize(true);
     window.addEventListener('resize', function () { resize(false); }, { passive: true });
     window.addEventListener('orientationchange', function () { resize(true); }, { passive: true });
+
+    /* Web fonts land after first paint and change how tall the type is, which
+       moves every section under it. Re-measure once the page has settled, and
+       again when a font finishes loading. */
+    window.addEventListener('load', function () { measureWindows(); }, { once: true });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { measureWindows(); });
+    }
 
     window.NB_MOTION.onFrame(frame);
   }
@@ -693,8 +875,15 @@
         still: false, slot: -1, outSince: 0
       });
       acts.push(id);
+      /* Measure immediately. The cast is declared by a deferred script, and
+         deferred scripts run when readyState is already "interactive" — so the
+         Stage has usually booted and measured before a single act existed.
+         Measuring only at boot left every act on the placeholder window
+         declared in cast.js, which is how Act III came to be "on stage" a
+         viewport and a half after its own section had scrolled away. */
+      if (document.body) measureWindows();
       acts.sort(function (a, b) {
-        return records.get(a).manifest.window[0] - records.get(b).manifest.window[0];
+        return winOf(records.get(a))[0] - winOf(records.get(b))[0];
       });
     },
 
@@ -730,8 +919,10 @@
         n.programs += r.res.programs.length; n.buffers += r.res.buffers.length;
         n.textures += r.res.textures.length; n.fbos += r.res.fbos.length; n.vaos += r.res.vaos.length;
       });
+      var wins = {};
+      records.forEach(function (r) { wins[r.id] = winOf(r); });
       return { progress: progress, velocity: velocity, tier: tier, mode: mode,
-               ok: ok, caps: caps, resources: n };
+               ok: ok, caps: caps, resources: n, windows: wins };
     },
 
     get progress() { return progress; },

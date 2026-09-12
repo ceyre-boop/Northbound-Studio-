@@ -1,0 +1,130 @@
+/* Act IV — "the only two things that are real."
+ *
+ * Scoped to [data-act="work"] and its descendants only. The two `.work-card`
+ * elements and `.proof` block are laid out by css/stage.css (frozen shell);
+ * this file only adds the work act's own behaviour: the hover tilt, the
+ * open-panel overlay, and a CSS-only atmosphere for the no-WebGL path. No
+ * rule here changes a dimension that stage.css already reserved, so first
+ * paint does not shift — the CLS gate for this section is exactly zero.
+ *
+ * No-WebGL atmosphere. js/acts/work.js draws the same field on the shared
+ * canvas when GL is available; this is what a visitor with no WebGL context
+ * sees behind the cards instead — the act's fallback() sets the attribute,
+ * the canvas itself is removed from the page.
+ */
+[data-act="work"][data-act-state="static"] {
+  background: radial-gradient(ellipse 70% 55% at 50% 15%, rgba(79, 216, 196, 0.09), transparent 65%);
+}
+
+/* --- card tilt -------------------------------------------------------------
+   js/panels.js writes --tilt-x/--tilt-y on pointermove; it never runs under
+   reduced motion, so the custom properties simply stay at their zero default
+   and every transform below collapses to none. No JS-driven rAF loop for
+   this — the values are written directly from the pointer event, not sprung
+   per frame, so there is nothing to hold or park when a panel opens. */
+[data-act="work"] .work-card {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transition: border-color 0.18s ease;
+}
+[data-act="work"] .work-card:hover,
+[data-act="work"] .work-card:focus-within {
+  border-color: var(--aurora-dim);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-act="work"] .work-card { transform: none; transition: none; }
+}
+
+/* --- the open panel ---------------------------------------------------------
+   position: fixed so it can never move the document — an open panel is not
+   allowed to contribute to layout at all. Built once by js/panels.js and
+   appended inside [data-act="work"]; fixed positioning ignores that ancestry
+   for layout purposes. Starts [hidden], so its own insertion cannot be the
+   shift the CLS gate forbids. */
+[data-act="work"] .work-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+}
+/* The `hidden` attribute is how js/panels.js opens and closes this element.
+   Author rules otherwise beat the UA's [hidden]{display:none} on a
+   specificity tie, so it has to be restated here explicitly. */
+[data-act="work"] .work-overlay[hidden] { display: none; }
+[data-act="work"] .work-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 9, 12, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+[data-act="work"] .work-overlay__panel {
+  position: relative;
+  z-index: 1;
+  width: min(1100px, 100%);
+  height: min(760px, 88vh);
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.97);
+}
+[data-act="work"] .work-overlay[data-open] .work-overlay__panel {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-act="work"] .work-overlay__panel { transition: none; opacity: 1; transform: none; }
+}
+
+/* The disclosure line. It is the same class stage.css already styles on the
+   card itself, reused here rather than restyled — it must read identically
+   and it must never be the thing an open-state animation hides. */
+[data-act="work"] .work-overlay__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  padding: 14px clamp(16px, 2.4vw, 28px);
+  border-bottom: 1px solid var(--line-2);
+  background: var(--ink-2);
+}
+[data-act="work"] .work-overlay__bar .work-card__kind { margin: 0; }
+[data-act="work"] .work-overlay__actions { display: flex; align-items: center; gap: 10px 18px; }
+[data-act="work"] .work-overlay__open {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--paper-dim);
+  text-decoration: none;
+}
+[data-act="work"] .work-overlay__open:hover { color: var(--aurora); }
+[data-act="work"] .work-overlay__close {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+[data-act="work"] .work-overlay__close:hover { border-color: var(--aurora); color: var(--aurora); }
+[data-act="work"] .work-overlay__frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: var(--paper);
+}

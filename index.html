@@ -197,21 +197,35 @@
           <span data-budget="published.caption">Not measured since the last change to this site.</span>
           <time data-budget="measuredAt">&mdash;</time>
         </p>
+        <!--
+          One column, not two. The per-act figure is command-submission time —
+          how long each act spends asking the GPU for its frame — and at these
+          costs the median rounds to nothing on any timer the browser will give
+          us. Printing a column of zeroes would look like a broken table
+          pretending to be a result. The 95th percentile is the number that
+          actually moves when an act regresses, so it is the one shown.
+        -->
         <table class="proof__table">
-          <caption>Cost per act, median and 95th percentile</caption>
-          <thead><tr><th scope="col">Act</th><th scope="col">p50</th><th scope="col">p95</th></tr></thead>
+          <caption>Submission cost per act, 95th percentile</caption>
+          <thead><tr><th scope="col">Act</th><th scope="col">What it is</th><th scope="col">p95</th></tr></thead>
           <tbody data-budget-rows>
-            <tr><th scope="row">Northlight</th><td data-budget="acts.northlight.p50Ms">&mdash;</td><td data-budget="acts.northlight.p95Ms">&mdash;</td></tr>
-            <tr><th scope="row">Drift</th><td data-budget="acts.drift.p50Ms">&mdash;</td><td data-budget="acts.drift.p95Ms">&mdash;</td></tr>
-            <tr><th scope="row">Solution</th><td data-budget="acts.solution.p50Ms">&mdash;</td><td data-budget="acts.solution.p95Ms">&mdash;</td></tr>
-            <tr><th scope="row">Work</th><td data-budget="acts.work.p50Ms">&mdash;</td><td data-budget="acts.work.p95Ms">&mdash;</td></tr>
+            <tr><th scope="row">Northlight</th><td>Aurora curtain</td><td data-budget="acts.northlight.p95Ms">&mdash;</td></tr>
+            <tr><th scope="row">Drift</th><td>GPU particle field</td><td data-budget="acts.drift.p95Ms">&mdash;</td></tr>
+            <tr><th scope="row">Solution</th><td>Type through fluid</td><td data-budget="acts.solution.p95Ms">&mdash;</td></tr>
+            <tr><th scope="row">Work</th><td>Dissolve</td><td data-budget="acts.work.p95Ms">&mdash;</td></tr>
           </tbody>
         </table>
         <p class="proof__method">
           Measured by <a href="https://github.com/ceyre-boop/Northbound-Studio-/blob/main/scripts/perf.mjs">scripts/perf.mjs</a>
           against this URL under DevTools throttling — a simulated 4G connection
           and a 4&times; CPU slowdown, on a 390&times;844 viewport. Not a
-          Lighthouse estimate. Not typed by hand.
+          Lighthouse estimate, and not typed by hand. The frame figure is real
+          frame-to-frame interval; the per-act figures are command submission,
+          not GPU execution, because
+          <code>EXT_disjoint_timer_query</code> is unavailable on most hardware
+          and nothing here will claim a measurement it cannot take. The
+          <a href="/data/perf-budget.json">raw artifact</a> records the renderer
+          and the quality tier it was measured on.
         </p>
       </div>
     </div>

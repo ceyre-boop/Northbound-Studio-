@@ -28,12 +28,31 @@
     return sh;
   }
 
-  function buildProgram(gl, vertSrc, fragSrc, label) {
+  /* `bindings` maps attribute name to index and must be applied before the
+     link, which is the only time the GL will accept it.
+
+     This exists because vertex attribute state is global to the context, not
+     per program, while attribute LOCATIONS are assigned per program by the
+     driver unless you pin them. Four acts share one context here, and one of
+     them set up its attribute once and then switched between eight programs,
+     reasonably assuming its only attribute lived at index 0. It did not, on
+     this driver, and the act rendered a degenerate triangle — a completely
+     blank fluid, with no GL error, no failed link, and nothing in the console
+     to find. Pinning the shared fullscreen-triangle attribute makes that
+     assumption true for every act instead of true by luck. */
+  function buildProgram(gl, vertSrc, fragSrc, label, bindings) {
     var vs = compileShader(gl, gl.VERTEX_SHADER, vertSrc, label);
     var fs = compileShader(gl, gl.FRAGMENT_SHADER, fragSrc, label);
     var prog = gl.createProgram();
     gl.attachShader(prog, vs);
     gl.attachShader(prog, fs);
+    if (bindings) {
+      for (var name in bindings) {
+        if (Object.prototype.hasOwnProperty.call(bindings, name)) {
+          gl.bindAttribLocation(prog, bindings[name], name);
+        }
+      }
+    }
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
       var log = gl.getProgramInfoLog(prog);

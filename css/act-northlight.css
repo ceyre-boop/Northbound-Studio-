@@ -1,0 +1,34 @@
+/* act-northlight.css — Act I, "the visitor's first frame."
+ *
+ * Scoped entirely to [data-act="northlight"] and its descendants, per the
+ * parallel-build contract. index.html and css/stage.css are frozen; this
+ * file only adds to what they already reserve, and never moves anything —
+ * the CLS gate is exactly zero, so nothing here may change a box's size or
+ * position after first paint.
+ *
+ * The curtain (js/acts/northlight.js) draws behind this section on the
+ * shared #nb-stage canvas, which is already fixed, full-bleed and z-index:0
+ * per css/stage.css. This file's job is only the two states the canvas does
+ * not cover: the no-WebGL page (frozen [data-gl="off"] rule already carries
+ * .act--arrival) and this act's OWN fallback, which fires only when
+ * northlight's init() specifically throws while its sibling acts still have
+ * a working context — a narrower case the shared rule cannot know to style.
+ */
+
+/* This act's own fallback path: init() threw, or a required GLCaps key was
+   unmet, while WebGL itself is still up elsewhere on the page. The Stage
+   marks the state on the section root before calling fallback() — no GL
+   calls happen here, only a background that reads as finished. */
+[data-act="northlight"][data-act-state="static"] {
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(79, 216, 196, 0.10), transparent 62%),
+    linear-gradient(180deg, #071016 0%, #05090C 70%);
+}
+
+/* Keep the ink column readable against the curtain regardless of GL state —
+   the shader's own u_safe well already dims behind this box, this is the
+   belt-and-suspenders floor under it. */
+[data-act="northlight"] .act__ink {
+  position: relative;
+  z-index: 1;
+}

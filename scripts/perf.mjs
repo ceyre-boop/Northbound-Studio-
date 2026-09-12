@@ -320,6 +320,130 @@ export async function run(url) {
   return { results, rows };
 }
 
+/* --- the published number -------------------------------------------------
+ *
+ * GATES.fpsMedian reads window.NB_MOTION.fps, which counts rAF callbacks. rAF
+ * keeps firing at 60Hz while the GPU queue grows, right up until it collapses
+ * to 30 — so it is blind to exactly the failure a four-act WebGL page
+ * produces. This repo has already shipped one perf gate that passed
+ * fraudulently (see the claim() comment in js/motion.js), and shipping four
+ * GPU-bound acts behind a CPU-cadence gate would invite the same class of
+ * failure a second time.
+ *
+ * So the number this site publishes is frame SPAN in milliseconds, measured
+ * two ways that are reported separately because they are not the same thing:
+ *
+ *   frame.*  real frame-to-frame interval from rAF timestamps. This includes
+ *            style, layout, paint and compositing — everything the browser
+ *            does, not only what our code asks for.
+ *   acts.*   the Stage's own bracket around each act's update()+draw(). This
+ *            is COMMAND SUBMISSION, not GPU execution: EXT_disjoint_timer_query
+ *            is unavailable on most targets, so nothing here claims to measure
+ *            what the GPU actually spent. The page's caption says so too.
+ *
+ * The page renders `published`, which the harness pre-formats, so the page
+ * does no arithmetic and cannot print a number that was not measured.
+ */
+export async function measureFrameBudget(browser, url) {
+  const context = await browser.newContext(ctxOpts({ viewport: { width: 390, height: 844 } }));
+  const page = await context.newPage();
+  const client = await context.newCDPSession(page);
+  await client.send('Network.enable');
+  await client.send('Network.emulateNetworkConditions', { offline: false, ...NET.regular4g });
+  await client.send('Emulation.setCPUThrottlingRate', { rate: CPU_RATE });
+
+  /* motion=full: the machine this runs on may have Reduce Motion set, and a
+     still frame costs nothing — measuring it would publish a number that
+     describes no visitor's experience. */
+  const target = url + (url.includes('?') ? '&' : '?') + 'motion=full';
+  await page.goto(target, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.waitForFunction(() => window.NB_STAGE && window.NB_STAGE.ok, { timeout: 15_000 }).catch(() => {});
+
+  /* Scroll the whole page so every act loads, initialises and runs. A budget
+     measured only at the top of the document describes one act out of four. */
+  const spans = await page.evaluate(async () => {
+    const deltas = [];
+    let last = 0;
+    let stop = false;
+    const tick = (t) => {
+      if (last) deltas.push(t - last);
+      last = t;
+      if (!stop) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+
+    const height = document.documentElement.scrollHeight - window.innerHeight;
+    const steps = 120;
+    for (let i = 0; i <= steps; i++) {
+      window.scrollTo(0, (height * i) / steps);
+      await new Promise((r) => setTimeout(r, 55));
+    }
+    stop = true;
+    await new Promise((r) => setTimeout(r, 100));
+    return { deltas, budget: window.NB_STAGE ? window.NB_STAGE.budget() : null };
+  });
+
+  const device = await page.evaluate(() => {
+    const d = window.NB_STAGE ? window.NB_STAGE.debug() : {};
+    const c = document.createElement('canvas').getContext('webgl');
+    const dbg = c && c.getExtension('WEBGL_debug_renderer_info');
+    return {
+      tier: d.tier ?? null,
+      mode: d.mode ?? null,
+      glVersion: d.caps ? d.caps.version : null,
+      dpr: window.devicePixelRatio,
+      renderer: dbg && c ? c.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : 'unknown'
+    };
+  });
+
+  await context.close();
+
+  const sorted = spans.deltas.slice().sort((a, b) => a - b);
+  const at = (q) => (sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))] : 0);
+  return {
+    frame: { p50Ms: at(0.5), p95Ms: at(0.95), p99Ms: at(0.99), samples: sorted.length },
+    acts: spans.budget ? spans.budget.acts : {},
+    device
+  };
+}
+
+export function toArtifact(url, budget, gateRows, commit) {
+  const round = (n) => Math.round(n * 100) / 100;
+  const frameMs = round(budget.frame.p50Ms);
+  const BUDGET_MS = 16.7;
+  const acts = {};
+  for (const [id, v] of Object.entries(budget.acts || {})) {
+    acts[id] = { label: v.label, p50Ms: round(v.p50), p95Ms: round(v.p95) };
+  }
+  return {
+    schema: 1,
+    measuredAt: new Date().toISOString(),
+    commit,
+    url,
+    harness: {
+      cpuThrottleRate: CPU_RATE,
+      network: 'regular4g',
+      viewport: '390x844',
+      note: 'Per-act figures are command submission time, not GPU execution.'
+    },
+    device: budget.device,
+    frame: {
+      p50Ms: frameMs,
+      p95Ms: round(budget.frame.p95Ms),
+      p99Ms: round(budget.frame.p99Ms),
+      samples: budget.frame.samples
+    },
+    acts,
+    published: {
+      frameMs: frameMs.toFixed(1) + ' ms',
+      budgetMs: BUDGET_MS.toFixed(1) + ' ms',
+      headroomPct: Math.max(0, Math.round(((BUDGET_MS - frameMs) / BUDGET_MS) * 100)) + '%',
+      caption: `median frame, ${CPU_RATE}x CPU throttle, 390x844, regular 4G`
+    },
+    gates: (gateRows || []).map((r) => ({ key: r.key, label: r.label, detail: r.detail, pass: r.pass }))
+  };
+}
+
 function describeFallback(r) {
   if (r.navError) return `navigation failed: ${r.navError}`;
   const parts = [];
@@ -346,12 +470,43 @@ function printTable(rows) {
   }
 }
 
+const ARTIFACT_PATH = new URL('../data/perf-budget.json', import.meta.url);
+
 async function main() {
-  const url = process.argv[2] || 'https://northbound-dev.com/';
+  const args = process.argv.slice(2);
+  const emit = args.includes('--emit');
+  const url = args.find((a) => !a.startsWith('--')) || 'https://northbound-dev.com/';
+
   console.log(`Layer 5 perf harness — ${url}\n`);
   const { rows } = await run(url);
   printTable(rows);
   const failed = rows.filter((r) => !r.pass);
+
+  if (emit) {
+    const { mkdirSync, writeFileSync } = await import('node:fs');
+    const { execSync } = await import('node:child_process');
+    console.log('\nMeasuring frame budget (this scrolls the whole page so every act runs)...');
+    const browser = await chromium.launch();
+    let budget;
+    try { budget = await measureFrameBudget(browser, url); } finally { await browser.close(); }
+
+    let commit = 'unknown';
+    try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch {}
+
+    const artifact = toArtifact(url, budget, rows, commit);
+    mkdirSync(new URL('../data/', import.meta.url), { recursive: true });
+    writeFileSync(ARTIFACT_PATH, JSON.stringify(artifact, null, 2) + '\n');
+
+    console.log(`\nWrote data/perf-budget.json`);
+    console.log(`  frame p50      ${artifact.published.frameMs}  (${artifact.published.headroomPct} headroom)`);
+    console.log(`  frame p95      ${artifact.frame.p95Ms} ms over ${artifact.frame.samples} frames`);
+    for (const [id, a] of Object.entries(artifact.acts)) {
+      console.log(`  ${String(id).padEnd(14)} p50 ${a.p50Ms} ms · p95 ${a.p95Ms} ms`);
+    }
+    console.log('\nThis file is the ONLY place the published number comes from.');
+    console.log('Commit it. Never edit it by hand — re-run this to change it.');
+  }
+
   console.log('');
   if (failed.length) {
     console.log(`FAIL — ${failed.length} of ${rows.length} gate(s) failed.`);

@@ -1,33 +1,95 @@
-# Northbound Studio — The Anime Scroll Experience
+# Northbound Studio — northbound-dev.com
 
-Cinematic scroll-driven site for Northbound Studio. Vanilla HTML/CSS/JS — **no build step**.
+A two-person studio in Grand Ledge, Michigan. This repo is the studio's site,
+and the site is the portfolio piece: four hand-written WebGL systems on one
+canvas, sharing one render loop, with no framework and no build step.
 
-## Scenes
+The argument the page makes is that the engineering is real. So the page has to
+be able to prove it, and the proof is not a claim — it is a number the site
+measures about itself.
 
-1. **Hero** — two anime characters flanking the NORTHBOUND STUDIO wordmark (per-letter reveal, scan sweep, N glow). Character art lives at `assets/char-colin.png` / `assets/char-partner.png`; styled placeholder cards render automatically until those files exist.
-2. **Voyage** (`js/helix.js`) — a Three.js particle double-helix tunnel the camera flies through; the strands converge into a letter **N** that inflates, cracks, and shatters toward the camera. One canvas, one 600% pinned ScrollTrigger; every visual is a pure function of scroll progress (reverse-scrub safe).
-3. **Journey** — four pinned story steps: unfair advantages, Design × Engineering split, iMessage support thread, animated stat counters.
-4. **Template picker** — six style cards (Minimal / Bold Dark / Warm & Organic / Corporate Trust / Creative Pop / Original Design). Selecting one pre-fills the apply form's template + budget.
-5. **Apply** — Formspree-backed application form.
-6. **Footer**.
+## The rule this repo is built around
 
-Budget tiers (canonical strings used in the form and picker): `$250 — Starter` · `$400–600 — Pro` · `$750+ — Full Brand Kit`.
+> Do not put a result, a metric or a client name here that did not happen. A
+> fabricated "booked 34 jobs" is the one claim that cannot be defended. There is
+> no panel until there is something behind it.
+>
+> — `js/content.js`
 
-## Stack
+It has teeth. It has already killed a case study that advertised
+"Next.js · React Three Fiber" over a static placeholder with no JavaScript in
+it, and rewritten a support-chat mockup nobody could point to an incident for.
+Three things were cut from the previous version of this site under it and must
+not come back without something real behind them: a "48 hrs first live build"
+claim that was an intention and never a performance, a hand-set `SPOTS_LEFT`
+integer dressed up as scarcity, and the Halo case study.
 
-- Three.js **r128** (cdnjs) + `three@0.128.0` examples/js post-processing (unpkg) — these two must stay on the same version.
-- GSAP 3.12.5 + ScrollTrigger, Lenis 1.1.18 (native-scroll mode — no scrollerProxy).
-- Modules attach to a shared `window.NB` namespace; one `gsap.ticker` drives everything (`js/app.js`).
+Every number on the page is either a price the studio sets, or a figure written
+by `scripts/perf.mjs` into `data/perf-budget.json` and read at runtime. There is
+no third category, and `tests/budget.spec.ts` enforces it.
 
-## Mobile / accessibility
+## Architecture
 
-Three.js is skipped on mobile and under `prefers-reduced-motion` (`body.no-three`); the voyage falls back to a CSS starfield + stroke-drawn N. Journey steps stack without pins. The custom cursor disables itself on touch.
+```
+index.html            the site. Readable, linkable and submittable with no JS
+                      and no WebGL. FROZEN during parallel builds.
+css/stage.css         tokens, type, layout, the four act containers
+css/act-*.css         one per act, one owner each
+
+js/motion.js          the ONLY requestAnimationFrame on the page, plus the
+                      spring integrator. Frozen, read-only.
+js/gl/gl-core.js      raw WebGL boilerplate. Frozen, read-only.
+js/gl/afford.js       device budget (NOT motion preference — see below)
+js/stage/stage.js     one canvas, one context, one loop, four acts.
+                      Its header comment is the act contract.
+js/stage/cast.js      the four acts, their scroll windows and budgets
+js/acts/*.js          one act each, ES modules, lazily imported
+js/content.js         everything the site says
+js/proof.js           reads data/perf-budget.json into the page
+
+scripts/perf.mjs      the measurement harness and the only thing that may
+                      write data/perf-budget.json
+```
+
+### Tier and mode are orthogonal
+
+`tier` (1–3) is how much GPU budget the machine has. `mode` (`full` / `reduced`)
+is whether the visitor wants motion. Collapsing these into one flag is a bug
+this repo shipped once: `afford.js` used to answer "cannot afford" whenever
+Reduce Motion was set, and since the machine this site is built on has Reduce
+Motion on system-wide, every local session resolved to the cheapest tier and
+nobody working here ever saw the full-quality path.
+
+**Reduced motion is the default local experience, so it is a first-class
+deliverable.** Every act composes one still, art-directed frame under
+`drawStill()` — never a blank canvas. Use `?motion=full` to see the animated
+path locally.
+
+### Useful query parameters
+
+| | |
+|---|---|
+| `?motion=full` | force the animated path (needed on any machine with Reduce Motion on) |
+| `?motion=off` | force the still path |
+| `?tier=1` `?tier=2` `?tier=3` | force a quality tier |
+| `?strict=1` | Stage snapshots GL state around every act's `draw()` and throws, by act name, on anything left dirty |
+
+## Running it
+
+```sh
+bun run serve        # static server on :8099 — there is no build step
+bun run test         # Playwright: desktop, mobile, desktop-reduced, snap-chrome
+bun run perf         # the gates, against the live site
+bun run perf:emit    # re-measure and rewrite data/perf-budget.json
+```
+
+`data/perf-budget.json` is generated, committed, and never edited by hand. If
+`tests/budget.spec.ts` fails on drift, the fix is to re-run `perf:emit` and
+commit the result — regenerating the truth, not editing the claim.
 
 ## Deploy
 
-GitHub Pages via Actions: every push to `main` runs `.github/workflows/deploy-pages.yml` (Pages source must stay set to "GitHub Actions"). Live at:
-`https://ceyre-boop.github.io/Northbound-Studio-/`
-
-## Local dev
-
-Serve the folder with any static server, e.g. `bunx serve -l 8080`, and open `http://localhost:8080`.
+Vercel, static, `outputDirectory: "."`, no install and no build. `CNAME` holds
+`northbound-dev.com`. The two concept builds under `/demos/` are separate Vercel
+projects proxied in by the rewrites in `vercel.json`; their sources live here but
+are excluded from the deployed bundle by `.vercelignore`.

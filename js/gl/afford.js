@@ -23,10 +23,19 @@
     return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
   }
 
-  /** true when this machine has headroom for the full curtain. */
+  /** true when this machine has headroom for the full curtain.
+   *
+   *  This used to return false whenever NB_MOTION.reduced was set, which
+   *  collapsed two unrelated questions into one. Reduced motion is a
+   *  PREFERENCE — what the visitor wants — and affordance is a BUDGET — what
+   *  the machine can do. Conflating them meant a high-end laptop with Reduce
+   *  Motion on resolved to the cheapest tier, and since that describes the
+   *  machine this site is built on, it meant nobody working here ever saw the
+   *  full-quality path. The Stage now reads the mode separately; this function
+   *  answers only the budget question. */
   function canAfford() {
     var m = window.NB_MOTION;
-    if (!m || m.reduced) return false;
+    if (!m) return false;
     if (coarsePointer()) return false;
     var dm = navigator.deviceMemory;
     if (typeof dm === 'number' && dm <= 4) return false;

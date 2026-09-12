@@ -11,3 +11,7 @@ qa/
 # Its source must not ship inside the descent's bundle.
 demos/atlas/
 demos/vector/
+scripts/
+ISA.md
+bun.lock
+package.json

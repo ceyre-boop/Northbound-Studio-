@@ -1,0 +1,303 @@
+/* Northbound — the shell.
+ *
+ * Tokens, type, layout, and the four act containers. FROZEN during the
+ * parallel build: each department styles its own act in css/act-*.css and
+ * nothing else. Everything here has to hold with no JavaScript and no WebGL,
+ * because that is the state this page must still be good in.
+ *
+ * The CLS gate is exactly zero, so every act reserves its height before any
+ * script runs and the canvas is fixed and outside every act subtree. No act
+ * may insert a node that affects layout after first paint.
+ */
+
+/* --- faces ---------------------------------------------------------------
+   swap, not block: the aurora behind unstyled text for 100ms is a far better
+   first frame than no text at all, and LCP is gated at 1200ms on slow 4G. */
+@font-face {
+  font-family: 'Syne';
+  src: url('../fonts/syne.woff2') format('woff2');
+  font-weight: 400 800; font-display: swap; font-style: normal;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('../fonts/instrument-sans.woff2') format('woff2');
+  font-weight: 400 700; font-display: swap; font-style: normal;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../fonts/jetbrains-mono.woff2') format('woff2');
+  font-weight: 400 600; font-display: swap; font-style: normal;
+}
+
+:root {
+  --ink:        #05090C;
+  --ink-2:      #0A1218;
+  --paper:      #E8EFF2;
+  --paper-dim:  #9DB0B8;
+  --paper-faint:#63767F;
+  --line:       #16232B;
+  --line-2:     #22333D;
+  --aurora:     #4FD8C4;
+  --aurora-dim: #1E6F63;
+  --signal:     #E0A05C;
+
+  --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
+  --body:    'Instrument Sans', system-ui, -apple-system, sans-serif;
+  --mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --gutter: clamp(20px, 5vw, 72px);
+  --measure: 62ch;
+  --rhythm: clamp(28px, 4vh, 48px);
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--ink); -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--body);
+  font-size: clamp(16px, 1.05vw + 13px, 19px);
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* The canvas: fixed, behind everything, outside every act subtree so it can
+   never contribute a layout shift. Removed entirely when there is no context. */
+#nb-stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+
+a { color: var(--aurora); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--paper); }
+:focus-visible { outline: 2px solid var(--aurora); outline-offset: 3px; border-radius: 2px; }
+
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 20;
+  background: var(--aurora); color: var(--ink);
+  padding: 12px 18px; font-weight: 600; text-decoration: none;
+}
+.skip:focus { left: 12px; top: 12px; }
+
+/* --- masthead ------------------------------------------------------------ */
+.masthead {
+  position: relative; z-index: 3;
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px 32px; flex-wrap: wrap;
+  padding: clamp(18px, 3vh, 32px) var(--gutter);
+}
+.wordmark {
+  font-family: var(--display); font-weight: 800;
+  font-size: 1.12rem; letter-spacing: -0.02em;
+  color: var(--paper); text-decoration: none;
+}
+.wordmark span { color: var(--aurora); }
+.masthead nav { display: flex; gap: clamp(14px, 2.5vw, 30px); }
+.masthead nav a {
+  font-family: var(--mono); font-size: 0.74rem;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--paper-dim); text-decoration: none;
+}
+.masthead nav a:hover { color: var(--aurora); }
+
+/* --- acts ----------------------------------------------------------------
+   Height reserved up front. svh, not vh, so a mobile URL bar collapsing does
+   not resize every section and spend the entire CLS budget in one gesture. */
+main { position: relative; z-index: 2; }
+
+.act {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: clamp(64px, 12vh, 140px) var(--gutter);
+}
+.act__ink { width: 100%; max-width: 1080px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--aurora); margin: 0 0 var(--rhythm);
+}
+
+h1, h2, h3 { font-family: var(--display); letter-spacing: -0.028em; text-wrap: balance; }
+
+h1 {
+  font-weight: 800;
+  font-size: clamp(2.5rem, 7.2vw, 5.4rem);
+  line-height: 0.98;
+  margin: 0 0 clamp(20px, 3vh, 34px);
+  max-width: 16ch;
+}
+h2 {
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4.6vw, 3.4rem);
+  line-height: 1.06;
+  margin: 0 0 clamp(18px, 2.6vh, 30px);
+  max-width: 20ch;
+}
+h3 { font-weight: 700; font-size: 1.22rem; line-height: 1.2; margin: 0 0 6px; }
+
+p { margin: 0 0 1.05em; max-width: var(--measure); }
+.lede { font-size: clamp(1.05rem, 1.1vw + 0.85rem, 1.35rem); color: var(--paper); max-width: 54ch; }
+.byline, .note { color: var(--paper-dim); font-size: 0.94rem; }
+.note { border-left: 2px solid var(--line-2); padding-left: 18px; margin-top: var(--rhythm); }
+
+/* --- buttons ------------------------------------------------------------- */
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px 16px; margin-top: var(--rhythm); max-width: none; }
+.btn {
+  display: inline-block;
+  font-family: var(--mono); font-size: 0.78rem; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none;
+  padding: 14px 24px;
+  border: 1px solid var(--line-2); border-radius: 2px;
+  color: var(--paper); background: transparent;
+  transition: border-color .18s, color .18s, background-color .18s;
+}
+.btn:hover { border-color: var(--aurora); color: var(--aurora); }
+.btn--go { background: var(--aurora); border-color: var(--aurora); color: var(--ink); font-weight: 600; }
+.btn--go:hover { background: var(--paper); border-color: var(--paper); color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+
+.scroll-hint {
+  position: absolute; bottom: clamp(20px, 4vh, 40px); left: var(--gutter);
+  font-family: var(--mono); font-size: 0.66rem;
+  text-transform: uppercase; letter-spacing: 0.22em;
+  color: var(--paper-faint); margin: 0;
+}
+.act--arrival { position: relative; }
+
+/* --- packages ------------------------------------------------------------ */
+.packages {
+  list-style: none; margin: var(--rhythm) 0 0; padding: 0;
+  display: grid; gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+.pkg { background: var(--ink-2); padding: clamp(22px, 2.6vw, 34px); }
+.pkg--lead { background: #0C1A1C; box-shadow: inset 2px 0 0 var(--aurora); }
+.pkg h3 { color: var(--paper); }
+.pkg__price {
+  font-family: var(--mono); font-size: 1.5rem; font-weight: 600;
+  color: var(--aurora); margin: 0 0 10px; font-variant-numeric: tabular-nums;
+}
+.pkg__price span { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper-faint); }
+.pkg__tag { font-style: italic; color: var(--paper-dim); font-size: 0.92rem; margin-bottom: 16px; }
+.pkg ul { margin: 0; padding-left: 1.05em; color: var(--paper-dim); font-size: 0.93rem; }
+.pkg li { margin-bottom: 7px; }
+
+/* --- the work ------------------------------------------------------------ */
+.work-list {
+  list-style: none; margin: var(--rhythm) 0 0; padding: 0;
+  display: grid; gap: clamp(14px, 2vw, 22px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+.work-card {
+  border: 1px solid var(--line-2);
+  background: rgba(10, 18, 24, 0.72);
+  padding: clamp(20px, 2.4vw, 30px);
+  position: relative;
+}
+.work-card__kind {
+  font-family: var(--mono); font-size: 0.64rem;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--signal); margin: 0 0 12px;
+}
+.work-card h3 a { text-decoration: none; color: var(--paper); }
+.work-card h3 a:hover { color: var(--aurora); }
+.work-card p { color: var(--paper-dim); font-size: 0.95rem; margin-bottom: 8px; }
+.work-card__tech { font-family: var(--mono); font-size: 0.74rem; color: var(--paper-faint); margin: 0; }
+
+/* --- proof --------------------------------------------------------------- */
+.proof {
+  margin-top: clamp(40px, 7vh, 80px);
+  border-top: 1px solid var(--line-2);
+  padding-top: clamp(26px, 4vh, 44px);
+}
+.proof h3 { color: var(--paper); margin-bottom: 14px; }
+.proof strong { font-family: var(--mono); font-size: 1.9rem; font-weight: 600; color: var(--aurora); font-variant-numeric: tabular-nums; }
+.proof a { text-decoration: none; }
+.proof a:hover strong { color: var(--paper); }
+.proof__caption { font-family: var(--mono); font-size: 0.72rem; color: var(--paper-faint); letter-spacing: 0.04em; }
+.proof__method { font-size: 0.84rem; color: var(--paper-faint); max-width: 64ch; }
+
+.proof__table { width: 100%; border-collapse: collapse; margin: 22px 0; font-family: var(--mono); font-size: 0.78rem; }
+.proof__table caption { text-align: left; color: var(--paper-faint); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; padding-bottom: 10px; }
+.proof__table th, .proof__table td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line); }
+.proof__table thead th { color: var(--paper-faint); font-weight: 500; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.12em; }
+.proof__table tbody th { color: var(--paper-dim); font-weight: 400; }
+.proof__table td { color: var(--aurora); font-variant-numeric: tabular-nums; }
+
+/* --- rules + form -------------------------------------------------------- */
+.rules { list-style: none; margin: 0 0 clamp(40px, 7vh, 76px); padding: 0; max-width: 60ch; }
+.rules li { position: relative; padding-left: 30px; margin-bottom: 11px; color: var(--paper-dim); }
+.rules li::before { content: "→"; position: absolute; left: 0; color: var(--aurora); font-family: var(--mono); }
+
+.contact { margin-top: var(--rhythm); max-width: 540px; }
+.field { margin: 0 0 18px; max-width: none; }
+.field label {
+  display: block; font-family: var(--mono); font-size: 0.68rem;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--paper-faint); margin-bottom: 7px;
+}
+.field input, .field select, .field textarea {
+  width: 100%; padding: 12px 14px;
+  background: var(--ink-2); color: var(--paper);
+  border: 1px solid var(--line-2); border-radius: 2px;
+  font-family: var(--body); font-size: 1rem; line-height: 1.5;
+}
+.field textarea { resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--aurora); outline: none; }
+
+/* --- colophon + noscript ------------------------------------------------- */
+.colophon {
+  position: relative; z-index: 2;
+  border-top: 1px solid var(--line);
+  padding: clamp(30px, 5vh, 54px) var(--gutter);
+  display: flex; flex-wrap: wrap; gap: 8px 40px;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em;
+  color: var(--paper-faint);
+}
+.colophon p { margin: 0; max-width: none; }
+
+.noscript-note {
+  position: relative; z-index: 3;
+  margin: 0; padding: 18px var(--gutter);
+  background: var(--ink-2); border-top: 1px solid var(--line-2);
+  color: var(--paper-dim); font-size: 0.88rem; max-width: none;
+}
+
+/* --- no WebGL ------------------------------------------------------------
+   The Stage sets data-gl="off" and removes the canvas when it cannot get a
+   context, or when a context is lost and never comes back. The page then has
+   to stand on its own, so each act gets a quiet static ground rather than the
+   flat void the canvas was covering. This is a designed state, not an error
+   state, and perf.mjs's no-WebGL sweep asserts it produces no console errors
+   and no overflow. */
+[data-gl="off"] .act--arrival {
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(79, 216, 196, 0.10), transparent 62%),
+    linear-gradient(180deg, #071016 0%, var(--ink) 70%);
+}
+[data-gl="off"] .act--drift {
+  background: radial-gradient(80% 60% at 20% 50%, rgba(30, 111, 99, 0.16), transparent 70%);
+}
+[data-gl="off"] .act--offer {
+  background: linear-gradient(180deg, transparent, rgba(10, 18, 24, 0.8));
+}
+
+@media (max-width: 640px) {
+  .act { min-height: auto; padding-block: clamp(56px, 10vh, 90px); }
+  .act--arrival { min-height: 100svh; }
+  .scroll-hint { display: none; }
+}

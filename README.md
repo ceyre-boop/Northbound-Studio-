@@ -87,6 +87,13 @@ bun run perf:emit    # re-measure and rewrite data/perf-budget.json
 `tests/budget.spec.ts` fails on drift, the fix is to re-run `perf:emit` and
 commit the result — regenerating the truth, not editing the claim.
 
+**Measure after you commit the code, then commit the artifact on its own.**
+The staleness test compares the measurement's timestamp against the newest
+commit touching `js/`, `css/` or `index.html`, so measuring first and
+committing everything together publishes a number taken before the change it
+describes. The artifact commit touches none of those paths, which is what
+makes the order work.
+
 ## Deploy
 
 Vercel, static, `outputDirectory: "."`, no install and no build. `CNAME` holds

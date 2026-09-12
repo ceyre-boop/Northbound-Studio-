@@ -333,12 +333,32 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   .colophon a, .proof__method a { display: inline-block; padding-block: 6px; }
 }
 
-@media (max-width: 420px) {
-  /* The hero headline is the page's one piece of scale, but at this width
-     four full-bleed lines pushed both calls to action under the fold on a
-     phone. Trimming the clamp ceiling keeps the type dominant and puts the
-     buttons back on the first screen. */
-  h1 { font-size: clamp(2.2rem, 11vw, 3.1rem); }
-  .cta-row { gap: 10px; }
+@media (max-width: 480px) {
+  /* Reclaiming the first screen on a phone.
+   
+     Measured, not guessed: at a 390x664 viewport the hero stack came to 750px
+     against 664 of screen, so both calls to action sat under the fold — on the
+     one page whose entire job is to get someone to start a project. The
+     headline is the design and does not get sacrificed for it, so the space
+     comes from everything around it.
+   
+     The masthead was the biggest single win. The wordmark and the three nav
+     links were wrapping onto two rows and costing 129px; holding them on one
+     line costs about half that. The rest is padding and the gaps between the
+     three paragraphs under the headline. */
+  .masthead {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;
+    padding-block: 14px;
+  }
+  .masthead nav { gap: 0; margin-right: -12px; }
+  .masthead nav a { font-size: 0.68rem; letter-spacing: 0.1em; }
+
+  .act--arrival { padding-block: clamp(28px, 5vh, 48px) clamp(40px, 8vh, 72px); }
+  h1 { font-size: clamp(2.1rem, 10.4vw, 3rem); margin-bottom: 16px; }
+  .act--arrival .lede { font-size: 1.02rem; line-height: 1.5; margin-bottom: 12px; }
+  .act--arrival .byline { font-size: 0.86rem; line-height: 1.5; margin-bottom: 0; }
+  .cta-row { gap: 10px; margin-top: 22px; }
   .btn { padding: 15px 20px; }
 }

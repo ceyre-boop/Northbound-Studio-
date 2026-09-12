@@ -3,8 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 /* The site is static: serve the repo root and drive it. */
 export default defineConfig({
   testDir: './tests',
-  // Seven floors of canvas animation at 60fps: parallel workers starve each
-  // other's rAF and smooth-scroll timing into false failures. Serial is honest.
+  // Four hand-written WebGL acts sharing one rAF: parallel workers starve each
+  // other's frame timing into false failures. Serial is honest.
   fullyParallel: false,
   workers: 1,
   reporter: [['list']],
@@ -19,27 +19,15 @@ export default defineConfig({
   },
   projects: [
     {
-      // CSS scroll-snap is compositor-driven: neither headless Chromium nor a
-      // headless channel runs it, so the snap assertions need real headed
-      // Chrome. Everything else stays headless and fast.
-      name: 'snap-chrome',
-      testMatch: /snap\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 },
-             channel: 'chrome', headless: false },
-    },
-    {
       name: 'desktop',
-      testIgnore: /snap\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, reducedMotion: 'no-preference' },
     },
     {
       name: 'mobile',
-      testIgnore: /snap\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, reducedMotion: 'no-preference', hasTouch: true },
     },
     {
       name: 'desktop-reduced',
-      testIgnore: /snap\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' },
     },
   ],

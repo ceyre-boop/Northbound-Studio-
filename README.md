@@ -78,7 +78,7 @@ path locally.
 
 ```sh
 bun run serve        # static server on :8099 — there is no build step
-bun run test         # Playwright: desktop, mobile, desktop-reduced, snap-chrome
+bun run test         # Playwright: desktop, mobile, desktop-reduced
 bun run perf         # the gates, against the live site
 bun run perf:emit    # re-measure and rewrite data/perf-budget.json
 ```

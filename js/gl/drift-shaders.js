@@ -71,6 +71,35 @@
     '}'
   ].join('\n');
 
+  /* The ink lift — shared by all three render paths.
+   *
+   * The drift field is deliberately a dark city: roughly one particle in
+   * seven is a lit window and the rest sit at a tenth of an alpha. That is
+   * the right ambience, and it is exactly wrong once the field resolves into
+   * a picture, because a picture drawn in the dark majority is a smudge. The
+   * first build of the lenticular formed all three frames correctly and you
+   * could barely see any of them.
+   *
+   * So the same u_formWeight that pulls a particle onto its target also
+   * turns its light on. At weight 0 every line below collapses to the
+   * original drift shading, byte for byte — the ambience is untouched
+   * between holds. At weight 1 nearly every particle is ink, the twinkle
+   * flattens toward steady (a picture should not shimmer while you read it),
+   * and the dots grow enough to close the gaps between them.
+   *
+   * Dot SIZE is not handled here: it rides on u_pointScale, which the act
+   * already raises with the form weight (see pointScaleFor and INK_POINT_GAIN
+   * in js/acts/drift.js). One source of truth, and the low tiers — which have
+   * the fewest points to draw a picture with and need the largest dots to
+   * close the gaps between them — can be tuned from the CPU side without
+   * touching three shaders. */
+  var INK_LIFT = [
+    '  float ink = u_formWeight;',
+    '  float litted = max(lit, ink * 0.9);',
+    '  v_lit = mix(0.12, 1.0, litted) * mix(twinkle, 0.82 + 0.18 * twinkle, ink);',
+    '  float alpha = mix(mix(0.10, 0.9, lit), mix(0.62, 0.95, lit), ink);'
+  ].join('\n');
+
   // ---------------------------------------------------------------------
   // Path A — WebGL2 transform feedback. ESSL 1.00 syntax throughout: WebGL2
   // accepts attribute/varying shaders for transform feedback as long as the
@@ -129,9 +158,17 @@
     '  float flow = mix(0.35, 1.0, hash(vec2(a_seed, 6.1)));',
     '  float speed = mix(0.6, 1.5, hash(vec2(a_seed, 6.7)));',
     '  float tether = mix(0.75, 0.25, flow);',
-    '  /* Assembling into a picture needs more authority than idle drift, or a',
-    '     hold this short never resolves. */',
-    '  tether *= mix(1.0, 2.6, u_formWeight);',
+    '  /* Assembling into a picture needs far more authority than idle drift, or',
+    '     the hold — a real scroll distance measured in a fraction of a',
+    '     viewport, not seconds — is over before the spring ever gets there.',
+    '     300x, tuned empirically against this act\'s actual measured window',
+    '     rather than an assumed one, gets a legible picture within roughly',
+    '     half a second of a frame becoming current and a settled one within',
+    '     about a second, not the many seconds the untouched idle spring would',
+    '     take to cross the same distance. Paired with the extra velocity',
+    '     damping below so this stays a fast approach, not a fast, ringing',
+    '     overshoot. */',
+    '  tether *= mix(1.0, 300.0, u_formWeight);',
     '',
     '  /* Large-scale, low-frequency curl: a current that carries groups of',
     '     particles together rather than each wandering independently. Faded',
@@ -144,7 +181,13 @@
     '  vec2  push = toCursor / (cd + 0.05) * 0.0035;',
     '',
     '  vel += (toPull * tether + curl - vec3(push, 0.0)) * speed * u_dt;',
-    '  vel *= mix(0.985, 0.94, u_energy);',
+    /* pow(retention, u_dt*60.0) rather than a bare per-frame multiply: a
+       fixed per-frame retention factor is a different PER-SECOND decay rate
+       at every refresh rate, and a bare "*=" was silently tuned for exactly
+       one (60fps). Normalizing against that baseline keeps the friction —
+       and therefore how fast a picture can actually assemble — the same
+       real-world speed regardless of the device's true refresh rate. */
+    '  vel *= pow(mix(0.985, 0.94, u_energy) * mix(1.0, 0.82, u_formWeight), u_dt * 60.0);',
     '  pos += vel * u_dt;',
     '',
     '  if (life <= 0.0) { pos = pull; vel = vec3(0.0); life = 0.6 + hash(vec2(a_seed, u_time)) * 0.4; }',
@@ -174,6 +217,7 @@
     'uniform float u_dpr;',
     'uniform float u_pointScale; // clamp target, already includes tier + share',
     'uniform float u_maxPoint;',
+    'uniform float u_formWeight;',
     '',
     NOISE,
     '',
@@ -188,10 +232,10 @@
     '  float twinkle = (0.55 + 0.45 * sin(a_seed * 37.0 + a_life * 6.0 + phase))',
     '                * (0.85 + 0.15 * sin(a_seed * 5.3 + a_life * 0.8)); // slow, irregular, never a strobe',
     '  float lit = step(0.86, hash(vec2(a_seed, 3.0))); // a few lit windows, most dark',
-    '  v_lit = mix(0.12, 1.0, lit) * twinkle;',
-    '  v_a = smoothstep(0.0, 0.15, a_life) * mix(0.10, 0.9, lit);',
+    INK_LIFT,
+    '  v_a = smoothstep(0.0, 0.15, a_life) * alpha;',
     '  v_warm = step(0.855, hash(vec2(a_seed, 50.0))); // roughly one in seven',
-    '  v_soft = hash(vec2(a_seed, 70.0));',
+    '  v_soft = mix(hash(vec2(a_seed, 70.0)), 0.25, ink); // the picture sharpens up',
     '  float warmSize = mix(1.0, 1.22, v_warm);',
     '  gl_PointSize = min(u_pointScale * u_dpr * warmSize, u_maxPoint);',
     '}'
@@ -274,7 +318,21 @@
     '  if (life <= 0.0) {',
     '    vec2 pullXY = mix(homeOf(seed).xy, unpackTarget(v_uv), u_formWeight);',
     '    pos = vec3(pullXY, pos.z);',
-    '  } else pos += vel * u_dt;',
+    '  } else {',
+    '    pos += vel * u_dt;',
+    /* Assembly is done as a direct exponential ease in POSITION space, not
+       by driving the (fixed-point, +-1-clamped) velocity channel harder. A
+       spring strong enough to resolve a picture in under two seconds needs
+       velocities that channel cannot represent without wrapping — Path A's
+       transform-feedback buffers are plain float32 and do not have this
+       ceiling, which is why its version of this same idea lives in the
+       velocity term instead. Per-particle rate is the same "own lag and
+       stiffness" character as Path A's tether variance, just expressed as a
+       time constant instead of a spring constant. */
+    '    float rate = mix(2.0, 8.0, hash(vec2(seed, 6.7)));',
+    '    float snap = u_formWeight * (1.0 - exp(-rate * u_dt));',
+    '    pos.xy = mix(pos.xy, unpackTarget(v_uv), snap);',
+    '  }',
     '  vec3 np = clamp(pos / 2.4 + 0.5, 0.0, 1.0);',
     '  gl_FragColor = vec4(pack16(np.x), pack16(np.y));', // posTex: rg=x, ba=y
     '}'
@@ -294,7 +352,12 @@
        weight rather than sampled from anywhere — there is nothing to sample,
        the assembled image simply loses its depth as it resolves. */
     '  if (life <= 0.0) { z = mix(homeOf(seed).z, 0.0, u_formWeight); life = 0.6 + hash(vec2(seed, u_time)) * 0.4; }',
-    '  else z += vel.z * u_dt;',
+    '  else {',
+    '    z += vel.z * u_dt;',
+    '    float rate = mix(2.0, 8.0, hash(vec2(seed, 6.7)));',
+    '    float snap = u_formWeight * (1.0 - exp(-rate * u_dt));',
+    '    z = mix(z, 0.0, snap);', // the pictures are flat: z relaxes to 0 as the field resolves
+    '  }',
     '  vec2 zp = pack16(clamp(z / 2.4 + 0.5, 0.0, 1.0));',
     '  gl_FragColor = vec4(zp.x, zp.y, life, 1.0);',
     '}'
@@ -319,7 +382,11 @@
     '  float flow = mix(0.35, 1.0, hash(vec2(seed, 6.1)));',
     '  float speed2 = mix(0.6, 1.5, hash(vec2(seed, 6.7)));',
     '  float tether = mix(0.75, 0.25, flow);',
-    '  tether *= mix(1.0, 2.6, u_formWeight);',
+    /* Deliberately left unboosted, unlike Path A's equivalent. The picture's
+       actual assembly happens as a direct position-space ease in POS_FRAG
+       (see the comment there on why) — this tether now only contributes a
+       small organic wobble toward the same pull point, which stays inside
+       the +-1 range this channel packs into at 8 bits per component. */
     '  /* Large-scale, low-frequency curl: a current that carries groups of',
     '     particles together rather than each wandering independently. Faded',
     '     out as the picture resolves. */',
@@ -329,7 +396,10 @@
     '  float cd = dot(toCursor, toCursor);',
     '  vec2 push = toCursor / (cd + 0.05) * 0.0035;',
     '  vel += (toPull * tether + curl - vec3(push, 0.0)) * speed2 * u_dt;',
-    '  vel *= mix(0.985, 0.94, u_energy);',
+    // pow(retention, u_dt*60.0): see Path A's identical line for why a bare
+    // per-frame multiply is a different per-second decay rate at every
+    // refresh rate.
+    '  vel *= pow(mix(0.985, 0.94, u_energy), u_dt * 60.0);',
     '  if (life <= 0.0) vel = vec3(0.0);',
     '  gl_FragColor = vec4(clamp(vel * 0.5 + 0.5, 0.0, 1.0), 1.0);',
     '}'
@@ -344,6 +414,7 @@
     'uniform float u_dpr;',
     'uniform float u_pointScale;',
     'uniform float u_maxPoint;',
+    'uniform float u_formWeight;',
     PACK,
     NOISE,
     'varying float v_a;',
@@ -361,10 +432,10 @@
     '  float twinkle = (0.55 + 0.45 * sin(seed * 37.0 + life * 6.0 + phase))',
     '                * (0.85 + 0.15 * sin(seed * 5.3 + life * 0.8)); // slow, irregular, never a strobe',
     '  float lit = step(0.86, hash(vec2(seed, 3.0)));',
-    '  v_lit = mix(0.12, 1.0, lit) * twinkle;',
-    '  v_a = smoothstep(0.0, 0.15, life) * mix(0.10, 0.9, lit);',
+    INK_LIFT,
+    '  v_a = smoothstep(0.0, 0.15, life) * alpha;',
     '  v_warm = step(0.855, hash(vec2(seed, 50.0))); // roughly one in seven',
-    '  v_soft = hash(vec2(seed, 70.0));',
+    '  v_soft = mix(hash(vec2(seed, 70.0)), 0.25, ink); // the picture sharpens up',
     '  float warmSize = mix(1.0, 1.22, v_warm);',
     '  gl_PointSize = min(u_pointScale * u_dpr * warmSize, u_maxPoint);',
     '}'
@@ -444,10 +515,10 @@
     '  float twinkle = (0.55 + 0.45 * sin(a_seed * 37.0 + u_time * 0.6 + phase))',
     '                * (0.85 + 0.15 * sin(a_seed * 5.3 + u_time * 0.11)); // slow, irregular, never a strobe',
     '  float lit = step(0.86, hash(vec2(a_seed, 3.0)));',
-    '  v_lit = mix(0.12, 1.0, lit) * twinkle;',
+    INK_LIFT,
     '  v_warm = step(0.855, hash(vec2(a_seed, 50.0))); // roughly one in seven',
-    '  v_soft = clamp(1.0 - depth, 0.0, 1.0); // far (shallow depth) reads hazier',
-    '  v_a = mix(0.10, 0.85, lit) * mix(0.6, 1.0, depth);',
+    '  v_soft = mix(clamp(1.0 - depth, 0.0, 1.0), 0.25, ink); // far reads hazier, the picture sharp',
+    '  v_a = alpha * mix(mix(0.6, 1.0, depth), 1.0, ink);',
     '  float warmSize = mix(1.0, 1.22, v_warm);',
     '  gl_PointSize = min(u_pointScale * u_dpr * depth * warmSize, u_maxPoint);',
     '}'

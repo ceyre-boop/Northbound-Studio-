@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "measuredAt": "2026-09-13T02:08:02.460Z",
-  "commit": "18d1a80",
+  "measuredAt": "2026-09-13T03:02:29.855Z",
+  "commit": "c01ef76",
   "url": "https://northbound-dev.com/",
   "harness": {
     "cpuThrottleRate": 4,
@@ -17,30 +17,35 @@
     "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)"
   },
   "frame": {
-    "p50Ms": 8.4,
-    "p95Ms": 34.1,
-    "p99Ms": 483.6,
-    "samples": 701
+    "p50Ms": 8.3,
+    "p95Ms": 10.1,
+    "p99Ms": 16.3,
+    "samples": 812
   },
   "acts": {
     "northlight": {
       "label": "Northlight",
-      "p50Ms": 0.1,
-      "p95Ms": 1.1
+      "p50Ms": 0,
+      "p95Ms": 0.1
+    },
+    "drift": {
+      "label": "Drift",
+      "p50Ms": 0,
+      "p95Ms": 0.1
     },
     "solution": {
       "label": "Solution",
       "p50Ms": 0,
-      "p95Ms": 1.2
+      "p95Ms": 0.2
     },
     "offerings": {
       "label": "The offerings",
       "p50Ms": 0.1,
-      "p95Ms": 0.8
+      "p95Ms": 0.4
     }
   },
   "published": {
-    "frameMs": "8.4 ms",
+    "frameMs": "8.3 ms",
     "budgetMs": "16.7 ms",
     "headroomPct": "50%",
     "caption": "median frame, 4x CPU throttle, 390x844, regular 4G"

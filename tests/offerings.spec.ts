@@ -118,32 +118,37 @@ test.describe('the procession', () => {
     await boot(page);
     await toPanel(page, 4);
 
-    const box = await page.evaluate(() => {
+    /* Asserted on the rail-displacement springs themselves, not on screen
+       position. Two earlier versions of this test measured the wrong thing:
+       absolute coordinates drift because the procession keeps a slow idle
+       motion at rest by design, and the offset to a neighbour is not invariant
+       either, because the two panels sit at different points on a curved path
+       and separate as it moves. The displacement from the rail is the quantity
+       the spring actually drives to zero, so it is the quantity to test. */
+    const target = await page.evaluate(() => {
       const S = (window as any).__NB_WALL;
-      const p = S.panels.reduce((a: any, b: any) => (Math.abs(b.t) < Math.abs(a.t) ? b : a));
-      return { x: p.cx, y: p.cy, i: p.index };
+      const hero = S.panels.reduce((a: any, b: any) => (Math.abs(b.t) < Math.abs(a.t) ? b : a));
+      return { i: hero.index, x: hero.cx, y: hero.cy };
     });
 
-    await page.mouse.move(box.x, box.y);
+    await page.mouse.move(target.x, target.y);
     await page.mouse.down();
-    for (let k = 1; k <= 6; k++) await page.mouse.move(box.x + k * 22, box.y + k * 6);
+    for (let k = 1; k <= 6; k++) await page.mouse.move(target.x + k * 22, target.y + k * 6);
     await page.mouse.up();
 
-    const moved = await page.evaluate((i) => {
-      const p = (window as any).__NB_WALL.panels[i];
-      return { cx: p.cx, cy: p.cy };
-    }, box.i);
-    expect(Math.hypot(moved.cx - box.x, moved.cy - box.y), 'the flick moved nothing').toBeGreaterThan(4);
+    const off = (i: number) => page.evaluate((idx) => {
+      const p = (window as any).__NB_WALL.panels[idx];
+      return Math.hypot(p._railX.value, p._railY.value);
+    }, i);
 
-    await page.waitForTimeout(2600);
-    const rested = await page.evaluate((i) => {
-      const p = (window as any).__NB_WALL.panels[i];
-      return { cx: p.cx, cy: p.cy };
-    }, box.i);
+    expect(await off(target.i), 'the flick moved nothing off the rail').toBeGreaterThan(4);
+
+    await page.waitForTimeout(2800);
+    const rested = await off(target.i);
     expect(
-      Math.hypot(rested.cx - box.x, rested.cy - box.y),
-      'the panel never came back to its slot — a throw must be a displacement from the rail, not free flight'
-    ).toBeLessThan(6);
+      rested,
+      `the panel is still ${rested.toFixed(1)}px off its rail after 2.8s — a throw must be a displacement that springs home, not free flight`
+    ).toBeLessThan(1);
   });
 
   test('opening a panel adds it to the project without moving the page', async ({ page }) => {
@@ -254,5 +259,50 @@ test.describe('the procession', () => {
     await expect(overlay).not.toHaveAttribute('data-open', 'true');
     expect(await page.locator('.work-overlay iframe').getAttribute('src'),
       'the iframe kept running after close').toBeFalsy();
+  });
+
+  /* The mascot is decorative and must fail safe. It is the newest thing in the
+     section and the least important: if its rig throws, or if someone wires a
+     listener to NB_OFFERINGS that throws, the procession has to carry on. The
+     hooks are a public extension point, which means one day something other
+     than us will be on the end of them. */
+  test('a listener that throws cannot take the procession down', async ({ page }) => {
+    const errs: string[] = [];
+    page.on('pageerror', (e) => errs.push(e.message));
+
+    await boot(page);
+    await page.evaluate(() => {
+      const api = (window as any).NB_OFFERINGS;
+      for (const k of ['onPanelHover', 'onPanelFocus', 'onPanelOpen', 'onPanelThrow']) {
+        api[k] = () => { throw new Error('deliberate: ' + k); };
+      }
+    });
+
+    for (const i of [3, 4, 5]) await toPanel(page, i);
+
+    const alive = await page.evaluate(() => {
+      const S = (window as any).__NB_WALL;
+      const b = (window as any).NB_STAGE.budget().acts.offerings;
+      return { centre: S && S.centre, reporting: !!b, failed: document
+        .querySelector('[data-act="offerings"]')!.getAttribute('data-act-state') };
+    });
+
+    expect(alive.reporting, 'the act stopped drawing when a hook threw').toBe(true);
+    expect(alive.failed, 'the act fell back to its static state').not.toBe('static');
+    expect(typeof alive.centre).toBe('number');
+    expect(errs.filter((e) => !/deliberate/.test(e)), errs.join('\n')).toEqual([]);
+  });
+
+  /* The arm draws into the same canvas as the panels and is the most recent
+     thing to touch GL state. It gets its own seam check rather than relying on
+     the whole-page one to notice. */
+  test('the mascot leaves no GL state dirty', async ({ page }) => {
+    const dirty: string[] = [];
+    page.on('pageerror', (e) => { if (/left GL state dirty/.test(e.message)) dirty.push(e.message); });
+    page.on('console', (m) => { if (/left GL state dirty/.test(m.text())) dirty.push(m.text()); });
+
+    await boot(page, '?motion=full&strict=1');
+    for (const i of [0, 5, 11]) await toPanel(page, i);
+    expect(dirty, dirty.join('\n')).toEqual([]);
   });
 });

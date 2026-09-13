@@ -116,7 +116,7 @@
      early, let go two and a half screens away. Converted to progress at measure
      time, with floors so a short document keeps roughly the behaviour it had. */
   var BAND_SCREENS = 0.45;
-  var WARM_SCREENS = 1.0;
+  var WARM_SCREENS = 1.2;
   var COLD_SCREENS = 2.5;
   var BAND = 0.05;          // nominal, published on the API for tests
   var scrollSpan = 1;
@@ -468,9 +468,21 @@
 
   // --- scroll --------------------------------------------------------------
 
+  /* scrollSpan is cached by measureWindows(), not read here.
+   *
+   * This used to read document.documentElement.scrollHeight every frame, which
+   * forces the browser to flush style and layout before it can answer. That was
+   * survivable while the page was five screens of ordinary sections. The
+   * offerings procession made it sixteen screens with a sticky, contained
+   * subtree in the middle, and the same innocent-looking property read dropped
+   * the whole site from 120fps to 18 at the top of the page — where the
+   * procession is not even running. Nothing about the procession was slow; one
+   * per-frame layout read simply got a much bigger document to measure.
+   *
+   * The span only changes when layout changes, and measureWindows() already
+   * runs on exactly those occasions: boot, resize, load, and fonts settling. */
   function readProgress() {
-    var span = (document.documentElement.scrollHeight - window.innerHeight) || 1;
-    var p = window.scrollY / span;
+    var p = window.scrollY / (scrollSpan || 1);
     return p < 0 ? 0 : (p > 1 ? 1 : p);
   }
 
@@ -650,7 +662,21 @@
       rec._man = man;
       var win = winOf(rec);
 
-      var warm = Math.max(man.preload || 0, warmP());
+      /* Warm-up is a DISTANCE, not a fraction of the document.
+       
+         The manifest's `preload` is in progress units and used to mean about
+         half a screen, back when the page was five screens long. The offerings
+         procession made it sixteen, so the first three acts were squeezed into
+         the top 18% and every one of their preload margins reached back past
+         scroll zero at once. The result: landing on the page compiled the fluid
+         act's eight shader programs and rasterised its type immediately, at the
+         very top, where none of it is visible — 120fps became 18. A CPU profile
+         showed 96% of time outside JavaScript, in shader compilation and
+         texImage2D, which is what that looks like from the inside.
+       
+         The manifest field is deliberately ignored here rather than deleted, so
+         an act can still document its intent; the Stage decides the distance. */
+      var warm = warmP();
       var cold = coldP();
       var near = progress >= win[0] - warm && progress <= win[1] + warm;
       var far = progress < win[0] - cold || progress > win[1] + cold;

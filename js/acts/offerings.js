@@ -23,11 +23,13 @@ import * as Physics from '../offerings/procession.js';
 import * as Motion from '../offerings/atlas.js';
 import * as Graphics from '../offerings/wall.js';
 import * as Card from '../offerings/card.js';
+import * as Mascot from '../offerings/mascot.js';
 
 var S = null;        // WallState
 var bank = null;     // MOTION
 var glass = null;    // GRAPHICS
 var pin = null;      // the sticky wrapper, our screen region and event target
+var arm = null;      // CHARACTER
 var bound = false;
 
 /* The mascot's seat. Built now, filled by the Character department later.
@@ -43,10 +45,20 @@ function publishHooks(root) {
   return api;
 }
 
+/* Two listeners, deliberately. The arm is told directly, because it ships with
+ * the section and should never depend on a public hook still being wired. The
+ * NB_OFFERINGS hook fires as well, so the extension point stays real for
+ * anything added later rather than becoming decoration the moment it has one
+ * consumer. Either can throw without touching the other, and neither can take
+ * the wall down with it. */
 function fire(name, a, b) {
+  if (arm) {
+    try { Mascot.on(arm, name.replace(/^onPanel/, '').toLowerCase(), a); }
+    catch (e) { /* the mascot is decorative; it never breaks the procession */ }
+  }
   var api = window.NB_OFFERINGS;
   if (!api || typeof api[name] !== 'function') return;
-  try { api[name](a, b); } catch (e) { /* a mascot must never break the wall */ }
+  try { api[name](a, b); } catch (e) { /* nor does anyone else's listener */ }
 }
 
 /* Pointer plumbing. The act forwards raw events; PHYSICS does its own
@@ -137,6 +149,7 @@ export default {
        Stage catches throws; it cannot catch a stall. */
     bank = Motion.create(ctx);
     glass = Graphics.create(ctx, S);
+    arm = Mascot.create(ctx);
 
     Card.init(ctx.root, {
       onOpen: function (i) {
@@ -158,6 +171,7 @@ export default {
     if (!S) return;
     Physics.resize(w, h, S);
     Graphics.resize(glass, w, h, dpr);
+    Mascot.resize(arm, w, h, dpr);
   },
 
   /* CPU only — not one gl.* call in here, per the Stage contract. That
@@ -167,6 +181,7 @@ export default {
     if (!S) return;
     var before = S.centre;
     Physics.update(dt, p, S);
+    Mascot.update(arm, dt, S);
     if (S.centre !== before) {
       Card.setCentre(S.centre);
       fire('onPanelFocus', S.centre);
@@ -179,6 +194,9 @@ export default {
     Graphics.draw(glass, S, Motion.texture(bank), function (i) {
       return Motion.tileRect(bank, i);
     }, alpha, ctx);
+    /* Last, so it sits in front of the glass — it is watching the panels, not
+       trapped behind them. */
+    Mascot.draw(arm, alpha, ctx);
   },
 
   /* Reduced motion, which is the default on the machine this is built on and
@@ -193,6 +211,7 @@ export default {
     Graphics.drawStill(glass, S, Motion.texture(bank), function (i) {
       return Motion.tileRect(bank, i);
     }, ctx);
+    Mascot.drawStill(arm, ctx);
   },
 
   /* No WebGL, or init threw. The DOM list is the section: it stops being a
@@ -211,10 +230,11 @@ export default {
   },
 
   dispose() {
+    try { Mascot.dispose(arm); } catch (e) {}
     try { Motion.dispose(bank); } catch (e) {}
     try { Graphics.dispose(glass); } catch (e) {}
     try { Physics.dispose(S); } catch (e) {}
-    bank = null; glass = null; S = null;
+    bank = null; glass = null; arm = null; S = null;
     try { delete window.__NB_WALL; } catch (e) { window.__NB_WALL = null; }
     /* Card and the pointer listeners deliberately survive: the DOM half of this
        section must keep working while the act is scrolled out and torn down. */

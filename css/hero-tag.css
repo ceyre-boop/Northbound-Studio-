@@ -1,0 +1,276 @@
+/* BUDDY tags the headline.
+ *
+ * This retroactively explains the hero: the headline is already sprayed
+ * paint (css/hero-stencil.css's #nb-spray filter), and this sequence is the
+ * one frame of story that says who painted it and that he is not supposed to
+ * be here.
+ *
+ * Everything that moves the character is `transform` and `opacity` on named
+ * groups inside brand/buddy-tagger.svg, inlined by js/hero-tag.js so each
+ * part can be driven independently — a parent transform on #tag-rig carries
+ * the whole character across the scene, and child transforms on the antenna,
+ * feet and arm squash, drag and overlap inside that space. Nothing here
+ * triggers layout: the mount is `position: absolute` inside `.act--arrival`
+ * (already `position: relative`, see css/stage.css), so it can never change
+ * that section's box and can never move the CLS gate off zero.
+ *
+ * The one exception is the headline reveal, and the brief calls that out
+ * explicitly: a clip-path swept left-to-right on the h1 ITSELF (real DOM,
+ * still selectable, still readable) is how the paint appears to land in sync
+ * with the tag beat. clip-path does not affect layout — it is a paint-time
+ * clip, not a box change — so the zero-CLS gate is untouched.
+ */
+
+.nb-hero-tag {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;      /* the frame edge. exits are free because of this. */
+  contain: layout paint; /* a translated/scaled child can never grow this box
+                             or the document's scrollHeight. */
+  pointer-events: none;
+  z-index: 2;
+}
+
+.nb-hero-tag__rig {
+  position: absolute;
+  left: 0;
+  /* 26%, not the section's true floor: `.act--arrival` is often taller than
+     one viewport (padding + copy length), and a mascot planted at its literal
+     bottom edge stands below the fold on first paint. This keeps him level
+     with the CTA row, which is where the visible "ground" actually reads. */
+  /* His ground line is the foot of the headline, not the foot of the section.
+     The arrival section is taller than a viewport, so a percentage of IT put
+     him down on the body copy, spraying the paragraph. He belongs at the wall
+     he is painting. */
+  bottom: 42%;
+  width: clamp(84px, 9vw, 150px);
+  transform-origin: 50% 100%;
+  opacity: 0;
+  transform: translateX(-32vw) scale(0.5);
+  will-change: transform, opacity;
+}
+
+.nb-hero-tag__rig svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+/* Every named part gets its own pivot. transform-box: fill-box means the
+   origin is that part's own bounding box, not the whole 200x240 canvas, so a
+   foot rotates from its hip and the antenna wobbles from its base rather than
+   from the character's centre. */
+#tag-antenna, #tag-body, #tag-foot-left, #tag-foot-right,
+#tag-face, #tag-arm, #tag-spray {
+  transform-box: fill-box;
+}
+#tag-antenna     { transform-origin: 50% 100%; }
+#tag-body        { transform-origin: 50% 100%; }
+#tag-foot-left   { transform-origin: 50% 0%; }
+#tag-foot-right  { transform-origin: 50% 0%; }
+#tag-arm         { transform-origin: 20% 45%; }
+#tag-spray       { transform-origin: 50% 50%; }
+
+/* =========================================================================
+   BEAT 1 — SNEAK IN (~1100ms)
+   Enters low and small at the left edge, leaning forward into the walk.
+   Furtive: he knows he shouldn't be here. Feet cycle out of phase with each
+   other — overlap, not one rigid unit. ========================================================================= */
+
+/* The sneak was the weakest beat and it was a legibility problem, not a timing
+   one: entering at half scale against a dark aurora, he read as a dim smudge
+   rather than as a character, and you could miss him entirely until he was
+   already at the wall. Bigger throughout, and he fades up faster so the eye
+   catches him arriving instead of finding him already there. The furtiveness
+   comes from the low posture and the lean, which cost nothing to read. */
+@keyframes tag-sneak-in {
+  0%   { transform: translateX(-30vw) scale(0.68) rotate(-2deg); opacity: 0; }
+  8%   { opacity: 1; }
+  60%  { transform: translateX(-6vw) scale(0.78) rotate(-9deg); }
+  100% { transform: translateX(5vw)  scale(0.82) rotate(-6deg); }
+}
+[data-stage="sneak"] .nb-hero-tag__rig {
+  animation: tag-sneak-in 1100ms cubic-bezier(.22,.61,.36,1) forwards;
+}
+
+@keyframes tag-foot-cycle-a { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-6px) rotate(-10deg); } }
+@keyframes tag-foot-cycle-b { 0%, 100% { transform: translateY(-6px) rotate(10deg); } 50% { transform: translateY(0) rotate(0deg); } }
+[data-stage="sneak"] #tag-foot-left  { animation: tag-foot-cycle-a 300ms ease-in-out infinite; }
+[data-stage="sneak"] #tag-foot-right { animation: tag-foot-cycle-b 300ms ease-in-out infinite 90ms; }
+
+/* Drag: the antenna is on a slower, bouncier clock than the legs, so it is
+   always a beat behind the body's lean. */
+@keyframes tag-antenna-drag { 0%, 100% { transform: rotate(2deg); } 50% { transform: rotate(9deg); } }
+[data-stage="sneak"] #tag-antenna { animation: tag-antenna-drag 550ms cubic-bezier(.34,.9,.4,1) infinite 60ms; }
+
+/* =========================================================================
+   BEAT 2 — THE TAG (~1400ms)
+   Plants (squash on landing, volume-preserved rebound), winds up, sprays.
+   This is the moment the whole hero exists for, so the headline paints on
+   in sync — see .nb-tag-paint below, timed off the same two custom
+   properties js/hero-tag.js sets on the h1 itself.
+   ========================================================================= */
+
+/* The rig itself has no keyframe of its own during this beat — only the
+   body/arm/spray sub-parts animate — so without an explicit resting
+   transform here it would snap back to its pre-sequence base style
+   (opacity 0, off-screen left) the instant [data-stage] stops matching
+   "sneak". This pins him exactly where the sneak's last frame left him. */
+[data-stage="tag"] .nb-hero-tag__rig {
+  opacity: 1;
+  transform: translateX(5vw) scale(0.64) rotate(-6deg);
+}
+
+@keyframes tag-plant-squash {
+  0%   { transform: scale(1, 1); }
+  18%  { transform: scale(1.20, 0.80); }
+  42%  { transform: scale(0.92, 1.08); }
+  100% { transform: scale(1, 1); }
+}
+[data-stage="tag"] #tag-body { animation: tag-plant-squash 380ms cubic-bezier(.28,1.5,.5,1) forwards; }
+[data-stage="tag"] #tag-foot-left,
+[data-stage="tag"] #tag-foot-right { transform: translateY(0) rotate(0deg); }
+
+@keyframes tag-arm-windup-spray {
+  0%   { transform: rotate(20deg); }                 /* pulled back: the windup */
+  22%  { transform: rotate(20deg); }                 /* anticipation hold */
+  42%  { transform: rotate(-40deg) translateX(3px); } /* swing up into spray position */
+  58%  { transform: rotate(-34deg) translateX(5px); }
+  70%  { transform: rotate(-41deg) translateX(2px); } /* tiny shake while spraying */
+  84%  { transform: rotate(-33deg) translateX(5px); }
+  100% { transform: rotate(-30deg) translateX(0); }
+}
+[data-stage="tag"] #tag-arm {
+  animation: tag-arm-windup-spray 1400ms cubic-bezier(.34,.9,.4,1) forwards;
+}
+
+@keyframes tag-spray-puff {
+  0%, 38%  { opacity: 0; transform: scale(0.6); }
+  50%      { opacity: 1; transform: scale(1); }
+  68%      { opacity: 0.7; transform: scale(1.25); }
+  84%, 100%{ opacity: 0; transform: scale(1.5); }
+}
+[data-stage="tag"] #tag-spray { animation: tag-spray-puff 1400ms ease-out forwards; }
+
+/* The headline. clip-path sweeps its right edge from fully closed to fully
+   open, revealing the already-painted (filter: url(#nb-spray)) letterforms
+   left to right — the drips that filter bakes in appear to "run" as the
+   sweep passes over them because they sit at fixed points along the word.
+   The -6%/-20%/-60% sides give the spray filter's own bleed (which runs
+   past the box on every edge, see hero-stencil.css) room so this clip never
+   guillotines the paint texture itself. */
+.nb-tag-paint {
+  clip-path: inset(-20% 100% -60% -6%);
+  /* A clip alone gives a perfectly vertical cut travelling across the letters,
+     which reads as a wipe transition rather than as paint arriving. The mask
+     feathers that leading edge over a couple of percent and breaks it up, so
+     what crosses the type is a spray front rather than a guillotine. The clip
+     still does the actual revealing; this only softens where it lands. */
+  -webkit-mask-image: linear-gradient(
+    95deg, #000 0%, #000 calc(var(--tag-front, 100%) - 5%),
+    rgba(0,0,0,.55) calc(var(--tag-front, 100%) - 2%),
+    transparent var(--tag-front, 100%));
+  mask-image: linear-gradient(
+    95deg, #000 0%, #000 calc(var(--tag-front, 100%) - 5%),
+    rgba(0,0,0,.55) calc(var(--tag-front, 100%) - 2%),
+    transparent var(--tag-front, 100%));
+  animation: nb-tag-headline-paint var(--tag-duration, 1400ms) linear forwards;
+  animation-delay: var(--tag-delay, 1100ms);
+}
+@keyframes nb-tag-headline-paint {
+  0%   { clip-path: inset(-20% 100% -60% -6%); }
+  100% { clip-path: inset(-20% -6% -60% -6%); }
+}
+.nb-tag-paint--done {
+  clip-path: none;
+  animation: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* =========================================================================
+   BEAT 3 — TURN AND APPROACH (~1100ms)
+   Turns out to camera and scales up toward the middle of the screen — the
+   cheat for "closer to us" is scale plus a slightly lower position, never
+   perspective. A beat at the end: pleased with himself, maybe caught.
+   ========================================================================= */
+
+@keyframes tag-approach {
+  0%   { transform: translateX(5vw)  scale(0.64) rotate(-6deg); }
+  28%  { transform: translateX(18vw) scale(0.80, 0.70) rotate(6deg); } /* the turn: a horizontal squash sells the pivot */
+  62%  { transform: translateX(32vw) scale(1.02) rotate(0deg) translateY(1.5%); }
+  100% { transform: translateX(37vw) scale(1.12) rotate(0deg) translateY(3%); } /* held beat, bigger and lower = closer */
+}
+[data-stage="approach"] .nb-hero-tag__rig,
+[data-stage="anticipate"] .nb-hero-tag__rig {
+  /* Neither keyframe below touches opacity — only transform — so without this
+     the rig falls back to its pre-sequence base opacity: 0 the moment
+     [data-stage] stops matching "tag". Same failure mode as the "tag" pin
+     above, one selector earlier in the chain. */
+  opacity: 1;
+}
+[data-stage="approach"] .nb-hero-tag__rig {
+  animation: tag-approach 1100ms cubic-bezier(.28,1.5,.5,1) forwards;
+}
+[data-stage="approach"] #tag-arm { transform: rotate(-20deg); transition: transform 420ms cubic-bezier(.22,.61,.36,1); }
+
+@keyframes tag-antenna-settle { 0% { transform: rotate(6deg); } 60% { transform: rotate(-3deg); } 100% { transform: rotate(0deg); } }
+[data-stage="approach"] #tag-antenna { animation: tag-antenna-settle 640ms cubic-bezier(.22,.61,.36,1) forwards 80ms; }
+
+/* A small held-breath bounce at the end of the approach — "pleased with
+   himself" — riding on top of the approach's own transform via the body
+   only, so the rig's position keeps its settled value. */
+@keyframes tag-pleased-bob { 0%, 100% { transform: translateY(0) scale(1,1); } 50% { transform: translateY(-3%) scale(1.03, 0.97); } }
+[data-stage="approach"] #tag-body { animation: tag-pleased-bob 420ms cubic-bezier(.22,.61,.36,1) 620ms; }
+
+/* =========================================================================
+   BEAT 4 — BOLT (~900ms total: anticipation crouch + fast smeared exit)
+   ========================================================================= */
+
+@keyframes tag-anticipate-crouch {
+  0%   { transform: translateX(37vw) scale(1.12) rotate(0deg) translateY(3%); }
+  100% { transform: translateX(34vw) scale(0.98, 1.22) rotate(-7deg) translateY(6%); }
+}
+[data-stage="anticipate"] .nb-hero-tag__rig {
+  animation: tag-anticipate-crouch 200ms cubic-bezier(.34,.9,.4,1) forwards;
+}
+[data-stage="anticipate"] #tag-arm { transform: rotate(4deg); transition: transform 180ms ease-out; }
+
+/* The exit is smeared, not inbetweened: it stretches long and thin along the
+   direction of travel and drops the character's detail almost immediately,
+   which is two poses (crouch, smear) doing the work eight correct frames
+   would have. */
+@keyframes tag-bolt-exit {
+  0%   { transform: translateX(34vw)  scaleX(0.98) scaleY(1.22) rotate(-7deg) translateY(6%); opacity: 1; }
+  14%  { transform: translateX(44vw)  scaleX(1.95) scaleY(0.58) rotate(9deg)  translateY(4%); opacity: 1; }
+  55%  { transform: translateX(88vw)  scaleX(2.4)  scaleY(0.5)  rotate(11deg) translateY(1%); opacity: 0.85; }
+  100% { transform: translateX(132vw) scaleX(2.6)  scaleY(0.45) rotate(11deg) translateY(-2%); opacity: 0; }
+}
+[data-stage="bolt"] .nb-hero-tag__rig {
+  animation: tag-bolt-exit 700ms cubic-bezier(.5,0,.75,0) forwards;
+}
+@keyframes tag-bolt-fade { 0% { opacity: 1; } 22% { opacity: 0; } 100% { opacity: 0; } }
+[data-stage="bolt"] #tag-face,
+[data-stage="bolt"] #tag-arm { animation: tag-bolt-fade 700ms ease-out forwards; }
+
+[data-stage="gone"] { display: none; }
+
+/* =========================================================================
+   Reduced motion — the default on the machine this was built on, and the one
+   frame most visitors here will ever see. No sequence: BUDDY simply stands at
+   the left of the already-finished tag, as though he has just stepped back
+   from it. The headline is never clipped in this path at all.
+   ========================================================================= */
+
+[data-stage="still"] .nb-hero-tag__rig {
+  opacity: 1;
+  transform: translateX(3vw) scale(0.62) rotate(0deg);
+}
+[data-stage="still"] #tag-arm { transform: rotate(26deg); }     /* can lowered, at rest */
+[data-stage="still"] #tag-antenna,
+[data-stage="still"] #tag-body,
+[data-stage="still"] #tag-foot-left,
+[data-stage="still"] #tag-foot-right,
+[data-stage="still"] #tag-spray { animation: none; transform: none; }
+[data-stage="still"] #tag-spray { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-hero-tag *,
+  .nb-hero-tag { animation: none !important; transition: none !important; }
+}

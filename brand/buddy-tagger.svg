@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="tag-svg" viewBox="0 0 200 240" role="img" aria-hidden="true">
+  <title>Buddy — tagging</title>
+  <desc>
+    A rigged copy of brand/buddy.svg, built to be inlined into the document and
+    driven by CSS keyframes rather than swapped as a raster pose. Every part
+    that needs to move independently — antenna, body, feet, face, spraying arm
+    — is its own named group so a parent transform can move the whole rig while
+    child transforms squash, drag and overlap inside it. brand/buddy.svg is
+    untouched; this file only adds the arm and can that a tagger needs and that
+    the resting mascot never did.
+  </desc>
+
+  <defs>
+    <radialGradient id="tag-body-fill" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="var(--color-beacon-500, #ff8a3d)"/>
+      <stop offset="100%" stop-color="var(--color-beacon-600, #e6752b)"/>
+    </radialGradient>
+  </defs>
+
+  <!-- tag-rig: the ONLY group the choreography (sneak/tag/approach/bolt)
+       ever transforms directly. Everything below composes inside it, so a
+       translateX/scale on the rig moves a fully-posed character rather than
+       a flat sprite. -->
+  <g id="tag-rig">
+
+    <!-- contact shadow: grounds him the way mascot.css's mount shadow does,
+         cheaply, without a second gradient layer to keep in sync. -->
+    <ellipse id="tag-shadow" cx="100" cy="222" rx="52" ry="10"
+             fill="rgba(0,0,0,0.38)"/>
+
+    <!-- antenna: overlap/drag lives here. It is animated on a slightly longer,
+         bouncier timer than the body so it always arrives a beat late. -->
+    <g id="tag-antenna">
+      <line x1="100" y1="46" x2="100" y2="14" stroke="var(--color-ink-600, #3c3841)"
+            stroke-width="3" stroke-linecap="round"/>
+      <path d="M100 2 L90 16 L100 30 Z" fill="var(--color-beacon-500, #ff8a3d)"/>
+      <path d="M100 2 L110 16 L100 30 Z" fill="var(--color-signal-500, #4fa8ff)"/>
+    </g>
+
+    <!-- body: the whole silhouette, and the part that squashes and stretches.
+         A circle is the ideal shape for it — it reads as the same character
+         at any scale it's pushed to. -->
+    <circle id="tag-body" cx="100" cy="112" r="66" fill="url(#tag-body-fill)"/>
+
+    <!-- feet: chevrons that cycle out of phase with each other for the sneak,
+         and go still (planted) for the tag and the crouch. -->
+    <g id="tag-feet">
+      <path id="tag-foot-left" d="M74 172 L58 196 L78 196 L88 176 Z"
+            fill="var(--color-ink-700, #29262c)"/>
+      <path id="tag-foot-right" d="M126 172 L142 196 L122 196 L112 176 Z"
+            fill="var(--color-ink-700, #29262c)"/>
+    </g>
+
+    <!-- face: the same three shapes as brand/buddy.svg, no tracking logic —
+         this rig only ever needs to look pleased, furtive, or gone. -->
+    <g id="tag-face">
+      <circle id="tag-eye-left" cx="78" cy="104" r="7" fill="var(--color-ink-950, #0b0a0c)"/>
+      <circle id="tag-eye-right" cx="122" cy="104" r="7" fill="var(--color-ink-950, #0b0a0c)"/>
+      <path id="tag-mouth" d="M82 130 Q100 144 118 130" stroke="var(--color-ink-950, #0b0a0c)"
+            stroke-width="4" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- cheek/rim light, same cool accent as the resting mascot -->
+    <path d="M148 88 A66 66 0 0 1 148 148" stroke="var(--color-signal-500, #4fa8ff)"
+          stroke-width="4" stroke-linecap="round" fill="none" opacity="0.55"/>
+
+    <!-- arm + can: the one part that does not exist on the resting mascot,
+         because the resting mascot never needed a hand. Pivots at the
+         shoulder (20% 30% of this group's box, set in CSS) so the windup and
+         the spray swing read as one joint rather than a sliding prop. -->
+    <g id="tag-arm">
+      <path id="tag-arm-limb" d="M156 118 Q182 108 190 78" stroke="var(--color-beacon-600, #e6752b)"
+            stroke-width="20" stroke-linecap="round" fill="none"/>
+      <g id="tag-can">
+        <rect x="180" y="52" width="20" height="30" rx="4" fill="var(--color-ink-700, #29262c)"/>
+        <rect x="184" y="44" width="12" height="10" rx="2" fill="var(--color-signal-500, #4fa8ff)"/>
+      </g>
+      <g id="tag-spray">
+        <circle cx="204" cy="40" r="5" fill="var(--color-paper, #e8eff2)"/>
+        <circle cx="214" cy="30" r="3.4" fill="var(--color-paper, #e8eff2)"/>
+        <circle cx="216" cy="46" r="4" fill="var(--color-paper, #e8eff2)"/>
+        <circle cx="226" cy="36" r="2.6" fill="var(--color-paper, #e8eff2)"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -28,7 +28,7 @@
   gap: clamp(22px, 3vw, 40px);
   max-width: var(--measure);
   opacity: 1;
-  transition: opacity 0.18s ease;
+  transition: opacity 200ms ease-out;
 }
 html[data-gl="on"] [data-act="offerings"] .offer-list {
   opacity: 0.001;
@@ -45,17 +45,25 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   border: 1px solid var(--line-2);
   border-radius: 4px;
   cursor: pointer;
-  transition: border-color 0.18s ease, background-color 0.18s ease;
+  transform: translateY(0) scale(1);
+  transition: border-color 220ms ease-out, background-color 220ms ease-out, transform 220ms ease-out;
 }
 [data-act="offerings"] .offer:hover,
 [data-act="offerings"] .offer:focus-within {
   border-color: var(--aurora-dim);
+  transform: translateY(-3px);
+  transition: border-color 300ms cubic-bezier(.28,1.5,.5,1), background-color 300ms cubic-bezier(.28,1.5,.5,1),
+              transform 360ms cubic-bezier(.28,1.5,.5,1);
+}
+[data-act="offerings"] .offer:active {
+  transform: translateY(-1px) scale(0.985);
+  transition: transform 120ms ease-out;
 }
 [data-act="offerings"] .offer[data-centre] {
   border-color: var(--aurora);
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-act="offerings"] .offer { transition: none; }
+  [data-act="offerings"] .offer { transition: none; transform: none !important; }
 }
 
 [data-act="offerings"] .offer__n {
@@ -133,16 +141,29 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   padding: 9px 14px;
   cursor: pointer;
   min-height: 44px;
+  transform: translateY(0) scale(1);
+  transition: border-color 200ms ease-out, color 200ms ease-out,
+              background-color 200ms ease-out, transform 200ms ease-out;
 }
 [data-act="offerings"] .offer__addbtn:hover,
 [data-act="offerings"] .offer__addbtn:focus-visible {
   border-color: var(--aurora);
   color: var(--aurora);
+  transform: translateY(-2px);
+  transition: border-color 260ms cubic-bezier(.28,1.5,.5,1), color 260ms cubic-bezier(.28,1.5,.5,1),
+              background-color 260ms cubic-bezier(.28,1.5,.5,1), transform 320ms cubic-bezier(.28,1.5,.5,1);
+}
+[data-act="offerings"] .offer__addbtn:active {
+  transform: translateY(0) scale(0.94);
+  transition: transform 120ms ease-out;
 }
 [data-act="offerings"] .offer__addbtn.is-added {
   border-color: var(--aurora);
   color: var(--aurora);
   background: rgba(79, 216, 196, 0.10);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-act="offerings"] .offer__addbtn { transition: none; transform: none !important; }
 }
 
 /* --- no-WebGL ground -------------------------------------------------------
@@ -174,8 +195,23 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   background: rgba(5, 9, 12, 0.86);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+[data-act="offerings"] .offer-overlay[data-open] .offer-overlay__backdrop {
+  opacity: 1;
+  transition: opacity 280ms cubic-bezier(.34,.9,.4,1);
 }
 
+/* The panel opens FROM the card that was clicked, not over the top of it.
+ * card.js reads the clicked panel's on-screen rect and writes --card-ox,
+ * --card-oy (its centre, relative to the viewport centre) and --card-scale
+ * (its footprint against the overlay's real footprint) onto this element
+ * before it sets [data-open] — so the panel's rest state below is "sitting
+ * where the card was", and turning [data-open] on or off is the whole
+ * transition. Transform and opacity only; the panel's box is always
+ * min(560px, 100%) wide from the moment it exists, so this never touches
+ * layout or the CLS gate. */
 [data-act="offerings"] .offer-overlay__panel {
   position: relative;
   z-index: 1;
@@ -188,15 +224,20 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   border-radius: 4px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   opacity: 0;
-  transform: scale(0.97);
+  transform-origin: center center;
+  transform: translate(var(--card-ox, 0), var(--card-oy, 0)) scale(var(--card-scale, 0.4));
+  /* Leaving: faster than it arrives, plain ease-out. */
+  transition: opacity 220ms ease-out, transform 260ms ease-out;
 }
 [data-act="offerings"] .offer-overlay[data-open] .offer-overlay__panel {
   opacity: 1;
-  transform: scale(1);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform: translate(0, 0) scale(1);
+  /* Arriving: the house overshoot from mascot.css. */
+  transition: opacity 340ms cubic-bezier(.34,.9,.4,1), transform 560ms cubic-bezier(.28,1.5,.5,1);
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-act="offerings"] .offer-overlay__panel { transition: none; opacity: 1; transform: none; }
+  [data-act="offerings"] .offer-overlay__panel,
+  [data-act="offerings"] .offer-overlay__backdrop { transition: none; opacity: 1; transform: none; }
 }
 
 [data-act="offerings"] .offer-overlay__close {
@@ -217,11 +258,23 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   border: 1px solid var(--line-2);
   border-radius: 2px;
   cursor: pointer;
+  transform: scale(1);
+  transition: border-color 200ms ease-out, color 200ms ease-out, transform 200ms ease-out;
 }
 [data-act="offerings"] .offer-overlay__close:hover,
 [data-act="offerings"] .offer-overlay__close:focus-visible {
   border-color: var(--aurora);
   color: var(--aurora);
+  transform: scale(1.08);
+  transition: border-color 260ms cubic-bezier(.28,1.5,.5,1), color 260ms cubic-bezier(.28,1.5,.5,1),
+              transform 300ms cubic-bezier(.28,1.5,.5,1);
+}
+[data-act="offerings"] .offer-overlay__close:active {
+  transform: scale(0.9);
+  transition: transform 120ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-act="offerings"] .offer-overlay__close { transition: none; transform: none !important; }
 }
 
 [data-act="offerings"] .offer-overlay__n {
@@ -257,6 +310,13 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   border-color: var(--aurora);
   color: var(--aurora);
 }
+[data-act="offerings"] .offer-overlay__add:active {
+  transform: scale(0.97);
+  transition: transform 120ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-act="offerings"] .offer-overlay__add { transform: none !important; }
+}
 
 /* --- tap targets ------------------------------------------------------------
  * 44px minimum on coarse pointers, per the standing rule this site has
@@ -285,10 +345,14 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   border-radius: 4px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.18s ease;
+  transition: opacity 220ms ease-out;
 }
 #contact .basket[hidden] { display: block; }
-#contact .basket:not([hidden]) { opacity: 1; pointer-events: auto; }
+#contact .basket:not([hidden]) {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 320ms cubic-bezier(.34,.9,.4,1);
+}
 @media (prefers-reduced-motion: reduce) {
   #contact .basket { transition: none; }
 }
@@ -320,6 +384,23 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   border: 1px solid var(--line-2);
   border-radius: 999px;
   font-size: 0.86rem;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: opacity 320ms cubic-bezier(.34,.9,.4,1), transform 460ms cubic-bezier(.28,1.5,.5,1);
+}
+/* The chip a card.js just added — held here at its pre-arrival size for one
+ * frame, then released (see js/offerings/card.js), so it always plays the
+ * transition above rather than simply existing. Every OTHER chip in the list
+ * gets recreated on the same render pass with no modifier class at all, so it
+ * never replays an arrival it already had. */
+#contact .basket__item--enter {
+  opacity: 0;
+  transform: scale(0.5) translateY(8px);
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  #contact .basket__item { transition: none; }
+  #contact .basket__item--enter { opacity: 1; transform: none; }
 }
 #contact .basket__remove {
   display: inline-flex;
@@ -335,14 +416,62 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   font-size: 0.9rem;
   line-height: 1;
 }
+#contact .basket__remove {
+  transition: color 200ms ease-out, background-color 200ms ease-out, transform 200ms ease-out;
+}
 #contact .basket__remove:hover,
 #contact .basket__remove:focus-visible {
   color: var(--aurora);
   background: rgba(79, 216, 196, 0.12);
+  transform: scale(1.12);
+  transition: color 260ms cubic-bezier(.28,1.5,.5,1), background-color 260ms cubic-bezier(.28,1.5,.5,1),
+              transform 300ms cubic-bezier(.28,1.5,.5,1);
+}
+#contact .basket__remove:active {
+  transform: scale(0.85);
+  transition: transform 120ms ease-out;
 }
 #contact .basket__empty {
   color: var(--paper-faint);
   font-size: 0.86rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  #contact .basket__remove { transition: none; transform: none !important; }
+}
+
+/* --- the basket ghost -----------------------------------------------------
+ * The chip's "having travelled" cue: a small pill cloned from the button that
+ * was pressed, appended to <body> so it can cross the whole page in position:
+ * fixed (out of flow, no layout, no CLS), flown to roughly where the new chip
+ * lands, and removed once it arrives. Purely decorative — aria-hidden, no
+ * pointer-events, gone from the DOM well before anything could tab to it. */
+.basket-ghost {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--aurora);
+  border-radius: 999px;
+  padding: 0 4px;
+  opacity: 0.95;
+  transform: translate(0, 0) scale(1);
+  will-change: transform, opacity;
+}
+.basket-ghost[data-fly] {
+  transform: translate(var(--fly-dx, 0), var(--fly-dy, 0)) scale(0.35);
+  opacity: 0;
+  /* Departing fast, the same weight logic as everything else that leaves. */
+  transition: transform 560ms cubic-bezier(.5,0,.6,1), opacity 460ms ease-out 100ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .basket-ghost { display: none; }
 }
 
 /* --- the closing proof, demoted to a footnote --------------------------- *
@@ -385,3 +514,131 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 }
 #contact .closing-proof .proof h3 { margin: 0 0 10px; font-size: 1rem; }
 #contact .closing-proof .proof__table { font-size: 0.72rem; }
+
+/* --- the concept-build overlay --------------------------------------------
+ * js/panels.js builds this once inside .closing-proof and it had no styling
+ * anywhere in the stylesheet chain until now — an unstyled dialog is not a
+ * degraded state, it is a bug, so this is a full treatment, not a patch.
+ * Same shape and the same house curves as [data-act="offerings"] .offer-overlay
+ * just above: fixed, backdrop-blurred, opens FROM the work card that was
+ * clicked via --card-ox/--card-oy/--card-scale (written by js/panels.js), and
+ * animates on the [data-open] attribute rather than a class toggle mid-flight.
+ */
+#contact .work-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 40px);
+}
+#contact .work-overlay[hidden] { display: none; }
+
+#contact .work-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 9, 12, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+#contact .work-overlay[data-open] .work-overlay__backdrop {
+  opacity: 1;
+  transition: opacity 280ms cubic-bezier(.34,.9,.4,1);
+}
+
+#contact .work-overlay__panel {
+  position: relative;
+  z-index: 1;
+  width: min(960px, 100%);
+  height: min(720px, 86vh);
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform-origin: center center;
+  transform: translate(var(--card-ox, 0), var(--card-oy, 0)) scale(var(--card-scale, 0.4));
+  transition: opacity 220ms ease-out, transform 260ms ease-out;
+}
+#contact .work-overlay[data-open] .work-overlay__panel {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+  transition: opacity 340ms cubic-bezier(.34,.9,.4,1), transform 560ms cubic-bezier(.28,1.5,.5,1);
+}
+@media (prefers-reduced-motion: reduce) {
+  #contact .work-overlay__panel,
+  #contact .work-overlay__backdrop { transition: none; opacity: 1; transform: none; }
+}
+@media (max-width: 640px) {
+  #contact .work-overlay__panel { height: min(560px, 88vh); }
+}
+
+#contact .work-overlay__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px clamp(16px, 2.4vw, 24px);
+  border-bottom: 1px solid var(--line-2);
+  background: var(--ink);
+}
+#contact .work-overlay__bar .work-card__kind { margin: 0; }
+#contact .work-overlay__actions { display: flex; align-items: center; gap: 10px; }
+
+#contact .work-overlay__open,
+#contact .work-overlay__close {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  padding: 8px 12px;
+  min-height: 36px;
+  background: transparent;
+  cursor: pointer;
+  transform: scale(1);
+  transition: border-color 200ms ease-out, color 200ms ease-out, transform 200ms ease-out;
+}
+#contact .work-overlay__open { color: var(--aurora); text-decoration: none; }
+#contact .work-overlay__close { color: var(--paper-dim); }
+#contact .work-overlay__open:hover,
+#contact .work-overlay__open:focus-visible {
+  border-color: var(--aurora); color: var(--paper);
+  transform: translateY(-1px);
+  transition: border-color 260ms cubic-bezier(.28,1.5,.5,1), color 260ms cubic-bezier(.28,1.5,.5,1),
+              transform 300ms cubic-bezier(.28,1.5,.5,1);
+}
+#contact .work-overlay__close:hover,
+#contact .work-overlay__close:focus-visible {
+  border-color: var(--aurora); color: var(--aurora);
+  transform: translateY(-1px);
+  transition: border-color 260ms cubic-bezier(.28,1.5,.5,1), color 260ms cubic-bezier(.28,1.5,.5,1),
+              transform 300ms cubic-bezier(.28,1.5,.5,1);
+}
+#contact .work-overlay__open:active,
+#contact .work-overlay__close:active {
+  transform: scale(0.93);
+  transition: transform 120ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  #contact .work-overlay__open,
+  #contact .work-overlay__close { transition: none; transform: none !important; }
+}
+@media (pointer: coarse) {
+  #contact .work-overlay__open,
+  #contact .work-overlay__close { min-height: 44px; padding-inline: 16px; }
+}
+
+#contact .work-overlay__frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: var(--ink);
+}

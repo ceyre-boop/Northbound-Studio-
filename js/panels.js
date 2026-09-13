@@ -30,6 +30,12 @@ var boundRoot = null;
 var overlay = null, panelEl = null, frameEl = null, closeBtn = null, openLink = null, kindEl = null;
 var opener = null;          // the <a> that opened the current panel; also the "one at a time" guard
 var trapKeydown = null;
+var closeTimer = 0;
+
+/* The panel's exit transition (css/act-offerings.css): 260ms is its longest
+ * transitioning property. A little slack past that, not a transitionend
+ * listener — see the identical note in js/offerings/card.js. */
+var CLOSE_MS = 300;
 
 /** Bind the two work cards inside `root` ([data-act="work"]). Idempotent —
  *  calling it again with the same root is a no-op, so it is safe to call
@@ -150,6 +156,7 @@ function buildOverlay(root) {
  *  degradation: the visitor is looking at the work. */
 export function open(card, link) {
   if (!overlay || opener) return;   // one panel at a time
+  if (closeTimer) { clearTimeout(closeTimer); closeTimer = 0; }
   opener = link;
 
   var heading = card.querySelector('h3');
@@ -163,8 +170,20 @@ export function open(card, link) {
   if (reduced()) {
     overlay.setAttribute('data-open', 'true');
   } else {
+    // Same relationship as the offerings card: the panel opens FROM the work
+    // card that was clicked, not over the top of it. offsetWidth/offsetHeight
+    // are the panel's real, untransformed footprint.
+    void overlay.offsetWidth;
+    var r = card.getBoundingClientRect();
+    var pw = panelEl.offsetWidth || r.width || 1;
+    var ph = panelEl.offsetHeight || r.height || 1;
+    var scale = Math.min(1, Math.max(0.18, Math.min(r.width / pw, r.height / ph)));
+    panelEl.style.setProperty('--card-ox', ((r.left + r.width / 2) - window.innerWidth / 2).toFixed(1) + 'px');
+    panelEl.style.setProperty('--card-oy', ((r.top + r.height / 2) - window.innerHeight / 2).toFixed(1) + 'px');
+    panelEl.style.setProperty('--card-scale', scale.toFixed(3));
     // Force layout before the open state is applied, so the very first open
-    // on a page has a starting frame to transition from.
+    // on a page has a starting frame — at the card's position — to transition
+    // from.
     void overlay.offsetWidth;
     overlay.setAttribute('data-open', 'true');
   }
@@ -200,8 +219,6 @@ export function open(card, link) {
 export function close() {
   if (!opener) return;
   overlay.removeAttribute('data-open');
-  overlay.hidden = true;
-  frameEl.removeAttribute('src');
 
   if (window.NB_STAGE) window.NB_STAGE.resume('iframe');
   if (trapKeydown) { document.removeEventListener('keydown', trapKeydown, true); trapKeydown = null; }
@@ -209,6 +226,19 @@ export function close() {
   var toFocus = opener;
   opener = null;
   if (toFocus) toFocus.focus();
+
+  // Tear the iframe down and hide the shell only once the panel has actually
+  // finished travelling back toward the card — removing src immediately would
+  // blank the live site to white while the panel is still visibly fading,
+  // which is a worse seam than the one this pass exists to close.
+  if (closeTimer) clearTimeout(closeTimer);
+  var finish = function () {
+    overlay.hidden = true;
+    frameEl.removeAttribute('src');
+    closeTimer = 0;
+  };
+  if (reduced()) finish();
+  else closeTimer = setTimeout(finish, CLOSE_MS);
 }
 
 /** Not a GL resource — this is DOM state, so it is not called from the act's
@@ -239,4 +269,56 @@ export default { init: init, open: open, close: close, dispose: dispose };
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, { once: true });
   else bind();
+})();
+
+/* Copy arrival, sitewide.
+ *
+ * Every act's .act__ink block — eyebrow, heading, lede, body — sat there
+ * fully formed the moment its section existed, which is exactly the
+ * "document that happens to sit in front of a nice canvas" complaint. This
+ * gives each one a one-shot stagger as its section is actually scrolled into
+ * view, via IntersectionObserver rather than a scroll handler.
+ *
+ * This module is not "the work act's controller" for this piece — it is the
+ * one file in this department's ownership that is already loaded, unscoped,
+ * on every page load (the self-binding block above), so it is where a
+ * sitewide concern belongs rather than inventing a second entry point.
+ *
+ * The CLS gate is exactly zero, and it is measured at load + idle with no
+ * scroll — so an .act__ink block already on screen at the very first
+ * observer callback is left alone, untouched, fully composed: it is never
+ * given a pre-arrival offset to animate out of, because a block that was
+ * visible at first paint moving even via transform is a shift this page has
+ * already been burned by once. Only sections that are genuinely off-screen
+ * at setup get primed and revealed. */
+(function () {
+  if (typeof document === 'undefined' || typeof IntersectionObserver === 'undefined') return;
+
+  function ready() {
+    if (STILL) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var blocks = document.querySelectorAll('.act__ink');
+    if (!blocks.length) return;
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.setAttribute('data-reveal', 'in');
+        io.unobserve(entry.target);
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
+      var rect = block.getBoundingClientRect();
+      if (rect.top < vh && rect.bottom > 0) continue; // already on screen — leave it composed
+      block.setAttribute('data-reveal', 'pending');
+      io.observe(block);
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, { once: true });
+  else ready();
 })();

@@ -148,6 +148,10 @@ export default {
     });
 
     if (pin) bindPointer(pin);
+
+    /* The wall state, exposed for tests and for looking at the thing while it
+       runs. Read-only by convention: nothing in the build writes through it. */
+    window.__NB_WALL = S;
   },
 
   resize(w, h, dpr) {
@@ -211,6 +215,7 @@ export default {
     try { Graphics.dispose(glass); } catch (e) {}
     try { Physics.dispose(S); } catch (e) {}
     bank = null; glass = null; S = null;
+    try { delete window.__NB_WALL; } catch (e) { window.__NB_WALL = null; }
     /* Card and the pointer listeners deliberately survive: the DOM half of this
        section must keep working while the act is scrolled out and torn down. */
   }

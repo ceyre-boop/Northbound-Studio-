@@ -155,8 +155,13 @@ export const LATTICE = { 3: 12, 2: 8, 1: 5 };
 
 /** Hero panel height as a fraction of viewport height, and its aspect (w/h).
  *  4:5 portrait is our proportion: the loops are abstract and read better with
- *  vertical room, and it survives the narrower vertical spiral on a phone. */
-export const HERO_H = 0.52;
+ *  vertical room, and it survives the narrower vertical spiral on a phone.
+ *
+ *  Raised from 0.52 after looking at it: alone in an empty frame a 0.52 panel
+ *  reads as a thumbnail, and the brief asks for the loop inside to be the main
+ *  event on screen. It reads larger again once the neighbours actually overlap
+ *  it, which they did not at first. */
+export const HERO_H = 0.58;
 export const ASPECT = 0.8;
 
 /* --- springs -------------------------------------------------------------

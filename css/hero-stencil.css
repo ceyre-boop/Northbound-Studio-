@@ -1,0 +1,140 @@
+/* The hero headline, sprayed.
+ *
+ * The brief was "more street art", and of the directions on the table this is
+ * the one that does not fight the rest of the page: the letterforms stay ours
+ * and stay engineered, and the hand goes into the EDGE. A graffiti letterform
+ * under a sheet of hand-written WebGL glass would read as pastiche; a stencil
+ * sprayed onto the dark reads as someone having been here.
+ *
+ * Four things make it, and they are deliberately separable so any one can be
+ * dialled back without unpicking the others:
+ *
+ *   1. a displacement filter that erodes the edge the way spray bites
+ *   2. stencil bridges cut across the letterforms
+ *   3. an amber plate, off-register, the way a second pass never lines up
+ *   4. an overspray halo in the aurora's own cyan
+ *
+ * The text itself is untouched: real DOM, real font, selectable, readable by a
+ * screen reader, and present with JavaScript off. Everything here is paint.
+ *
+ * LEGIBILITY IS THE LIMIT. This headline is the first thing anyone reads and it
+ * has to survive at 40px on a phone. Every value below is tuned against the
+ * small end, not the large one — the effect scales DOWN as the type gets
+ * smaller, because a 2px bite out of a 96px letter is texture and the same bite
+ * out of a 40px letter is damage.
+ */
+
+.hero-spray {
+  position: relative;
+
+  /* The sprayed edge. Displacement only — no blur — so the letterform keeps its
+     weight and only its boundary goes ragged. */
+  filter: url(#nb-spray);
+
+  /* The second plate and the overspray, in one shadow stack.
+     The amber is offset up and right, as a misaligned stencil would be, and
+     kept well under the white so it reads as bleed rather than as a duplicate
+     headline. The cyan is the room's own light catching the wet edge. */
+  text-shadow:
+    0.034em -0.024em 0 rgba(224, 160, 92, 0.62),
+    -0.018em 0.014em 0 rgba(79, 216, 196, 0.32),
+    0 0 0.55em rgba(79, 216, 196, 0.26),
+    0 0 1.5em rgba(79, 216, 196, 0.12);
+
+  /* Stencil bridges: HORIZONTAL ties, and few of them.
+   
+     The first pass ran them vertically at a tight period and the headline read
+     as type behind a fence — thirty cuts edge to edge, through the letters and
+     through the gaps between words alike. That is a glitch effect, not a
+     stencil. A real stencil is held together by a couple of short horizontal
+     ties across each letterform, so: bands near 0deg, a period wide enough that
+     roughly two land per line, and a cut thin enough to read as a tie rather
+     than a gap. Tilted 1.4 degrees so they are obviously cut by hand. */
+  -webkit-mask-image: repeating-linear-gradient(
+    1.4deg,
+    #000 0,
+    #000 0.40em,
+    transparent 0.40em,
+    transparent 0.425em
+  );
+  mask-image: repeating-linear-gradient(
+    1.4deg,
+    #000 0,
+    #000 0.40em,
+    transparent 0.40em,
+    transparent 0.425em
+  );
+}
+
+/* The drip. One mark, under the last line, where a stencil would have pooled.
+   Absolutely positioned and pointer-events none, so it cannot affect layout —
+   the CLS gate on this site is exactly zero. */
+.hero-spray::after {
+  content: "";
+  position: absolute;
+  left: 6.5%;
+  bottom: -0.06em;
+  width: 0.055em;
+  height: 0.30em;
+  background: linear-gradient(
+    to bottom,
+    rgba(232, 239, 242, 0.85) 0%,
+    rgba(232, 239, 242, 0.55) 55%,
+    rgba(232, 239, 242, 0) 100%
+  );
+  border-radius: 0 0 60% 60%;
+  filter: blur(0.3px);
+  pointer-events: none;
+}
+
+/* A second, shorter drip further along, so it reads as paint behaving rather
+   than as one decorative mark placed on purpose. */
+.hero-spray::before {
+  content: "";
+  position: absolute;
+  left: 41%;
+  bottom: 0.04em;
+  width: 0.04em;
+  height: 0.17em;
+  background: linear-gradient(
+    to bottom,
+    rgba(232, 239, 242, 0.7) 0%,
+    rgba(232, 239, 242, 0) 100%
+  );
+  border-radius: 0 0 60% 60%;
+  filter: blur(0.3px);
+  pointer-events: none;
+}
+
+/* --- the small end -------------------------------------------------------
+   Below 640px the headline is around 40px and the same treatment stops being
+   texture and starts being damage. The bridges widen relative to the letter so
+   fewer of them land per glyph, the displacement comes off entirely, and the
+   drips go — at that size they read as rendering artefacts, not as paint. */
+@media (max-width: 640px) {
+  .hero-spray {
+    filter: none;
+    -webkit-mask-image: repeating-linear-gradient(
+      1.4deg, #000 0, #000 0.58em, transparent 0.58em, transparent 0.60em);
+    mask-image: repeating-linear-gradient(
+      1.4deg, #000 0, #000 0.58em, transparent 0.58em, transparent 0.60em);
+    text-shadow:
+      0.022em -0.016em 0 rgba(224, 160, 92, 0.38),
+      0 0 0.5em rgba(79, 216, 196, 0.20);
+  }
+  .hero-spray::after,
+  .hero-spray::before { display: none; }
+}
+
+/* Nothing here animates, so reduced motion needs no separate treatment — but
+   forced-colours mode strips the paint and must leave plain, legible type. */
+@media (forced-colors: active) {
+  .hero-spray {
+    filter: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+    text-shadow: none;
+  }
+  .hero-spray::after,
+  .hero-spray::before { display: none; }
+}

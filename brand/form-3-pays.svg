@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img"
+     aria-label="A customer walking in and a coin dropping, with Buddy beside them">
+  <title>The part that pays for itself</title>
+  <desc>Frame three of three. A customer arrives and a coin drops — the return
+  the machinery was built for. Solid fills only, because these shapes are
+  sampled into a point cloud and a hairline does not survive being made of dots.</desc>
+
+  <g fill="#ffffff">
+    <!-- the doorway they walk in through -->
+    <path d="M18 52 H84 V178 H18 Z M32 66 V164 H70 V66 Z"/>
+
+    <!-- the customer, mid-stride, arriving -->
+    <g transform="translate(108 96)">
+      <circle cx="0" cy="-44" r="17"/>
+      <path d="M-15 -24 H15 L20 26 H-20 Z"/>
+      <!-- stride -->
+      <path d="M-14 26 L-26 72 L-12 72 L-2 32 Z"/>
+      <path d="M12 26 L26 70 L12 72 L2 32 Z"/>
+      <!-- arm swinging forward -->
+      <path d="M14 -18 L34 6 L26 14 L8 -8 Z"/>
+    </g>
+
+    <!-- the arc of coins dropping in -->
+    <g>
+      <path d="M150 36 A14 14 0 1 1 150 64 A14 14 0 1 1 150 36 Z
+               M150 44 A6 6 0 1 0 150 56 A6 6 0 1 0 150 44 Z" fill-rule="evenodd"/>
+      <path d="M168 74 A11 11 0 1 1 168 96 A11 11 0 1 1 168 74 Z
+               M168 80 A5 5 0 1 0 168 90 A5 5 0 1 0 168 80 Z" fill-rule="evenodd"/>
+      <path d="M176 110 A8 8 0 1 1 176 126 A8 8 0 1 1 176 110 Z" fill-rule="evenodd"/>
+    </g>
+
+    <!-- the jar they land in -->
+    <path d="M140 138 H190 V184 H140 Z M148 146 V176 H182 V146 Z"/>
+    <rect x="136" y="130" width="58" height="10" rx="4"/>
+
+    <!-- buddy, pleased, arms up -->
+    <g transform="translate(44 120) scale(0.26)">
+      <circle cx="100" cy="112" r="66"/>
+      <rect x="94" y="14" width="12" height="36" rx="6"/>
+      <path d="M100 0 L84 22 L100 44 L116 22 Z"/>
+      <path d="M74 172 L56 200 L80 200 L90 176 Z"/>
+      <path d="M126 172 L144 200 L120 200 L110 176 Z"/>
+      <g transform="rotate(-36 160 96)">
+        <rect x="150" y="52" width="20" height="58" rx="10"/>
+        <circle cx="160" cy="46" r="14"/>
+      </g>
+      <g transform="rotate(36 40 96)">
+        <rect x="30" y="52" width="20" height="58" rx="10"/>
+        <circle cx="40" cy="46" r="14"/>
+      </g>
+    </g>
+  </g>
+
+  <g fill="#000000">
+    <circle cx="58" cy="145" r="2.6"/>
+    <circle cx="69.5" cy="145" r="2.6"/>
+    <path d="M57 152 Q63.5 158 70 152" stroke="#000" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

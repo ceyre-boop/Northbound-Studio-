@@ -50,6 +50,14 @@ export const MASK_SAMPLE = [
   'float sampleMask(sampler2D tex, vec2 uv, vec2 origin, vec2 size) {',
   '  vec2 m = (uv - origin) / max(size, vec2(1e-4));',
   '  if (m.x < 0.0 || m.x > 1.0 || m.y < 0.0 || m.y > 1.0) return 0.0;',
+  /* The atlas is drawn by canvas2d, whose origin is TOP-left, and sampled here
+     in GL's BOTTOM-left space. Without this flip the heading renders upside
+     down — which is exactly how it shipped, and it reads as a deliberate
+     effect for just long enough that nobody questions it. The alternative is
+     UNPACK_FLIP_Y_WEBGL on upload, but the Stage's GL baseline pins that to
+     false for every act, so the correction belongs here rather than in a
+     global bit somebody else has to remember to restore. */
+  '  m.y = 1.0 - m.y;',
   '  return texture2D(tex, m).r;',
   '}'
 ].join('\n');

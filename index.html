@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="css/act-solution.css">
 <link rel="stylesheet" href="css/act-offerings.css">
 <link rel="stylesheet" href="css/mascot.css">
+<link rel="stylesheet" href="css/hero-stencil.css">
 </head>
 <body>
 
@@ -40,6 +41,26 @@
   may only touch the DOM inside its own [data-act] subtree, at runtime, and
   only in ways that cannot move layout — the CLS gate is exactly zero.
 -->
+
+<!--
+  The spray filter for the hero headline. It lives here rather than in a
+  stylesheet because CSS can only reference an SVG filter by fragment id, and a
+  filter in an external file is a separate fetch on the critical path for the
+  first thing anyone reads.
+
+  Displacement only, no blur: the letterform keeps its weight and only its
+  boundary goes ragged, the way spray bites an edge without softening the mask.
+-->
+<svg width="0" height="0" aria-hidden="true" focusable="false"
+     style="position:absolute;pointer-events:none">
+  <filter id="nb-spray" x="-12%" y="-12%" width="124%" height="124%"
+          color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.72 0.9" numOctaves="3"
+                  seed="7" result="grain"/>
+    <feDisplacementMap in="SourceGraphic" in2="grain" scale="3.2"
+                       xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
 
 <canvas id="nb-stage" aria-hidden="true"></canvas>
 
@@ -63,7 +84,7 @@
   <section class="act act--arrival" data-act="northlight" aria-labelledby="arrival-h">
     <div class="act__ink">
       <p class="eyebrow">Grand Ledge, Michigan</p>
-      <h1 id="arrival-h">We build the machine that&nbsp;brings customers in.</h1>
+      <h1 id="arrival-h" class="hero-spray">We build the machine that&nbsp;brings customers in.</h1>
       <p class="lede">
         The website is the front of it. The booking, the follow-up, the payments
         and the dashboard behind it are the part that pays for itself.

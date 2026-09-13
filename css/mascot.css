@@ -1,0 +1,112 @@
+/* BUDDY.
+ *
+ * He lives in #nb-mascot-mount, inside the offerings section's sticky pin, and
+ * he is decoration: aria-hidden, pointer-events none, and nothing on the page
+ * depends on him rendering at all.
+ *
+ * Everything here is transform and opacity only. Both are compositor
+ * properties, so a leaning, bobbing mascot costs no style recalc and no layout
+ * on a document that is sixteen screens tall — which matters, because a
+ * per-frame layout read on this page has already cost 120fps once.
+ *
+ * The mount is absolutely positioned with a fixed size, so he cannot move
+ * anything: the CLS gate for this site is exactly zero.
+ */
+
+#nb-mascot-mount[data-buddy] {
+  position: absolute;
+  left: clamp(12px, 4vw, 64px);
+  bottom: clamp(12px, 5vh, 56px);
+  width: clamp(110px, 13vw, 190px);
+  aspect-ratio: 1 / 1.05;
+  z-index: 3;
+  pointer-events: none;
+  /* Contain him so a transform can never extend the scrollable area. An
+     overflowing descendant changes documentElement.scrollHeight, which the
+     Stage divides by to get page progress — one mascot could rescale every
+     act's scroll window on the whole page. */
+  contain: layout paint;
+}
+
+.buddy__pose {
+  position: absolute;
+  inset: auto 0 0 0;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transition: opacity 260ms ease;
+  will-change: opacity, transform;
+  /* The art is a blue mech on a dark aurora ground. A faint cyan cast under him
+     ties him to the world the panels live in without recolouring the art. */
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55))
+          drop-shadow(0 0 18px rgba(79, 216, 196, 0.14));
+}
+
+.buddy__pose.is-on { opacity: 1; }
+
+/* The lean and the idle bob, composed as one transform on the mount so the
+   three stacked poses stay in register while cross-fading. --buddy-lean is
+   -1..1 toward whatever he is attending to; --buddy-shake decays from 1 after
+   a panel is thrown. */
+#nb-mascot-mount[data-buddy] {
+  --buddy-lean: 0;
+  --buddy-shake: 0;
+  transform:
+    translateX(calc(var(--buddy-lean) * 10px))
+    rotate(calc(var(--buddy-lean) * 3.2deg))
+    translateY(calc(var(--buddy-shake) * -6px));
+  transition: transform 220ms cubic-bezier(.22,.61,.36,1);
+  animation: buddy-bob 5.2s ease-in-out infinite;
+}
+
+@keyframes buddy-bob {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -7px; }
+}
+
+/* Reduced motion is the default on the machine this was built on, so this is
+   the state most people here will ever see: one composed pose, arms crossed,
+   perfectly still. Not hidden — still. */
+#nb-mascot-mount[data-still] { animation: none; transition: none; transform: none; }
+#nb-mascot-mount[data-still] .buddy__pose { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #nb-mascot-mount[data-buddy] { animation: none; transition: none; transform: none; }
+  .buddy__pose { transition: none; }
+}
+
+/* With no WebGL the procession is a plain readable list and the pin does not
+   pin, so an absolutely-positioned mascot would land on top of the copy. He
+   steps aside rather than competing with the only content in that state. */
+[data-gl="off"] #nb-mascot-mount[data-buddy] {
+  position: static;
+  width: clamp(96px, 11vw, 150px);
+  margin: clamp(24px, 4vh, 48px) 0 0;
+  transform: none;
+  animation: none;
+}
+[data-gl="off"] .buddy__pose { display: none; }
+
+/* With no WebGL there is no procession to react to, so the three-pose raster
+   mech has nothing to do — and at the sizes this path uses it, a vector reads
+   cleaner anyway. brand/buddy.svg is the same character drawn for exactly this
+   job: one file, crisp at any size, no pose logic and no decode cost. */
+[data-gl="off"] #nb-mascot-mount[data-buddy]::after {
+  content: "";
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: url("../brand/buddy.svg") center / contain no-repeat;
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  /* On a phone the arriving panels sweep the lower right and the hero fills the
+     middle, so he tucks smaller and closer to the corner. */
+  #nb-mascot-mount[data-buddy] {
+    width: clamp(84px, 24vw, 120px);
+    left: 10px;
+    bottom: 10px;
+  }
+}

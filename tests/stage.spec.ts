@@ -148,7 +148,17 @@ test.describe('the stage', () => {
     await page.waitForFunction(() => window.NB_STAGE && window.NB_STAGE.ok, { timeout: 10_000 });
     expect(await page.evaluate(() => window.NB_STAGE.mode)).toBe('reduced');
 
-    await scrub(page, 20, 80);
+    /* Park inside an act's own window rather than at the end of the document.
+       Acts now end with their sections, so past the last one the canvas is
+       legitimately empty — the closing section has its own content and never
+       wanted a canvas behind it. Scrubbing to the bottom and demanding pixels
+       tests the opposite of what the design says. */
+    await page.evaluate(() => {
+      const w = window.NB_STAGE.debug().windows.offerings;
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo(0, h * (w[0] + 0.4 * (w[1] - w[0])));
+    });
+    await page.waitForTimeout(2500);
 
     const painted = await page.evaluate(() => {
       const c = document.getElementById('nb-stage') as HTMLCanvasElement;

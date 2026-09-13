@@ -104,12 +104,28 @@ a:hover { color: var(--paper); }
   gap: 16px 32px; flex-wrap: wrap;
   padding: clamp(18px, 3vh, 32px) var(--gutter);
 }
+/* The wordmark is drawn, not set. brand/wordmark.svg is custom lettering
+   constructed on a 5x7 module — the same engineered logic as the Needle mark
+   beside it — so it says what the site argues before a word is read. Both are
+   given explicit intrinsic sizes in the markup so they reserve their box before
+   they load; the CLS gate is exactly zero. */
 .wordmark {
-  font-family: var(--display); font-weight: 800;
-  font-size: 1.12rem; letter-spacing: -0.02em;
-  color: var(--paper); text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  line-height: 0;
 }
-.wordmark span { color: var(--aurora); }
+.wordmark__mark { width: 26px; height: 26px; display: block; }
+.wordmark__type {
+  height: 15px;
+  width: auto;
+  display: block;
+  /* The SVG paints with currentColor via a custom property; give it the page's
+     ink so it inherits light and dark treatment from one place. */
+  --color-text-primary: var(--paper);
+}
+.wordmark:hover .wordmark__type { --color-text-primary: var(--aurora); }
 .masthead nav { display: flex; gap: clamp(14px, 2.5vw, 30px); }
 .masthead nav a {
   font-family: var(--mono); font-size: 0.74rem;
@@ -416,3 +432,28 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   align-items: flex-start;
   padding-block: clamp(80px, 14vh, 180px);
 }
+
+
+/* The concept builds show what they actually look like. posters/atlas.webp and
+   posters/vector.webp are real captures of the two deployed builds, not mockups
+   and not stock — which is the only kind of image this page is allowed to use
+   about its own work. posters/halo.webp exists and is deliberately not here:
+   Halo has nothing built behind it, and a poster of a thing that does not exist
+   is exactly the claim this repo has a standing rule against. */
+.work-card { overflow: hidden; }
+.work-card__poster {
+  display: block;
+  width: calc(100% + 2px);
+  margin: calc(-1 * clamp(20px, 2.4vw, 30px)) calc(-1 * clamp(20px, 2.4vw, 30px)) clamp(16px, 2vw, 22px);
+  max-width: none;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: top center;
+  border-bottom: 1px solid var(--line);
+  opacity: 0.86;
+  transition: opacity .25s;
+}
+.work-card:hover .work-card__poster,
+.work-card:focus-within .work-card__poster { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .work-card__poster { transition: none; } }

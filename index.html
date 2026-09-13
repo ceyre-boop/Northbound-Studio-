@@ -11,6 +11,9 @@
 <meta property="og:url" content="https://northbound-dev.com/">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#05090C">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="brand/favicon.svg">
+<meta property="og:image" content="https://northbound-dev.com/brand/og.svg">
 
 <link rel="preload" href="fonts/syne.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
@@ -19,6 +22,7 @@
 <link rel="stylesheet" href="css/act-drift.css">
 <link rel="stylesheet" href="css/act-solution.css">
 <link rel="stylesheet" href="css/act-offerings.css">
+<link rel="stylesheet" href="css/mascot.css">
 </head>
 <body>
 
@@ -42,7 +46,10 @@
 <a class="skip" href="#work">Skip to the work</a>
 
 <header class="masthead">
-  <a class="wordmark" href="/">Northbound<span aria-hidden="true">.</span></a>
+  <a class="wordmark" href="/" aria-label="Northbound Studio">
+    <img class="wordmark__mark" src="brand/logo.svg" alt="" width="28" height="28" decoding="async">
+    <img class="wordmark__type" src="brand/wordmark.svg" alt="Northbound" width="565" height="89" decoding="async">
+  </a>
   <nav aria-label="Sections">
     <a href="#packages">Pricing</a>
     <a href="#work">Work</a>
@@ -293,12 +300,14 @@
         <h3 class="closing-proof__head">Two things we built, and what they cost to render.</h3>
       <ul class="work-list">
         <li class="work-card" data-work="atlas">
+          <img class="work-card__poster" src="posters/atlas.webp" alt="" width="1200" height="900" loading="lazy" decoding="async">
           <p class="work-card__kind">Concept build · invented business</p>
           <h3><a href="/demos/atlas">Ridgeline Roofing</a></h3>
           <p>A trades site built around one job: booking the call.</p>
           <p class="work-card__tech">Astro · a real booking endpoint · static</p>
         </li>
         <li class="work-card" data-work="vector">
+          <img class="work-card__poster" src="posters/vector.webp" alt="" width="1200" height="900" loading="lazy" decoding="async">
           <p class="work-card__kind">Concept build · invented business</p>
           <h3><a href="/demos/vector/">Marrow Coffee</a></h3>
           <p>A small storefront with real checkout and no plugin sprawl.</p>

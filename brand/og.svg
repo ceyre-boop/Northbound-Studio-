@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Northbound Studio — we build the machine that brings customers in">
+  <title>Northbound Studio — social card</title>
+  <defs>
+    <radialGradient id="og-glow-beacon" cx="15%" cy="10%" r="55%">
+      <stop offset="0%" stop-color="#ff8a3d" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#ff8a3d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="og-glow-signal" cx="90%" cy="95%" r="60%">
+      <stop offset="0%" stop-color="#4fa8ff" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#4fa8ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0b0a0c"/>
+  <rect width="1200" height="630" fill="url(#og-glow-beacon)"/>
+  <rect width="1200" height="630" fill="url(#og-glow-signal)"/>
+
+  <!-- eyebrow -->
+  <text x="90" y="110" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="20" letter-spacing="4" fill="#4fa8ff">GRAND LEDGE, MI &#183; TWO PEOPLE</text>
+
+  <!-- Needle mark -->
+  <g transform="translate(90,150) scale(1.9)">
+    <path d="M48 6 L20 48 L48 90 Z" fill="#ff8a3d"/>
+    <path d="M48 6 L76 48 L48 90 Z" fill="#4fa8ff"/>
+    <path d="M48 6 L48 90" stroke="#0b0a0c" stroke-width="1.5" opacity="0.35"/>
+    <path d="M20 48 L48 34 L76 48" stroke="#0b0a0c" stroke-width="1.25" opacity="0.25" fill="none"/>
+    <circle cx="48" cy="48" r="7" fill="#0b0a0c"/>
+  </g>
+
+  <!-- wordmark, grid-constructed, scaled up -->
+  <g transform="translate(275,168) scale(1.5)" fill="#f2ede6">
+    <rect x="12.00" y="12.00" width="8" height="8"/>
+    <rect x="50.00" y="12.00" width="8" height="8"/>
+    <rect x="12.00" y="21.50" width="8" height="8"/>
+    <rect x="21.50" y="21.50" width="8" height="8"/>
+    <rect x="50.00" y="21.50" width="8" height="8"/>
+    <rect x="12.00" y="31.00" width="8" height="8"/>
+    <rect x="31.00" y="31.00" width="8" height="8"/>
+    <rect x="50.00" y="31.00" width="8" height="8"/>
+    <rect x="12.00" y="40.50" width="8" height="8"/>
+    <rect x="31.00" y="40.50" width="8" height="8"/>
+    <rect x="50.00" y="40.50" width="8" height="8"/>
+    <rect x="12.00" y="50.00" width="8" height="8"/>
+    <rect x="31.00" y="50.00" width="8" height="8"/>
+    <rect x="50.00" y="50.00" width="8" height="8"/>
+    <rect x="12.00" y="59.50" width="8" height="8"/>
+    <rect x="40.50" y="59.50" width="8" height="8"/>
+    <rect x="50.00" y="59.50" width="8" height="8"/>
+    <rect x="12.00" y="69.00" width="8" height="8"/>
+    <rect x="50.00" y="69.00" width="8" height="8"/>
+    <rect x="76.50" y="12.00" width="8" height="8"/>
+    <rect x="86.00" y="12.00" width="8" height="8"/>
+    <rect x="95.50" y="12.00" width="8" height="8"/>
+    <rect x="67.00" y="21.50" width="8" height="8"/>
+    <rect x="105.00" y="21.50" width="8" height="8"/>
+    <rect x="67.00" y="31.00" width="8" height="8"/>
+    <rect x="105.00" y="31.00" width="8" height="8"/>
+    <rect x="67.00" y="40.50" width="8" height="8"/>
+    <rect x="105.00" y="40.50" width="8" height="8"/>
+    <rect x="67.00" y="50.00" width="8" height="8"/>
+    <rect x="105.00" y="50.00" width="8" height="8"/>
+    <rect x="67.00" y="59.50" width="8" height="8"/>
+    <rect x="105.00" y="59.50" width="8" height="8"/>
+    <rect x="76.50" y="69.00" width="8" height="8"/>
+    <rect x="86.00" y="69.00" width="8" height="8"/>
+    <rect x="95.50" y="69.00" width="8" height="8"/>
+    <rect x="122.00" y="12.00" width="8" height="8"/>
+    <rect x="131.50" y="12.00" width="8" height="8"/>
+    <rect x="141.00" y="12.00" width="8" height="8"/>
+    <rect x="150.50" y="12.00" width="8" height="8"/>
+    <rect x="122.00" y="21.50" width="8" height="8"/>
+    <rect x="160.00" y="21.50" width="8" height="8"/>
+    <rect x="122.00" y="31.00" width="8" height="8"/>
+    <rect x="160.00" y="31.00" width="8" height="8"/>
+    <rect x="122.00" y="40.50" width="8" height="8"/>
+    <rect x="131.50" y="40.50" width="8" height="8"/>
+    <rect x="141.00" y="40.50" width="8" height="8"/>
+    <rect x="150.50" y="40.50" width="8" height="8"/>
+    <rect x="122.00" y="50.00" width="8" height="8"/>
+    <rect x="141.00" y="50.00" width="8" height="8"/>
+    <rect x="122.00" y="59.50" width="8" height="8"/>
+    <rect x="150.50" y="59.50" width="8" height="8"/>
+    <rect x="122.00" y="69.00" width="8" height="8"/>
+    <rect x="160.00" y="69.00" width="8" height="8"/>
+    <rect x="177.00" y="12.00" width="8" height="8"/>
+    <rect x="186.50" y="12.00" width="8" height="8"/>
+    <rect x="196.00" y="12.00" width="8" height="8"/>
+    <rect x="205.50" y="12.00" width="8" height="8"/>
+    <rect x="215.00" y="12.00" width="8" height="8"/>
+    <rect x="196.00" y="21.50" width="8" height="8"/>
+    <rect x="196.00" y="31.00" width="8" height="8"/>
+    <rect x="196.00" y="40.50" width="8" height="8"/>
+    <rect x="196.00" y="50.00" width="8" height="8"/>
+    <rect x="196.00" y="59.50" width="8" height="8"/>
+    <rect x="196.00" y="69.00" width="8" height="8"/>
+    <rect x="232.00" y="12.00" width="8" height="8"/>
+    <rect x="270.00" y="12.00" width="8" height="8"/>
+    <rect x="232.00" y="21.50" width="8" height="8"/>
+    <rect x="270.00" y="21.50" width="8" height="8"/>
+    <rect x="232.00" y="31.00" width="8" height="8"/>
+    <rect x="270.00" y="31.00" width="8" height="8"/>
+    <rect x="232.00" y="40.50" width="8" height="8"/>
+    <rect x="241.50" y="40.50" width="8" height="8"/>
+    <rect x="251.00" y="40.50" width="8" height="8"/>
+    <rect x="260.50" y="40.50" width="8" height="8"/>
+    <rect x="270.00" y="40.50" width="8" height="8"/>
+    <rect x="232.00" y="50.00" width="8" height="8"/>
+    <rect x="270.00" y="50.00" width="8" height="8"/>
+    <rect x="232.00" y="59.50" width="8" height="8"/>
+    <rect x="270.00" y="59.50" width="8" height="8"/>
+    <rect x="232.00" y="69.00" width="8" height="8"/>
+    <rect x="270.00" y="69.00" width="8" height="8"/>
+    <rect x="287.00" y="12.00" width="8" height="8"/>
+    <rect x="296.50" y="12.00" width="8" height="8"/>
+    <rect x="306.00" y="12.00" width="8" height="8"/>
+    <rect x="315.50" y="12.00" width="8" height="8"/>
+    <rect x="287.00" y="21.50" width="8" height="8"/>
+    <rect x="325.00" y="21.50" width="8" height="8"/>
+    <rect x="287.00" y="31.00" width="8" height="8"/>
+    <rect x="325.00" y="31.00" width="8" height="8"/>
+    <rect x="287.00" y="40.50" width="8" height="8"/>
+    <rect x="296.50" y="40.50" width="8" height="8"/>
+    <rect x="306.00" y="40.50" width="8" height="8"/>
+    <rect x="315.50" y="40.50" width="8" height="8"/>
+    <rect x="287.00" y="50.00" width="8" height="8"/>
+    <rect x="325.00" y="50.00" width="8" height="8"/>
+    <rect x="287.00" y="59.50" width="8" height="8"/>
+    <rect x="325.00" y="59.50" width="8" height="8"/>
+    <rect x="287.00" y="69.00" width="8" height="8"/>
+    <rect x="296.50" y="69.00" width="8" height="8"/>
+    <rect x="306.00" y="69.00" width="8" height="8"/>
+    <rect x="315.50" y="69.00" width="8" height="8"/>
+    <rect x="351.50" y="12.00" width="8" height="8"/>
+    <rect x="361.00" y="12.00" width="8" height="8"/>
+    <rect x="370.50" y="12.00" width="8" height="8"/>
+    <rect x="342.00" y="21.50" width="8" height="8"/>
+    <rect x="380.00" y="21.50" width="8" height="8"/>
+    <rect x="342.00" y="31.00" width="8" height="8"/>
+    <rect x="380.00" y="31.00" width="8" height="8"/>
+    <rect x="342.00" y="40.50" width="8" height="8"/>
+    <rect x="380.00" y="40.50" width="8" height="8"/>
+    <rect x="342.00" y="50.00" width="8" height="8"/>
+    <rect x="380.00" y="50.00" width="8" height="8"/>
+    <rect x="342.00" y="59.50" width="8" height="8"/>
+    <rect x="380.00" y="59.50" width="8" height="8"/>
+    <rect x="351.50" y="69.00" width="8" height="8"/>
+    <rect x="361.00" y="69.00" width="8" height="8"/>
+    <rect x="370.50" y="69.00" width="8" height="8"/>
+    <rect x="397.00" y="12.00" width="8" height="8"/>
+    <rect x="435.00" y="12.00" width="8" height="8"/>
+    <rect x="397.00" y="21.50" width="8" height="8"/>
+    <rect x="435.00" y="21.50" width="8" height="8"/>
+    <rect x="397.00" y="31.00" width="8" height="8"/>
+    <rect x="435.00" y="31.00" width="8" height="8"/>
+    <rect x="397.00" y="40.50" width="8" height="8"/>
+    <rect x="435.00" y="40.50" width="8" height="8"/>
+    <rect x="397.00" y="50.00" width="8" height="8"/>
+    <rect x="435.00" y="50.00" width="8" height="8"/>
+    <rect x="397.00" y="59.50" width="8" height="8"/>
+    <rect x="435.00" y="59.50" width="8" height="8"/>
+    <rect x="406.50" y="69.00" width="8" height="8"/>
+    <rect x="416.00" y="69.00" width="8" height="8"/>
+    <rect x="425.50" y="69.00" width="8" height="8"/>
+    <rect x="452.00" y="12.00" width="8" height="8"/>
+    <rect x="490.00" y="12.00" width="8" height="8"/>
+    <rect x="452.00" y="21.50" width="8" height="8"/>
+    <rect x="461.50" y="21.50" width="8" height="8"/>
+    <rect x="490.00" y="21.50" width="8" height="8"/>
+    <rect x="452.00" y="31.00" width="8" height="8"/>
+    <rect x="471.00" y="31.00" width="8" height="8"/>
+    <rect x="490.00" y="31.00" width="8" height="8"/>
+    <rect x="452.00" y="40.50" width="8" height="8"/>
+    <rect x="471.00" y="40.50" width="8" height="8"/>
+    <rect x="490.00" y="40.50" width="8" height="8"/>
+    <rect x="452.00" y="50.00" width="8" height="8"/>
+    <rect x="471.00" y="50.00" width="8" height="8"/>
+    <rect x="490.00" y="50.00" width="8" height="8"/>
+    <rect x="452.00" y="59.50" width="8" height="8"/>
+    <rect x="480.50" y="59.50" width="8" height="8"/>
+    <rect x="490.00" y="59.50" width="8" height="8"/>
+    <rect x="452.00" y="69.00" width="8" height="8"/>
+    <rect x="490.00" y="69.00" width="8" height="8"/>
+    <rect x="507.00" y="12.00" width="8" height="8"/>
+    <rect x="516.50" y="12.00" width="8" height="8"/>
+    <rect x="526.00" y="12.00" width="8" height="8"/>
+    <rect x="535.50" y="12.00" width="8" height="8"/>
+    <rect x="507.00" y="21.50" width="8" height="8"/>
+    <rect x="545.00" y="21.50" width="8" height="8"/>
+    <rect x="507.00" y="31.00" width="8" height="8"/>
+    <rect x="545.00" y="31.00" width="8" height="8"/>
+    <rect x="507.00" y="40.50" width="8" height="8"/>
+    <rect x="545.00" y="40.50" width="8" height="8"/>
+    <rect x="507.00" y="50.00" width="8" height="8"/>
+    <rect x="545.00" y="50.00" width="8" height="8"/>
+    <rect x="507.00" y="59.50" width="8" height="8"/>
+    <rect x="545.00" y="59.50" width="8" height="8"/>
+    <rect x="507.00" y="69.00" width="8" height="8"/>
+    <rect x="516.50" y="69.00" width="8" height="8"/>
+    <rect x="526.00" y="69.00" width="8" height="8"/>
+    <rect x="535.50" y="69.00" width="8" height="8"/>
+  </g>
+
+  <!-- tagline -->
+  <text x="90" y="430" font-family="'Instrument Sans', system-ui, sans-serif" font-size="34" fill="#a39a94">We build the machine that brings</text>
+  <text x="90" y="472" font-family="'Instrument Sans', system-ui, sans-serif" font-size="34" fill="#a39a94">customers in. The site is the front of it.</text>
+
+  <!-- footer -->
+  <text x="90" y="560" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" letter-spacing="2" fill="#58525b">NORTHBOUND-DEV.COM</text>
+  <text x="1110" y="560" text-anchor="end" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" letter-spacing="2" fill="#58525b">BEACON $3,500 &#183; ENGINE $8,500</text>
+</svg>

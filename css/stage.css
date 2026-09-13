@@ -52,7 +52,15 @@
 
 * { box-sizing: border-box; }
 
-html { background: var(--ink); -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html {
+  background: var(--ink);
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Opening an offering locks scroll. Without a reserved gutter the scrollbar
+     vanishes at that moment and the whole page jumps ~15px sideways, which is
+     a layout shift, and the CLS gate is exactly zero. */
+  scrollbar-gutter: stable;
+}
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 body {
@@ -362,4 +370,49 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   .act--arrival .byline { font-size: 0.84rem; line-height: 1.45; margin-bottom: 0; }
   .cta-row { gap: 10px; margin-top: 14px; }
   .btn { padding: 15px 20px; }
+}
+
+
+/* --- the offerings procession -------------------------------------------
+   Height and pinning only. Everything about how the panels look lives in
+   css/act-offerings.css; these two rules are here because they are structural
+   and because the Stage's scroll arithmetic depends on them.
+
+   The height is fixed, unconditional, and identical in every path: WebGL on,
+   WebGL off, JavaScript off, reduced motion, every breakpoint. It is never
+   computed by script. That is the entire CLS mechanism for this section.
+
+   It is 1000svh because the procession must carry panel 0 from t = -2.5 to
+   panel 11 at t = +2.5, which is 16 steps of 0.62 viewports. svh rather than
+   vh so a collapsing mobile URL bar cannot resize it. */
+#offerings { min-height: 1000svh; padding: 0; display: block; }
+
+.offer-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: clamp(64px, 12vh, 140px) var(--gutter);
+  /* Not decoration. A transformed or overflowing descendant extends the
+     scrollable overflow area, which changes documentElement.scrollHeight, which
+     the Stage divides by to get page progress — so one overflowing element in
+     here would silently rescale EVERY act's scroll window on the whole page. */
+  contain: layout paint;
+  overflow: clip;
+  /* Vertical scroll always belongs to the page. On touch you get ripple,
+     horizontal drag and flick; vertical drag is the page's, not ours. */
+  touch-action: pan-y;
+}
+
+/* With no WebGL the pin stops pinning and the same twelve items become the
+   section: a long, calm, readable list down the same reserved height. Switching
+   between the two paths shifts nothing, which matters because data-gl is set at
+   DOMContentLoaded and may land after first paint. */
+[data-gl="off"] .offer-pin {
+  position: static;
+  height: auto;
+  min-height: 100svh;
+  align-items: flex-start;
+  padding-block: clamp(80px, 14vh, 180px);
 }

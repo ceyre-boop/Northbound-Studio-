@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="css/act-northlight.css">
 <link rel="stylesheet" href="css/act-drift.css">
 <link rel="stylesheet" href="css/act-solution.css">
-<link rel="stylesheet" href="css/act-work.css">
+<link rel="stylesheet" href="css/act-offerings.css">
 </head>
 <body>
 
@@ -145,17 +145,152 @@
   </section>
 
   <!-- =============================================================== ACT IV -->
-  <section class="act act--work" id="work" data-act="work" aria-labelledby="work-h">
-    <div class="act__ink">
-      <p class="eyebrow">The work</p>
-      <h2 id="work-h">Two things, both real, neither of them a client.</h2>
-      <p class="lede">
-        These are concept builds for invented businesses. We built them end to
-        end, with working server code behind them, because a studio with no
-        clients yet should show what it can make rather than borrow someone
-        else's logo. Open either one — they are live.
-      </p>
+  <!--
+    THE OFFERINGS PROCESSION.
 
+    All twelve offerings, with their full bodies, are in this document before a
+    single script runs. Nothing is fetched, nothing is templated, nothing is
+    inserted later. That is what keeps CLS at exactly zero — not a clever
+    reservation, but the absence of anything to reserve.
+
+    The section's height is fixed in css/stage.css and is the SAME in every
+    path: WebGL on, WebGL off, JavaScript off, reduced motion. It is never
+    computed by script. With GL running, .offer-pin goes sticky and the list
+    becomes a near-transparent accessibility layer while the canvas carries the
+    visual; with GL off the pin goes static and the same list is the section.
+    Switching between those two shifts nothing, which matters because data-gl
+    is set at DOMContentLoaded and can land after first paint.
+
+    data-offer is the contract with the physics module: state.panels[i].index
+    is this same integer, which is how a click on GL panel 7 finds offering 7
+    without either side owning a lookup table.
+  -->
+  <section class="act act--offer" id="offerings" data-act="offerings" aria-labelledby="offer-h">
+    <div class="offer-pin">
+      <div class="act__ink">
+        <p class="eyebrow">What we sell</p>
+        <h2 id="offer-h">Twelve things, and what each one does for you.</h2>
+        <p class="lede">
+          The website is the front of it. These are the parts behind it &mdash;
+          the ones that answer, quote, book, take the deposit and remember to
+          ask for the review. Scroll through them, or open any one.
+        </p>
+
+        <ol class="offer-list">
+          <li class="offer" data-offer="0" id="offer-01">
+            <p class="offer__n">01</p>
+            <h3><a href="#offer-01">A custom site</a></h3>
+            <p class="offer__owner">A site built for your business rather than adapted from someone else&rsquo;s, so it says what you do in the first five seconds.</p>
+            <p class="offer__meta"><span class="offer__pkg">Beacon</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="site" data-name="A custom site">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="1" id="offer-02">
+            <p class="offer__n">02</p>
+            <h3><a href="#offer-02">Brand identity</a></h3>
+            <p class="offer__owner">A logo, a typeface and a colour that work on a van, a business card and a phone screen without being redrawn each time.</p>
+            <p class="offer__meta"><span class="offer__pkg">Beacon</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="brand" data-name="Brand identity">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="2" id="offer-03">
+            <p class="offer__n">03</p>
+            <h3><a href="#offer-03">Booking flow</a></h3>
+            <p class="offer__owner">Customers pick a time themselves, at eleven at night, without anyone answering a phone.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="booking" data-name="Booking flow">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="3" id="offer-04">
+            <p class="offer__n">04</p>
+            <h3><a href="#offer-04">Quote flow</a></h3>
+            <p class="offer__owner">People tell you what the job is before you drive out to look at it, so you quote the ones worth quoting.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="quote" data-name="Quote flow">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="4" id="offer-05">
+            <p class="offer__n">05</p>
+            <h3><a href="#offer-05">Payments</a></h3>
+            <p class="offer__owner">Deposits land before the work starts, which is the rule that prevents most of the ways small projects go wrong.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="payments" data-name="Payments">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="5" id="offer-06">
+            <p class="offer__n">06</p>
+            <h3><a href="#offer-06">Lead capture</a></h3>
+            <p class="offer__owner">The people who almost called you leave a name instead of leaving.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="leads" data-name="Lead capture">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="6" id="offer-07">
+            <p class="offer__n">07</p>
+            <h3><a href="#offer-07">Automated follow-up</a></h3>
+            <p class="offer__owner">Every enquiry gets an answer within a minute, including the ones that arrive while you are on a roof.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span><span class="offer__upkeep">kept running by Bearing</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="followup" data-name="Automated follow-up">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="7" id="offer-08">
+            <p class="offer__n">08</p>
+            <h3><a href="#offer-08">Reminders</a></h3>
+            <p class="offer__owner">Fewer no-shows, because the appointment reminds them and not you.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span><span class="offer__upkeep">kept running by Bearing</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="reminders" data-name="Reminders">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="8" id="offer-09">
+            <p class="offer__n">09</p>
+            <h3><a href="#offer-09">Review requests</a></h3>
+            <p class="offer__owner">The review gets asked for at the one moment the customer is happiest, every time, without you remembering.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span><span class="offer__upkeep">kept running by Bearing</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="reviews" data-name="Review requests">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="9" id="offer-10">
+            <p class="offer__n">10</p>
+            <h3><a href="#offer-10">Owner dashboard</a></h3>
+            <p class="offer__owner">One screen that says where the calls came from and what they were worth, so you stop guessing which advert works.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span><span class="offer__upkeep">kept running by Bearing</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="dashboard" data-name="Owner dashboard">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="10" id="offer-11">
+            <p class="offer__n">11</p>
+            <h3><a href="#offer-11">Local SEO</a></h3>
+            <p class="offer__owner">You turn up when someone two towns over searches for what you do.</p>
+            <p class="offer__meta"><span class="offer__pkg">Beacon</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="seo" data-name="Local SEO">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="11" id="offer-12">
+            <p class="offer__n">12</p>
+            <h3><a href="#offer-12">AI intake and auto-responder</a></h3>
+            <p class="offer__owner">Enquiries get read, sorted and answered in your voice before you have opened the laptop.</p>
+            <p class="offer__meta"><span class="offer__pkg offer__pkg--addon">Add-on &mdash; quoted per job</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="intake" data-name="AI intake and auto-responder">Add to my project</button></p>
+          </li>
+        </ol>
+
+        <div id="nb-mascot-mount" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== CLOSING -->
+  <section class="act act--close" id="contact" aria-labelledby="contact-h">
+    <div class="act__ink">
+      <p class="eyebrow">How we work</p>
+      <ul class="rules">
+        <li>50% up front, always. No deposit, no work.</li>
+        <li>Every proposal includes Bearing. It is part of the build, not an upsell.</li>
+        <li>Concept work is labelled as concept work. Every performance number is one we measured.</li>
+        <li>Two builds at a time. A third means the price goes up, or you go on a list.</li>
+        <li>The rate only goes up. After every third signed client, the floor moves.</li>
+      </ul>
+
+      <!--
+        The work and the measurement, relocated.
+
+        The offerings procession took the section these used to live in, so
+        they moved here rather than off the site. They are the only two things
+        this studio has actually built and the only numbers on the page that
+        measured themselves; a section changing shape is not a reason to stop
+        saying either.
+      -->
+      <div class="closing-proof">
+        <h3 class="closing-proof__head">Two things we built, and what they cost to render.</h3>
       <ul class="work-list">
         <li class="work-card" data-work="atlas">
           <p class="work-card__kind">Concept build · invented business</p>
@@ -171,18 +306,6 @@
         </li>
       </ul>
 
-      <!--
-        THE PROOF PANEL.
-
-        Every figure here is written by scripts/perf.mjs into
-        data/perf-budget.json and read at runtime. The placeholder is an em
-        dash, never a plausible number: if the fetch fails the page must look
-        visibly unfinished rather than quietly stale. tests/budget.spec.ts
-        fails the build if any digit followed by "ms" appears in this block as
-        literal markup, if the artifact is older than the newest commit
-        touching js/, or if a fresh measurement drifts more than 15% from what
-        is published. The number cannot be edited — only re-measured.
-      -->
       <div class="proof" data-budget-root>
         <h3>The numbers on this page measured themselves.</h3>
         <p>
@@ -212,7 +335,7 @@
             <tr><th scope="row">Northlight</th><td>Aurora curtain</td><td data-budget="acts.northlight.p95Ms">&mdash;</td></tr>
             <tr><th scope="row">Drift</th><td>GPU particle field</td><td data-budget="acts.drift.p95Ms">&mdash;</td></tr>
             <tr><th scope="row">Solution</th><td>Type through fluid</td><td data-budget="acts.solution.p95Ms">&mdash;</td></tr>
-            <tr><th scope="row">Work</th><td>Dissolve</td><td data-budget="acts.work.p95Ms">&mdash;</td></tr>
+            <tr><th scope="row">Offerings</th><td>Twelve loops on a helix</td><td data-budget="acts.offerings.p95Ms">&mdash;</td></tr>
           </tbody>
         </table>
         <p class="proof__method">
@@ -228,26 +351,24 @@
           and the quality tier it was measured on.
         </p>
       </div>
-    </div>
-  </section>
-
-  <!-- ============================================================== CLOSING -->
-  <section class="act act--close" id="contact" aria-labelledby="contact-h">
-    <div class="act__ink">
-      <p class="eyebrow">How we work</p>
-      <ul class="rules">
-        <li>50% up front, always. No deposit, no work.</li>
-        <li>Every proposal includes Bearing. It is part of the build, not an upsell.</li>
-        <li>Concept work is labelled as concept work. Every performance number is one we measured.</li>
-        <li>Two builds at a time. A third means the price goes up, or you go on a list.</li>
-        <li>The rate only goes up. After every third signed client, the floor moves.</li>
-      </ul>
+      </div>
 
       <h2 id="contact-h">Tell us what the job is.</h2>
       <p class="lede">
         The useful first question is what one new customer is worth to you, and
         how many more you want a month. The answer decides the build.
       </p>
+
+      <!--
+        Filled by the Add to my project buttons in the procession. The hidden
+        field is what actually reaches the inbox; the list is what reassures the
+        person that their click did something. Empty and inert until used, and
+        it never moves anything when it fills — the CLS gate is exactly zero.
+      -->
+      <div class="basket" data-basket hidden>
+        <p class="basket__head">On your project</p>
+        <ul class="basket__list" data-basket-list></ul>
+      </div>
 
       <form class="contact" method="post" action="https://formspree.io/f/xpwzgvkn">
         <p class="field">
@@ -271,6 +392,7 @@
           <label for="f-note">What is the job?</label>
           <textarea id="f-note" name="note" rows="4"></textarea>
         </p>
+        <input type="hidden" name="offerings" value="" data-basket-field>
         <p><button type="submit" class="btn btn--go">Send it</button></p>
       </form>
     </div>
@@ -312,5 +434,7 @@
 <script src="js/stage/stage.js" defer></script>
 <script src="js/proof.js" defer></script>
 <script defer src="js/stage/cast.js"></script>
+<!-- The concept-build viewer, now that the section it used to live in is gone. -->
+<script type="module" src="js/panels.js"></script>
 </body>
 </html>

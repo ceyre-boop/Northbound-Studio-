@@ -70,12 +70,24 @@
     preload: 0.14
   });
 
-  S.declare('work', '/js/acts/work.js', {
-    label: 'The work',
-    window: [0.82, 1.00],
-    cost: 1,
-    fboBudget: 2,
+  /* The offerings procession. Twelve panels on a helix, driven by the section's
+     own scroll. It is the most expensive act on the page by a distance — cost 5
+     — and it needs two render targets: MOTION's loop atlas and GRAPHICS'
+     backdrop. The third is spare, so a later pass never has to edit this list.
+
+     Its section is about ten screens tall, which makes it roughly 60% of the
+     document. That is worth knowing because every progress-relative constant in
+     stage.js (BAND, WARM, COLD, preload) now covers far more pixels than it used
+     to: COLD 0.40 is over four screens here. The idle-donor eviction path is
+     what keeps the fluid from holding a slot forever as a result, and
+     tests/stage.spec.ts asserts this act actually reaches live with solution
+     resident, rather than trusting that it does. */
+  S.declare('offerings', '/js/acts/offerings.js', {
+    label: 'The offerings',
+    window: [0.40, 0.95],
+    cost: 5,
+    fboBudget: 3,
     requires: [],
-    preload: 0.12
+    preload: 0.10
   });
 })();

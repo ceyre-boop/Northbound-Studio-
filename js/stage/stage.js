@@ -101,16 +101,25 @@
 
   var CANVAS_ID = 'nb-stage';
 
-  /* Cross-fade band, in page progress. Two acts are live together for exactly
-     2*BAND of scroll at each seam and never more than two at once. */
-  var BAND = 0.05;
-
-  /* Asymmetric hysteresis. Warm a little before the act is needed; go cold a
-     lot later. The failure mode here is not memory, it is thrash: a visitor
-     flicking across a seam and tearing down a fluid solver twice a second
-     produces a stutter far worse than the memory it saves. */
-  var WARM = 0.15;
-  var COLD = 0.40;
+  /* Cross-fade band and hysteresis, expressed in SCREENS rather than in page
+     progress.
+   
+     They used to be fixed fractions of the document, which worked only while
+     every section was about a screen tall. The offerings procession is ten
+     screens, which squeezes the first three acts into 18% of the document
+     between them — and at that point a 0.05 band is WIDER than the aurora's
+     entire window, so the aurora could never reach full opacity at all. A
+     constant that silently rescales when an unrelated section grows is not a
+     constant, it is a trap.
+   
+     These are really distances: fade over about half a screen, warm up a screen
+     early, let go two and a half screens away. Converted to progress at measure
+     time, with floors so a short document keeps roughly the behaviour it had. */
+  var BAND_SCREENS = 0.45;
+  var WARM_SCREENS = 1.0;
+  var COLD_SCREENS = 2.5;
+  var BAND = 0.05;          // nominal, published on the API for tests
+  var scrollSpan = 1;
 
   var DWELL_COLD = 4000;   // ms out of range before teardown is even considered
   var CALM = 0.08;         // never tear down while the user is still flinging
@@ -472,9 +481,21 @@
     return t * t * (3 - 2 * t);
   }
 
+  /* An act's band is capped at a third of its own window, so a short act still
+     reaches full opacity in the middle of it. Without that cap a section that
+     is small relative to the page never fully arrives. */
+  function bandFor(w) {
+    var byScreens = (BAND_SCREENS * (window.innerHeight || 800)) / scrollSpan;
+    return Math.min(0.30 * (w[1] - w[0]), byScreens);
+  }
+
+  function warmP() { return Math.max(0.04, (WARM_SCREENS * (window.innerHeight || 800)) / scrollSpan); }
+  function coldP() { return Math.max(0.10, (COLD_SCREENS * (window.innerHeight || 800)) / scrollSpan); }
+
   function fadeFor(w, p) {
-    if (p < w[0] - BAND || p > w[1] + BAND) return 0;
-    return Math.min(smoothstep(w[0] - BAND, w[0], p), 1 - smoothstep(w[1], w[1] + BAND, p));
+    var b = bandFor(w);
+    if (p < w[0] - b || p > w[1] + b) return 0;
+    return Math.min(smoothstep(w[0] - b, w[0], p), 1 - smoothstep(w[1], w[1] + b, p));
   }
 
   /* An act's scroll window is measured from its own section, not declared as a
@@ -494,6 +515,7 @@
   function measureWindows() {
     var span = (document.documentElement.scrollHeight - window.innerHeight) || 1;
     var vh = window.innerHeight;
+    scrollSpan = span;
     var measured = [];
 
     records.forEach(function (r) {
@@ -628,9 +650,10 @@
       rec._man = man;
       var win = winOf(rec);
 
-      var near = progress >= win[0] - (man.preload || WARM) &&
-                 progress <= win[1] + (man.preload || WARM);
-      var far = progress < win[0] - COLD || progress > win[1] + COLD;
+      var warm = Math.max(man.preload || 0, warmP());
+      var cold = coldP();
+      var near = progress >= win[0] - warm && progress <= win[1] + warm;
+      var far = progress < win[0] - cold || progress > win[1] + cold;
 
       if (near) {
         rec.outSince = 0;

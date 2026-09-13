@@ -219,3 +219,24 @@ export function dispose() {
 }
 
 export default { init: init, open: open, close: close, dispose: dispose };
+
+/* Self-binding.
+ *
+ * These two concept builds used to live in the work section and were bound by
+ * that act, which is gone — the offerings procession took the section, and the
+ * builds moved down beside the contact form. The closing section is not an act,
+ * so nothing over there would ever call init(), and the overlay would have been
+ * quietly lost along with the section it grew up in. The links would still have
+ * worked, which is exactly why nobody would have noticed.
+ *
+ * init() is idempotent and guards on boundRoot, so an act calling it later is
+ * harmless. */
+(function () {
+  if (typeof document === 'undefined') return;
+  function bind() {
+    var host = document.querySelector('.closing-proof') || document.getElementById('contact');
+    if (host && host.querySelector('.work-card')) init(host);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, { once: true });
+  else bind();
+})();

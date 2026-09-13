@@ -1,0 +1,387 @@
+/* Act IV — the offerings procession, CARD department.
+ *
+ * Scoped to [data-act="offerings"] and its descendants, plus the .basket and
+ * .closing-proof blocks that live in #contact (the brief explicitly extends
+ * this file's scope to those two — the basket is filled by buttons in this
+ * act, and the closing-proof block was relocated here from the section this
+ * act now occupies).
+ *
+ * Nothing here changes a dimension css/stage.css already reserved. The
+ * section height and the pin/static split are structural and frozen there;
+ * this file is presentation and behaviour only, and the CLS gate for it is
+ * exactly zero — including while a card is open and while the basket fills.
+ */
+
+/* --- the readable list -----------------------------------------------------
+ * The DOM is a complete, static document; the GL wall is a treatment drawn
+ * over it. With GL running the list steps out of the way visually while
+ * staying in the accessibility tree and the tab order — opacity: 0.001, not
+ * visibility: hidden and not display: none. With GL off (the default in the
+ * markup, and what a no-WebGL or no-JS visitor always gets) it is the
+ * section: a long, calm, readable run of twelve offerings. */
+[data-act="offerings"] .offer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(22px, 3vw, 40px);
+  max-width: var(--measure);
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+html[data-gl="on"] [data-act="offerings"] .offer-list {
+  opacity: 0.001;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-act="offerings"] .offer-list { transition: none; }
+}
+
+[data-act="offerings"] .offer {
+  position: relative;
+  padding: clamp(18px, 2.4vw, 28px) clamp(18px, 2.4vw, 26px) clamp(18px, 2.4vw, 26px) clamp(52px, 7vw, 68px);
+  background: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+[data-act="offerings"] .offer:hover,
+[data-act="offerings"] .offer:focus-within {
+  border-color: var(--aurora-dim);
+}
+[data-act="offerings"] .offer[data-centre] {
+  border-color: var(--aurora);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-act="offerings"] .offer { transition: none; }
+}
+
+[data-act="offerings"] .offer__n {
+  position: absolute;
+  top: clamp(18px, 2.4vw, 28px);
+  left: clamp(18px, 2.4vw, 26px);
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--aurora-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-act="offerings"] .offer h3 {
+  margin: 0 0 8px;
+  font-size: clamp(1.05rem, 1.4vw + 0.7rem, 1.4rem);
+}
+[data-act="offerings"] .offer h3 a {
+  color: var(--paper);
+  text-decoration: none;
+}
+[data-act="offerings"] .offer h3 a:hover,
+[data-act="offerings"] .offer h3 a:focus-visible {
+  color: var(--aurora);
+}
+
+[data-act="offerings"] .offer__owner {
+  margin: 0 0 14px;
+  color: var(--paper-dim);
+  max-width: 52ch;
+}
+
+[data-act="offerings"] .offer__meta {
+  margin: 0 0 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+[data-act="offerings"] .offer__pkg,
+[data-act="offerings"] .offer__upkeep {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+[data-act="offerings"] .offer__pkg {
+  color: var(--ink);
+  background: var(--aurora);
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+[data-act="offerings"] .offer__pkg--addon {
+  color: var(--signal);
+  background: transparent;
+  border: 1px solid var(--signal);
+  padding: 2px 7px;
+}
+[data-act="offerings"] .offer__upkeep {
+  align-self: center;
+  color: var(--paper-faint);
+}
+
+[data-act="offerings"] .offer__add { margin: 0; }
+[data-act="offerings"] .offer__addbtn {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  padding: 9px 14px;
+  cursor: pointer;
+  min-height: 44px;
+}
+[data-act="offerings"] .offer__addbtn:hover,
+[data-act="offerings"] .offer__addbtn:focus-visible {
+  border-color: var(--aurora);
+  color: var(--aurora);
+}
+[data-act="offerings"] .offer__addbtn.is-added {
+  border-color: var(--aurora);
+  color: var(--aurora);
+  background: rgba(79, 216, 196, 0.10);
+}
+
+/* --- no-WebGL ground -------------------------------------------------------
+ * Set by js/acts/offerings.js's fallback(); a quiet static ground rather
+ * than nothing, same idea as [data-act="work"][data-act-state="static"]. */
+[data-act="offerings"][data-act-state="static"] {
+  background: radial-gradient(ellipse 70% 55% at 50% 10%, rgba(79, 216, 196, 0.08), transparent 65%);
+}
+
+/* --- the overlay card -------------------------------------------------------
+ * Same shape as [data-act="work"] .work-overlay in css/act-work.css: fixed,
+ * built once, starts hidden so its own insertion cannot be the shift the CLS
+ * gate forbids, opens/closes on the [data-open] attribute rather than a
+ * class toggle mid-animation. */
+[data-act="offerings"] .offer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+}
+[data-act="offerings"] .offer-overlay[hidden] { display: none; }
+
+[data-act="offerings"] .offer-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 9, 12, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+[data-act="offerings"] .offer-overlay__panel {
+  position: relative;
+  z-index: 1;
+  width: min(560px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: clamp(28px, 4vw, 44px) clamp(24px, 4vw, 40px);
+  background: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: scale(0.97);
+}
+[data-act="offerings"] .offer-overlay[data-open] .offer-overlay__panel {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-act="offerings"] .offer-overlay__panel { transition: none; opacity: 1; transform: none; }
+}
+
+[data-act="offerings"] .offer-overlay__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--paper-dim);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  cursor: pointer;
+}
+[data-act="offerings"] .offer-overlay__close:hover,
+[data-act="offerings"] .offer-overlay__close:focus-visible {
+  border-color: var(--aurora);
+  color: var(--aurora);
+}
+
+[data-act="offerings"] .offer-overlay__n {
+  margin: 0 0 6px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--aurora-dim);
+  font-variant-numeric: tabular-nums;
+}
+[data-act="offerings"] .offer-overlay__name {
+  margin: 0 0 14px;
+  padding-right: 40px;
+  font-size: clamp(1.4rem, 2vw + 1rem, 1.9rem);
+}
+[data-act="offerings"] .offer-overlay__owner {
+  margin: 0 0 20px;
+  color: var(--paper-dim);
+}
+[data-act="offerings"] .offer-overlay__meta {
+  margin: 0 0 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+[data-act="offerings"] .offer-overlay__add {
+  width: 100%;
+  min-height: 48px;
+  justify-content: center;
+}
+[data-act="offerings"] .offer-overlay__add.is-added {
+  background: transparent;
+  border-color: var(--aurora);
+  color: var(--aurora);
+}
+
+/* --- tap targets ------------------------------------------------------------
+ * 44px minimum on coarse pointers, per the standing rule this site has
+ * already failed once. */
+@media (pointer: coarse) {
+  [data-act="offerings"] .offer { padding-block: 20px; }
+  [data-act="offerings"] .offer h3 a { display: inline-block; min-height: 44px; padding-block: 8px; }
+  [data-act="offerings"] .offer__addbtn { min-height: 48px; padding-inline: 18px; }
+}
+
+/* --- the basket, in #contact -------------------------------------------- *
+ * Filled by the "Add to my project" buttons above, in this document — never
+ * anywhere else. It is above the contact form and the CLS gate is exactly
+ * zero, so its footprint is reserved from first paint whether or not it has
+ * ever been used: [hidden] here means invisible, not display: none, and its
+ * list scrolls internally past a fixed number of rows rather than growing
+ * the box as items are added. Un-hiding it on first add and filling it
+ * therefore never changes document height. */
+#contact .basket {
+  display: block;
+  min-height: 168px;
+  margin-bottom: var(--rhythm);
+  padding: 16px clamp(18px, 2.4vw, 26px);
+  background: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+#contact .basket[hidden] { display: block; }
+#contact .basket:not([hidden]) { opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) {
+  #contact .basket { transition: none; }
+}
+
+#contact .basket__head {
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--aurora);
+}
+#contact .basket__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 108px;
+  overflow-y: auto;
+}
+#contact .basket__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 12px;
+  background: var(--ink);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  font-size: 0.86rem;
+}
+#contact .basket__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--paper-faint);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+#contact .basket__remove:hover,
+#contact .basket__remove:focus-visible {
+  color: var(--aurora);
+  background: rgba(79, 216, 196, 0.12);
+}
+#contact .basket__empty {
+  color: var(--paper-faint);
+  font-size: 0.86rem;
+}
+
+/* --- the closing proof, demoted to a footnote --------------------------- *
+ * The two concept builds and the measured-numbers panel are still true and
+ * still important; they just moved out of the headline and into a compact
+ * footnote to the contact section, so it should not read as a second full
+ * section competing with "Tell us what the job is." */
+#contact .closing-proof {
+  margin-top: calc(var(--rhythm) * 1.4);
+  padding-top: calc(var(--rhythm) * 1.1);
+  border-top: 1px solid var(--line-2);
+}
+#contact .closing-proof__head {
+  margin: 0 0 var(--rhythm);
+  font-size: clamp(1rem, 1vw + 0.7rem, 1.2rem);
+  color: var(--paper-dim);
+  font-weight: 600;
+}
+#contact .closing-proof .work-list {
+  list-style: none;
+  margin: 0 0 calc(var(--rhythm) * 0.9);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+#contact .closing-proof .work-card {
+  padding: 16px 18px;
+  background: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+}
+#contact .closing-proof .work-card h3 { margin: 8px 0 6px; font-size: 1.05rem; }
+#contact .closing-proof .work-card p { margin: 0 0 6px; color: var(--paper-dim); font-size: 0.92rem; }
+#contact .closing-proof .proof {
+  padding: 18px clamp(18px, 2.4vw, 26px);
+  background: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+}
+#contact .closing-proof .proof h3 { margin: 0 0 10px; font-size: 1rem; }
+#contact .closing-proof .proof__table { font-size: 0.72rem; }

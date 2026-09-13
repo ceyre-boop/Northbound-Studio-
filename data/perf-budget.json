@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "measuredAt": "2026-09-12T23:10:32.386Z",
-  "commit": "79cf69e",
-  "url": "https://northbound-dev.com/",
+  "measuredAt": "2026-09-13T01:31:05.554Z",
+  "commit": "7f3977d",
+  "url": "http://localhost:8099/",
   "harness": {
     "cpuThrottleRate": 4,
     "network": "regular4g",
@@ -17,38 +17,33 @@
     "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)"
   },
   "frame": {
-    "p50Ms": 8.3,
-    "p95Ms": 9.3,
-    "p99Ms": 24.8,
-    "samples": 811
+    "p50Ms": 8.4,
+    "p95Ms": 25.1,
+    "p99Ms": 258.9,
+    "samples": 683
   },
   "acts": {
     "northlight": {
       "label": "Northlight",
-      "p50Ms": 0,
-      "p95Ms": 0.2
-    },
-    "drift": {
-      "label": "Drift",
-      "p50Ms": 0,
-      "p95Ms": 0.3
+      "p50Ms": 0.1,
+      "p95Ms": 0.9
     },
     "solution": {
       "label": "Solution",
       "p50Ms": 0,
-      "p95Ms": 0.5
+      "p95Ms": 1
     },
-    "work": {
-      "label": "The work",
-      "p50Ms": 0,
-      "p95Ms": 0.2
+    "offerings": {
+      "label": "The offerings",
+      "p50Ms": 0.1,
+      "p95Ms": 0.6
     }
   },
   "published": {
-    "frameMs": "8.3 ms",
+    "frameMs": "8.4 ms",
     "budgetMs": "16.7 ms",
     "headroomPct": "50%",
-    "caption": "median frame, 4x CPU throttle, 390x844, regular 4G"
+    "caption": "median frame, 4x CPU throttle, 390x844, regular 4G — branch preview, measured locally"
   },
   "gates": []
 }

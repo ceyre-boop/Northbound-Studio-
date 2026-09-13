@@ -89,6 +89,18 @@ test.describe('the procession', () => {
   test('the hero is the main event, not a thumbnail', async ({ page }) => {
     await boot(page);
     await toPanel(page, 6);
+
+    /* Wait for the panel to actually arrive rather than sleeping and hoping.
+       The procession keeps a slow idle drift by design, so a fixed timeout
+       sampled whatever t happened to be at that instant and this failed about
+       one run in five — which is worse than no test, because a suite people
+       learn to re-run is a suite people stop reading. */
+    await page.waitForFunction(() => {
+      const S = (window as any).__NB_WALL;
+      if (!S) return false;
+      return S.panels.some((p: any) => Math.abs(p.t) < 0.12);
+    }, undefined, { timeout: 20_000 });
+
     const hero = await page.evaluate(() => {
       const S = (window as any).__NB_WALL;
       const p = S.panels.reduce((a: any, b: any) => (Math.abs(b.t) < Math.abs(a.t) ? b : a));

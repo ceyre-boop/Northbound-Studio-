@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "measuredAt": "2026-09-13T01:31:05.554Z",
-  "commit": "7f3977d",
-  "url": "http://localhost:8099/",
+  "measuredAt": "2026-09-13T02:08:02.460Z",
+  "commit": "18d1a80",
+  "url": "https://northbound-dev.com/",
   "harness": {
     "cpuThrottleRate": 4,
     "network": "regular4g",
@@ -18,32 +18,32 @@
   },
   "frame": {
     "p50Ms": 8.4,
-    "p95Ms": 25.1,
-    "p99Ms": 258.9,
-    "samples": 683
+    "p95Ms": 34.1,
+    "p99Ms": 483.6,
+    "samples": 701
   },
   "acts": {
     "northlight": {
       "label": "Northlight",
       "p50Ms": 0.1,
-      "p95Ms": 0.9
+      "p95Ms": 1.1
     },
     "solution": {
       "label": "Solution",
       "p50Ms": 0,
-      "p95Ms": 1
+      "p95Ms": 1.2
     },
     "offerings": {
       "label": "The offerings",
       "p50Ms": 0.1,
-      "p95Ms": 0.6
+      "p95Ms": 0.8
     }
   },
   "published": {
     "frameMs": "8.4 ms",
     "budgetMs": "16.7 ms",
     "headroomPct": "50%",
-    "caption": "median frame, 4x CPU throttle, 390x844, regular 4G — branch preview, measured locally"
+    "caption": "median frame, 4x CPU throttle, 390x844, regular 4G"
   },
   "gates": []
 }

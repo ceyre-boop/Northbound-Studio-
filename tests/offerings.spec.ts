@@ -198,4 +198,61 @@ test.describe('the procession', () => {
     expect(declared, `the helix needs ${needed}svh of scroll but declares ${declared}`).toBeGreaterThanOrEqual(needed);
     expect(cssHeight, 'css/stage.css and contract.js disagree about the section height').toBe(declared);
   });
+
+  /* The neighbour-position guard, stated as its own assertion rather than only
+     as a side effect of the overlap test above. The failure it exists for was
+     measured, not imagined: with panel 5 centred, its neighbours sat at cx -231
+     and cx 1854 on a 1280px screen, so the section was a slideshow of one panel
+     at a time. Every other gate passed on that build. */
+  test('the centre panel always has a neighbour inside the viewport', async ({ page }) => {
+    await boot(page);
+    for (const i of [1, 4, 7, 10]) {
+      await toPanel(page, i);
+      const r = await page.evaluate(() => {
+        const S = (window as any).__NB_WALL;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const inside = S.panels.filter((p: any) =>
+          Math.abs(p.t) > 0.4 && Math.abs(p.t) <= 2.5 &&
+          p.cx + p.w / 2 > 0 && p.cx - p.w / 2 < vw &&
+          p.cy + p.h / 2 > 0 && p.cy - p.h / 2 < vh);
+        return { centre: S.centre, inside: inside.length, all: S.panels.filter((p:any)=>Math.abs(p.t)<=2.5).length };
+      });
+      expect(
+        r.inside,
+        `with panel ${r.centre} centred, ${r.all} panels are in band but none of its neighbours is on screen`
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  /* js/panels.js opens the two concept builds in place. It used to be bound by
+     the act that the procession replaced, and when that act was deleted the
+     builds moved to the closing section — which is not an act, so nothing would
+     ever have called init() again. The links would have kept working and the
+     page would have looked correct, which is exactly why the loss would have
+     gone unnoticed. This test fails if that binding disappears again. */
+  test('the concept builds still open in place', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(900);
+
+    const cards = page.locator('.closing-proof .work-card');
+    await expect(cards, 'the relocated concept builds are missing from the closing section').toHaveCount(2);
+
+    const overlay = page.locator('.work-overlay');
+    await expect(overlay, 'js/panels.js never bound — its overlay was not built').toHaveCount(1);
+
+    await page.locator('.closing-proof .work-card a[href="/demos/atlas"]').click();
+    await page.waitForTimeout(700);
+
+    await expect(overlay, 'clicking a build navigated away instead of opening in place').toHaveAttribute('data-open', 'true');
+    const src = await page.locator('.work-overlay iframe').getAttribute('src');
+    expect(src, 'the overlay opened with no build in it').toContain('/demos/atlas');
+    expect(page.url(), 'the page navigated — the click was not intercepted').not.toContain('/demos/');
+
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+    await expect(overlay).not.toHaveAttribute('data-open', 'true');
+    expect(await page.locator('.work-overlay iframe').getAttribute('src'),
+      'the iframe kept running after close').toBeFalsy();
+  });
 });

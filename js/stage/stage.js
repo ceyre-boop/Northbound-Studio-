@@ -548,14 +548,23 @@
       measured.push(r);
     });
 
-    /* Whatever runs last holds the stage through the closing section and the
-       footer. Letting it end at its own section's edge would leave the canvas
-       empty behind the contact form, which reads as the page having broken
-       rather than having finished. */
-    if (measured.length) {
-      measured.sort(function (a, b) { return a.win[0] - b.win[0]; });
-      measured[measured.length - 1].win[1] = 1;
-    }
+    /* Every act ends with its own section. This used to stretch the last act's
+       window to the end of the document, on the theory that an empty canvas
+       behind the closing section reads as the page having broken rather than
+       having finished.
+     
+       That was harmless when the last act was a dissolve behind two cards. It
+       is actively wrong for the offerings procession, and in two ways at once.
+       The helix maps its twelve panels across the act's whole window, so
+       stretching the window past the section stretched the procession with it:
+       the last panels were not reaching centre until the sticky pin had already
+       released and scrolled away, presenting themselves to nobody. And the tail
+       of that window drew receding panels and a backdrop over the contact form,
+       which has its own content and never wanted a canvas behind it.
+     
+       An act should own exactly the scroll its section occupies. What follows
+       the last section is the closing section, and it is perfectly capable of
+       looking finished on its own. */
   }
 
   function winOf(rec) { return rec.win || rec.manifest.window; }

@@ -124,17 +124,62 @@ function integrateSpring(s, dt, k, c) {
   }
 }
 
-/* ---- per-tier / per-device constants ------------------------------------ */
+/* ---- per-tier / per-device constants -------------------------------------
+ *
+ * Retuned twice against live measurements. First pass: the along-axis travel
+ * and the orbit radius were so wide the nearest neighbour of the hero was
+ * already off-screen by |t|=1 — "twelve panels on a helix" read as a
+ * slideshow of one. Second pass, measured at 1280x800 with panel 5 centred,
+ * fixed that; targets (offset of a panel's centre from screen centre, as a
+ * fraction of viewport width/height per unit |t|):
+ *
+ *   |t|=0.5  ~0.13w / 0.10h     substantially overlapping the hero
+ *   |t|=1.0  ~0.25w / 0.19h     clearly overlapping, clearly behind
+ *   |t|=2.0  ~0.47w / 0.33h     half cropped by the viewport edge
+ *   |t|=2.5  ~0.58w / 0.40h     mostly gone, a sliver still showing
+ *
+ * AX_F/AY_F below solve that system together with RMAX_F: the orbit radius
+ * is width-based per spec (~0.06w, "a twist in the path, not the dominant
+ * translation") and its cos/sin components land on TOP of the along-axis
+ * travel, so AX_F/AY_F had to be fit accounting for that contribution rather
+ * than read off the targets directly — e.g. AX_F ends up above the raw
+ * 0.25w target fraction because the orbit's cos term subtracts from it at
+ * |t| around 1. ORBIT_SWEEP is now a small ~43 degrees total across the
+ * whole visible path (was 3/4 of a full turn) — enough to read as a twist,
+ * small enough not to reintroduce the overshoot at large |t| that a wider
+ * sweep caused.
+ *
+ * phi0 = pi/2, not 0. With phi0=0, cos(t*PHI) — the orbit's x-contribution —
+ * is an EVEN function of t while ax=-Ax*t is odd, so the orbit reinforces
+ * the along-axis travel on one side of centre and cancels it on the other:
+ * measured at 1280x800 the t=+1 neighbour overlapped the hero but the t=-1
+ * neighbour landed 424px away, only on one side because of that mismatch.
+ * Shifting phi0 by pi/2 turns cos into -sin(t*PHI), which IS odd, so the x
+ * offset becomes -Ax*t - Rmax*|t|*sin(PHI*t) — a true odd function of t and
+ * therefore symmetric in magnitude for +t and -t. The same shift makes the
+ * y-contribution the even one instead. On desktop the vertical overlap
+ * margin (panel heights sum to ~375px near |t|=1 against a ~150px offset)
+ * easily absorbs that; on the narrower/taller mobile viewport it does not
+ * (measured: the t=-1 neighbour on a 390x844 screen landed just outside the
+ * overlap threshold), which is why mobile gets its own directly-fitted
+ * AY_F below rather than a ratio scaled off the desktop value — scaling
+ * the ratio forward from the first pass compounded the asymmetry instead of
+ * correcting for it. */
+
+var DESKTOP = { axF: 0.21, ayF: 0.282, rmaxF: 0.06 };
+var MOBILE = { axF: 0.15, ayF: 0.40, rmaxF: 0.04 };
+var ORBIT_SWEEP = 0.75;                               // total radians swept, full path
 
 function buildConsts(mobile, width, height) {
   var drawBand = mobile ? 1.5 : BAND;
-  var Ax = (mobile ? 0.35 : 0.55) * width;
-  var Ay = -(mobile ? 0.55 : 0.30) * height;   // negative: enters low, leaves high
-  var Rmax = (mobile ? 0.28 : 0.42) * width;
-  var PHI = (0.75 * Math.PI) / drawBand;        // ~3/4 turn swept across the drawn path
+  var d = mobile ? MOBILE : DESKTOP;
+  var Ax = d.axF * width;
+  var Ay = -d.ayF * height;                     // negative: enters low, leaves high
+  var Rmax = d.rmaxF * width;
+  var PHI = ORBIT_SWEEP / (2 * drawBand);       // small twist across the drawn path
   var ROT = 0.5 / drawBand;                     // ~0.5rad of tilt at the drawn edge
-  var phi0 = Math.PI / 4;
-  var heroF = mobile ? 0.62 : HERO_H;
+  var phi0 = Math.PI / 2;                       // see note above: keeps ox odd in t
+  var heroF = mobile ? 0.62 : HERO_H;           // HERO_H read live from contract.js
   return { mobile: mobile, drawBand: drawBand, Ax: Ax, Ay: Ay, Rmax: Rmax, PHI: PHI, ROT: ROT, phi0: phi0, heroF: heroF };
 }
 

@@ -44,7 +44,13 @@ export function create(ctx) {
   var m = {
     mount: mount,
     imgs: {},
-    pose: 'thinking',
+    /* null, not 'thinking'. apply() early-returns when the pose is already the
+       one being asked for, so seeding this with the resting pose made the
+       opening apply() a no-op and no image ever got the visible class. In full
+       motion that hid him only until the first panel change swapped him to
+       salute and back; in reduced motion, where update() never runs and
+       drawStill() only ever asks for 'thinking', it hid him completely. */
+    pose: null,
     until: 0,          // ms timestamp a one-shot pose expires
     lean: 0,           // -1..1, toward the panel being attended to
     leanShown: -999,

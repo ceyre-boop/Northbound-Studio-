@@ -4,94 +4,166 @@
  * he is decoration: aria-hidden, pointer-events none, and nothing on the page
  * depends on him rendering at all.
  *
- * Everything here is transform and opacity only. Both are compositor
- * properties, so a leaning, bobbing mascot costs no style recalc and no layout
- * on a document that is sixteen screens tall — which matters, because a
- * per-frame layout read on this page has already cost 120fps once.
+ * ---------------------------------------------------------------------------
+ * SIZE BY HEIGHT, NEVER BY WIDTH. This is the whole reason his head was cut
+ * off, and it is not obvious from any single file.
  *
- * The mount is absolutely positioned with a fixed size, so he cannot move
- * anything: the CLS gate for this site is exactly zero.
+ * The three poses are rendered at three different aspect ratios:
+ *
+ *     thinking  181x228   w/h 0.794   <- the tallest, and the resting pose
+ *     salute    212x228   w/h 0.930
+ *     awesome   320x323   w/h 0.991
+ *
+ * Sizing them all to `width: 100%` of a box with one fixed aspect ratio makes
+ * each a different height, and the narrowest is the tallest. Against a box of
+ * 0.952 the resting pose overflowed the top by a fifth of its width and
+ * `contain: paint` clipped it — so the pose he holds most of the time was the
+ * one missing its head.
+ *
+ * Widening the box would only move the problem to whichever pose is narrowest
+ * next. Height is the invariant: a character swapping poses keeps his eyeline
+ * and his feet, and his width is whatever the pose needs. So the box is as tall
+ * as the tallest pose, every image is `height: 100%` with automatic width, and
+ * they share a bottom edge and a centre line.
+ * ---------------------------------------------------------------------------
+ *
+ * Everything animated here is transform, opacity and filter. All three are
+ * compositor properties, so a leaning, breathing mascot costs no style recalc
+ * and no layout on a document sixteen screens tall — which matters, because a
+ * per-frame layout read on this page has already cost 120fps once.
  */
 
 #nb-mascot-mount[data-buddy] {
+  --buddy-lean: 0;
+  --buddy-shake: 0;
+  --buddy-w: clamp(120px, 14vw, 210px);
+
   position: absolute;
   left: clamp(12px, 4vw, 64px);
   bottom: clamp(12px, 5vh, 56px);
-  width: clamp(110px, 13vw, 190px);
-  aspect-ratio: 1 / 1.05;
+  width: var(--buddy-w);
+  /* 1.26 is the tallest pose's height/width. Every pose fits; none is clipped. */
+  height: calc(var(--buddy-w) * 1.26);
   z-index: 3;
   pointer-events: none;
-  /* Contain him so a transform can never extend the scrollable area. An
-     overflowing descendant changes documentElement.scrollHeight, which the
-     Stage divides by to get page progress — one mascot could rescale every
-     act's scroll window on the whole page. */
-  contain: layout paint;
-}
 
-.buddy__pose {
-  position: absolute;
-  inset: auto 0 0 0;
-  width: 100%;
-  height: auto;
-  opacity: 0;
-  transform-origin: 50% 100%;
-  transition: opacity 260ms ease;
-  will-change: opacity, transform;
-  /* The art is a blue mech on a dark aurora ground. A faint cyan cast under him
-     ties him to the world the panels live in without recolouring the art. */
-  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55))
-          drop-shadow(0 0 18px rgba(79, 216, 196, 0.14));
-}
+  display: grid;
+  place-items: end center;
 
-.buddy__pose.is-on { opacity: 1; }
+  /* Layout containment only. Paint containment is what clipped his head, and
+     with the box sized to the tallest pose there is nothing left to clip.
+     Layout containment still stops a transform from extending the scrollable
+     area — an overflowing descendant changes documentElement.scrollHeight,
+     which the Stage divides by to get page progress, so one mascot could
+     rescale every act's scroll window on the whole page. */
+  contain: layout;
 
-/* The lean and the idle bob, composed as one transform on the mount so the
-   three stacked poses stay in register while cross-fading. --buddy-lean is
-   -1..1 toward whatever he is attending to; --buddy-shake decays from 1 after
-   a panel is thrown. */
-#nb-mascot-mount[data-buddy] {
-  --buddy-lean: 0;
-  --buddy-shake: 0;
   transform:
     translateX(calc(var(--buddy-lean) * 10px))
     rotate(calc(var(--buddy-lean) * 3.2deg))
     translateY(calc(var(--buddy-shake) * -6px));
-  transition: transform 220ms cubic-bezier(.22,.61,.36,1);
-  animation: buddy-bob 5.2s ease-in-out infinite;
+  transition: transform 420ms cubic-bezier(.22,.61,.36,1);
+  animation: buddy-breathe 5.2s ease-in-out infinite;
 }
 
-@keyframes buddy-bob {
+/* The ground shadow. Without it he reads as a sticker dropped on the page
+   rather than a thing standing in the room: a cast shadow that follows his
+   silhouette is not the same as contact with a floor, and the eye knows the
+   difference immediately even when it cannot say why. It tightens as he
+   settles and spreads as he lifts, which is what sells the weight. */
+#nb-mascot-mount[data-buddy]::before {
+  content: "";
+  grid-area: 1 / 1;
+  align-self: end;
+  width: 86%;
+  height: 13%;
+  margin-bottom: -3%;
+  transform: scale(calc(1 - var(--buddy-shake) * 0.2));
+  /* Two lights, because the room has two. A dark core where he meets the floor,
+     and a cyan bounce around it picking up the aurora the panels are lit by —
+     that second one is what stops a saturated blue character reading as a
+     sticker on a teal photograph. */
+  background:
+    radial-gradient(ellipse 50% 60% at center,
+      rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.34) 46%, rgba(0,0,0,0) 74%),
+    radial-gradient(ellipse 80% 100% at center,
+      rgba(79,216,196,0.16) 0%, rgba(79,216,196,0.05) 50%, rgba(79,216,196,0) 78%);
+  filter: blur(3px);
+  transition: transform 420ms cubic-bezier(.22,.61,.36,1);
+}
+
+.buddy__pose {
+  grid-area: 1 / 1;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  display: block;
+  transform-origin: 50% 100%;
+
+  /* The cast shadow grounds him against the aurora; the faint cyan bloom ties a
+     saturated blue character to a teal-lit room without repainting the art. */
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.5))
+          drop-shadow(0 0 22px rgba(79, 216, 196, 0.16));
+
+  /* Leaving. Weight leaves a pose faster than it arrives, so the outgoing curve
+     is a plain ease-out and it drops slightly as it goes. */
+  opacity: 0;
+  transform: translateY(4%) scale(0.965);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+/* Arriving. A dissolve between two pictures of a character is not a transition,
+   it is a slideshow with a fade on it — a pose change has to read as him
+   MOVING. The incoming pose rises from just below and overshoots a touch before
+   it settles, and the two overlap so he is never absent from the frame. */
+.buddy__pose.is-on {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 380ms cubic-bezier(.34,.9,.4,1),
+    transform 560ms cubic-bezier(.28,1.5,.5,1);
+  z-index: 1;
+}
+
+@keyframes buddy-breathe {
   0%, 100% { translate: 0 0; }
   50%      { translate: 0 -7px; }
 }
 
 /* Reduced motion is the default on the machine this was built on, so this is
    the state most people here will ever see: one composed pose, arms crossed,
-   perfectly still. Not hidden — still. */
+   perfectly still, still grounded by its shadow. Not hidden — still. */
 #nb-mascot-mount[data-still] { animation: none; transition: none; transform: none; }
-#nb-mascot-mount[data-still] .buddy__pose { transition: none; }
+#nb-mascot-mount[data-still] .buddy__pose { transition: none; transform: none; }
+#nb-mascot-mount[data-still]::before { transition: none; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
   #nb-mascot-mount[data-buddy] { animation: none; transition: none; transform: none; }
-  .buddy__pose { transition: none; }
+  .buddy__pose { transition: none; transform: none; }
+  #nb-mascot-mount[data-buddy]::before { transition: none; transform: none; }
 }
 
 /* With no WebGL the procession is a plain readable list and the pin does not
    pin, so an absolutely-positioned mascot would land on top of the copy. He
-   steps aside rather than competing with the only content in that state. */
+   steps into the flow instead of competing with the only content in that
+   state. */
 [data-gl="off"] #nb-mascot-mount[data-buddy] {
   position: static;
   width: clamp(96px, 11vw, 150px);
+  height: auto;
+  aspect-ratio: 1 / 1;
   margin: clamp(24px, 4vh, 48px) 0 0;
   transform: none;
   animation: none;
+  display: block;
 }
 [data-gl="off"] .buddy__pose { display: none; }
+[data-gl="off"] #nb-mascot-mount[data-buddy]::before { display: none; }
 
-/* With no WebGL there is no procession to react to, so the three-pose raster
-   mech has nothing to do — and at the sizes this path uses it, a vector reads
-   cleaner anyway. brand/buddy.svg is the same character drawn for exactly this
-   job: one file, crisp at any size, no pose logic and no decode cost. */
+/* There is no procession to react to without WebGL, and at these sizes a vector
+   reads cleaner than a three-pose raster anyway. brand/buddy.svg is the same
+   character drawn for exactly this job: one file, crisp at any size, no pose
+   logic and no decode cost. */
 [data-gl="off"] #nb-mascot-mount[data-buddy]::after {
   content: "";
   display: block;
@@ -105,7 +177,7 @@
   /* On a phone the arriving panels sweep the lower right and the hero fills the
      middle, so he tucks smaller and closer to the corner. */
   #nb-mascot-mount[data-buddy] {
-    width: clamp(84px, 24vw, 120px);
+    --buddy-w: clamp(92px, 25vw, 130px);
     left: 10px;
     bottom: 10px;
   }

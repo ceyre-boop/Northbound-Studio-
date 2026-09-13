@@ -43,22 +43,70 @@
 -->
 
 <!--
-  The spray filter for the hero headline. It lives here rather than in a
-  stylesheet because CSS can only reference an SVG filter by fragment id, and a
-  filter in an external file is a separate fetch on the critical path for the
-  first thing anyone reads.
+  The hero headline's paint, as a filter graph.
 
-  Displacement only, no blur: the letterform keeps its weight and only its
-  boundary goes ragged, the way spray bites an edge without softening the mask.
+  It lives in the document rather than a stylesheet because CSS can only
+  reference an SVG filter by fragment id, and a filter in an external file is a
+  separate fetch on the critical path for the first thing anyone reads.
+
+  Two effects in one pass. The DRIPS are built by smearing the letterforms'
+  alpha straight down, offsetting it, breaking it up horizontally with noise so
+  it separates into individual runs, then hardening it with an alpha-contrast
+  matrix — the standard goo trick — so the smear stops being a blur and becomes
+  wet paint with an edge. They composite UNDER the type, so the letters stay
+  crisp and the paint runs out from behind them. The SPRAY is displacement only,
+  no blur: the letterform keeps its weight and only its boundary goes ragged,
+  the way an aerosol bites an edge without softening the mask.
+
+  The filter region runs well past the bottom of the box because a drip that
+  gets clipped at the baseline reads as a rendering bug, not as paint.
 -->
 <svg width="0" height="0" aria-hidden="true" focusable="false"
      style="position:absolute;pointer-events:none">
-  <filter id="nb-spray" x="-12%" y="-12%" width="124%" height="124%"
+  <filter id="nb-spray" x="-14%" y="-10%" width="128%" height="210%"
           color-interpolation-filters="sRGB">
-    <feTurbulence type="fractalNoise" baseFrequency="0.72 0.9" numOctaves="3"
-                  seed="7" result="grain"/>
-    <feDisplacementMap in="SourceGraphic" in2="grain" scale="3.2"
-                       xChannelSelector="R" yChannelSelector="G"/>
+
+    <!-- 1. ERODE FIRST. This is the whole trick. Smearing the letterforms
+            straight down gives wide chunky blobs that read as a shadow behind
+            the word, not as paint running off it. Eroding horizontally first
+            throws away everything but the thickest vertical parts of each
+            stroke, so what survives to run is already narrow. -->
+    <feMorphology in="SourceAlpha" operator="erode" radius="9 0" result="spine"/>
+
+    <!-- 2. pull those narrow columns a long way down -->
+    <feGaussianBlur in="spine" stdDeviation="0 20" result="smear"/>
+    <feOffset in="smear" dy="30" result="hang"/>
+
+    <!-- 3. vary which columns actually run, and how far. Low frequency in x so
+            neighbouring letters do not all drip identically. -->
+    <feTurbulence type="fractalNoise" baseFrequency="0.022 0.003"
+                  numOctaves="2" seed="17" result="runNoise"/>
+    <feDisplacementMap in="hang" in2="runNoise" scale="46"
+                       xChannelSelector="R" yChannelSelector="G" result="broken"/>
+
+    <!-- 4. harden hard. A high threshold is what turns a soft smear into a wet
+            edge with a bead on the end, and it also thins the field down to a
+            handful of runs rather than one under every letter. -->
+    <feColorMatrix in="broken" type="matrix" result="goo"
+      values="0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 42 -19"/>
+    <feFlood flood-color="#E8EFF2" flood-opacity="0.95" result="paint"/>
+    <feComposite in="paint" in2="goo" operator="in" result="drips"/>
+
+    <!-- 5. the sprayed edge on the type itself: displacement only, no blur, so
+            the letterform keeps its weight and only its boundary goes ragged -->
+    <feTurbulence type="fractalNoise" baseFrequency="0.66 0.88"
+                  numOctaves="3" seed="7" result="grain"/>
+    <feDisplacementMap in="SourceGraphic" in2="grain" scale="3.4"
+                       xChannelSelector="R" yChannelSelector="G" result="sprayed"/>
+
+    <!-- 6. paint runs out from behind the letters, never over them -->
+    <feMerge>
+      <feMergeNode in="drips"/>
+      <feMergeNode in="sprayed"/>
+    </feMerge>
   </filter>
 </svg>
 

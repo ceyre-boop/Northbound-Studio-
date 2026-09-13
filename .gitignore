@@ -5,3 +5,11 @@ playwright/.cache/
 .DS_Store
 .vercel
 .env*
+
+# Scratch harnesses from the parallel build. Departments write these to the
+# repo root because Playwright only resolves @playwright/test from the project,
+# not from a temp dir. They are throwaway and must never be committed.
+__*.mjs
+check-*.mjs
+.deliver.mjs
+*.tmp.mjs

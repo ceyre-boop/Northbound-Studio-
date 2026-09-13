@@ -12,7 +12,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-const ACTS = ['northlight', 'drift', 'solution', 'work'];
+const ACTS = ['northlight', 'drift', 'solution', 'offerings'];
 
 /* Scrubbing the page drives four shader systems through every seam, and CI
    runs them on a software rasteriser. The default 30s is not a meaningful

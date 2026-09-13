@@ -21,7 +21,9 @@ const CEILING_MS: Record<string, number> = {
   northlight: 5,
   drift: 6,
   solution: 9,
-  work: 2,
+  /* The procession replaced the dissolve act: twelve loops, a spring lattice
+     and a sheet of glass, against the dissolve's single fullscreen triangle. */
+  offerings: 9,
 };
 
 /** Park the scroll in the middle of an act's window and wait until it has

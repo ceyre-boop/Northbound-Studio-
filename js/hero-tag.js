@@ -74,6 +74,29 @@
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
 
+/* Wait until the page has actually landed before fetching the character.
+ *
+ * He is a decoration and he is the heaviest single asset on the hero, and on
+ * a slow connection the two facts collide: fetching him alongside the fonts
+ * and the first act put the slow-4G LCP measurement at 1208ms against a
+ * 1200ms gate, and bouncing to 1400ms on an unlucky sample. A gate you pass
+ * on the second run is a gate you have not passed.
+ *
+ * So nothing here touches the network until load has fired and the main
+ * thread has gone quiet. The sequence is armed by an IntersectionObserver
+ * anyway, so the only visible consequence is that he arrives a moment later
+ * on a slow connection — which is the correct thing for him to do. */
+  function whenIdle() {
+    return new Promise(function (resolve) {
+      var go = function () {
+        if (typeof requestIdleCallback === 'function') requestIdleCallback(resolve, { timeout: 2000 });
+        else setTimeout(resolve, 400);
+      };
+      if (document.readyState === 'complete') go();
+      else window.addEventListener('load', go, { once: true });
+    });
+  }
+
   function img(cls, id, spec, w, h) {
     var el = document.createElement('img');
     el.className = cls;
@@ -91,6 +114,10 @@
      actually decoded: starting the sequence against an undecoded image is how
      the first beat gets eaten, and the whole sneak is only 1100ms. */
   function loadRig(mount) {
+    return whenIdle().then(function () { return buildRig(mount); });
+  }
+
+  function buildRig(mount) {
     var rig = document.createElement('div');
     rig.className = 'nb-hero-tag__rig';
     var bot = img('nb-hero-tag__bot', 'tag-body', BOT, 720, 555);

@@ -94,14 +94,31 @@ test.describe('the stage', () => {
     await page.goto('/?motion=full');
     await page.waitForFunction(() => window.NB_STAGE && window.NB_STAGE.ok, { timeout: 10_000 });
 
+    /* Both samples are taken COLD, and that is the whole correctness of this
+     * test.
+     *
+     * The Stage does not release an act the moment it leaves the viewport —
+     * it waits DWELL_COLD (4s) out of range and refuses to tear anything down
+     * while the visitor is still flinging. So a sample taken 400ms after
+     * scrolling home catches whatever was mid-eviction, and what that
+     * captured depended entirely on how far the previous scrub had got: the
+     * first sample saw one act still resident, the last saw two, and the test
+     * reported "programs grew from 1 to 2" as a leak. Nothing had leaked. The
+     * two snapshots were of different states.
+     *
+     * Waiting past the dwell before each sample compares like with like, and
+     * keeps exactly what this test is for: resources that survive going cold
+     * and accumulate across repeated passes. */
+    const COLD_MS = 5200; // DWELL_COLD (4000) plus room for the calm check
+
     await scrub(page, 12, 40);
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(COLD_MS);
     const first = await page.evaluate(() => window.NB_STAGE.debug().resources);
 
     for (let pass = 0; pass < 9; pass++) await scrub(page, 12, 25);
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(COLD_MS);
     const last = await page.evaluate(() => window.NB_STAGE.debug().resources);
 
     for (const key of ['programs', 'buffers', 'textures', 'fbos'] as const) {

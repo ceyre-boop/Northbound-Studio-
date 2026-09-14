@@ -367,21 +367,69 @@
         saying either.
       -->
       <div class="closing-proof">
-        <h3 class="closing-proof__head">Two things we built, and what they cost to render.</h3>
+        <h3 class="closing-proof__head">Two things we built. Open either one.</h3>
+        <p class="closing-proof__lede">
+          The front is the part you can see, and the front is the easy half.
+          What you are paying for is underneath it &mdash; the endpoint that
+          takes the booking, the server that decides what the cart costs, the
+          code that keeps a lead when the thing downstream of it breaks. Both
+          of these are deployed and both of them run that code. Click either
+          one and use it.
+        </p>
       <ul class="work-list">
         <li class="work-card" data-work="atlas">
-          <img class="work-card__poster" src="posters/atlas.webp" alt="" width="1200" height="900" loading="lazy" decoding="async">
-          <p class="work-card__kind">Concept build · invented business</p>
-          <h3><a href="/demos/atlas">Ridgeline Roofing</a></h3>
-          <p>A trades site built around one job: booking the call.</p>
-          <p class="work-card__tech">Astro · a real booking endpoint · static</p>
+          <div class="work-card__screen">
+            <div class="work-card__chrome" aria-hidden="true">
+              <span class="work-card__dot"></span>
+              <span class="work-card__dot"></span>
+              <span class="work-card__dot"></span>
+              <span class="work-card__url">northbound-dev.com/demos/atlas</span>
+            </div>
+            <img class="work-card__poster" src="posters/atlas.webp" alt="" width="1200" height="900" loading="lazy" decoding="async">
+          </div>
+          <div class="work-card__body">
+            <p class="work-card__kind">Concept build &middot; invented business</p>
+            <h3><a href="/demos/atlas">Ridgeline Roofing</a></h3>
+            <p class="work-card__job">A trades site built around one job: booking the call.</p>
+            <!--
+              Every line below is a claim about code in this repo, and each one
+              names where it lives. demos/atlas/src/pages/api/book.ts. If a line
+              here stops being true of that file, delete the line.
+            -->
+            <p class="work-card__behind-h">What is behind it</p>
+            <ul class="work-card__behind">
+              <li>A booking endpoint that runs on a server &mdash; not a <code>mailto:</code>, not a form widget dropped into the page.</li>
+              <li>The lead is written down <em>before</em> it is sent on, so a dead inbox downstream costs the delivery and never the customer.</li>
+              <li>Required fields are checked where the visitor cannot skip them, and the mail credentials never reach the browser.</li>
+            </ul>
+            <p class="work-card__tech">Astro &middot; a real booking endpoint &middot; static</p>
+            <p class="work-card__open"><span>Open the build</span></p>
+          </div>
         </li>
         <li class="work-card" data-work="vector">
-          <img class="work-card__poster" src="posters/vector.webp" alt="" width="1200" height="900" loading="lazy" decoding="async">
-          <p class="work-card__kind">Concept build · invented business</p>
-          <h3><a href="/demos/vector/">Marrow Coffee</a></h3>
-          <p>A small storefront with real checkout and no plugin sprawl.</p>
-          <p class="work-card__tech">Astro · Stripe checkout and webhook · static</p>
+          <div class="work-card__screen">
+            <div class="work-card__chrome" aria-hidden="true">
+              <span class="work-card__dot"></span>
+              <span class="work-card__dot"></span>
+              <span class="work-card__dot"></span>
+              <span class="work-card__url">northbound-dev.com/demos/vector</span>
+            </div>
+            <img class="work-card__poster" src="posters/vector.webp" alt="" width="1200" height="900" loading="lazy" decoding="async">
+          </div>
+          <div class="work-card__body">
+            <p class="work-card__kind">Concept build &middot; invented business</p>
+            <h3><a href="/demos/vector/">Marrow Coffee</a></h3>
+            <p class="work-card__job">A small storefront with real checkout and no plugin sprawl.</p>
+            <!-- demos/vector/src/pages/api/checkout.ts and api/webhook.ts. -->
+            <p class="work-card__behind-h">What is behind it</p>
+            <ul class="work-card__behind">
+              <li>The checkout session is created on the server. The secret key never ships to the browser, and the browser is never asked to be trustworthy.</li>
+              <li>Every line price is re-derived from the catalogue at checkout, so an edited cart cannot buy a twenty dollar bag for two.</li>
+              <li>It refuses to start against a live payment key, and the webhook that confirms the order is handled, not ignored.</li>
+            </ul>
+            <p class="work-card__tech">Astro &middot; Stripe checkout and webhook &middot; static</p>
+            <p class="work-card__open"><span>Open the build</span></p>
+          </div>
         </li>
       </ul>
 

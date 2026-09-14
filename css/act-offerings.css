@@ -490,22 +490,246 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   color: var(--paper-dim);
   font-weight: 600;
 }
+/* The two concept builds.
+ *
+ * Three things were wrong with these and all three said the same thing about
+ * the studio, which is the opposite of what is true:
+ *
+ *   1. Only the TITLE was clickable — a 200px target inside a 600px card. A
+ *      visitor who clicked the screenshot, which is the obvious thing to
+ *      click, got nothing. Fixed with a stretched link: the <a> is still one
+ *      real <a href> that works with JS and CSS off, and its ::after covers
+ *      the card, so the whole card is the target without a single extra
+ *      element or a div pretending to be a button.
+ *
+ *   2. They were small, and small reads as a thumbnail of a template rather
+ *      than a build you can open. They are now one per row, the screenshot
+ *      sitting in a browser frame with the real URL in it, because what makes
+ *      a screenshot read as a live site is the chrome around it.
+ *
+ *   3. They led with the framework. The framework is the least interesting
+ *      thing about either of them. They now lead with what is behind the
+ *      page — the endpoint, the server-side pricing, the lead that survives a
+ *      dead inbox — because that is the half being paid for. The front end is
+ *      table stakes and this section should stop implying otherwise.
+ */
+#contact .closing-proof__lede {
+  margin: -6px 0 calc(var(--rhythm) * 0.9);
+  max-width: 68ch;
+  color: var(--paper-dim);
+  font-size: clamp(0.95rem, 0.5vw + 0.82rem, 1.05rem);
+  line-height: 1.62;
+}
+
 #contact .closing-proof .work-list {
   list-style: none;
   margin: 0 0 calc(var(--rhythm) * 0.9);
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: clamp(18px, 2.4vw, 30px);
 }
+
 #contact .closing-proof .work-card {
-  padding: 16px 18px;
+  position: relative;          /* the stretched link's containing block */
+  padding: 0;
   background: var(--ink-2);
   border: 1px solid var(--line-2);
-  border-radius: 4px;
+  border-radius: 6px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
+  cursor: pointer;
+  transition:
+    border-color 220ms cubic-bezier(.22,.61,.36,1),
+    transform 260ms cubic-bezier(.22,.61,.36,1),
+    box-shadow 260ms cubic-bezier(.22,.61,.36,1);
 }
-#contact .closing-proof .work-card h3 { margin: 8px 0 6px; font-size: 1.05rem; }
-#contact .closing-proof .work-card p { margin: 0 0 6px; color: var(--paper-dim); font-size: 0.92rem; }
+#contact .closing-proof .work-card:hover,
+#contact .closing-proof .work-card:focus-within {
+  border-color: var(--aurora);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 46px -28px rgba(0, 0, 0, 0.9);
+}
+
+/* Side by side once there is room for the screenshot to be worth seeing.
+   Below that the screen sits on top, full width, which is the better shape on
+   a phone anyway. */
+@media (min-width: 860px) {
+  #contact .closing-proof .work-card {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+/* --- the screen ---------------------------------------------------------- */
+#contact .closing-proof .work-card__screen {
+  position: relative;
+  background: #0a0f14;
+  border-bottom: 1px solid var(--line-2);
+  min-width: 0;
+}
+@media (min-width: 860px) {
+  #contact .closing-proof .work-card__screen {
+    border-bottom: 0;
+    border-right: 1px solid var(--line-2);
+  }
+}
+
+/* The browser frame. Purely decorative and aria-hidden, but it is the thing
+   that makes the image below read as a site rather than as a picture. */
+#contact .closing-proof .work-card__chrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.045);
+  border-bottom: 1px solid var(--line-2);
+}
+#contact .closing-proof .work-card__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(232, 239, 242, 0.22);
+  flex: none;
+}
+#contact .closing-proof .work-card__url {
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+  color: var(--paper-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The capture is a whole page and the frame shows the top of it, so the cut at
+   the bottom lands wherever it lands — mid-headline, as often as not. A short
+   fade turns that from a bad crop into the obvious truth: the page carries on
+   below, and clicking is how you see the rest. */
+#contact .closing-proof .work-card__screen::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 44px;
+  background: linear-gradient(to bottom, rgba(7, 11, 15, 0), rgba(7, 11, 15, 0.92));
+  pointer-events: none;
+}
+
+#contact .closing-proof .work-card__poster {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: top center;
+  border: 0;
+  opacity: 0.92;
+  transition: opacity 260ms cubic-bezier(.22,.61,.36,1);
+}
+#contact .closing-proof .work-card:hover .work-card__poster,
+#contact .closing-proof .work-card:focus-within .work-card__poster { opacity: 1; }
+
+/* --- the body ------------------------------------------------------------ */
+#contact .closing-proof .work-card__body {
+  padding: clamp(18px, 2vw, 26px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+#contact .closing-proof .work-card h3 { margin: 6px 0 6px; font-size: clamp(1.1rem, 0.6vw + 0.95rem, 1.35rem); }
+
+/* The stretched link. One real <a href> — no JS, no role="link" on a div —
+   whose overlay turns the entire card into the hit area. */
+#contact .closing-proof .work-card h3 a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+#contact .closing-proof .work-card__job {
+  margin: 0 0 14px;
+  color: var(--paper-dim);
+  font-size: 0.95rem;
+}
+
+#contact .closing-proof .work-card__behind-h {
+  margin: 0 0 8px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--aurora);
+}
+#contact .closing-proof .work-card__behind {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+#contact .closing-proof .work-card__behind li {
+  position: relative;
+  margin: 0;
+  padding-left: 16px;
+  color: var(--paper-dim);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+#contact .closing-proof .work-card__behind li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.58em;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--aurora);
+  opacity: 0.7;
+}
+#contact .closing-proof .work-card__behind code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  color: var(--paper);
+}
+
+#contact .closing-proof .work-card__tech {
+  margin: auto 0 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-2);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--paper-faint);
+}
+
+/* The affordance. Not a button — the whole card is already the control — just
+   the visible promise that clicking does something. */
+#contact .closing-proof .work-card__open {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aurora);
+}
+#contact .closing-proof .work-card__open span::after {
+  content: " \2192";
+  display: inline-block;
+  transition: transform 220ms cubic-bezier(.22,.61,.36,1);
+}
+#contact .closing-proof .work-card:hover .work-card__open span::after {
+  transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #contact .closing-proof .work-card,
+  #contact .closing-proof .work-card__poster,
+  #contact .closing-proof .work-card__open span::after { transition: none; }
+  #contact .closing-proof .work-card:hover,
+  #contact .closing-proof .work-card:focus-within { transform: none; }
+}
+
 #contact .closing-proof .proof {
   padding: 18px clamp(18px, 2.4vw, 26px);
   background: var(--ink-2);

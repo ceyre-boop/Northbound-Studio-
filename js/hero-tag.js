@@ -49,7 +49,10 @@
  * part of the render. */
   var BOT = {
     src: 'brand/buddy-tagger-720w.webp',
-    srcset: 'brand/buddy-tagger-420w.webp 420w, brand/buddy-tagger-720w.webp 720w, brand/buddy-tagger-1200w.webp 1200w'
+    /* Capped at 900. He is never displayed wider than the 430px clamp, so 900
+       already covers a 2x screen, and the 1200 variant was 132KB of hero
+       bandwidth that put slow-4G LCP at 1208ms against a 1200ms gate. */
+    srcset: 'brand/buddy-tagger-420w.webp 420w, brand/buddy-tagger-720w.webp 720w, brand/buddy-tagger-900w.webp 900w'
   };
   var SPRAY = {
     src: 'brand/buddy-spray-540w.webp',

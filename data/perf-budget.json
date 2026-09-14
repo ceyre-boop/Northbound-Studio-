@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "measuredAt": "2026-09-14T05:35:34.276Z",
-  "commit": "53abdf2",
+  "measuredAt": "2026-09-14T06:00:22.525Z",
+  "commit": "7fd94d2",
   "url": "https://northbound-dev.com/",
   "harness": {
     "cpuThrottleRate": 4,
@@ -17,50 +17,50 @@
     "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)"
   },
   "frame": {
-    "p50Ms": 8.8,
-    "p95Ms": 40.3,
-    "p99Ms": 108.6,
-    "samples": 728
+    "p50Ms": 8.4,
+    "p95Ms": 18.1,
+    "p99Ms": 58.5,
+    "samples": 770
   },
   "acts": {
     "northlight": {
       "label": "Northlight",
       "p50Ms": 0,
-      "p95Ms": 0.4
+      "p95Ms": 0.7
     },
     "drift": {
       "label": "Drift",
-      "p50Ms": 0.1,
-      "p95Ms": 1.2
+      "p50Ms": 1.8,
+      "p95Ms": 1.8
     },
     "solution": {
       "label": "Solution",
       "p50Ms": 0,
-      "p95Ms": 0.9
+      "p95Ms": 0.5
     },
     "offerings": {
       "label": "The offerings",
       "p50Ms": 0.1,
-      "p95Ms": 0.8
+      "p95Ms": 1
     }
   },
   "published": {
-    "frameMs": "8.8 ms",
+    "frameMs": "8.4 ms",
     "budgetMs": "16.7 ms",
-    "headroomPct": "47%",
+    "headroomPct": "50%",
     "caption": "median frame, 4x CPU throttle, 390x844, regular 4G"
   },
   "gates": [
     {
       "key": "lcp4g",
       "label": "LCP — regular 4G (9 Mbps / 85ms RTT), 4x CPU",
-      "detail": "888ms (samples: 1048, 860, 888)",
+      "detail": "792ms (samples: 972, 792, 756)",
       "pass": true
     },
     {
       "key": "lcpSlow4g",
       "label": "LCP — slow 4G (1.6 Mbps / 150ms RTT), 4x CPU",
-      "detail": "1180ms (samples: 1180, 1172, 1228)",
+      "detail": "1196ms (samples: 1180, 1232, 1196)",
       "pass": true
     },
     {
@@ -72,19 +72,19 @@
     {
       "key": "fpsMedian",
       "label": "FPS — median at 4x CPU, 390x844",
-      "detail": "108fps (samples: 86, 62, 118, 120, 106, 110)",
+      "detail": "117fps (samples: 118, 111, 116, 120, 116, 120)",
       "pass": true
     },
     {
       "key": "fpsMin",
       "label": "FPS — minimum at 4x CPU, 390x844",
-      "detail": "62fps",
+      "detail": "111fps",
       "pass": true
     },
     {
       "key": "jsBytes",
       "label": "JS bytes gzipped over the wire",
-      "detail": "66.4 KB",
+      "detail": "66.8 KB",
       "pass": true
     },
     {

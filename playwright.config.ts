@@ -10,9 +10,12 @@ export default defineConfig({
   reporter: [['list']],
   use: { baseURL: 'http://localhost:8099' },
   webServer: {
-    // Threaded: the stdlib one-liner server is single-threaded and serialises
-    // every request, which starves parallel workers into false timeouts.
-    command: 'python3 -c "from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler; ThreadingHTTPServer((\'\', 8099), SimpleHTTPRequestHandler).serve_forever()"',
+    // Threaded AND gzipping — see the module docstring in scripts/serve.py.
+    // The stdlib one-liner this replaces served text assets raw, so every
+    // throttled measurement was made against a page about four times heavier
+    // than the one production serves, and the slow-4G LCP test was passing on
+    // margin rather than on merit.
+    command: 'python3 scripts/serve.py 8099',
     url: 'http://localhost:8099/',
     reuseExistingServer: true,
     timeout: 20_000,

@@ -6,7 +6,7 @@
     "perf": "bun scripts/perf.mjs",
     "perf:emit": "bun scripts/perf.mjs --emit",
     "test": "bunx playwright test",
-    "serve": "python3 -m http.server 8099"
+    "serve": "python3 scripts/serve.py 8099"
   },
   "dependencies": {},
   "devDependencies": {

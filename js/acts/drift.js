@@ -702,8 +702,34 @@ function allocate(ctx) {
  * texture grid). Off the critical path — awaited from init(), never from
  * update()/draw(). A load failure degrades to a plain drift field rather
  * than failing the whole act: ctx.warn(), not a thrown rejection. */
+/* Wait for the page to land before fetching the lenticular's three frames.
+ *
+ * They are cheap files, but init() runs at this act's PRELOAD margin, which
+ * on a slow connection is while the hero is still painting — so three SVG
+ * fetches plus this module and its shaders were queued behind nothing and in
+ * front of everything, and the slow-4G LCP measurement went to 1208ms
+ * against a 1200ms gate. Measured: form-3-pays.svg finishing at 3878ms on a
+ * 1.6Mbps link, ahead of assets the first screen actually needs.
+ *
+ * Nothing depends on this resolving. formsReady stays false until the frames
+ * arrive and the act draws a plain drift field in the meantime, which is the
+ * same graceful path a failed fetch already took. The act's own window does
+ * not open until several screens down; on a connection slow enough for this
+ * to matter, the visitor cannot have got there yet. */
+function afterLoad() {
+  return new Promise(function (resolve) {
+    var go = function () {
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(resolve, { timeout: 3000 });
+      else setTimeout(resolve, 500);
+    };
+    if (typeof document === 'undefined' || document.readyState === 'complete') go();
+    else window.addEventListener('load', go, { once: true });
+  });
+}
+
 async function loadForms(ctx) {
   try {
+    await afterLoad();
     var samples = [];
     for (var i = 0; i < FORM_URLS.length; i++) {
       samples.push(await sampleForm(FORM_URLS[i], S.count, FORM_RASTER));

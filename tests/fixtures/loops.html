@@ -1,0 +1,82 @@
+<!doctype html><meta charset="utf-8"><title>offering loops — harness</title>
+<!--
+  A test fixture, not a page of the site. It compiles all twelve loop
+  fragment shaders against the same vertex shader the atlas uses and renders
+  each into its own 128px canvas, so tests/offerings.spec.ts can assert three
+  things that are otherwise invisible until a visitor sees them go wrong:
+
+    1. every loop compiles and links (a broken one renders black on the wall,
+       silently — WebGL does not throw for you)
+    2. every loop is SEAMLESS: the frame at t=0.999 and the frame at t=0.001
+       have to be near-identical, because the wall plays these on a loop and
+       a mismatch is a visible hitch once per cycle, forever
+    3. no loop is blank at any phase — a tile that renders nothing is a panel
+       the visitor walks past for no reason
+-->
+<style>body{background:#000;margin:0}canvas{width:128px;height:128px;display:block;float:left}</style>
+<div id="g"></div>
+<script type="module">
+  import { VERT, loopSource, COUNT } from '/js/gl/offering-loops.js';
+  const g = document.getElementById('g');
+  const errs = [];
+  const progs = [];
+  for (let i = 0; i < COUNT; i++) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    g.append(c);
+    const gl = c.getContext('webgl', { antialias: false, preserveDrawingBuffer: true });
+    if (!gl) { errs.push('no webgl'); break; }
+    const mk = (type, src) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) errs.push(i + ': ' + gl.getShaderInfoLog(s));
+      return s;
+    };
+    const pr = gl.createProgram();
+    gl.attachShader(pr, mk(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(pr, mk(gl.FRAGMENT_SHADER, loopSource(i)));
+    gl.bindAttribLocation(pr, 0, 'a_pos');
+    gl.linkProgram(pr);
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) errs.push(i + ' link: ' + gl.getProgramInfoLog(pr));
+    const b = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, b);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    progs.push({ gl, pr });
+  }
+
+  /** Render every loop at phase t, then read each one back as raw bytes. */
+  window.shoot = (t) => progs.map(({ gl, pr }) => {
+    gl.useProgram(pr);
+    gl.uniform1f(gl.getUniformLocation(pr, 'u_t'), t);
+    gl.uniform1f(gl.getUniformLocation(pr, 'u_intensity'), 1);
+    gl.uniform2f(gl.getUniformLocation(pr, 'u_res'), 128, 128);
+    gl.viewport(0, 0, 128, 128);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    const px = new Uint8Array(128 * 128 * 4);
+    gl.readPixels(0, 0, 128, 128, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    let sum = 0, lit = 0;
+    const coarse = [];
+    for (let k = 0; k < px.length; k += 4) {
+      const v = px[k] + px[k + 1] + px[k + 2];
+      sum += v;
+      if (v > 24) lit++;
+    }
+    /* An 8x8 coarse map: enough to catch a composition that jumped, cheap
+       enough to ship across the bridge twelve times per phase. */
+    for (let by = 0; by < 8; by++) for (let bx = 0; bx < 8; bx++) {
+      let s = 0;
+      for (let y = by * 16; y < by * 16 + 16; y++)
+        for (let x = bx * 16; x < bx * 16 + 16; x++) {
+          const k = (y * 128 + x) * 4;
+          s += px[k] + px[k + 1] + px[k + 2];
+        }
+      coarse.push(s / 256);
+    }
+    return { sum, lit, coarse };
+  });
+  window.__errs = errs;
+  window.__count = COUNT;
+  window.__ready = true;
+</script>

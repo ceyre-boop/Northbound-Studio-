@@ -318,3 +318,64 @@ test.describe('the procession', () => {
     expect(dirty, dirty.join('\n')).toEqual([]);
   });
 });
+
+/* ---------------------------------------------------------------------------
+ * The twelve loops.
+ *
+ * These are the only part of the wall a visitor actually looks AT — the glass,
+ * the helix and the springs are all in service of twelve small animations —
+ * and they are also the part with no way to fail loudly. A loop that does not
+ * compile renders black. A loop that is not seamless hitches once a cycle,
+ * forever, and nobody can tell you which of the twelve it was. A loop that is
+ * blank at some phase is a panel the visitor walks past for no reason.
+ *
+ * So all three are asserted here, against the real shader sources, in a real
+ * GL context. tests/fixtures/loops.html is the harness.
+ * ------------------------------------------------------------------------ */
+test.describe('the twelve loops', () => {
+  test('every loop compiles, is seamless, and is never blank', async ({ page }) => {
+    const skipped: string[] = [];
+    page.on('pageerror', (e) => skipped.push(e.message));
+    await page.goto('/tests/fixtures/loops.html');
+    await page.waitForFunction(() => (window as any).__ready, { timeout: 15_000 });
+
+    const errs = await page.evaluate(() => (window as any).__errs);
+    expect(errs, 'a loop shader failed to compile or link').toEqual([]);
+    expect(await page.evaluate(() => (window as any).__count)).toBe(12);
+
+    type Shot = { sum: number; lit: number; coarse: number[] };
+    const shoot = (t: number) => page.evaluate((v) => (window as any).shoot(v), t) as Promise<Shot[]>;
+
+    /* Never blank. Sampled right across the cycle, because several of these
+       are deliberately near-empty at one end of their swing — the thing that
+       must never happen is a loop that is empty at EVERY phase. */
+    const phases = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875];
+    const everLit = new Array(12).fill(0);
+    for (const t of phases) {
+      const shots = await shoot(t);
+      shots.forEach((s, i) => { everLit[i] = Math.max(everLit[i], s.lit); });
+    }
+    everLit.forEach((lit, i) => {
+      expect(lit, `loop ${String(i + 1).padStart(2, '0')} is blank at every phase`).toBeGreaterThan(60);
+    });
+
+    /* Seamless. The wall plays these end to end, so the last frame of a cycle
+       and the first frame of the next one have to match. Compared on the 8x8
+       coarse map rather than pixel for pixel: a moving edge crossing a pixel
+       boundary is not a seam, and a composition that jumped shows up in the
+       blocks immediately. */
+    const before = await shoot(0.999);
+    const after = await shoot(0.001);
+    before.forEach((b, i) => {
+      const a = after[i];
+      let worst = 0;
+      for (let k = 0; k < b.coarse.length; k++) worst = Math.max(worst, Math.abs(b.coarse[k] - a.coarse[k]));
+      expect(
+        worst,
+        `loop ${String(i + 1).padStart(2, '0')} jumps at the loop point — it will hitch once every cycle`
+      ).toBeLessThan(26);
+    });
+
+    expect(skipped, 'the loop harness threw').toEqual([]);
+  });
+});

@@ -135,6 +135,7 @@
   var progress = 0, velocity = 0, lastProgress = 0;
   var paused = Object.create(null), pauseCount = 0;
   var lastLiveKey = "";
+  var lastStillProgress = -1;
 
   // --- capability probe ----------------------------------------------------
 
@@ -768,6 +769,35 @@
       /* An act leaving the live set is also stale state: its pixels are still
          on the preserved buffer and nothing else would ever clear them. */
       if (key !== lastLiveKey) { stale = true; lastLiveKey = key; }
+
+      /* And so is a new scroll position. This is the line that was missing,
+         and it froze the whole stage.
+       *
+       * "Reduced motion" means do not move things at the visitor AT ALL — no
+       * autonomous animation, no parallax drifting past while they sit still.
+       * It has never meant that the page must ignore the scroll wheel. Scroll
+       * is the visitor's own motion, under their own hand, and a procession
+       * that advances only when they push it is exactly the interaction a
+       * vestibular-safe build should keep.
+       *
+       * Without this, staleness was decided solely by WHICH acts were on
+       * stage, so the offerings act — six screens of scrolling, twelve panels
+       * on a helix — composed one frame on entry and held that single
+       * photograph for the entire section. Every act already composes its
+       * still FROM the current progress (composeStill passes it to update(),
+       * and drawStill reads it), so the pixels were always right and simply
+       * never recomputed. Measured on the live site before the fix: four
+       * screenshots a second apart inside the offerings section were the same
+       * image four times over, while the same test with motion allowed gave
+       * four different ones.
+       *
+       * Cost stays where the mode intends it: progress only changes while the
+       * visitor is actually scrolling, so the moment they stop, this goes
+       * back to returning before it touches the canvas. Idle is still zero
+       * GL work, and `step` is still 0 — no time-driven animation reaches an
+       * act in this mode, only position. */
+      if (progress !== lastStillProgress) { stale = true; lastStillProgress = progress; }
+
       if (!stale) return;
       composeStill(live);
       spans[spanAt] = performance.now() - t0;

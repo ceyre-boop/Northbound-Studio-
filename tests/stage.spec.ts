@@ -158,17 +158,89 @@ test.describe('the stage', () => {
       const h = document.documentElement.scrollHeight - window.innerHeight;
       window.scrollTo(0, h * (w[0] + 0.4 * (w[1] - w[0])));
     });
-    await page.waitForTimeout(2500);
-
-    const painted = await page.evaluate(() => {
-      const c = document.getElementById('nb-stage') as HTMLCanvasElement;
-      const gl = (c.getContext('webgl2') || c.getContext('webgl')) as WebGLRenderingContext;
-      const px = new Uint8Array(c.width * c.height * 4);
-      gl.readPixels(0, 0, c.width, c.height, gl.RGBA, gl.UNSIGNED_BYTE, px);
-      for (let i = 0; i < px.length; i += 4) if (px[i] | px[i + 1] | px[i + 2] | px[i + 3]) return true;
-      return false;
-    });
+    /* Wait for paint, do not sleep for it. The act at this scroll position is
+       imported and initialised lazily, so for the first few hundred
+       milliseconds after the jump the canvas is legitimately still empty. A
+       fixed sleep turns that startup window into a coin flip — this test
+       failed about one run in five on a warm machine and never on a slow one,
+       which is exactly the signature of a race being asserted as a state.
+       Probing until it paints asserts what the test actually means: that the
+       still frame arrives, not that it had arrived by an arbitrary deadline. */
+    const painted = await page
+      .waitForFunction(() => {
+        const c = document.getElementById('nb-stage') as HTMLCanvasElement;
+        const gl = (c.getContext('webgl2') || c.getContext('webgl')) as WebGLRenderingContext;
+        const px = new Uint8Array(c.width * c.height * 4);
+        gl.readPixels(0, 0, c.width, c.height, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        for (let i = 0; i < px.length; i += 4) if (px[i] | px[i + 1] | px[i + 2] | px[i + 3]) return true;
+        return false;
+      }, { timeout: 8_000 })
+      .then(() => true, () => false);
     expect(painted, 'the canvas is empty in reduced motion — drawStill() rendered nothing').toBe(true);
+  });
+
+  test('reduced motion still follows the scroll, and still stops when you do', async ({ page }) => {
+    /* The bug this guards was shipped and visible: the stage decided a still
+       frame was stale only when the SET of live acts changed, never when the
+       scroll position did. So the offerings procession — six screens, twelve
+       panels on a helix — composed one frame on entry and held that single
+       photograph for the whole section. On a machine with Reduce Motion on
+       system-wide, which is the default here, the main section of the site
+       was a photograph.
+     *
+     * Both halves matter and they pull against each other, so both are
+     * asserted here. Scrolling MUST repaint: scroll is the visitor's own
+     * motion and a page that ignores it is broken, not considerate. Standing
+     * still MUST NOT: that is the whole promise of the mode, and it is what
+     * keeps the idle cost at literally zero GL calls. */
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    await page.waitForFunction(() => window.NB_STAGE && window.NB_STAGE.ok, { timeout: 10_000 });
+    expect(await page.evaluate(() => window.NB_STAGE.mode)).toBe('reduced');
+
+    const at = (f: number) =>
+      page.evaluate((frac) => {
+        const w = window.NB_STAGE.debug().windows.offerings;
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo(0, h * (w[0] + frac * (w[1] - w[0])));
+      }, f);
+
+    /* A cheap fingerprint of the canvas: summing bytes is enough to tell one
+       composition from another and costs a fraction of shipping the pixels. */
+    const fingerprint = () =>
+      page.evaluate(() => {
+        const c = document.getElementById('nb-stage') as HTMLCanvasElement;
+        const gl = (c.getContext('webgl2') || c.getContext('webgl')) as WebGLRenderingContext;
+        const px = new Uint8Array(c.width * c.height * 4);
+        gl.readPixels(0, 0, c.width, c.height, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        let h = 0;
+        for (let i = 0; i < px.length; i += 997) h = (h * 31 + px[i]) | 0;
+        return h;
+      });
+
+    await at(0.30);
+    await page.waitForTimeout(1500);
+
+    const moving: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      await at(0.30 + i * 0.05);
+      await page.waitForTimeout(500);
+      moving.push(await fingerprint());
+    }
+    expect(
+      new Set(moving).size,
+      'the procession did not move as the page was scrolled in reduced motion — the still frame is not being recomposed'
+    ).toBeGreaterThan(1);
+
+    const resting: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      await page.waitForTimeout(700);
+      resting.push(await fingerprint());
+    }
+    expect(
+      new Set(resting).size,
+      'the canvas kept changing while the page was not being scrolled — something is animating at a visitor who asked for no motion'
+    ).toBe(1);
   });
 
   test('the site stands up with no WebGL at all', async ({ browser }) => {

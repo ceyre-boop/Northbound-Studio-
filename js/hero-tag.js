@@ -24,7 +24,37 @@
 
   var HERO_SELECTOR = '.act--arrival';
   var HEADLINE_SELECTOR = '.hero-spray';
-  var RIG_URL = 'brand/buddy-tagger.svg';
+/* The character is the DESIGNED robot now, not the vector stand-in.
+ *
+ * The stand-in existed for one reason: the designed robot arrived as raster
+ * art, and a raster cannot crouch, squash, or drag an antenna a beat behind
+ * the body. So the choreography was built against a rigged SVG that could,
+ * on the bet that the timing was the hard part and the art could be swapped
+ * in later. The bet held — every beat duration below is unchanged.
+ *
+ * What the swap costs, stated plainly: no independent feet, no antenna drag,
+ * no separate arm. What it buys is that the character in the hero and the
+ * mascot further down the page are finally the same character, which is
+ * worth more than three part-level flourishes nobody could name.
+ *
+ * Two layers, because the art has the paint baked into it and he must not be
+ * spraying while he walks: the robot with his can, and the jet leaving it.
+ * The jet is positioned off the can's nozzle in css/hero-tag.css and only
+ * exists during the tag beat.
+ *
+ * Both composite with mix-blend-mode: screen. The art is lit on a dark
+ * vignette and the hero is near-black, so screen drops the backing to
+ * nothing and keeps the character's own rim light — a cut-out matte fought
+ * that glow and lost, and cutting it away would have thrown out the best
+ * part of the render. */
+  var BOT = {
+    src: 'brand/buddy-tagger-720w.webp',
+    srcset: 'brand/buddy-tagger-420w.webp 420w, brand/buddy-tagger-720w.webp 720w, brand/buddy-tagger-1200w.webp 1200w'
+  };
+  var SPRAY = {
+    src: 'brand/buddy-spray-540w.webp',
+    srcset: 'brand/buddy-spray-320w.webp 320w, brand/buddy-spray-540w.webp 540w, brand/buddy-spray-900w.webp 900w'
+  };
 
   /* Beat durations in ms. These are the single source of truth: the CSS
      keyframe durations in css/hero-tag.css are written to match them by
@@ -41,16 +71,36 @@
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
 
+  function img(cls, id, spec, w, h) {
+    var el = document.createElement('img');
+    el.className = cls;
+    el.id = id;
+    el.src = spec.src;
+    el.srcset = spec.srcset;
+    el.width = w; el.height = h;   // intrinsic ratio, so nothing reflows on load
+    el.alt = '';
+    el.decoding = 'async';
+    el.setAttribute('aria-hidden', 'true');
+    return el;
+  }
+
+  /* Builds the two-layer rig. Resolves with the mount once the robot has
+     actually decoded: starting the sequence against an undecoded image is how
+     the first beat gets eaten, and the whole sneak is only 1100ms. */
   function loadRig(mount) {
-    if (typeof fetch !== 'function') return Promise.reject(new Error('no fetch'));
-    return fetch(RIG_URL).then(function (res) {
-      if (!res.ok) throw new Error('rig fetch failed: ' + res.status);
-      return res.text();
-    }).then(function (svgText) {
-      mount.innerHTML = svgText;
-      var svg = mount.querySelector('svg');
-      if (svg) svg.classList.add('nb-hero-tag__rig');
-      return mount.querySelector('#tag-rig') ? mount : null;
+    var rig = document.createElement('div');
+    rig.className = 'nb-hero-tag__rig';
+    var bot = img('nb-hero-tag__bot', 'tag-body', BOT, 720, 555);
+    var spray = img('nb-hero-tag__spray', 'tag-spray', SPRAY, 540, 469);
+    rig.appendChild(bot);
+    rig.appendChild(spray);
+    mount.appendChild(rig);
+
+    var ready = bot.decode ? bot.decode() : Promise.resolve();
+    return ready.then(function () { return mount; }, function () {
+      /* decode() rejects on a broken or unsupported image. Nothing to draw,
+         so say so rather than playing an empty sequence over the headline. */
+      throw new Error('rig art failed to decode');
     });
   }
 

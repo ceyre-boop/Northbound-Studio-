@@ -43,29 +43,82 @@
      him down on the body copy, spraying the paragraph. He belongs at the wall
      he is painting. */
   bottom: 42%;
-  width: clamp(84px, 9vw, 150px);
+  /* Much bigger than the vector stand-in needed, and this is not a taste
+     call. A flat silhouette reads at 80px; a rendered character with panel
+     lines, a visor and a gold trim does not — at the old clamp he was a
+     79px speck you would have to be told about. The art is detailed, so it
+     has to be large enough for the detail to be the point. */
+  width: clamp(190px, 23vw, 430px);
   transform-origin: 50% 100%;
   opacity: 0;
   transform: translateX(-32vw) scale(0.5);
   will-change: transform, opacity;
 }
 
-.nb-hero-tag__rig svg { display: block; width: 100%; height: auto; overflow: visible; }
-
-/* Every named part gets its own pivot. transform-box: fill-box means the
-   origin is that part's own bounding box, not the whole 200x240 canvas, so a
-   foot rotates from its hip and the antenna wobbles from its base rather than
-   from the character's centre. */
-#tag-antenna, #tag-body, #tag-foot-left, #tag-foot-right,
-#tag-face, #tag-arm, #tag-spray {
+/* --- the two raster layers ----------------------------------------------
+ * The character is the designed robot, delivered as a render lit on a dark
+ * teal vignette. Both layers carry a real alpha channel, cut like this:
+ *
+ *   The ROBOT by a flood fill from the border with a tight per-step
+ *   tolerance — "is this pixel the same as the background pixel beside it"
+ *   rather than "is this pixel dark", which is the only test that survives a
+ *   smooth gradient. Two other approaches were tried and both failed in ways
+ *   worth recording: a loose tolerance (14) walked straight through his dark
+ *   navy panel seams and hollowed him out, and a difference key against a
+ *   fitted polynomial background swallowed the teal glow around him as
+ *   foreground. A large morphological close to recover the darkest leg
+ *   panels welded his arm to his chest, so it is a small one and those few
+ *   slivers stay trimmed — invisible against a near-black hero, which is the
+ *   only place this asset is used.
+ *
+ *   The PAINT by chroma: it is strongly cyan against a desaturated backing,
+ *   so (G+B)/2 - R separates them cleanly and keeps the overspray speckle
+ *   and the two drips. Those are the whole reason to use the artist's jet
+ *   instead of drawing particles.
+ *
+ * An earlier pass composited both with mix-blend-mode: screen and no matte
+ * at all. It looked right in isolation and wrong on the page, for a reason
+ * that is easy to lose an afternoon to: .nb-hero-tag__rig carries
+ * will-change, which creates a stacking context, and a blend mode only ever
+ * blends within its own stacking context. The layers were screening against
+ * the rig's empty backdrop instead of against the hero, so each one drew its
+ * backing as a flat opaque box. Real alpha does not care.
+ */
+.nb-hero-tag__bot,
+.nb-hero-tag__spray {
+  display: block;
+  width: 100%;
+  height: auto;
   transform-box: fill-box;
+  pointer-events: none;
+  user-select: none;
 }
-#tag-antenna     { transform-origin: 50% 100%; }
-#tag-body        { transform-origin: 50% 100%; }
-#tag-foot-left   { transform-origin: 50% 0%; }
-#tag-foot-right  { transform-origin: 50% 0%; }
-#tag-arm         { transform-origin: 20% 45%; }
-#tag-spray       { transform-origin: 50% 50%; }
+
+.nb-hero-tag__bot {
+  transform-origin: 50% 100%;
+}
+
+/* The jet, pinned to the can's nozzle.
+ *
+ * These are not eyeballed. The robot layer is cropped from (110, 44) of the
+ * 2000x1116 source and is 1390 wide; the jet layer is cropped from (1500, 60)
+ * and is 500 wide. That puts its origin 100% across the robot and 1.5% down,
+ * at 36.0% of his width. Change either crop and these three change with it.
+ *
+ * Unlike the robot this one carries a real alpha channel, so it composites
+ * normally. It could be keyed because the paint is strongly cyan against a
+ * desaturated backing — (G+B)/2 - R separates them cleanly, and it keeps the
+ * overspray speckle and the two drips, which are the whole reason to use the
+ * artist's jet rather than draw particles. The robot could not be keyed the
+ * same way and does not need to be: see the note above. */
+.nb-hero-tag__spray {
+  position: absolute;
+  left: 100%;
+  top: -0.86%;
+  width: 36.6%;
+  transform-origin: 0% 50%;
+  opacity: 0;
+}
 
 /* =========================================================================
    BEAT 1 — SNEAK IN (~1100ms)
@@ -89,15 +142,22 @@
   animation: tag-sneak-in 1100ms cubic-bezier(.22,.61,.36,1) forwards;
 }
 
-@keyframes tag-foot-cycle-a { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-6px) rotate(-10deg); } }
-@keyframes tag-foot-cycle-b { 0%, 100% { transform: translateY(-6px) rotate(10deg); } 50% { transform: translateY(0) rotate(0deg); } }
-[data-stage="sneak"] #tag-foot-left  { animation: tag-foot-cycle-a 300ms ease-in-out infinite; }
-[data-stage="sneak"] #tag-foot-right { animation: tag-foot-cycle-b 300ms ease-in-out infinite 90ms; }
+/* The walk. A rigged character would cycle two feet out of phase; a single
+   raster cannot, so the trudge is carried by the whole body instead — a
+   short rise and fall with a lean that rocks against it. Two oscillators at
+   the same period but different phase is what stops it reading as a sprite
+   being slid across the screen. */
+@keyframes tag-trudge {
+  0%, 100% { transform: translateY(0) rotate(-1.2deg) scale(1, 1); }
+  25%      { transform: translateY(-3.5%) rotate(0.4deg) scale(0.985, 1.015); }
+  50%      { transform: translateY(0) rotate(1.2deg) scale(1, 1); }
+  75%      { transform: translateY(-3.5%) rotate(-0.4deg) scale(0.985, 1.015); }
+}
+[data-stage="sneak"] #tag-body { animation: tag-trudge 560ms ease-in-out infinite; }
 
 /* Drag: the antenna is on a slower, bouncier clock than the legs, so it is
    always a beat behind the body's lean. */
-@keyframes tag-antenna-drag { 0%, 100% { transform: rotate(2deg); } 50% { transform: rotate(9deg); } }
-[data-stage="sneak"] #tag-antenna { animation: tag-antenna-drag 550ms cubic-bezier(.34,.9,.4,1) infinite 60ms; }
+
 
 /* =========================================================================
    BEAT 2 — THE TAG (~1400ms)
@@ -124,27 +184,22 @@
   100% { transform: scale(1, 1); }
 }
 [data-stage="tag"] #tag-body { animation: tag-plant-squash 380ms cubic-bezier(.28,1.5,.5,1) forwards; }
-[data-stage="tag"] #tag-foot-left,
-[data-stage="tag"] #tag-foot-right { transform: translateY(0) rotate(0deg); }
 
-@keyframes tag-arm-windup-spray {
-  0%   { transform: rotate(20deg); }                 /* pulled back: the windup */
-  22%  { transform: rotate(20deg); }                 /* anticipation hold */
-  42%  { transform: rotate(-40deg) translateX(3px); } /* swing up into spray position */
-  58%  { transform: rotate(-34deg) translateX(5px); }
-  70%  { transform: rotate(-41deg) translateX(2px); } /* tiny shake while spraying */
-  84%  { transform: rotate(-33deg) translateX(5px); }
-  100% { transform: rotate(-30deg) translateX(0); }
-}
-[data-stage="tag"] #tag-arm {
-  animation: tag-arm-windup-spray 1400ms cubic-bezier(.34,.9,.4,1) forwards;
-}
 
+
+/* The jet. transform-origin is the nozzle, so scaleX is the paint leaving
+   the can rather than the whole image growing — it lances out, holds while
+   the headline paints, and dies back. It does not linger: the jet image
+   carries its own paint blob and drips, and leaving that on screen next to
+   the finished headline would read as a second, unrelated tag. The headline
+   IS the tag; this is only the act of making it. */
 @keyframes tag-spray-puff {
-  0%, 38%  { opacity: 0; transform: scale(0.6); }
-  50%      { opacity: 1; transform: scale(1); }
-  68%      { opacity: 0.7; transform: scale(1.25); }
-  84%, 100%{ opacity: 0; transform: scale(1.5); }
+  0%       { opacity: 0; transform: scaleX(0.05) scaleY(0.7); }
+  9%       { opacity: 1; transform: scaleX(0.55) scaleY(0.92); }
+  16%      { opacity: 1; transform: scaleX(1) scaleY(1); }
+  62%      { opacity: 1; transform: scaleX(1.04) scaleY(1.02); }
+  78%      { opacity: 0.72; transform: scaleX(1.0) scaleY(0.96); }
+  100%     { opacity: 0; transform: scaleX(0.9) scaleY(0.88); }
 }
 [data-stage="tag"] #tag-spray { animation: tag-spray-puff 1400ms ease-out forwards; }
 
@@ -208,10 +263,9 @@
 [data-stage="approach"] .nb-hero-tag__rig {
   animation: tag-approach 1100ms cubic-bezier(.28,1.5,.5,1) forwards;
 }
-[data-stage="approach"] #tag-arm { transform: rotate(-20deg); transition: transform 420ms cubic-bezier(.22,.61,.36,1); }
 
-@keyframes tag-antenna-settle { 0% { transform: rotate(6deg); } 60% { transform: rotate(-3deg); } 100% { transform: rotate(0deg); } }
-[data-stage="approach"] #tag-antenna { animation: tag-antenna-settle 640ms cubic-bezier(.22,.61,.36,1) forwards 80ms; }
+
+
 
 /* A small held-breath bounce at the end of the approach — "pleased with
    himself" — riding on top of the approach's own transform via the body
@@ -230,7 +284,7 @@
 [data-stage="anticipate"] .nb-hero-tag__rig {
   animation: tag-anticipate-crouch 200ms cubic-bezier(.34,.9,.4,1) forwards;
 }
-[data-stage="anticipate"] #tag-arm { transform: rotate(4deg); transition: transform 180ms ease-out; }
+
 
 /* The exit is smeared, not inbetweened: it stretches long and thin along the
    direction of travel and drops the character's detail almost immediately,
@@ -246,8 +300,10 @@
   animation: tag-bolt-exit 700ms cubic-bezier(.5,0,.75,0) forwards;
 }
 @keyframes tag-bolt-fade { 0% { opacity: 1; } 22% { opacity: 0; } 100% { opacity: 0; } }
-[data-stage="bolt"] #tag-face,
-[data-stage="bolt"] #tag-arm { animation: tag-bolt-fade 700ms ease-out forwards; }
+/* The jet is already gone by the time he bolts — re-animating it here from
+   opacity 1 flashed the paint back on for a frame at the worst possible
+   moment. It stays where the tag beat left it. */
+[data-stage="bolt"] #tag-spray { opacity: 0; }
 
 [data-stage="gone"] { display: none; }
 
@@ -262,13 +318,12 @@
   opacity: 1;
   transform: translateX(3vw) scale(0.62) rotate(0deg);
 }
-[data-stage="still"] #tag-arm { transform: rotate(26deg); }     /* can lowered, at rest */
-[data-stage="still"] #tag-antenna,
-[data-stage="still"] #tag-body,
-[data-stage="still"] #tag-foot-left,
-[data-stage="still"] #tag-foot-right,
-[data-stage="still"] #tag-spray { animation: none; transform: none; }
-[data-stage="still"] #tag-spray { opacity: 0; }
+[data-stage="still"] #tag-body { animation: none; transform: none; }
+/* He keeps the jet in the still. In reduced motion this frame is the entire
+   sequence, and a character holding a can that is visibly doing nothing is a
+   worse read than one caught mid-spray — a still photograph of a tag in
+   progress is a photograph of a tag in progress. */
+[data-stage="still"] #tag-spray { animation: none; transform: none; opacity: 0.9; }
 
 @media (prefers-reduced-motion: reduce) {
   .nb-hero-tag *,

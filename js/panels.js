@@ -271,54 +271,7 @@ export default { init: init, open: open, close: close, dispose: dispose };
   else bind();
 })();
 
-/* Copy arrival, sitewide.
- *
- * Every act's .act__ink block — eyebrow, heading, lede, body — sat there
- * fully formed the moment its section existed, which is exactly the
- * "document that happens to sit in front of a nice canvas" complaint. This
- * gives each one a one-shot stagger as its section is actually scrolled into
- * view, via IntersectionObserver rather than a scroll handler.
- *
- * This module is not "the work act's controller" for this piece — it is the
- * one file in this department's ownership that is already loaded, unscoped,
- * on every page load (the self-binding block above), so it is where a
- * sitewide concern belongs rather than inventing a second entry point.
- *
- * The CLS gate is exactly zero, and it is measured at load + idle with no
- * scroll — so an .act__ink block already on screen at the very first
- * observer callback is left alone, untouched, fully composed: it is never
- * given a pre-arrival offset to animate out of, because a block that was
- * visible at first paint moving even via transform is a shift this page has
- * already been burned by once. Only sections that are genuinely off-screen
- * at setup get primed and revealed. */
-(function () {
-  if (typeof document === 'undefined' || typeof IntersectionObserver === 'undefined') return;
-
-  function ready() {
-    if (STILL) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    var blocks = document.querySelectorAll('.act__ink');
-    if (!blocks.length) return;
-
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        entry.target.setAttribute('data-reveal', 'in');
-        io.unobserve(entry.target);
-      });
-    }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
-
-    var vh = window.innerHeight || document.documentElement.clientHeight;
-    for (var i = 0; i < blocks.length; i++) {
-      var block = blocks[i];
-      var rect = block.getBoundingClientRect();
-      if (rect.top < vh && rect.bottom > 0) continue; // already on screen — leave it composed
-      block.setAttribute('data-reveal', 'pending');
-      io.observe(block);
-    }
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, { once: true });
-  else ready();
-})();
+/* Copy arrival, sitewide, now lives in js/entrance.js — scroll-linked and
+ * latched, driven by js/springs.js's `settle` preset, replacing the
+ * IntersectionObserver + CSS-opacity-transition controller that used to be
+ * here. See that file's header for the full rationale. */

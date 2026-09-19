@@ -194,33 +194,19 @@ main { position: relative; z-index: 2; }
 .act__ink { width: 100%; max-width: 1080px; margin: 0 auto; }
 
 /* --- copy arrival ----------------------------------------------------------
- * Set by js/panels.js's sitewide reveal controller (an IntersectionObserver,
- * never a scroll handler): [data-reveal="pending"] lands on an .act__ink
- * block only once, before it is ever visible, and only if the observer can
- * confirm the block is NOT already on screen at first paint — the CLS gate is
- * exactly zero, so nothing that was ever visible in the initial viewport may
- * carry a starting offset. Every other visitor (no JS, no IntersectionObserver,
- * reduced motion) never sees this attribute at all and gets the fully composed
- * block from the first frame, which is why the base state below is undecorated.
+ * Driven entirely by js/entrance.js — a scroll-linked, latched spring per
+ * item, never a CSS transition. This stylesheet only supplies the mask a
+ * split heading's words rise out of; every starting transform (a word at
+ * translateY(115%), everything else at translateY(22px)) is set as an inline
+ * style by entrance.js itself, and ONLY on a block it has confirmed is
+ * off-screen at setup — the CLS gate is exactly zero, so nothing visible at
+ * first paint is ever primed with a starting offset.
  *
- * Transform and opacity only, and the box itself never changes size — only the
- * children translate, so the block's own footprint is its final footprint from
- * the moment it exists. */
-.act__ink[data-reveal="pending"] > * {
-  opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 480ms cubic-bezier(.34,.9,.4,1), transform 640ms cubic-bezier(.28,1.5,.5,1);
-}
-.act__ink[data-reveal="pending"] > *:nth-child(1) { transition-delay: 0ms; }
-.act__ink[data-reveal="pending"] > *:nth-child(2) { transition-delay: 70ms; }
-.act__ink[data-reveal="pending"] > *:nth-child(3) { transition-delay: 140ms; }
-.act__ink[data-reveal="pending"] > *:nth-child(4) { transition-delay: 210ms; }
-.act__ink[data-reveal="pending"] > *:nth-child(5) { transition-delay: 280ms; }
-.act__ink[data-reveal="pending"] > *:nth-child(n+6) { transition-delay: 340ms; }
-.act__ink[data-reveal="in"] > * { opacity: 1; transform: translateY(0); }
-@media (prefers-reduced-motion: reduce) {
-  .act__ink[data-reveal] > * { opacity: 1 !important; transform: none !important; transition: none !important; }
-}
+ * Reduced motion (and `?still=1`): js/entrance.js returns before priming
+ * anything, so no inline transform is ever written and nothing here applies —
+ * every block is simply composed, full-size, from its first frame. */
+.reveal-mask { display: inline-block; overflow: hidden; vertical-align: top; }
+.reveal-word { display: inline-block; will-change: transform; }
 
 .eyebrow {
   font-family: var(--mono); font-size: 0.7rem; font-weight: 500;

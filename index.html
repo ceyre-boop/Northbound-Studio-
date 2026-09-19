@@ -128,6 +128,7 @@
     <img class="wordmark__mark" src="brand/logo.svg" alt="" width="28" height="28" decoding="async">
     <img class="wordmark__type" src="brand/wordmark.svg" alt="Northbound" width="565" height="89" decoding="async">
   </a>
+  <a class="tel" href="tel:+14705738908">470-573-8908</a>
   <nav aria-label="Sections">
     <a href="#packages">Pricing</a>
     <a href="#work">Work</a>
@@ -505,7 +506,7 @@
         <ul class="basket__list" data-basket-list></ul>
       </div>
 
-      <form class="contact" method="post" action="https://formspree.io/f/xpwzgvkn">
+      <form class="contact" method="post" action="/api/quote">
         <p class="field">
           <label for="f-name">Your name</label>
           <input id="f-name" name="name" type="text" autocomplete="name" required>
@@ -513,6 +514,10 @@
         <p class="field">
           <label for="f-email">Email</label>
           <input id="f-email" name="email" type="email" autocomplete="email" required>
+        </p>
+        <p class="field">
+          <label for="f-phone">Phone</label>
+          <input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required>
         </p>
         <p class="field">
           <label for="f-need">What you need</label>
@@ -525,9 +530,13 @@
         </p>
         <p class="field">
           <label for="f-note">What is the job?</label>
-          <textarea id="f-note" name="note" rows="4"></textarea>
+          <textarea id="f-note" name="message" rows="4"></textarea>
         </p>
         <input type="hidden" name="offerings" value="" data-basket-field>
+        <p class="field field--hp" aria-hidden="true" tabindex="-1">
+          <label for="f-company">Leave this empty</label>
+          <input id="f-company" name="company_url" type="text" autocomplete="off" tabindex="-1">
+        </p>
         <p><button type="submit" class="btn btn--go">Send it</button></p>
       </form>
     </div>
@@ -538,6 +547,7 @@
 <footer class="colophon">
   <p>Northbound Studio · Grand Ledge, Michigan</p>
   <p><a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a></p>
+  <p><a class="tel" href="tel:+14705738908">470-573-8908</a></p>
   <p>Built without a framework. Four hand-written WebGL systems, one canvas, one render loop.</p>
 </footer>
 

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Got it — Northbound Studio</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05090C">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<!--
+  Where the quote form lands when it was posted without JavaScript. With
+  JavaScript, js/quote.js shows the same words in place and nobody sees this.
+  Self-contained on purpose: it borrows the site's fonts and colours but none
+  of its scripts, so it cannot fail in any of the ways the page it came from
+  might have.
+-->
+<style>
+  @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-display: swap; }
+  :root { --ink: #05090C; --paper: #E8EFF2; --paper-dim: #9DB0B8; --aurora: #4FD8C4; }
+  html { background: var(--ink); }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 48px clamp(20px, 5vw, 72px);
+    box-sizing: border-box;
+    color: var(--paper);
+    font: 1.05rem/1.55 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  }
+  main { max-width: 34rem; }
+  h1 { font-family: 'Syne', 'Helvetica Neue', Arial, sans-serif; font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1.05; margin: 0 0 20px; }
+  p { color: var(--paper-dim); margin: 0 0 16px; }
+  a { color: var(--aurora); }
+  .back {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 14px 22px;
+    min-height: 44px;
+    box-sizing: border-box;
+    border: 1px solid var(--aurora);
+    color: var(--aurora);
+    text-decoration: none;
+  }
+  .tel { color: inherit; text-decoration: none; }
+  @media (pointer: coarse) { .tel { color: var(--aurora); text-decoration: underline; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Got it.</h1>
+  <p>We'll get back to you within one business day. A copy of what you sent is on its way to your inbox.</p>
+  <p>If it can't wait, call <a class="tel" href="tel:+14705738908">470-573-8908</a>.</p>
+  <a class="back" href="/">Back to Northbound</a>
+</main>
+</body>
+</html>

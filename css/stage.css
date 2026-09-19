@@ -140,6 +140,35 @@ a:hover { color: var(--paper); }
 .masthead nav a:hover { color: var(--aurora); }
 @media (prefers-reduced-motion: reduce) { .masthead nav a { transition: none; } }
 
+/* The phone number. On a device with a mouse it reads as plain text — most
+   visitors on a desktop cannot call it, and a link that does nothing on
+   click but change colour is worse than no link. On a touchscreen it is
+   unambiguously tappable, at a real target size. */
+.tel {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+@media (pointer: fine) {
+  .tel {
+    color: inherit;
+    text-decoration: none;
+    pointer-events: none;
+    user-select: text;
+    cursor: text;
+  }
+}
+@media (pointer: coarse) {
+  .tel {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--aurora);
+    text-decoration: underline;
+  }
+}
+
 /* --- acts ----------------------------------------------------------------
    Height reserved up front. svh, not vh, so a mobile URL bar collapsing does
    not resize every section and spend the entire CLS budget in one gesture. */
@@ -344,6 +373,20 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   .field input, .field select, .field textarea { transition: none; }
 }
 
+/* The honeypot. A person never sees this field; a bot filling every field it
+   finds will fill this one too, and api/quote.ts treats a filled honeypot as
+   spam. Hidden off-screen rather than display:none so it still has a real,
+   focusable-looking box for anything that only checks computed visibility. */
+.field--hp {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* --- colophon + noscript ------------------------------------------------- */
 .colophon {
   position: relative; z-index: 2;
@@ -432,13 +475,20 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
      links were wrapping onto two rows and costing 129px; holding them on one
      line costs about half that. The rest is padding and the gaps between the
      three paragraphs under the headline. */
+  /* Row 1: wordmark + phone. Row 2: nav, forced onto its own line by a
+     100% flex-basis rather than a media-query-only reflow, so nothing here
+     depends on script and nothing moves after first paint — the CLS gate
+     stays at zero. */
   .masthead {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
+    gap: 8px 12px;
     padding-block: 14px;
   }
-  .masthead nav { gap: 0; margin-right: -12px; }
+  .masthead .wordmark { order: 1; }
+  .masthead .tel { order: 2; }
+  .masthead nav { order: 3; flex-basis: 100%; gap: 0; margin-right: -12px; }
   .masthead nav a { font-size: 0.68rem; letter-spacing: 0.1em; }
 
   .act--arrival { padding-block: clamp(28px, 5vh, 48px) clamp(40px, 8vh, 72px); }

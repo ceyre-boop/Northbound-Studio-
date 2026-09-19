@@ -34,9 +34,9 @@ window.NB = {
   studio: {
     name: 'Northbound Studio',
     where: 'Grand Ledge, Michigan',
-    /* Two people. Saying "team" or "we, a collective of" would be the first
-       lie on the page, and the whole site is an argument against telling it. */
-    who: 'Two people. Design and engineering, and a brand designer.',
+    /* Saying "team" or "we, a collective of" would be the first lie on the
+       page, and the whole site is an argument against telling it. */
+    who: 'Design, engineering and brand under one roof.',
     email: 'hello@northbound-dev.com'
   },
 
@@ -50,11 +50,11 @@ window.NB = {
     sub: 'The website is the front of it. The booking, the follow-up, the payments and the dashboard behind it are the part that pays for itself.'
   },
 
-  /* Act II — the market, honestly framed. Forty is the size of the outreach
-     list, not a statistic about anyone's industry. */
+  /* Act II — the market, honestly framed. No count, no desk — just what a
+     dark local website actually costs its owner. */
   drift: {
-    head: 'Most of them are dark.',
-    body: 'Forty businesses within driving distance of this desk. Almost every one has a page that loads slowly, cannot take a booking, and forgets the customer the moment they leave it. That is the whole opportunity, and it is not a hard one to see.'
+    head: 'Most local websites just sit there.',
+    body: "They load slowly, can't take a booking, and forget the customer the moment they leave."
   },
 
   /* Act III — the offer. Prices are floors, published so the conversation
@@ -114,7 +114,7 @@ window.NB = {
       kind: 'Concept build — invented business',
       result: 'A trades site built around one job: booking the call.',
       /* Real: src/pages/api/book.ts in demos/atlas. It accepts a booking. */
-      tech: 'Astro · real booking endpoint · static',
+      tech: 'Online booking · no lost leads',
       href: '/demos/atlas',
       need: 'A new marketing site'
     },
@@ -125,7 +125,7 @@ window.NB = {
       result: 'A small storefront with real checkout and no plugin sprawl.',
       /* Real: src/pages/api/checkout.ts and api/webhook.ts in demos/vector.
          It creates a Stripe session and handles the webhook. */
-      tech: 'Astro · Stripe checkout + webhook · static',
+      tech: 'Online store · card checkout',
       href: '/demos/vector/',
       need: 'An online store'
     }
@@ -146,9 +146,7 @@ window.NB = {
   rules: [
     '50% up front, always. No deposit, no work.',
     'Every proposal includes Bearing. It is part of the build, not an upsell.',
-    'Concept work is labelled as concept work. Every performance number is one we measured.',
-    'Two builds at a time. A third means the price goes up or you go on a list.',
-    'The rate only goes up. After every third signed client, the floor moves.'
+    'Concept work is labelled as concept work. Every performance number is one we measured.'
   ],
 
   contact: {

@@ -271,6 +271,10 @@ export function open(index) {
 
   savedScrollY = window.scrollY;
   document.documentElement.style.overflow = 'hidden';
+  // Lenis intercepts wheel/touch itself and would otherwise keep trying to
+  // scroll the window while it is locked — js/scroll.js is the only place
+  // that constructs it, so this stays an optional read, never an import.
+  if (window.NB_SCROLL && window.NB_SCROLL.lenis) window.NB_SCROLL.lenis.stop();
 
   fillCard(offer);
 
@@ -325,6 +329,7 @@ export function close() {
 
   document.documentElement.style.overflow = '';
   window.scrollTo(0, savedScrollY);
+  if (window.NB_SCROLL && window.NB_SCROLL.lenis) window.NB_SCROLL.lenis.start();
 
   var toFocus = opener;
   openIndex = -1;

@@ -570,6 +570,10 @@
   an LCP miss cannot be recovered by dropping a quality tier the way a frame
   budget miss can.
 -->
+<!-- js/springs.js has no DOM dependency and costs under 1KB gzipped, so it
+     loads ahead of motion.js even though load order does not strictly matter
+     here (spring() looks NB_SPRINGS up lazily, at call time). -->
+<script src="js/springs.js" defer></script>
 <script src="js/motion.js" defer></script>
 <script src="js/gl/gl-core.js" defer></script>
 <script src="js/gl/afford.js" defer></script>
@@ -579,6 +583,9 @@
 <script defer src="js/stage/cast.js"></script>
 <!-- Buddy tags the wall. The headline is the graffiti; this is who painted it. -->
 <script src="js/hero-tag.js" defer></script>
+<!-- Lenis, driven from motion.js's one rAF — see js/scroll.js's header.
+     Module scripts defer by default, so this still never blocks first paint. -->
+<script type="module" src="js/scroll.js"></script>
 <!-- The concept-build viewer, now that the section it used to live in is gone. -->
 <script type="module" src="js/panels.js"></script>
 </body>

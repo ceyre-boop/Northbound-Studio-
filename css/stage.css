@@ -55,13 +55,24 @@
 html {
   background: var(--ink);
   -webkit-text-size-adjust: 100%;
+  /* Native smooth-scroll is for the no-JS/no-Lenis path only (js/scroll.js
+     adds the `lenis` class the moment it takes over). Running both at once
+     is the conflict js/scroll.js's header warns about — two systems racing
+     to own the same scroll position. */
   scroll-behavior: smooth;
   /* Opening an offering locks scroll. Without a reserved gutter the scrollbar
      vanishes at that moment and the whole page jumps ~15px sideways, which is
      a layout shift, and the CLS gate is exactly zero. */
   scrollbar-gutter: stable;
 }
+html.lenis { scroll-behavior: auto; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Lenis's own recommended rules (from node_modules/lenis/dist/lenis.css),
+   inlined here rather than shipped as a second stylesheet request. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
 
 body {
   margin: 0;

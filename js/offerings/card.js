@@ -45,7 +45,7 @@ var basket = [];            // offering ids, in add order
 
 /* the overlay, built once */
 var overlay = null, panelEl = null, closeBtn = null, addBtn = null;
-var numEl = null, nameEl = null, ownerEl = null, pkgBadge = null, upkeepBadge = null;
+var numEl = null, nameEl = null, ownerEl = null, pkgBadge = null, sepBadge = null, upkeepBadge = null;
 var trapKeydown = null;
 
 var openIndex = -1;
@@ -166,11 +166,20 @@ function buildOverlay(root) {
   pkgBadge.className = 'offer__pkg';
   pkgBadge.hidden = true;
 
+  sepBadge = document.createElement('span');
+  sepBadge.className = 'offer__sep';
+  sepBadge.setAttribute('aria-hidden', 'true');
+  sepBadge.textContent = '·';
+  sepBadge.hidden = true;
+
   upkeepBadge = document.createElement('span');
   upkeepBadge.className = 'offer__upkeep';
   upkeepBadge.hidden = true;
 
   meta.appendChild(pkgBadge);
+  meta.appendChild(document.createTextNode(' '));
+  meta.appendChild(sepBadge);
+  meta.appendChild(document.createTextNode(' '));
   meta.appendChild(upkeepBadge);
 
   addBtn = document.createElement('button');
@@ -232,8 +241,10 @@ function fillCard(offer) {
   if (offer.upkeep) {
     upkeepBadge.textContent = 'kept running by ' + offer.upkeep;
     upkeepBadge.hidden = false;
+    sepBadge.hidden = false;
   } else {
     upkeepBadge.hidden = true;
+    sepBadge.hidden = true;
   }
 
   addBtn.setAttribute('data-add', offer.id);

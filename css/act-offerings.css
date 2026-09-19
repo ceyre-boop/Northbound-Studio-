@@ -123,7 +123,8 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   border: 1px solid var(--signal);
   padding: 2px 7px;
 }
-[data-act="offerings"] .offer__upkeep {
+[data-act="offerings"] .offer__upkeep,
+[data-act="offerings"] .offer__sep {
   align-self: center;
   color: var(--paper-faint);
 }

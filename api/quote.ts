@@ -148,9 +148,20 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   /* The honeypot. A person never sees this field; a bot fills every field it
-     finds. Answer exactly as a success would, so there is nothing to learn. */
-  const trap = form.get('company_url');
-  if (typeof trap === 'string' && trap.trim() !== '') return done(request);
+     finds. Answer exactly as a success would, so there is nothing to learn.
+     The name is deliberately meaningless: a field called anything like
+     "company" gets autofilled from a saved browser profile, and a real
+     customer's enquiry would vanish here. The warn is the paper trail for
+     the day that happens anyway. */
+  const trap = form.get('nb_hp_7');
+  if (typeof trap === 'string' && trap.trim() !== '') {
+    console.warn('[quote] honeypot hit; not delivered', {
+      name: form.get('name'),
+      phone: form.get('phone'),
+      email: form.get('email'),
+    });
+    return done(request);
+  }
 
   const q = Object.fromEntries(
     (Object.keys(LIMITS) as Field[]).map((k) => [k, read(form, k)]),

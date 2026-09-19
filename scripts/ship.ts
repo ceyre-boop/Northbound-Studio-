@@ -4,12 +4,14 @@
  *
  *   bun run ship
  *
- * A plain `vercel --prod` still works, but it publishes code without a
- * matching data/release.json stamp, and js/proof.js refuses to show the
- * perf section unless data/perf-budget.json's codeCommit matches
- * data/release.json's codeCommit exactly. Skip this script and the perf
- * section on the live site goes dark — never wrong, just absent. That is
- * the correct failure mode: no section, never a stale section.
+ * A plain `vercel --prod` is refused at build time: vercel.json's buildCommand
+ * fails any production build that arrives without data/release.json, and
+ * this script deletes that stamp when it finishes, so the only way to have
+ * one is to be inside a ship. That is what keeps the re-measure part of the
+ * deploy rather than a command someone has to remember. And if a stale stamp
+ * ever did get through, js/proof.js still refuses to show the section unless
+ * data/perf-budget.json's codeCommit matches data/release.json's exactly —
+ * the failure mode is no section, never a stale one.
  *
  * The seven steps, in order:
  *
@@ -36,7 +38,7 @@
  */
 
 import { execSync, spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -51,7 +53,14 @@ function log(step: string, msg: string) {
   console.log(`\n[ship ${step}] ${msg}`);
 }
 
+/* The stamp exists only for the length of a ship. Leaving it on disk would let
+   a later bare `vercel --prod` past the build guard in vercel.json. */
+function clearRelease() {
+  rmSync(RELEASE_PATH, { force: true });
+}
+
 function fail(msg: string): never {
+  clearRelease();
   console.error(`\n[ship] FAILED — ${msg}`);
   process.exit(1);
 }
@@ -226,6 +235,7 @@ async function main() {
   }
 
   const gatesFailedInProd = await verify(commit);
+  clearRelease();
 
   if (gatesFailed || gatesFailedInProd) {
     console.error('\n[ship] published successfully, but one or more perf gates FAILED. See the table above.');
@@ -237,6 +247,7 @@ async function main() {
 }
 
 main().catch((err) => {
+  clearRelease();
   console.error('[ship] crashed:', err);
   process.exit(1);
 });

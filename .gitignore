@@ -17,3 +17,8 @@ __*.mjs
 check-*.mjs
 .deliver.mjs
 *.tmp.mjs
+
+# Agent tooling installed by the Resend integration and local Claude sessions.
+.agents/
+.claude/
+skills-lock.json

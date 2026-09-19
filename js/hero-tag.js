@@ -209,7 +209,17 @@
     }, t);
   }
 
+  /* Phones get no Buddy at all — not the sequence, not the still, not even the
+     fetch for his art. At 390px the hero is one column, so wherever he walks
+     he walks across the pitch text, and for two seconds the one paragraph
+     that says what we sell is unreadable. The breakpoint matches the CSS
+     guard in css/hero-tag.css. */
+  function isPhone() {
+    return !!(window.matchMedia && window.matchMedia('(max-width: 639.98px)').matches);
+  }
+
   function init() {
+    if (isPhone()) return;
     var hero = document.querySelector(HERO_SELECTOR);
     var headline = hero && hero.querySelector(HEADLINE_SELECTOR);
     if (!hero || !headline) return; // hero not present: no-op cleanly

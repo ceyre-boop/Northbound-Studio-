@@ -329,3 +329,17 @@
   .nb-hero-tag *,
   .nb-hero-tag { animation: none !important; transition: none !important; }
 }
+
+/* Phones: no Buddy. js/hero-tag.js never mounts him under 640px; this is the
+   guard for a window that narrows after he has already started, so he can
+   never end up standing on the pitch text and the headline is never left
+   half-painted behind a clip. */
+@media (max-width: 639.98px) {
+  .nb-hero-tag { display: none !important; }
+  .nb-tag-paint {
+    clip-path: none;
+    animation: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}

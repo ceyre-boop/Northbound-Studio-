@@ -407,7 +407,7 @@ export async function measureFrameBudget(browser, url) {
   };
 }
 
-export function toArtifact(url, budget, gateRows, commit) {
+export function toArtifact(url, budget, gateRows, commit, codeCommit) {
   const round = (n) => Math.round(n * 100) / 100;
   const frameMs = round(budget.frame.p50Ms);
   const BUDGET_MS = 16.7;
@@ -419,6 +419,11 @@ export function toArtifact(url, budget, gateRows, commit) {
     schema: 1,
     measuredAt: new Date().toISOString(),
     commit,
+    /* The short hash of the last commit to touch js/, css/ or index.html —
+       the code the frame budget actually describes. js/proof.js compares this
+       to data/release.json's codeCommit before it will show the section, so a
+       stale measurement can never be presented as current. */
+    codeCommit,
     url,
     harness: {
       cpuThrottleRate: CPU_RATE,
@@ -493,7 +498,10 @@ async function main() {
     let commit = 'unknown';
     try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch {}
 
-    const artifact = toArtifact(url, budget, rows, commit);
+    let codeCommit = 'unknown';
+    try { codeCommit = execSync('git log -1 --format=%h -- js css index.html', { encoding: 'utf8' }).trim() || 'unknown'; } catch {}
+
+    const artifact = toArtifact(url, budget, rows, commit, codeCommit);
     mkdirSync(new URL('../data/', import.meta.url), { recursive: true });
     writeFileSync(ARTIFACT_PATH, JSON.stringify(artifact, null, 2) + '\n');
 

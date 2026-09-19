@@ -6,6 +6,10 @@ playwright/.cache/
 .vercel
 .env*
 
+# Written by scripts/ship.ts at deploy time and regenerated every deploy;
+# js/proof.js compares it against data/perf-budget.json's codeCommit.
+data/release.json
+
 # Scratch harnesses from the parallel build. Departments write these to the
 # repo root because Playwright only resolves @playwright/test from the project,
 # not from a temp dir. They are throwaway and must never be committed.

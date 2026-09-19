@@ -423,29 +423,29 @@
             <!-- demos/vector/src/pages/api/checkout.ts and api/webhook.ts. -->
             <p class="work-card__behind-h">What is behind it</p>
             <ul class="work-card__behind">
-              <li>The checkout session is created on the server. The secret key never ships to the browser, and the browser is never asked to be trustworthy.</li>
-              <li>Every line price is re-derived from the catalogue at checkout, so an edited cart cannot buy a twenty dollar bag for two.</li>
-              <li>It refuses to start against a live payment key, and the webhook that confirms the order is handled, not ignored.</li>
+              <li>Card payments run through Stripe, set up so nobody can get at your payment account from the website.</li>
+              <li>The price is checked on our server, so nobody can edit their cart to pay less.</li>
+              <li>Every paid order is checked with Stripe and recorded, so you see exactly what came in.</li>
             </ul>
-            <p class="work-card__tech">Astro &middot; Stripe checkout and webhook &middot; static</p>
+            <p class="work-card__tech">Online store &middot; card checkout</p>
             <p class="work-card__open"><span>Open the build</span></p>
           </div>
         </li>
       </ul>
 
-      <div class="proof" data-budget-root>
+      <div class="proof" data-budget-root hidden>
         <h3>The numbers on this page measured themselves.</h3>
         <p>
           <a href="/data/perf-budget.json">
-            <strong><span data-budget="published.frameMs">&mdash;</span></strong>
+            <strong><span data-budget="published.frameMs"></span></strong>
           </a>
-          of a <span data-budget="published.budgetMs">&mdash;</span> frame, at the
-          median, with <span data-budget="published.headroomPct">&mdash;</span>
+          of a <span data-budget="published.budgetMs"></span> frame, at the
+          median, with <span data-budget="published.headroomPct"></span>
           headroom left over.
         </p>
         <p class="proof__caption">
-          <span data-budget="published.caption">Not measured since the last change to this site.</span>
-          <time data-budget="measuredAt">&mdash;</time>
+          <span data-budget="published.caption"></span>
+          <time data-budget="measuredAt"></time>
         </p>
         <!--
           One column, not two. The per-act figure is command-submission time —
@@ -459,10 +459,10 @@
           <caption>Submission cost per act, 95th percentile</caption>
           <thead><tr><th scope="col">Act</th><th scope="col">What it is</th><th scope="col">p95, in milliseconds</th></tr></thead>
           <tbody data-budget-rows>
-            <tr><th scope="row">Northlight</th><td>Aurora curtain</td><td data-budget="acts.northlight.p95Ms">&mdash;</td></tr>
-            <tr><th scope="row">Drift</th><td>GPU particle field</td><td data-budget="acts.drift.p95Ms">&mdash;</td></tr>
-            <tr><th scope="row">Solution</th><td>Type through fluid</td><td data-budget="acts.solution.p95Ms">&mdash;</td></tr>
-            <tr><th scope="row">Offerings</th><td>Twelve loops on a helix</td><td data-budget="acts.offerings.p95Ms">&mdash;</td></tr>
+            <tr><th scope="row">Northlight</th><td>Aurora curtain</td><td data-budget="acts.northlight.p95Ms"></td></tr>
+            <tr><th scope="row">Drift</th><td>GPU particle field</td><td data-budget="acts.drift.p95Ms"></td></tr>
+            <tr><th scope="row">Solution</th><td>Type through fluid</td><td data-budget="acts.solution.p95Ms"></td></tr>
+            <tr><th scope="row">Offerings</th><td>Twelve loops on a helix</td><td data-budget="acts.offerings.p95Ms"></td></tr>
           </tbody>
         </table>
         <p class="proof__method">
@@ -537,7 +537,9 @@
   <p class="noscript-note">
     JavaScript is off, so the four canvas acts are not running. Nothing else is
     missing — every word, price, link and the contact form above work exactly
-    as they do with it on, and the measured numbers are in
+    as they do with it on. The performance section only appears once a
+    measurement has been taken against the exact code you are looking at; the
+    raw artifact, when one exists, is at
     <a href="/data/perf-budget.json">data/perf-budget.json</a>.
   </p>
 </noscript>

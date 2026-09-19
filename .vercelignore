@@ -15,3 +15,8 @@ scripts/
 ISA.md
 bun.lock
 package.json
+.gitignore
+.deliver.mjs
+__*.mjs
+check-*.mjs
+*.tmp.mjs

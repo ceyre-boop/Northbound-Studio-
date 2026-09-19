@@ -483,15 +483,19 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px 12px;
-    padding-block: 14px;
+    /* Both rows are 44px tap targets on a touchscreen, so the only room to
+       give back is around them: no row gap and a thin top/bottom. That keeps
+       the primary CTA above the fold on a 375x667 phone, where it sat before
+       the phone number joined the header. */
+    gap: 0 12px;
+    padding-block: 4px;
   }
   .masthead .wordmark { order: 1; }
   .masthead .tel { order: 2; }
   .masthead nav { order: 3; flex-basis: 100%; gap: 0; margin-right: -12px; }
   .masthead nav a { font-size: 0.68rem; letter-spacing: 0.1em; }
 
-  .act--arrival { padding-block: clamp(28px, 5vh, 48px) clamp(40px, 8vh, 72px); }
+  .act--arrival { padding-block: clamp(16px, 3vh, 48px) clamp(40px, 8vh, 72px); }
   h1 { font-size: clamp(2.1rem, 10.4vw, 3rem); margin-bottom: 16px; }
   .act--arrival .lede { font-size: 1.02rem; line-height: 1.5; margin-bottom: 12px; }
   .act--arrival .byline { font-size: 0.84rem; line-height: 1.45; margin-bottom: 0; }

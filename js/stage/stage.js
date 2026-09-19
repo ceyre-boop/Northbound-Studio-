@@ -467,6 +467,36 @@
     });
   }
 
+  /* The import/compile trigger, decoupled from the per-frame progress margin.
+   *
+   * Import used to happen inside frame()'s `near` check — the same distance
+   * (warmP(), a fraction of WARM_SCREENS derived from scrollSpan) that decides
+   * whether an act is a candidate to actually come up and draw. That coupling
+   * meant a module's fetch+compile could only ever start on a frame where the
+   * Stage was already re-evaluating draw eligibility for every act, which is
+   * exactly the kind of per-frame work item 4 asks to get off the hot path.
+   *
+   * One IntersectionObserver per act section, rootMargin one viewport, starts
+   * the import the moment a section is a viewport away — independent of scroll
+   * velocity, independent of whether frame() even runs that tick (rAF is
+   * paused in a background tab; IntersectionObserver is not tied to it).
+   * frame()'s own `near`/`wanted` logic is untouched: it still decides which
+   * loaded act actually gets a GL slot and draws. */
+  var warmObserver = (typeof IntersectionObserver !== 'undefined') ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      var rec = entry.target.__nbRec;
+      if (rec) ensureLoaded(rec);
+      warmObserver.unobserve(entry.target); // one shot — a loaded act never needs re-triggering
+    });
+  }, { rootMargin: '100% 0px 100% 0px' }) : null;
+
+  function observeWarm(rec, el) {
+    if (!warmObserver || !el) return;
+    el.__nbRec = rec;
+    warmObserver.observe(el);
+  }
+
   // --- scroll --------------------------------------------------------------
 
   /* scrollSpan is cached by measureWindows(), not read here.
@@ -723,6 +753,10 @@
        drawn, so if something else needs its slot it gives it up now. */
     for (i = 0; i < wanted.length; i++) {
       rec = wanted[i];
+      // The IntersectionObserver installed in declare() is the trigger now —
+      // it fires a full viewport earlier than `near` ever goes true, so this
+      // call is normally a no-op guard (ensureLoaded is idempotent). It stays
+      // as a fallback for browsers with no IntersectionObserver at all.
       ensureLoaded(rec);
       if (!rec.mod) continue;
       if (slots[0] !== null && slots[1] !== null) {
@@ -827,6 +861,18 @@
 
     for (var j = 0; j < live.length; j++) {
       var L = live[j], id = L.man.id;
+
+      /* live[] is a snapshot built earlier in this same frame from `rec.live`.
+       * A throw here used to escape uncaught into motion.js's subscriber
+       * wrapper, which does not retry a failed subscriber — it removes it
+       * from the loop for the rest of the page's life (see js/motion.js's
+       * claim() comment on why that catch exists at all). One dead act's
+       * ctx would then take Stage's entire frame() with it, permanently:
+       * every other act frozen, nothing ever imported, torn down, or drawn
+       * again. Guarding it here keeps a single bad frame a single bad
+       * frame — the same failure mode the try/catch below already handles
+       * for update()/draw(), just one line earlier. */
+      if (!L.rec.ctx) { onFrameFail(L.rec, new Error('live act had no ctx')); continue; }
       L.rec.ctx.share = L.man.cost >= 4 ? share : 1;
       L.rec.ctx.tier = tier;
 
@@ -970,6 +1016,8 @@
          declared in cast.js, which is how Act III came to be "on stage" a
          viewport and a half after its own section had scrolled away. */
       if (document.body) measureWindows();
+      var sectionEl = document.querySelector('[data-act="' + id + '"]');
+      observeWarm(records.get(id), sectionEl);
       acts.sort(function (a, b) {
         return winOf(records.get(a))[0] - winOf(records.get(b))[0];
       });

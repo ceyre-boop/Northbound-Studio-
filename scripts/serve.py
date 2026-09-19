@@ -58,6 +58,20 @@ class GzipHandler(SimpleHTTPRequestHandler):
         outputfile.write(gzip.compress(source.read(), 6))
 
     def send_head(self):
+        # The deploy stamp only exists inside a ship (production) or is written
+        # as {} by every other Vercel build. Serve that same honest {} here
+        # when there is no stamp on disk, so js/proof.js gets a clean "not this
+        # deploy" answer locally instead of a 404 that the console-error gates
+        # would count.
+        import os
+        if self.path.split('?')[0] == '/data/release.json' and not os.path.exists(self.translate_path(self.path)):
+            self._gz = False
+            self.send_response(200)
+            super().send_header('Content-Type', 'application/json')
+            super().send_header('Content-Length', '2')
+            super().send_header('Cache-Control', 'no-store')
+            super().end_headers()
+            return io.BytesIO(b'{}')
         # SimpleHTTPRequestHandler writes content-length before we know the
         # compressed size, so buffer the response and send it ourselves.
         if 'gzip' not in self.headers.get('Accept-Encoding', ''):

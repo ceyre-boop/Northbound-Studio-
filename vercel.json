@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "echo 'static site: no install'",
-  "buildCommand": "node -e \"if(process.env.VERCEL_ENV==='production'&&!require('fs').existsSync('data/release.json')){console.error('No data/release.json: production ships via bun run ship');process.exit(1)}\"",
+  "buildCommand": "node -e \"const f=require('fs'),p='data/release.json';if(process.env.VERCEL_ENV!=='production')f.writeFileSync(p,'{}');else if(!f.existsSync(p)){console.error('Prod ships via: bun run ship');process.exit(1)}\"",
   "outputDirectory": ".",
   "headers": [
     {

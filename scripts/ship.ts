@@ -59,6 +59,17 @@ function clearRelease() {
   rmSync(RELEASE_PATH, { force: true });
 }
 
+/* Ctrl-C, a closed terminal or a kill would otherwise skip every cleanup path
+   above and leave the stamp on disk, where it would wave a later bare
+   `vercel --prod` straight past the build guard with a stale measurement. */
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {
+  process.on(sig, () => {
+    clearRelease();
+    console.error(`\n[ship] interrupted (${sig}) — stamp cleared, production is whatever the last completed step left.`);
+    process.exit(130);
+  });
+}
+
 function fail(msg: string): never {
   clearRelease();
   console.error(`\n[ship] FAILED — ${msg}`);

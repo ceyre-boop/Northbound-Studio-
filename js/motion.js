@@ -32,20 +32,32 @@
   // Semi-implicit Euler, sub-stepped at a fixed 120Hz. A variable timestep
   // makes stiffness frame-rate dependent, which is how spring systems end up
   // feeling different on a 60Hz phone and a 120Hz laptop.
+  //
+  // Named presets — { stiffness, damping, mass } — live in js/springs.js,
+  // the only place those numbers are allowed to appear. spring() below takes
+  // a preset NAME, never raw numbers, so every caller inherits the same feel
+  // and a single file can retune the whole page.
   var springs = new Map();
   var FIXED = 1 / 120;
+  var DEFAULT_PRESET = { stiffness: 170, damping: 22, mass: 1 }; // used only if js/springs.js failed to load
 
-  function get(key, k, d) {
+  function presetFor(name) {
+    var table = window.NB_SPRINGS && window.NB_SPRINGS.presets;
+    return (table && table[name]) || DEFAULT_PRESET;
+  }
+
+  function get(key, preset) {
     var s = springs.get(key);
-    if (!s) { s = { value: 0, target: 0, v: 0, k: k, d: d }; springs.set(key, s); }
+    if (!s) { s = { value: 0, target: 0, v: 0, k: preset.stiffness, d: preset.damping, m: preset.mass || 1 }; springs.set(key, s); }
     return s;
   }
 
-  /** Set a spring's target and read its current value. */
-  function spring(key, target, stiffness, damping) {
-    var s = get(key, stiffness || 170, damping || 22);
-    s.k = stiffness || s.k;
-    s.d = damping || s.d;
+  /** Set a spring's target (by preset NAME, e.g. 'settle') and read its
+   *  current value. */
+  function spring(key, target, presetName) {
+    var preset = presetFor(presetName || 'ui');
+    var s = get(key, preset);
+    s.k = preset.stiffness; s.d = preset.damping; s.m = preset.mass || 1;
     s.target = target;
     if (M.reduced) { s.value = target; s.v = 0; }
     return s.value;
@@ -56,9 +68,11 @@
   function integrate(s, dt) {
     var n = Math.min(6, Math.max(1, Math.ceil(dt / FIXED)));
     var h = dt / n;
+    var m = s.m || 1;
     for (var i = 0; i < n; i++) {
       var f = -s.k * (s.value - s.target) - s.d * s.v;
-      s.v += f * h;
+      var a = f / m;
+      s.v += a * h;
       s.value += s.v * h;
     }
     // Park it once it stops mattering, so idle springs cost nothing.
@@ -88,12 +102,21 @@
   var subs = [];
   function onFrame(fn) { subs.push(fn); return function () { var i = subs.indexOf(fn); if (i >= 0) subs.splice(i, 1); }; }
 
+  // A single named pre-frame phase, run before subs each tick and before this
+  // module reads scroll position anywhere. js/scroll.js installs Lenis's
+  // raf(now) here — this is what keeps Lenis inside the ONE rAF this page
+  // owns instead of running a second loop of its own.
+  var preFrame = null;
+  function setPreFrame(fn) { preFrame = fn; return function () { if (preFrame === fn) preFrame = null; }; }
+
   var fpsAcc = 0, fpsFrames = 0;
 
   /** Called once per rAF from the descent's existing tick. */
   function step(dt, now) {
     if (!(dt > 0)) dt = 1 / 60;
     if (dt > 0.1) dt = 0.1;              // a backgrounded tab must not explode the springs
+
+    if (preFrame) { try { preFrame(now, dt); } catch (e) { console.error('motion pre-frame', e); } }
 
     var c = M.cursor;
     var smoothing = M.reduced ? 1 : 1 - Math.pow(0.0015, dt);
@@ -168,6 +191,7 @@
   M.lerp = lerp;
   M.step = step;
   M.onFrame = onFrame;
+  M.setPreFrame = setPreFrame;
   M.springs = springs;
   window.NB_MOTION = M;
 })();

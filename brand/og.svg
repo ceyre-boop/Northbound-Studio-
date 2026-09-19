@@ -16,7 +16,7 @@
   <rect width="1200" height="630" fill="url(#og-glow-signal)"/>
 
   <!-- eyebrow -->
-  <text x="90" y="110" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="20" letter-spacing="4" fill="#4fa8ff">GRAND LEDGE, MI &#183; TWO PEOPLE</text>
+  <text x="90" y="110" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="20" letter-spacing="4" fill="#4fa8ff">GRAND LEDGE, MI &#183; DESIGN + ENGINEERING STUDIO</text>
 
   <!-- Needle mark -->
   <g transform="translate(90,150) scale(1.9)">

@@ -104,6 +104,43 @@ async function installObservers(page) {
   });
 }
 
+/** Inject FCP + long-task recorders, and a gl.linkProgram timestamp trap,
+ *  before any page script runs. Used by measureTTI/measureScrollLongTasks/
+ *  measureProgramsBeforeFCP below — these are REPORTED metrics (no gate),
+ *  so this trap is separate from installObservers to keep the gated LCP/CLS
+ *  path untouched. */
+async function installReportTraps(page) {
+  await page.addInitScript(() => {
+    window.__report = { fcp: 0, longtasks: [], programs: [] };
+    try {
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.name === 'first-contentful-paint' && !window.__report.fcp) {
+            window.__report.fcp = entry.startTime;
+          }
+        }
+      }).observe({ type: 'paint', buffered: true });
+    } catch (e) { /* not supported */ }
+    try {
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          window.__report.longtasks.push({ start: entry.startTime, duration: entry.duration });
+        }
+      }).observe({ type: 'longtask', buffered: true });
+    } catch (e) { /* not supported */ }
+    try {
+      for (const Ctor of [window.WebGLRenderingContext, window.WebGL2RenderingContext]) {
+        if (!Ctor || !Ctor.prototype || !Ctor.prototype.linkProgram) continue;
+        const orig = Ctor.prototype.linkProgram;
+        Ctor.prototype.linkProgram = function (...args) {
+          window.__report.programs.push({ time: performance.now(), type: Ctor.name });
+          return orig.apply(this, args);
+        };
+      }
+    } catch (e) { /* not supported */ }
+  });
+}
+
 /** One LCP measurement under a given CDP network profile + 4x CPU. */
 async function measureLcpOnce(browser, netProfile) {
   const context = await browser.newContext(ctxOpts());
@@ -158,6 +195,100 @@ export async function measureFPS(browser, url) {
   }
   await context.close();
   return { median: median(samples), min: Math.min(...samples), samples };
+}
+
+/** TTI (reported, not gated): FCP, then the start of the first 5s window
+ *  with no long task, at 4x CPU, 390x844, regular 4G. */
+export async function measureTTI(browser, url) {
+  const context = await browser.newContext(ctxOpts({ viewport: { width: 390, height: 844 } }));
+  const page = await context.newPage();
+  await installReportTraps(page);
+  const client = await context.newCDPSession(page);
+  await client.send('Network.enable');
+  await client.send('Network.emulateNetworkConditions', { offline: false, ...NET.regular4g });
+  await client.send('Emulation.setCPUThrottlingRate', { rate: CPU_RATE });
+
+  await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
+  // Give long tasks a 5s+ window past load to actually happen and be observed.
+  await page.waitForTimeout(6000);
+  const { fcp, longtasks } = await page.evaluate(() => window.__report);
+  await context.close();
+
+  const QUIET_MS = 5000;
+  let tti = fcp;
+  if (fcp) {
+    const sorted = longtasks.slice().sort((a, b) => a.start - b.start);
+    let cursor = fcp;
+    for (const t of sorted) {
+      const taskEnd = t.start + t.duration;
+      if (t.start >= cursor + QUIET_MS) break; // found a quiet window before this task
+      if (taskEnd > cursor) cursor = taskEnd;
+    }
+    tti = cursor;
+  }
+  return { fcp, tti, longtaskCount: longtasks.length };
+}
+
+/** Long tasks during a scripted WHEEL-driven scroll from hero to #contact,
+ *  at 4x CPU (reported, not gated). Uses page.mouse.wheel, not scrollTo, so
+ *  Lenis's smooth-scroll path is actually exercised. */
+export async function measureScrollLongTasks(browser, url) {
+  const context = await browser.newContext(ctxOpts({ viewport: { width: 390, height: 844 } }));
+  const page = await context.newPage();
+  await installReportTraps(page);
+  const client = await context.newCDPSession(page);
+  await client.send('Emulation.setCPUThrottlingRate', { rate: CPU_RATE });
+
+  await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.mouse.move(195, 400);
+
+  const target = await page.evaluate(() => {
+    const el = document.getElementById('contact');
+    return el ? el.getBoundingClientRect().top + window.scrollY : document.documentElement.scrollHeight;
+  });
+
+  const before = await page.evaluate(() => window.__report.longtasks.length);
+  const startedAt = await page.evaluate(() => performance.now());
+
+  let scrolled = await page.evaluate(() => window.scrollY);
+  const step = 320;
+  let guard = 0;
+  while (scrolled < target - 4 && guard < 400) {
+    await page.mouse.wheel(0, step);
+    await page.waitForTimeout(40);
+    scrolled = await page.evaluate(() => window.scrollY);
+    guard++;
+  }
+  await page.waitForTimeout(500); // let inertia/smoothing settle
+
+  const after = await page.evaluate((from) => ({
+    tasks: window.__report.longtasks.filter((t) => t.start >= from),
+    now: performance.now(),
+  }), startedAt);
+  await context.close();
+
+  const count = after.tasks.length;
+  const totalMs = after.tasks.reduce((sum, t) => sum + t.duration, 0);
+  return { count, totalMs, windowMs: after.now - startedAt };
+}
+
+/** Which WebGL programs link before first paint (reported, not gated). */
+export async function measureProgramsBeforeFCP(browser, url) {
+  const context = await browser.newContext(ctxOpts({ viewport: { width: 390, height: 844 } }));
+  const page = await context.newPage();
+  await installReportTraps(page);
+  const client = await context.newCDPSession(page);
+  await client.send('Network.enable');
+  await client.send('Network.emulateNetworkConditions', { offline: false, ...NET.regular4g });
+  await client.send('Emulation.setCPUThrottlingRate', { rate: CPU_RATE });
+
+  await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
+  await page.waitForTimeout(1500); // let FCP paint fire and get observed
+  const { fcp, programs } = await page.evaluate(() => window.__report);
+  await context.close();
+
+  const beforeFCP = fcp ? programs.filter((p) => p.time <= fcp) : [];
+  return { fcp, total: programs.length, beforeFCP: beforeFCP.length, programs };
 }
 
 export async function measureJSBytes(browser, url) {
@@ -313,11 +444,32 @@ export async function run(url) {
     const reduced = await checkFallback(browser, url, 'reduced-motion');
     results.fallbackReducedMotion = reduced.navError ? 1 : reduced.consoleErrors.length + reduced.breaches.length;
     rows.push(row('fallbackReducedMotion', results.fallbackReducedMotion, '0 issues', describeFallback(reduced)));
+
+    // --- REPORTED metrics (below) never gate the run; they exist so a
+    // before/after table can be produced with the same harness. ---
+    const tti = await measureTTI(browser, url);
+    results.report = results.report || {};
+    results.report.tti = tti;
+
+    const scroll = await measureScrollLongTasks(browser, url);
+    results.report.scrollLongTasks = scroll;
+
+    const programs = await measureProgramsBeforeFCP(browser, url);
+    results.report.programsBeforeFCP = programs;
   } finally {
     await browser.close();
   }
 
   return { results, rows };
+}
+
+function printReport(report) {
+  if (!report) return;
+  console.log('\nREPORTED (non-gating) — same harness, printed for a before/after diff:');
+  const { tti, scrollLongTasks, programsBeforeFCP } = report;
+  console.log(`  TTI               FCP ${tti.fcp.toFixed(0)}ms → TTI ${tti.tti.toFixed(0)}ms (${tti.longtaskCount} long task(s) observed)`);
+  console.log(`  scroll long tasks ${scrollLongTasks.count} task(s), ${scrollLongTasks.totalMs.toFixed(1)}ms total over a ${scrollLongTasks.windowMs.toFixed(0)}ms wheel scroll hero→#contact`);
+  console.log(`  programs before FCP  ${programsBeforeFCP.beforeFCP} of ${programsBeforeFCP.total} linkProgram call(s) landed before FCP (${programsBeforeFCP.fcp.toFixed(0)}ms)`);
 }
 
 /* --- the published number -------------------------------------------------
@@ -407,7 +559,7 @@ export async function measureFrameBudget(browser, url) {
   };
 }
 
-export function toArtifact(url, budget, gateRows, commit, codeCommit) {
+export function toArtifact(url, budget, gateRows, commit, codeCommit, report) {
   const round = (n) => Math.round(n * 100) / 100;
   const frameMs = round(budget.frame.p50Ms);
   const BUDGET_MS = 16.7;
@@ -415,7 +567,7 @@ export function toArtifact(url, budget, gateRows, commit, codeCommit) {
   for (const [id, v] of Object.entries(budget.acts || {})) {
     acts[id] = { label: v.label, p50Ms: round(v.p50), p95Ms: round(v.p95) };
   }
-  return {
+  const artifact = {
     schema: 1,
     measuredAt: new Date().toISOString(),
     commit,
@@ -447,6 +599,10 @@ export function toArtifact(url, budget, gateRows, commit, codeCommit) {
     },
     gates: (gateRows || []).map((r) => ({ key: r.key, label: r.label, detail: r.detail, pass: r.pass }))
   };
+  // Additive only — existing schema-1 readers (js/proof.js) never look at
+  // this key, so its presence or absence changes nothing for them.
+  if (report) artifact.report = report;
+  return artifact;
 }
 
 function describeFallback(r) {
@@ -483,8 +639,9 @@ async function main() {
   const url = args.find((a) => !a.startsWith('--')) || 'https://northbound-dev.com/';
 
   console.log(`Layer 5 perf harness — ${url}\n`);
-  const { rows } = await run(url);
+  const { results, rows } = await run(url);
   printTable(rows);
+  printReport(results.report);
   const failed = rows.filter((r) => !r.pass);
 
   if (emit) {
@@ -501,7 +658,7 @@ async function main() {
     let codeCommit = 'unknown';
     try { codeCommit = execSync('git log -1 --format=%h -- js css index.html', { encoding: 'utf8' }).trim() || 'unknown'; } catch {}
 
-    const artifact = toArtifact(url, budget, rows, commit, codeCommit);
+    const artifact = toArtifact(url, budget, rows, commit, codeCommit, results.report);
     mkdirSync(new URL('../data/', import.meta.url), { recursive: true });
     writeFileSync(ARTIFACT_PATH, JSON.stringify(artifact, null, 2) + '\n');
 

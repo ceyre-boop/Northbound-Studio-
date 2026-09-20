@@ -351,7 +351,12 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   display: block; font-family: var(--mono); font-size: 0.68rem;
   text-transform: uppercase; letter-spacing: 0.14em;
   color: var(--paper-faint); margin-bottom: 7px;
+  transform-origin: left top;
+  transition: transform var(--spring-ui-ms, 200ms) var(--spring-ui, ease-out),
+              color var(--spring-ui-ms, 200ms) var(--spring-ui, ease-out);
 }
+.field:focus-within label { transform: translateY(-2px); color: var(--aurora); }
+@media (prefers-reduced-motion: reduce) { .field label { transition: none; } }
 .field input, .field select, .field textarea {
   width: 100%; padding: 12px 14px;
   background: var(--ink-2); color: var(--paper);
@@ -569,3 +574,141 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
 .work-card:hover .work-card__poster,
 .work-card:focus-within .work-card__poster { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .work-card__poster { transition: none; } }
+
+/* --- sticky "Get a quote" -------------------------------------------------
+ * Three inputs decide its one output attribute, data-state (js/interact.js):
+ *   pre-scroll   set at boot, before the first scroll — never present at all
+ *                for a visitor with JavaScript off.
+ *   hidden       set while #contact is on screen or the offer overlay is open.
+ * `--sticky-pulse`, a small extra scale on top of the base transform, is
+ * written by js/interact.js on every scroll-direction flip, sampled through
+ * `--spring-ui` — see that file's header. */
+.sticky-cta {
+  position: fixed;
+  z-index: 50;
+  right: var(--gutter);
+  bottom: clamp(18px, 3vh, 28px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  opacity: 1;
+  --sticky-pulse: 1;
+  transform: translateY(0) scale(var(--sticky-pulse, 1));
+  visibility: visible;
+  transition: opacity 220ms ease-out, transform var(--spring-ui-ms, 200ms) var(--spring-ui, ease-out), visibility 0s linear 0s;
+}
+.sticky-cta[data-state="pre-scroll"],
+.sticky-cta[data-state="hidden"] {
+  opacity: 0;
+  transform: translateY(14px) scale(var(--sticky-pulse, 1));
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 200ms ease-out, transform 200ms ease-out, visibility 0s linear 200ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sticky-cta { transition: none; }
+  .sticky-cta[data-state="pre-scroll"],
+  .sticky-cta[data-state="hidden"] { transition: none; }
+}
+
+.sticky-cta__bar { display: none; }
+.sticky-cta__desktop { display: flex; align-items: center; gap: 14px; }
+.sticky-cta__desktop .tel { font-family: var(--mono); }
+
+@media (max-width: 640px) {
+  .sticky-cta {
+    left: 0; right: 0; bottom: 0;
+    display: block;
+    padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom));
+    background: var(--ink-2);
+    border-top: 1px solid var(--line-2);
+  }
+  .sticky-cta__desktop { display: none; }
+  .sticky-cta__bar { display: flex; gap: 10px; }
+  .sticky-cta__bar .btn,
+  .sticky-cta__bar .tel {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+  /* Static, not toggled — reserved at this breakpoint whether the bar is
+     showing or in one of its data-state="hidden"/"pre-scroll" states,
+     because position: fixed content never moves body's own box either way.
+     This is the whole reason the sticky CTA can never cover content on a
+     phone: the space is always there, toggled or not. */
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
+
+/* --- form status / confirmation -------------------------------------------
+ * Ported alongside the fetch submit path in js/interact.js. */
+.form-status { margin: 10px 0 0; font-size: 0.88rem; color: var(--paper-dim); }
+.form-status[data-status="error"] { color: var(--signal); }
+.form-confirm { color: var(--aurora); font-size: 1.05rem; max-width: 46ch; }
+
+/* --- package card hover / press --------------------------------------------
+ * `--mx`/`--my` (0..1, pointer position across the card face) and `--near`
+ * (0..1, proximity before the pointer has entered) are written by
+ * js/interact.js, smoothed through the `lift` preset — never per-frame for a
+ * card that is not on screen or not being interacted with. Touch gets the
+ * identical treatment through `data-pressed`, set on pointerdown and cleared
+ * on pointerup/cancel, so nothing here is hover-only. */
+.pkg {
+  position: relative;
+  --mx: 0.5; --my: 0.5; --near: 0;
+  transform: translateY(0);
+  transition: transform var(--spring-lift-ms, 220ms) var(--spring-lift, ease-out),
+              box-shadow var(--spring-lift-ms, 220ms) var(--spring-lift, ease-out);
+  box-shadow: inset 0 0 0 1px rgba(79, 216, 196, calc(var(--near, 0) * 0.35));
+}
+.pkg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(240px circle at calc(var(--mx, 0.5) * 100%) calc(var(--my, 0.5) * 100%),
+              rgba(79, 216, 196, 0.16), transparent 60%);
+  transition: opacity 200ms ease-out;
+}
+.pkg:hover, .pkg[data-pressed] {
+  transform: translateY(-4px);
+}
+.pkg:hover::before, .pkg[data-pressed]::before { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .pkg, .pkg::before { transition: none; transform: none !important; }
+}
+
+/* --- nav underline, drawn from whichever side the pointer entered ---------
+ * `--from` (0 or 1) is set on pointerenter by js/interact.js; the underline
+ * scales from `transform-origin: var(--from, 0) 0`, timed on `--spring-ui`. */
+.masthead nav a {
+  position: relative;
+  --from: 0;
+}
+.masthead nav a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -3px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: calc(var(--from, 0) * 100%) 0;
+  transition: transform var(--spring-ui-ms, 200ms) var(--spring-ui, ease-out);
+}
+.masthead nav a:hover::after,
+.masthead nav a:focus-visible::after,
+.masthead nav a[data-pressed]::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) { .masthead nav a::after { transition: none; } }
+
+/* --- magnetic pull ---------------------------------------------------------
+ * `--mag-x`/`--mag-y` (px) are written per frame, only while a pointer is
+ * within pull range of a `.btn`, by js/interact.js's magnet spring — parked
+ * (and this rule inert) the instant the spring settles back to (0, 0).
+ * `translate` is the standalone CSS property (not `transform`'s function),
+ * so it composes with .btn/.btn:hover/.btn:active's own `transform` instead
+ * of fighting it for the same declaration. */
+.btn {
+  --mag-x: 0px; --mag-y: 0px;
+  translate: var(--mag-x, 0px) var(--mag-y, 0px);
+}
+@media (prefers-reduced-motion: reduce) { .btn { translate: none !important; } }

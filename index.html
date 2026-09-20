@@ -195,6 +195,7 @@
             <li>Copywriting, photography direction, local SEO</li>
             <li>Two weeks, 50% up front</li>
           </ul>
+          <p><a class="btn pkg__cta" href="#contact" data-package="Beacon package">Get a quote for Beacon</a></p>
         </li>
         <li class="pkg pkg--lead">
           <h3>Engine</h3>
@@ -207,6 +208,7 @@
             <li>Owner dashboard: where the calls came from, what they were worth</li>
             <li>Three to four weeks, 50% up front</li>
           </ul>
+          <p><a class="btn btn--go pkg__cta" href="#contact" data-package="Engine package">Get a quote for Engine</a></p>
         </li>
         <li class="pkg">
           <h3>Bearing</h3>
@@ -218,6 +220,7 @@
             <li>Monthly report on calls, bookings and revenue</li>
             <li>Twelve-month term, billed monthly</li>
           </ul>
+          <p><a class="btn pkg__cta" href="#contact" data-package="Bearing package">Get a quote for Bearing</a></p>
         </li>
       </ol>
 
@@ -533,12 +536,30 @@
           <label for="f-hp7">Leave this empty</label>
           <input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1">
         </p>
+        <p class="form-status" data-form-status aria-live="polite"></p>
         <p><button type="submit" class="btn btn--go">Send it</button></p>
       </form>
     </div>
   </section>
 
 </main>
+
+<!--
+  The sticky "Get a quote" CTA. Outside <main> and position: fixed (see
+  css/stage.css), so it can never contribute a layout shift. Visible here in
+  the raw markup is the whole no-JS story: js/interact.js is the only thing
+  that ever hides it, so a visitor without it simply always has it.
+-->
+<div class="sticky-cta" data-sticky-cta>
+  <div class="sticky-cta__bar">
+    <a class="btn sticky-cta__call" href="tel:+14705738908">Call 470-573-8908</a>
+    <a class="btn btn--go sticky-cta__quote" href="#contact">Get a quote</a>
+  </div>
+  <div class="sticky-cta__desktop">
+    <a class="tel" href="tel:+14705738908">470-573-8908</a>
+    <a class="btn btn--go sticky-cta__pill" href="#contact">Get a quote</a>
+  </div>
+</div>
 
 <footer class="colophon">
   <p>Northbound Studio · Grand Ledge, Michigan</p>
@@ -588,6 +609,8 @@
 <script type="module" src="js/scroll.js"></script>
 <!-- Scroll-linked, latched entrances — replaces the old opacity reveal. -->
 <script type="module" src="js/entrance.js"></script>
+<!-- Hover weight, magnetic CTAs, the sticky "Get a quote" and form motion. -->
+<script type="module" src="js/interact.js"></script>
 <!-- The concept-build viewer, now that the section it used to live in is gone. -->
 <script type="module" src="js/panels.js"></script>
 </body>

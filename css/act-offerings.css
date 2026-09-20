@@ -201,7 +201,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 }
 [data-act="offerings"] .offer-overlay[data-open] .offer-overlay__backdrop {
   opacity: 1;
-  transition: opacity 280ms cubic-bezier(.34,.9,.4,1);
+  transition: opacity var(--spring-ui-ms, 280ms) var(--spring-ui, cubic-bezier(.34,.9,.4,1));
 }
 
 /* The panel opens FROM the card that was clicked, not over the top of it.
@@ -233,8 +233,10 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 [data-act="offerings"] .offer-overlay[data-open] .offer-overlay__panel {
   opacity: 1;
   transform: translate(0, 0) scale(1);
-  /* Arriving: the house overshoot from mascot.css. */
-  transition: opacity 340ms cubic-bezier(.34,.9,.4,1), transform 560ms cubic-bezier(.28,1.5,.5,1);
+  /* Arriving: opacity on the `ui` spring, the morph itself on `morph` — see
+   * js/springs.js's header for why every spring's numbers live there. */
+  transition: opacity var(--spring-ui-ms, 340ms) var(--spring-ui, cubic-bezier(.34,.9,.4,1)),
+              transform var(--spring-morph-ms, 560ms) var(--spring-morph, cubic-bezier(.28,1.5,.5,1));
 }
 @media (prefers-reduced-motion: reduce) {
   [data-act="offerings"] .offer-overlay__panel,
@@ -387,7 +389,8 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   font-size: 0.86rem;
   opacity: 1;
   transform: scale(1) translateY(0);
-  transition: opacity 320ms cubic-bezier(.34,.9,.4,1), transform 460ms cubic-bezier(.28,1.5,.5,1);
+  transition: opacity var(--spring-ui-ms, 320ms) var(--spring-ui, cubic-bezier(.34,.9,.4,1)),
+              transform var(--spring-morph-ms, 460ms) var(--spring-morph, cubic-bezier(.28,1.5,.5,1));
 }
 /* The chip a card.js just added — held here at its pre-arrival size for one
  * frame, then released (see js/offerings/card.js), so it always plays the
@@ -771,7 +774,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 }
 #contact .work-overlay[data-open] .work-overlay__backdrop {
   opacity: 1;
-  transition: opacity 280ms cubic-bezier(.34,.9,.4,1);
+  transition: opacity var(--spring-ui-ms, 280ms) var(--spring-ui, cubic-bezier(.34,.9,.4,1));
 }
 
 #contact .work-overlay__panel {
@@ -794,7 +797,10 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 #contact .work-overlay[data-open] .work-overlay__panel {
   opacity: 1;
   transform: translate(0, 0) scale(1);
-  transition: opacity 340ms cubic-bezier(.34,.9,.4,1), transform 560ms cubic-bezier(.28,1.5,.5,1);
+  /* Same split as [data-act="offerings"] .offer-overlay__panel above: opacity
+   * on `ui`, the morph itself on `morph` (js/springs.js). */
+  transition: opacity var(--spring-ui-ms, 340ms) var(--spring-ui, cubic-bezier(.34,.9,.4,1)),
+              transform var(--spring-morph-ms, 560ms) var(--spring-morph, cubic-bezier(.28,1.5,.5,1));
 }
 @media (prefers-reduced-motion: reduce) {
   #contact .work-overlay__panel,

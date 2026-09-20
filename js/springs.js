@@ -33,7 +33,12 @@
     // Magnetic pull toward the cursor.
     magnet: { stiffness: 260, damping: 16, mass: 0.6 },
     // Small UI motion — labels, underlines, the sticky CTA, form state.
-    ui: { stiffness: 300, damping: 26, mass: 0.9 }
+    ui: { stiffness: 300, damping: 26, mass: 0.9 },
+    // A clicked element becoming an overlay: the offer/work card morphing
+    // into its panel, and the basket chip a ghost has just landed on. Tuned
+    // for the same overshoot the old hand-picked cubic-bezier(.28,1.5,.5,1)
+    // gave that transform, at the same ~560-600ms it settled in.
+    morph: { stiffness: 370, damping: 22, mass: 1 }
   };
 
   // A reasonable static approximation of each preset's curve, used only when
@@ -43,7 +48,8 @@
     lift: 'cubic-bezier(0.22, 1, 0.36, 1)',
     press: 'cubic-bezier(0.4, 0, 0.2, 1)',
     magnet: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-    ui: 'cubic-bezier(0.4, 0, 0.2, 1)'
+    ui: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    morph: 'cubic-bezier(.28, 1.5, .5, 1)'
   };
 
   var FIXED = 1 / 120;

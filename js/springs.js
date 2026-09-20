@@ -1,10 +1,15 @@
 /* Northbound — spring presets.
  *
- * This is the ONLY file that may contain a raw spring stiffness or damping
- * number outside the offerings rail (js/offerings/*, which is its own drag/
- * throw simulation and is exempt — see its header). Every other DOM spring,
- * in JS or in CSS, is a name that resolves back to one of the presets below.
- * tests/motion.spec.ts greps for that.
+ * This is the file every DOM spring's numbers come from. Two narrow,
+ * documented exceptions exist and both are exempted by tests/motion.spec.ts's
+ * grep guard rather than silently ignored:
+ *   - js/offerings/* — its own drag/throw simulation, a different model
+ *     entirely (see that department's own header).
+ *   - js/motion.js's single DEFAULT_PRESET — the integrator's fallback for
+ *     the (should-never-happen) case that this file failed to load, so
+ *     spring() has somewhere safe to fall back to instead of producing NaN.
+ * Every other DOM spring, in JS or in CSS, is a name that resolves back to
+ * one of the presets below.
  *
  * Each preset is `{ stiffness, damping, mass }`, fed straight into
  * js/motion.js's semi-implicit-Euler integrator: `a = (-k*(x-target) - d*v) / m`.

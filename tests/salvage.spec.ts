@@ -170,3 +170,43 @@ test.describe('the rescued card morph', () => {
     expect(cls, `the morph/ghost/close sequence accumulated ${cls} of layout shift`).toBe(0);
   });
 });
+
+test.describe('the support exchange', () => {
+  test('present, labelled as an illustration, and readable with JS disabled', async ({ browser }) => {
+    const ctx = await browser.newContext({ javaScriptEnabled: false });
+    const page = await ctx.newPage();
+    await page.goto('/');
+
+    const group = page.locator('.support-example[role="group"]');
+    await expect(group).toHaveCount(1);
+    await expect(group).toHaveAttribute('aria-label', /example/i);
+    await expect(group).toHaveAttribute('aria-label', /not a transcript/i);
+
+    // The caption is real, visible copy — not sr-only text.
+    const caption = group.locator('.support-example__caption');
+    await expect(caption).toBeVisible();
+    await expect(caption).toHaveText(/not a transcript of a real incident/i);
+
+    const bubbles = group.locator('.chat__bubble');
+    await expect(bubbles).toHaveCount(3);
+    await expect(bubbles.nth(0)).toHaveText('our checkout page is down 😳');
+    await expect(bubbles.nth(1)).toHaveText('on it. give me nine minutes.');
+    await expect(bubbles.nth(2)).toHaveText('fixed. it was a Stripe setting.');
+
+    await ctx.close();
+  });
+
+  test('sits near the "How we work" rules in the closing section', async ({ page }) => {
+    await page.goto('/');
+    const order = await page.evaluate(() => {
+      const ink = document.querySelector('#contact .act__ink')!;
+      const kids = Array.from(ink.children).map((c) => c.className);
+      return kids;
+    });
+    const rulesAt = order.findIndex((c) => c.includes('rules'));
+    const exampleAt = order.findIndex((c) => c.includes('support-example'));
+    expect(rulesAt, 'the rules list is missing from #contact').toBeGreaterThanOrEqual(0);
+    expect(exampleAt, 'the support example is missing from #contact').toBeGreaterThanOrEqual(0);
+    expect(exampleAt - rulesAt, 'the example is not adjacent to the rules it sits near').toBe(1);
+  });
+});

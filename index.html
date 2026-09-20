@@ -367,6 +367,25 @@
       </ul>
 
       <!--
+        An illustration, not a transcript. js/content.js's header explains
+        why this needs saying: a support-chat mockup was rewritten once
+        before under this repo's own rule because nobody could point to the
+        incident it depicted. This one only ships labelled as what it is,
+        with the label visible on the page (not sr-only) and on the group's
+        accessible name — and it is static markup, not built by JS, so it
+        reads identically with JS off.
+      -->
+      <div class="support-example" role="group" aria-label="An example support exchange, illustrating what Bearing includes — not a transcript of a real incident">
+        <h3 class="support-example__head">What Bearing looks like when something breaks</h3>
+        <p class="support-example__caption">An example of the support you&rsquo;re buying, not a transcript of a real incident.</p>
+        <div class="chat">
+          <p class="chat__bubble chat__bubble--you">our checkout page is down &#128563;</p>
+          <p class="chat__bubble chat__bubble--buddy">on it. give me nine minutes.</p>
+          <p class="chat__bubble chat__bubble--buddy">fixed. it was a Stripe setting.</p>
+        </div>
+      </div>
+
+      <!--
         The work and the measurement, relocated.
 
         The offerings procession took the section these used to live in, so

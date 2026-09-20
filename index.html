@@ -604,14 +604,35 @@
 <script defer src="js/stage/cast.js"></script>
 <!-- Buddy tags the wall. The headline is the graffiti; this is who painted it. -->
 <script src="js/hero-tag.js" defer></script>
-<!-- Lenis, driven from motion.js's one rAF — see js/scroll.js's header.
-     Module scripts defer by default, so this still never blocks first paint. -->
-<script type="module" src="js/scroll.js"></script>
-<!-- Scroll-linked, latched entrances — replaces the old opacity reveal. -->
-<script type="module" src="js/entrance.js"></script>
-<!-- Hover weight, magnetic CTAs, the sticky "Get a quote" and form motion. -->
-<script type="module" src="js/interact.js"></script>
-<!-- The concept-build viewer, now that the section it used to live in is gone. -->
-<script type="module" src="js/panels.js"></script>
+<!--
+  The motion layer, loaded after the page has landed rather than with it.
+
+  scroll.js (plus the Lenis it imports), entrance.js, interact.js and
+  panels.js are about 19KB gzipped between them. Module scripts do not block
+  parsing, but on the slow-4G profile the gate is measured at — 1.6 Mbps —
+  bytes are bytes: they competed with the hero for the same pipe and pushed
+  LCP from 1188ms to 1224ms against a 1200ms gate. The gate caught it on the
+  deploy that shipped them.
+
+  So they are appended on `load`, at the first idle after it. Nothing here is
+  needed for the first screen: Lenis only matters once someone scrolls,
+  entrances only prime what is already off-screen, and the viewer only
+  matters once a card is clicked. If requestIdleCallback is missing, a short
+  timeout stands in for it.
+-->
+<script>
+  addEventListener('load', function () {
+    var load = function () {
+      ['js/scroll.js', 'js/entrance.js', 'js/interact.js', 'js/panels.js'].forEach(function (src) {
+        var el = document.createElement('script');
+        el.type = 'module';
+        el.src = src;
+        document.body.appendChild(el);
+      });
+    };
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(load, { timeout: 1200 });
+    else setTimeout(load, 200);
+  });
+</script>
 </body>
 </html>

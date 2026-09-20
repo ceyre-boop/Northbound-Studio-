@@ -186,9 +186,58 @@
     });
   }
 
+  /* Page entry — the hero.
+   *
+   * The headline is fully visible and in place at first paint on every
+   * breakpoint (LCP must not regress); nothing here delays or masks it. What
+   * moves is a small settle — a few px of translateY — starting BEFORE the
+   * browser's first paint, the same way every off-screen block above starts
+   * primed before it is ever shown: there is no earlier rendered frame at a
+   * different position for the layout-shift observer to compare against, so
+   * this measures as zero CLS (verified against scripts/perf.mjs's CLS gate),
+   * not merely assumed safe.
+   *
+   * Desktop keeps Buddy: his tag sequence (js/hero-tag.js) already IS the
+   * headline's entrance there, so the settle applies to the lede, byline and
+   * CTA row — everything that arrives after he's done painting — and never
+   * touches `.hero-spray` itself. Under 640px Buddy stays fully suppressed
+   * (js/hero-tag.js returns early), so the headline gets the settle too. */
+  function heroEntry() {
+    if (reducedNow()) return;
+    var M = window.NB_MOTION;
+    if (!M || !M.onFrame || !M.spring) return;
+
+    var hero = document.querySelector('.act--arrival');
+    if (!hero) return;
+    var isPhone = window.matchMedia && window.matchMedia('(max-width: 639.98px)').matches;
+    var selector = isPhone
+      ? '.hero-spray, .lede, .byline, .cta-row'
+      : '.lede, .byline, .cta-row';
+    var els = Array.prototype.slice.call(hero.querySelectorAll(selector));
+    if (!els.length) return;
+
+    var SETTLE_PX = 8;
+    els.forEach(function (el) { el.style.transform = 'translateY(' + SETTLE_PX + 'px)'; el.style.willChange = 'transform'; });
+
+    var KEY = 'hero-entry';
+    M.spring(KEY, 1, 'settle');
+    var release = M.onFrame(function () {
+      var v = M.spring(KEY, 1, 'settle');
+      for (var i = 0; i < els.length; i++) {
+        els[i].style.transform = 'translateY(' + ((1 - v) * SETTLE_PX).toFixed(2) + 'px)';
+      }
+      var s = M.springs.get(KEY);
+      if (s && s.value === s.target && s.v === 0) {
+        for (var j = 0; j < els.length; j++) els[j].style.transform = '';
+        release();
+      }
+    });
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot, { once: true });
+    document.addEventListener('DOMContentLoaded', function () { boot(); heroEntry(); }, { once: true });
   } else {
     boot();
+    heroEntry();
   }
 })();

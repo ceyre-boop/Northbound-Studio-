@@ -49,6 +49,16 @@ var gl = null, prog = null, aPosLoc = -1, U = {}, cfg = null, root = null;
 var time = 0, energy = 0, localP = 0, prevScrollY = 0;
 var safe = [0.0, 0.15, 0.55, 0.30];
 
+/* Page entry (motion-polish-v1, step 7): u_alpha ramps from about 0.35 to 1
+ * over the `settle` preset on first paint, composited with the Stage's own
+ * cross-fade `alpha` rather than replacing it — nothing in the shader
+ * changes. `draw()` is only ever called in 'full' mode (reduced motion uses
+ * drawStill(), which hardcodes alpha 1 and never reaches this), so a visitor
+ * who asked for less motion never sees a ramp at all — final at first paint,
+ * exactly like every other reduced-motion path on this page. */
+var ENTRY_KEY = 'page-entry-northlight';
+var entrySeeded = false;
+
 function defines(c) {
   return [
     '#define LAYERS ' + c.LAYERS,
@@ -175,7 +185,18 @@ var act = {
     var M = window.NB_MOTION;
     var cx = 0.5, cy = 0.5, cs = 0;
     if (M && cfg.LENS) { cx = M.cursor.sx; cy = 1 - M.cursor.sy; cs = M.cursor.speed; }
-    submit(ctx, alpha, time, cx, cy, cs, energy, localP, localP);
+
+    var entry = 1;
+    if (M && M.spring) {
+      if (!entrySeeded) {
+        M.spring(ENTRY_KEY, 1, 'settle');
+        var s = M.springs.get(ENTRY_KEY);
+        if (s) s.value = 0.35; // starting point of the ramp, not the resting one
+        entrySeeded = true;
+      }
+      entry = M.spring(ENTRY_KEY, 1, 'settle');
+    }
+    submit(ctx, alpha * entry, time, cx, cy, cs, energy, localP, localP);
   },
 
   drawStill: function (ctx) {

@@ -12,9 +12,10 @@
   This page exists because "send a request into the abyss" is how every other
   small-studio site ends, and it is why people don't believe anything will
   happen. Here they see the thing they are buying, what it costs, what it
-  does not include, and what happens next — then they pay, on Stripe's own
-  hosted page, and get a receipt. Nothing is a claim: the totals are computed
-  from the same table the server charges from.
+  does not include, and what happens next. Stripe is not wired up yet: this
+  captures the order and emails a secure payment link within the business
+  hour, honestly labelled as such. Nothing is a claim: the totals are
+  computed from the same table the server charges from.
 
   The add-on is offered here rather than as a fourth price card, because this
   is the moment someone is actually deciding. Saying no costs nothing: it is
@@ -85,14 +86,14 @@
 
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="clean.html">Northbound Studio</a>
+    <a class="brand" href="/">Northbound Studio</a>
     <a class="phone-link" href="tel:+14705738908">470-573-8908</a>
   </div>
 </header>
 
 <main>
   <div class="wrap">
-    <a class="back" href="clean.html#packages">← Back to pricing</a>
+    <a class="back" href="/#packages">← Back to pricing</a>
     <p class="step">Step 1 of 2 · your order</p>
     <h1>Cheap and Clean</h1>
 
@@ -141,8 +142,8 @@
         <p class="field"><label for="f-email">Email for the receipt</label><input id="f-email" name="email" type="email" autocomplete="email" required></p>
         <p class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
         <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
-        <button class="pay" type="submit">Continue to payment</button>
-        <p class="reassure">Card details are handled by <strong>Stripe</strong> on their own page — they never touch this site. You'll get a receipt by email, and we'll be in touch within one business day to start your build.</p>
+        <button class="pay" type="submit">Place order</button>
+        <p class="reassure">No card details are entered on this site. We'll email a secure payment link within one business hour — nothing is charged until you pay it.</p>
       </div>
     </form>
   </div>

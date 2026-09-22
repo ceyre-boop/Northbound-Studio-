@@ -1,175 +1,91 @@
-# motion-polish-v1 — scroll feel, entrances, hover weight
+# Five looks — a repeatable spec-site kit
 
 ## Context
 
-The site is live and correct after polish-v1. It still feels cheap in motion:
-native scroll, opacity fades, flat hovers, and a page that just appears. This
-pass adds the motion layer (Lenis scroll, spring entrances, weighted hovers, a
-page entry) with no new sections and no new WebGL acts. Budget: **+40 KB gzipped
-JS maximum**, measured before and after.
+Every prospect needs a site they can look at before they'll buy. Doing that by
+hand each time is the bottleneck, and the flagship site (WebGL, Lenis, a ship
+script, perf gates) is the wrong thing to copy: too much machinery for a
+one-page spec build. This is the opposite — five plain versions of the
+Northbound page, same words, five looks, each one file with no build step, no
+dependencies and no JavaScript. Pick a look, swap the client's details, send a
+link. Then we decide how to price the effort.
 
-What exploration found, which shapes the plan:
-- **polish-v1 is not shipped yet.** Its last test run and the review were still
-  running when plan mode started. It goes out first (step 0), and
-  motion-polish-v1 branches from the shipped `main`.
-- **Item 2 is mostly true already.** `js/stage/stage.js` imports acts II–IV
-  lazily at a 1.2-screen scroll margin (`WARM_SCREENS`), draws only live acts,
-  and tears down cold ones. Only Northlight is eager. I measure before touching
-  anything and report what is actually compiling before first paint.
-- **Two things you referenced don't exist on this lineage.** The sticky "Get a
-  quote" button and the package CTAs were in sellable-v1 only. I port both (markup
-  plus the prefill/submit parts of sellable-v1's `js/quote.js`) because items 4d/4e
-  depend on them. They're UI elements, not new sections. Say so if you want them
-  left out.
-- **The magnetic CTAs** are in history, not on main: `js/interact.js` at `1bc3cb1`
-  (8.6 KB raw). I port them onto the current `NB_MOTION` spring API.
-- `js/motion.js` already owns the page's single rAF loop and the spring
-  integrator (k, d, fixed 120 Hz sub-steps; no mass yet). The existing reveal is
-  an IntersectionObserver plus CSS opacity transitions (`stage.css:186-211`,
-  driven from `js/panels.js`). It gets replaced.
+Found before planning, and it changes the shape:
 
-## Step 0 — ship polish-v1 (already requested)
+- **The generator already exists.** `~/northbound-outreach` renders
+  `templates/preview.html` per lead into `previews/<id>/index.html`, driven by
+  `{{NAME}} {{TRADE}} {{CITY}} {{PHONE}} {{PHONE_TEL}} {{HEADLINE}}
+  {{SERVICES_LIST}} {{RATING_BLOCK}} {{YEAR}}`, with 19 client previews already
+  built. Five looks are five more templates in that same pipeline — not a new
+  project. Reuse `renderLead()` (`src/preview.ts:32`) and `data/leads.schema.md`.
+- That repo's own rule is "Bun + TypeScript, no external dependencies". The
+  looks keep it: no fonts fetched at runtime unless a look calls for one, no
+  framework, no build.
 
-Wait for the final test run and the review. Fix any blocker. Merge `polish-v1` →
-`main`, push, `bun run ship`. Then confirm on **northbound-dev.com** (headless
-Chrome, not the preview) that the perf section renders real numbers and both
-JSON codeCommits match. Report that before starting motion work.
+## The five looks
 
-## Step 1 — baseline (before any motion code)
+Same sections, same order, same copy, five visual directions. One
+self-contained HTML file each (`<style>` inline, no JS), under ~30 KB:
 
-`git checkout -b motion-polish-v1` from shipped `main`. Extend `scripts/perf.mjs`
-with two **reported** metrics (not gates) and commit them alone first, so before
-and after use the same harness:
-- **TTI**: FCP, then the start of the first 5 s window with no long task, at 4×
-  CPU, 390×844, regular 4G (PerformanceObserver `longtask` plus `paint`).
-- **Long tasks during a full-page scroll**: count and total ms while a scripted
-  wheel scroll runs from hero to contact at 4× CPU.
-- Also log **which WebGL programs compile before first paint** (init script
-  wraps `gl.linkProgram`, timestamped against FCP).
-Run it against the local gzip server and save the table as the "before" numbers.
+| | Direction |
+|---|---|
+| `01-clean` | White, generous space, one accent. The safe one that never loses a deal. |
+| `02-dark` | Near-black, single bright accent, big buttons. Closest to Northbound's own site. |
+| `03-editorial` | Type-led: huge headline, rules and columns, almost no colour. |
+| `04-photo` | Full-bleed photo hero with the text over it; the rest quiet. |
+| `05-industrial` | Boxy, high-contrast, mono labels, visible grid. Reads as trades. |
 
-## Step 2 — one spring config
+Sections in every look: header with tap-to-call · hero (headline, one line, Call
++ Get a quote) · services · three reasons · quote form · footer with phone, city
+and year. Mobile first, 44px targets, no sideways scroll at 390px.
 
-`js/springs.js` is the only place numbers live. It holds a few named presets,
-each with `{ stiffness, damping, mass }`: `settle` (entrances), `lift` (cards),
-`press`, `magnet`, `ui` (labels, sticky, form states).
-- `js/motion.js`: the integrator gains mass (`a = f / m`). `spring()` takes a
-  preset name instead of raw k/d. Existing callers are migrated to presets.
-- CSS gets the same springs. At boot, each preset is sampled into a CSS
-  `linear()` easing plus its settle duration and set as `--spring-<name>` /
-  `--spring-<name>-ms` on `:root`. CSS transitions (underlines, labels) then run
-  the same physics with no per-frame JS. Fallback is a `cubic-bezier`.
-- The offerings rail's drag and throw physics is a simulation with its own model
-  and stays as is. Every other DOM spring comes from this file.
+## Files
 
-## Step 3 — scroll feel (Lenis)
+- `templates/looks/0X-<name>.html` — the five, same token set as `preview.html`.
+- `data/self.json` — Northbound as a lead record (name, "web design", Grand
+  Ledge, 470-573-8908, services from the twelve offerings) so the five render
+  with our own copy first. **No rating, no review count, no invented numbers** —
+  `{{RATING_BLOCK}}` renders empty when the data isn't there.
+- `src/looks.ts` — `bun run looks --lead self|<lead-id>` renders all five to
+  `looks/<lead>/0X-<name>/index.html` plus a chooser page listing them.
+  Token rendering moves from `src/preview.ts` into `src/lib.ts` and both callers
+  use it (one renderer, not two).
+- `src/looks.ts --serve` (`bun run looks:serve`) — one static server on :8200,
+  prints the five URLs and the chooser.
+- `README.md` — a "Five looks" section: render, serve, pick, ship to a client.
 
-- `bun add lenis`, vendor `node_modules/lenis/dist/lenis.mjs` →
-  `js/vendor/lenis.mjs` (no build step, no CDN). About 4–5 KB gzipped.
-- `js/scroll.js` (module) constructs Lenis with `autoRaf: false`, `smoothWheel`,
-  lerp-weighted inertia, **no snap**, and `syncTouch: false` so phones keep
-  native touch scroll (no scroll-jacking).
-- One loop: `motion.js` gets a pre-frame hook, and Lenis's `raf(now)` runs there
-  before the stage and springs read `scrollY` in the same frame. No second rAF.
-- `prefers-reduced-motion`: Lenis is never constructed.
-- Keyboard scrolling stays native. Anchor links go through `lenis.scrollTo`,
-  then focus moves to the target, so the skip link still lands focus. Remove
-  `html { scroll-behavior: smooth }` while Lenis runs (the two conflict).
-- `.offer-pin` (sticky) and the stage's scroll windows keep working because
-  Lenis still scrolls the real window.
+## The skill
 
-## Step 4 — load cost
+`~/.claude/skills/NorthboundSpec/SKILL.md`, so this is one command next time and
+the rules don't have to be re-said. It captures:
 
-Measure first, then act on what the data shows:
-- The warm trigger for acts II–IV becomes an **IntersectionObserver per act
-  section, `rootMargin` one viewport**, replacing the scroll-progress margin for
-  import and compile. Scroll windows still decide live and draw.
-- Verify that an off-screen act does zero per-frame work (no draw, no uniform
-  writes, no FBO ping-pong). Anything that still ticks gets gated.
-- Report TTI before and after, and which programs compile before first paint.
+- **The process:** render → serve → look at all five at 390px and desktop →
+  pick → swap in the client's details → screenshot → send.
+- **The standing rules you've set**, in your words: sell the machine, not the
+  website; plain words a contractor understands; the phone number is on every
+  page and taps to call on mobile; mobile at 390px is the thing that must work;
+  nothing unfinished ships, because unfinished reads as broken; no number,
+  rating or claim that didn't happen; the form must actually reach an inbox and
+  auto-reply before it counts as done; preview first, you merge; production only
+  through `bun run ship`; spec sites stay back-to-basics — no WebGL, no smooth
+  scroll, no build step.
+- **The prices** (Beacon $3,500 · Engine $8,500 · Bearing $600/mo) as the
+  current floor, marked as something we revisit, since how we sell this effort
+  is still open.
+- How to add a sixth look, and how to hand one to a client build.
 
-## Step 5 — entrances (`js/entrance.js`, replaces the panels.js reveal)
+## Verification
 
-- **Scroll-linked:** each block's progress is how far its top has entered the
-  viewport (about a third of a screen from 0 to 1). It **latches at its
-  maximum**, so scroll-back never re-triggers. The latched value is the spring
-  target, using the `settle` preset.
-- **Headings:** split into words, each wrapped in a line mask. Words rise out of
-  the mask with a small upward overshoot, staggered along one shared delay curve
-  expressed in scroll distance, not time. Screen readers still read one heading.
-- **Body copy** follows a beat behind its heading on the same curve.
-- **Package cards, rules, and the no-GL offer list** stagger along the same
-  curve, never all at once. Each gets its own overshoot from the preset's
-  natural response, not hand-tuned numbers. The GL rail keeps its own procession.
-- **Nothing fades:** transforms and masks only, no opacity-only reveals.
-- **CLS stays 0:** only elements off-screen at setup are primed, as today.
-  Anything visible at first paint is left untouched.
+- `bun run looks --lead self && bun run looks:serve` → five URLs load.
+- Each look, checked and screenshotted at 390×844 and 1280×800: no sideways
+  scroll, the phone is a `tel:` link, the form is present, the page works with
+  JavaScript disabled (there is none), total weight under 60 KB.
+- `bun run looks --lead <a real lead id>` renders the same five with that
+  business's name, trade, city and phone, proving the client path.
+- Screenshots land in `looks/<lead>/shots/` and are copied to `~/Downloads`.
 
-## Step 6 — hover and UI motion (`js/interact.js`, ported and extended)
+## Also still open (not part of this)
 
-- **Package cards:** a lift spring; a light that follows the cursor across the
-  card face (`--mx/--my` smoothed through a spring, drawn as a radial gradient);
-  and the border brightens with cursor **proximity** before the pointer enters
-  (`--near` from `NB_MOTION.cursor` against the card rects, computed only while
-  the cards are on screen).
-- **Nav and inline links:** the underline draws from whichever side the pointer
-  entered (`transform-origin` set on `pointerenter`), timed with the `ui`
-  spring's `linear()`.
-- **Magnetic spring** on `.btn`, the package CTAs, the sticky CTA and the form
-  submit.
-- **Form:** labels move on focus with the `ui` spring. Submit goes through fetch
-  (JS path; the no-JS native post still works). Error and success states animate
-  through the same springs: invalid fields get a spring nudge plus an inline
-  message, and success replaces the form with a settling confirmation.
-- **Sticky "Get a quote"** (ported): scales and settles whenever scroll direction
-  flips. Hidden while `#contact` is on screen.
-- **Touch:** every hover effect has a press equivalent (`pointerdown` press
-  spring; the card light sits at the touch point while pressed). Nothing is
-  hover-only.
-
-## Step 7 — page entry
-
-- Headline and Northlight resolve together over about 600 ms. **The text paints
-  first, fully visible and in place (LCP unaffected).** The entry animates only
-  a small settle (transform and letter-spacing) after first paint, with no masks
-  on the hero. Northlight ramps its existing `u_alpha` from about 0.35 to 1 over
-  the same spring. Everything below follows on the stagger curve.
-- **Desktop keeps Buddy.** The tag sequence already *is* the headline's entry
-  there (he paints it on), so on desktop the settle applies to Northlight, the
-  lede and the CTAs, and Buddy's paint stays the headline's entrance. On phones
-  (no Buddy) the headline gets the 600 ms settle.
-- Reduced motion: no entry. Everything is final at first paint.
-
-## Guardrails
-
-- Gates unchanged: CLS 0, 60 fps at 4× CPU, no sideways scroll at 390 px, all
-  three fallbacks clean, Buddy suppressed under 640 px.
-- Budget: JS gzipped delta ≤ 40 KB (`jsBytes` from perf.mjs, before vs after).
-  Anything that costs more than it adds gets cut, and I'll list what was cut.
-- `js/motion.js` stays the single rAF. Springs sleep when settled: no per-frame
-  writes for anything at rest.
-
-## Tests
-
-Existing suites stay green. New `tests/motion.spec.ts`:
-- Exactly one rAF chain; Lenis absent under reduced motion.
-- Anchor, skip link and keyboard scroll still work.
-- Entrances latch, with no re-trigger on scroll-back.
-- No opacity-only reveals.
-- The hero headline is visible at first paint.
-- Every hover has a press equivalent.
-- Springs only come from the preset names in `js/springs.js`: a grep guard for
-  raw stiffness or damping literals outside it.
-- The sticky CTA and package CTAs prefill the form.
-- The 390 px overflow check.
-
-## Ship and deliver
-
-- Builder implements in steps 1→7 with a commit per step; a reviewer checks the
-  diff. Push the branch, `vercel deploy` → **preview URL** (you merge).
-- **Before/after perf table:** LCP ×2, CLS, fps median/min, **TTI**, **long
-  tasks during full-page scroll**, programs compiled before first paint, and JS
-  gzipped bytes with the delta. Same harness, same machine, `main` vs branch.
-- **10-second recording:** Playwright `recordVideo` at 1280×800 with
-  `?motion=full`, a real wheel-driven scroll from hero to contact (so Lenis
-  inertia shows), converted to mp4 with ffmpeg. Plus a 390 px still.
+`salvage-v1` (support exchange + the morph's spring) is built, rebased, tested
+and previewed at https://nb-descent-lcwswot57-taboost.vercel.app — waiting on
+your word to merge and ship.

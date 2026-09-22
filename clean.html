@@ -82,6 +82,9 @@
   .pkg li { margin-bottom: 6px; }
   .pkg .btn { margin-top: auto; }
   .note { color: var(--ink-soft); font-size: 14px; max-width: 58ch; margin: 24px 0 0; }
+  .keeping { margin-top: 28px; padding: 24px; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
+  .keeping h3 { font-family: var(--display); font-size: 20px; margin: 0 0 8px; }
+  .keeping p { margin: 0; color: var(--ink-soft); max-width: 66ch; }
 
   .quote-form { display: grid; gap: 14px; max-width: 520px; }
   .field { display: grid; gap: 6px; margin: 0; }
@@ -150,6 +153,18 @@
     <p class="section-lede">Published prices are a floor, not a ceiling. What a build is worth follows from what one new customer is worth to you.</p>
     <ol class="pkg-grid">
       <li class="pkg">
+        <h3>Cheap and Clean</h3>
+        <p class="price">$600</p>
+        <p class="tag">One page, your brand, live. It puts you on the board.</p>
+        <ul>
+          <li>One of five designs, built around your business</li>
+          <li>Your logo, colours and photos</li>
+          <li>Your phone number, tappable, and a form that reaches you</li>
+          <li>Hosted free, forever</li>
+        </ul>
+        <a class="btn btn-primary" href="checkout.html?buy=clean">Buy it now</a>
+      </li>
+      <li class="pkg">
         <h3>Beacon</h3>
         <p class="price">$3,500</p>
         <p class="tag">A site that makes you look real.</p>
@@ -173,19 +188,19 @@
         </ul>
         <a class="btn btn-primary" href="#quote">Get a quote for Engine</a>
       </li>
-      <li class="pkg">
-        <h3>Bearing</h3>
-        <p class="price">$600 <span>per month</span></p>
-        <p class="tag">Hosting, edits, automations, monthly report.</p>
-        <ul>
-          <li>Hosting, monitoring, backups, unlimited small edits</li>
-          <li>Follow-up, reminders and reviews kept running</li>
-          <li>Monthly report on calls and bookings</li>
-        </ul>
-        <a class="btn btn-secondary" href="#quote">Get a quote for Bearing</a>
-      </li>
     </ol>
-    <p class="note">AI intake is an add-on to Engine, quoted per job.</p>
+    <!--
+      Bearing is not a fourth card any more. It is offered at checkout, where
+      someone is already deciding, and it stays available afterwards from
+      Your account — because the person who says "I don't need that yet" in
+      week one is often the person who needs it in month three, and they
+      should not have to email anyone to find it.
+    -->
+    <div class="keeping" id="bearing">
+      <h3>Keeping it running</h3>
+      <p>Every build can carry <strong>Bearing — $600/mo</strong>: hosting, monitoring, backups, unlimited small edits, the automations kept running, and a monthly report on calls and bookings. You add it at checkout, or any time afterwards from <a href="account.html">your account</a>.</p>
+      <p class="note">Cheap and Clean is hosted free and stays exactly as built. Changes, fixes and a human reply are $49/mo, added the same way. AI intake is an add-on to Engine, quoted per job.</p>
+    </div>
   </div>
 </section>
 

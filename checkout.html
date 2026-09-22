@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Checkout — Northbound Studio</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<!--
+  THE COUNTER.
+
+  This page exists because "send a request into the abyss" is how every other
+  small-studio site ends, and it is why people don't believe anything will
+  happen. Here they see the thing they are buying, what it costs, what it
+  does not include, and what happens next — then they pay, on Stripe's own
+  hosted page, and get a receipt. Nothing is a claim: the totals are computed
+  from the same table the server charges from.
+
+  The add-on is offered here rather than as a fourth price card, because this
+  is the moment someone is actually deciding. Saying no costs nothing: it is
+  in their account afterwards, one click, forever.
+
+  JavaScript only updates the running total. With it off, the form still
+  posts every choice to /api/checkout and the server prices it.
+-->
+<style>
+  @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
+  @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('fonts/jetbrains-mono.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  :root {
+    --ink: #0E1512; --ink-soft: #55635C; --line: #E4EAE6; --bg: #FFFFFF;
+    --panel: #F4F8F6; --accent: #0E6F5C; --accent-dark: #0A5445;
+    --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
+    --body: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --gutter: clamp(20px, 5vw, 40px);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--panel); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); }
+  .site-header { background: #fff; border-bottom: 1px solid var(--line); }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; max-width: 1080px; }
+  .brand { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -0.02em; text-decoration: none; }
+  .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
+
+  main { padding: clamp(32px, 6vw, 64px) 0 80px; }
+  h1 { font-family: var(--display); font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -0.02em; margin: 0 0 6px; }
+  .step { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 18px; }
+  .line { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
+  .line h2 { font-family: var(--display); font-size: 22px; margin: 0; }
+  .line .amt { font-family: var(--display); font-size: 22px; white-space: nowrap; }
+  .line .amt span { font-family: var(--body); font-size: 13px; color: var(--ink-soft); }
+  .desc { color: var(--ink-soft); margin: 6px 0 0; }
+  .includes { margin: 14px 0 0; padding-left: 1.1em; color: var(--ink-soft); font-size: 15px; }
+  .includes li { margin-bottom: 5px; }
+
+  .addon { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border: 1px solid var(--line); border-radius: 12px; margin-top: 14px; background: var(--panel); cursor: pointer; }
+  .addon input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+  .addon .t { font-weight: 700; display: block; }
+  .addon .d { color: var(--ink-soft); font-size: 15px; }
+  .addon .p { font-family: var(--display); white-space: nowrap; margin-left: auto; }
+
+  .totals { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 16px; }
+  .totals .row { display: flex; justify-content: space-between; color: var(--ink-soft); }
+  .totals .row.total { color: var(--ink); font-weight: 700; font-size: 19px; margin-top: 8px; }
+  .totals .row.total .v { font-family: var(--display); font-size: 24px; }
+  .then { font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
+
+  .field { display: grid; gap: 6px; margin: 0 0 14px; }
+  .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+  .field input, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; }
+  .field input:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .pay { width: 100%; min-height: 54px; border: none; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer; }
+  .pay:hover { background: var(--accent-dark); }
+  .reassure { font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
+  .reassure strong { color: var(--ink); }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .back { display: inline-block; margin-bottom: 18px; font-size: 14px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="clean.html">Northbound Studio</a>
+    <a class="phone-link" href="tel:+14705738908">470-573-8908</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <a class="back" href="clean.html#packages">← Back to pricing</a>
+    <p class="step">Step 1 of 2 · your order</p>
+    <h1>Cheap and Clean</h1>
+
+    <form class="card" method="post" action="/api/checkout" id="order">
+      <input type="hidden" name="buy" value="clean">
+
+      <div class="line">
+        <h2>Cheap and Clean</h2>
+        <p class="amt">$600 <span>once</span></p>
+      </div>
+      <p class="desc">One page, your brand, live. It puts you on the board.</p>
+      <ul class="includes">
+        <li>One of five designs, built around your business</li>
+        <li>Your logo, colours and photos</li>
+        <li>Your phone number, tappable, and a form that reaches you</li>
+        <li>Hosted free, forever — it stays live whether or not you add anything below</li>
+      </ul>
+
+      <label class="addon">
+        <input type="checkbox" name="care" value="49" data-price="49">
+        <span>
+          <span class="t">Changes and support — $49/mo</span>
+          <span class="d">Text or email us and a person answers. Edits, fixes, new photos, new sections. Without it the site stays exactly as built and replies are automated. Cancel any time.</span>
+        </span>
+        <span class="p">$49<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
+      </label>
+
+      <label class="addon">
+        <input type="checkbox" name="bearing" value="600" data-price="600">
+        <span>
+          <span class="t">Bearing — $600/mo</span>
+          <span class="d">The full care plan: hosting, monitoring, backups, unlimited small edits, your automations kept running, and a monthly report on where the calls came from. Built for Engine sites; available here if you want it. Cancel any time.</span>
+        </span>
+        <span class="p">$600<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
+      </label>
+
+      <div class="totals">
+        <div class="row"><span>Due today</span><span class="v" id="due-today">$600.00</span></div>
+        <div class="row total"><span>Total</span><span class="v" id="total">$600.00</span></div>
+        <p class="then" id="then">No monthly charges. Add support any time from your account.</p>
+      </div>
+
+      <div style="margin-top:24px">
+        <p class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required></p>
+        <p class="field"><label for="f-business">Business name</label><input id="f-business" name="business" type="text" autocomplete="organization" required></p>
+        <p class="field"><label for="f-email">Email for the receipt</label><input id="f-email" name="email" type="email" autocomplete="email" required></p>
+        <p class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
+        <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
+        <button class="pay" type="submit">Continue to payment</button>
+        <p class="reassure">Card details are handled by <strong>Stripe</strong> on their own page — they never touch this site. You'll get a receipt by email, and we'll be in touch within one business day to start your build.</p>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+  /* The total shown here is a convenience only. The server prices the order
+     from its own table; nothing a visitor can edit decides what they pay. */
+  (function () {
+    var form = document.getElementById('order');
+    if (!form) return;
+    var money = function (n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    var render = function () {
+      var monthly = 0;
+      form.querySelectorAll('input[type=checkbox][data-price]').forEach(function (box) {
+        if (box.checked) monthly += Number(box.getAttribute('data-price'));
+      });
+      document.getElementById('due-today').textContent = money(600 + monthly);
+      document.getElementById('total').textContent = money(600 + monthly);
+      document.getElementById('then').textContent = monthly
+        ? 'Then ' + money(monthly) + ' a month, starting next month. Cancel any time from your account.'
+        : 'No monthly charges. Add support any time from your account.';
+    };
+    form.addEventListener('change', render);
+    render();
+  })();
+</script>
+
+</body>
+</html>

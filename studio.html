@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en" data-gl="off" data-motion="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Northbound Studio — we build the machine that brings customers in</title>
+<meta name="description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
+<link rel="canonical" href="https://northbound-dev.com/studio.html">
+<meta property="og:title" content="Northbound Studio">
+<meta property="og:description" content="We build the machine that brings customers in. The website is the front of it.">
+<meta property="og:url" content="https://northbound-dev.com/studio.html">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#05090C">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="brand/favicon.svg">
+<meta property="og:image" content="https://northbound-dev.com/brand/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Northbound Studio — we build the machine that brings customers in">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Northbound Studio">
+<meta name="twitter:description" content="We build the machine that brings customers in. The website is the front of it.">
+<meta name="twitter:image" content="https://northbound-dev.com/brand/og.png">
+
+<link rel="preload" href="fonts/syne.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/stage.css">
+<link rel="stylesheet" href="css/act-northlight.css">
+<link rel="stylesheet" href="css/act-drift.css">
+<link rel="stylesheet" href="css/act-solution.css">
+<link rel="stylesheet" href="css/act-offerings.css">
+<link rel="stylesheet" href="css/mascot.css">
+<link rel="stylesheet" href="css/hero-stencil.css">
+<link rel="stylesheet" href="css/hero-tag.css">
+<style>
+/* The veil. First paint shows this, not a half-loaded hero: on a slow
+   connection the page used to assemble itself in public — fonts swapping
+   under the headline, images popping, the canvas blinking in — and every
+   one of those frames reads as jank. The veil holds a quiet loading frame
+   until the critical assets are ready (or a hard cap fires), then hands off.
+   Inline, because a separate stylesheet would be one more fetch on the
+   critical path for the first thing anyone sees. position:fixed, so it can
+   never move layout and the CLS gate stays at zero. */
+#nb-veil{position:fixed;inset:0;z-index:200;background:#05090C;display:flex;align-items:center;justify-content:center}
+#nb-veil.is-done{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s ease,visibility 0s .45s}
+.nb-veil__inner{text-align:center;padding:0 24px}
+.nb-veil__word{margin:0 0 20px;color:#E9F2EF;font:500 11px/1.6 system-ui,-apple-system,sans-serif;letter-spacing:.42em;text-transform:uppercase;opacity:.85}
+.nb-veil__track{width:132px;height:2px;margin:0 auto;overflow:hidden;border-radius:2px;background:rgba(233,242,239,.14)}
+.nb-veil__fill{height:100%;width:0%;background:#4FD8C4}
+.nb-veil__pct{margin:14px 0 0;color:rgba(233,242,239,.5);font:400 11px/1 system-ui,-apple-system,sans-serif;letter-spacing:.18em;font-variant-numeric:tabular-nums}
+/* Dead-man's switch: if js/boot.js never runs, the veil lifts on its own
+   rather than trapping the visitor. The script cancels this on start. */
+@keyframes nb-veil-failsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
+#nb-veil{animation:nb-veil-failsafe .6s ease 5.5s forwards}
+/* Reduced motion: no veil at all — content as fast as possible. The tiny
+   script below adds this class before first paint. */
+.nb-no-veil #nb-veil{display:none!important}
+</style>
+<script>if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.className+=' nb-no-veil';}</script>
+<noscript><style>#nb-veil{display:none!important}</style></noscript>
+</head>
+<body>
+
+<div id="nb-veil" aria-hidden="true">
+  <div class="nb-veil__inner">
+    <p class="nb-veil__word">Northbound Studio</p>
+    <div class="nb-veil__track"><div class="nb-veil__fill" id="nb-veil-fill"></div></div>
+    <p class="nb-veil__pct"><span id="nb-veil-num">00</span>%</p>
+  </div>
+</div>
+
+<!--
+  The canvas is the treatment. This document is the site.
+
+  Everything below reads, links and submits with JavaScript disabled and with
+  WebGL unavailable. That is not a courtesy to a minority — it is the only
+  honest way to build a page whose whole argument is that the engineering is
+  real. A site that becomes a blank screen when one shader fails to compile has
+  not proved anything about the people who made it.
+
+  This file is FROZEN during the parallel build. Four departments each own a
+  js/acts/*.js and a css/act-*.css; none of them edits this document. An act
+  may only touch the DOM inside its own [data-act] subtree, at runtime, and
+  only in ways that cannot move layout — the CLS gate is exactly zero.
+-->
+
+<!--
+  The hero headline's paint, as a filter graph.
+
+  It lives in the document rather than a stylesheet because CSS can only
+  reference an SVG filter by fragment id, and a filter in an external file is a
+  separate fetch on the critical path for the first thing anyone reads.
+
+  Two effects in one pass. The DRIPS are built by smearing the letterforms'
+  alpha straight down, offsetting it, breaking it up horizontally with noise so
+  it separates into individual runs, then hardening it with an alpha-contrast
+  matrix — the standard goo trick — so the smear stops being a blur and becomes
+  wet paint with an edge. They composite UNDER the type, so the letters stay
+  crisp and the paint runs out from behind them. The SPRAY is displacement only,
+  no blur: the letterform keeps its weight and only its boundary goes ragged,
+  the way an aerosol bites an edge without softening the mask.
+
+  The filter region runs well past the bottom of the box because a drip that
+  gets clipped at the baseline reads as a rendering bug, not as paint.
+-->
+<svg width="0" height="0" aria-hidden="true" focusable="false"
+     style="position:absolute;pointer-events:none">
+  <filter id="nb-spray" x="-14%" y="-10%" width="128%" height="210%"
+          color-interpolation-filters="sRGB">
+
+    <!-- 1. ERODE FIRST. This is the whole trick. Smearing the letterforms
+            straight down gives wide chunky blobs that read as a shadow behind
+            the word, not as paint running off it. Eroding horizontally first
+            throws away everything but the thickest vertical parts of each
+            stroke, so what survives to run is already narrow. -->
+    <feMorphology in="SourceAlpha" operator="erode" radius="9 0" result="spine"/>
+
+    <!-- 2. pull those narrow columns a long way down -->
+    <feGaussianBlur in="spine" stdDeviation="0 20" result="smear"/>
+    <feOffset in="smear" dy="30" result="hang"/>
+
+    <!-- 3. vary which columns actually run, and how far. Low frequency in x so
+            neighbouring letters do not all drip identically. -->
+    <feTurbulence type="fractalNoise" baseFrequency="0.022 0.003"
+                  numOctaves="2" seed="17" result="runNoise"/>
+    <feDisplacementMap in="hang" in2="runNoise" scale="46"
+                       xChannelSelector="R" yChannelSelector="G" result="broken"/>
+
+    <!-- 4. harden hard. A high threshold is what turns a soft smear into a wet
+            edge with a bead on the end, and it also thins the field down to a
+            handful of runs rather than one under every letter. -->
+    <feColorMatrix in="broken" type="matrix" result="goo"
+      values="0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 42 -19"/>
+    <feFlood flood-color="#E8EFF2" flood-opacity="0.95" result="paint"/>
+    <feComposite in="paint" in2="goo" operator="in" result="drips"/>
+
+    <!-- 5. the sprayed edge on the type itself: displacement only, no blur, so
+            the letterform keeps its weight and only its boundary goes ragged -->
+    <feTurbulence type="fractalNoise" baseFrequency="0.66 0.88"
+                  numOctaves="3" seed="7" result="grain"/>
+    <feDisplacementMap in="SourceGraphic" in2="grain" scale="3.4"
+                       xChannelSelector="R" yChannelSelector="G" result="sprayed"/>
+
+    <!-- 6. paint runs out from behind the letters, never over them -->
+    <feMerge>
+      <feMergeNode in="drips"/>
+      <feMergeNode in="sprayed"/>
+    </feMerge>
+  </filter>
+</svg>
+
+<canvas id="nb-stage" aria-hidden="true"></canvas>
+
+<a class="skip" href="#work">Skip to the work</a>
+
+<header class="masthead">
+  <a class="wordmark" href="/" aria-label="Northbound Studio">
+    <img class="wordmark__mark" src="brand/logo.svg" alt="" width="28" height="28" decoding="async">
+    <img class="wordmark__type" src="brand/wordmark.svg" alt="Northbound" width="565" height="89" decoding="async">
+  </a>
+  <a class="tel" href="tel:+14705738908">470-573-8908</a>
+  <nav aria-label="Sections">
+    <a href="/">Home</a>
+    <a href="#packages">Pricing</a>
+    <a href="#work">Work</a>
+    <a href="#contact">Start</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ================================================================ ACT I -->
+  <section class="act act--arrival" data-act="northlight" aria-labelledby="arrival-h">
+    <div class="act__ink">
+      <p class="eyebrow">Grand Ledge, Michigan</p>
+      <h1 id="arrival-h" class="hero-spray">We build the machine that&nbsp;brings customers in.</h1>
+      <p class="lede">
+        The website is the front of it. The booking, the follow-up, the payments
+        and the dashboard behind it are the part that pays for itself.
+      </p>
+      <p class="byline">
+        Design, engineering and brand under one roof. We built everything on
+        this page, and every number on it measured itself.
+      </p>
+      <p class="cta-row">
+        <a class="btn btn--go" href="#contact">Start a project</a>
+        <a class="btn" href="#work">See what is real</a>
+      </p>
+    </div>
+    <p class="scroll-hint" aria-hidden="true">Scroll</p>
+  </section>
+
+  <!-- =============================================================== ACT II -->
+  <section class="act act--drift" data-act="drift" aria-labelledby="drift-h">
+    <div class="act__ink">
+      <p class="eyebrow">The market</p>
+      <h2 id="drift-h">Most local websites just sit there.</h2>
+      <p class="lede">
+        They load slowly, can't take a booking, and forget the customer the
+        moment they leave.
+      </p>
+      <p>
+        That is the whole opportunity, and it is not a hard one to see. What is
+        hard is building the part that comes after the page — the thing that
+        answers at nine on a Sunday, quotes the job, takes the deposit and
+        remembers to ask for the review. That is what we sell. The site is how
+        you get to it.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================== ACT III -->
+  <section class="act act--offer" id="packages" data-act="solution" aria-labelledby="offer-h">
+    <div class="act__ink">
+      <p class="eyebrow">The offer</p>
+      <h2 id="offer-h">Three ways in.</h2>
+
+      <ol class="packages">
+        <li class="pkg">
+          <h3>Beacon</h3>
+          <p class="pkg__price">$3,500</p>
+          <p class="pkg__tag">For the business that just needs to look real.</p>
+          <ul>
+            <li>Custom-built site, up to five pages, no template</li>
+            <li>Brand identity: logo, type, colour</li>
+            <li>Copywriting, photography direction, local SEO</li>
+            <li>Two weeks, 50% up front</li>
+          </ul>
+          <p><a class="btn pkg__cta" href="#contact" data-package="Beacon package">Get a quote for Beacon</a></p>
+        </li>
+        <li class="pkg pkg--lead">
+          <h3>Engine</h3>
+          <p class="pkg__price">$8,500</p>
+          <p class="pkg__tag">The site plus the machine behind it.</p>
+          <ul>
+            <li>Everything in Beacon</li>
+            <li>Booking or quote flow, payments, lead capture</li>
+            <li>Automated follow-up, reminders, review requests</li>
+            <li>Owner dashboard: where the calls came from, what they were worth</li>
+            <li>Three to four weeks, 50% up front</li>
+          </ul>
+          <p><a class="btn btn--go pkg__cta" href="#contact" data-package="Engine package">Get a quote for Engine</a></p>
+        </li>
+        <li class="pkg">
+          <h3>Bearing</h3>
+          <p class="pkg__price">$600 <span>per month</span></p>
+          <p class="pkg__tag">Attached to every project. Never optional in the pitch.</p>
+          <ul>
+            <li>Hosting, monitoring, backups, unlimited small edits</li>
+            <li>Dashboard kept live, automations maintained and expanded</li>
+            <li>Monthly report on calls, bookings and revenue</li>
+            <li>Twelve-month term, billed monthly</li>
+          </ul>
+          <p><a class="btn pkg__cta" href="#contact" data-package="Bearing package">Get a quote for Bearing</a></p>
+        </li>
+      </ol>
+
+      <p class="note">
+        Published prices are a floor, not a ceiling. What a build is worth
+        follows from what one new customer is worth to you — not from how many
+        hours it takes us.
+      </p>
+    </div>
+  </section>
+
+  <!-- =============================================================== ACT IV -->
+  <!--
+    THE OFFERINGS PROCESSION.
+
+    All twelve offerings, with their full bodies, are in this document before a
+    single script runs. Nothing is fetched, nothing is templated, nothing is
+    inserted later. That is what keeps CLS at exactly zero — not a clever
+    reservation, but the absence of anything to reserve.
+
+    The section's height is fixed in css/stage.css and is the SAME in every
+    path: WebGL on, WebGL off, JavaScript off, reduced motion. It is never
+    computed by script. With GL running, .offer-pin goes sticky and the list
+    becomes a near-transparent accessibility layer while the canvas carries the
+    visual; with GL off the pin goes static and the same list is the section.
+    Switching between those two shifts nothing, which matters because data-gl
+    is set at DOMContentLoaded and can land after first paint.
+
+    data-offer is the contract with the physics module: state.panels[i].index
+    is this same integer, which is how a click on GL panel 7 finds offering 7
+    without either side owning a lookup table.
+  -->
+  <section class="act act--offer" id="offerings" data-act="offerings" aria-labelledby="offer-h">
+    <div class="offer-pin">
+      <div class="act__ink">
+        <p class="eyebrow">What we sell</p>
+        <h2 id="offer-h">Twelve things, and what each one does for you.</h2>
+        <p class="lede">
+          The website is the front of it. These are the parts behind it &mdash;
+          the ones that answer, quote, book, take the deposit and remember to
+          ask for the review. Scroll through them, or open any one.
+        </p>
+
+        <ol class="offer-list">
+          <li class="offer" data-offer="0" id="offer-01">
+            <p class="offer__n">01</p>
+            <h3><a href="#offer-01">A custom site</a></h3>
+            <p class="offer__owner">A site built for your business rather than adapted from someone else&rsquo;s, so it says what you do in the first five seconds.</p>
+            <p class="offer__meta"><span class="offer__pkg">Beacon</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="site" data-name="A custom site">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="1" id="offer-02">
+            <p class="offer__n">02</p>
+            <h3><a href="#offer-02">Brand identity</a></h3>
+            <p class="offer__owner">A logo, a typeface and a colour that work on a van, a business card and a phone screen without being redrawn each time.</p>
+            <p class="offer__meta"><span class="offer__pkg">Beacon</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="brand" data-name="Brand identity">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="2" id="offer-03">
+            <p class="offer__n">03</p>
+            <h3><a href="#offer-03">Booking flow</a></h3>
+            <p class="offer__owner">Customers pick a time themselves, at eleven at night, without anyone answering a phone.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="booking" data-name="Booking flow">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="3" id="offer-04">
+            <p class="offer__n">04</p>
+            <h3><a href="#offer-04">Quote flow</a></h3>
+            <p class="offer__owner">People tell you what the job is before you drive out to look at it, so you quote the ones worth quoting.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="quote" data-name="Quote flow">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="4" id="offer-05">
+            <p class="offer__n">05</p>
+            <h3><a href="#offer-05">Payments</a></h3>
+            <p class="offer__owner">Deposits land before the work starts, which is the rule that prevents most of the ways small projects go wrong.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="payments" data-name="Payments">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="5" id="offer-06">
+            <p class="offer__n">06</p>
+            <h3><a href="#offer-06">Lead capture</a></h3>
+            <p class="offer__owner">The people who almost called you leave a name instead of leaving.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="leads" data-name="Lead capture">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="6" id="offer-07">
+            <p class="offer__n">07</p>
+            <h3><a href="#offer-07">Automated follow-up</a></h3>
+            <p class="offer__owner">Every enquiry gets an answer within a minute, including the ones that arrive while you are on a roof.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span> <span class="offer__sep" aria-hidden="true">&middot;</span> <span class="offer__upkeep">kept running by Bearing</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="followup" data-name="Automated follow-up">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="7" id="offer-08">
+            <p class="offer__n">08</p>
+            <h3><a href="#offer-08">Reminders</a></h3>
+            <p class="offer__owner">Fewer no-shows, because the appointment reminds them and not you.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span> <span class="offer__sep" aria-hidden="true">&middot;</span> <span class="offer__upkeep">kept running by Bearing</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="reminders" data-name="Reminders">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="8" id="offer-09">
+            <p class="offer__n">09</p>
+            <h3><a href="#offer-09">Review requests</a></h3>
+            <p class="offer__owner">The review gets asked for at the one moment the customer is happiest, every time, without you remembering.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span> <span class="offer__sep" aria-hidden="true">&middot;</span> <span class="offer__upkeep">kept running by Bearing</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="reviews" data-name="Review requests">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="9" id="offer-10">
+            <p class="offer__n">10</p>
+            <h3><a href="#offer-10">Owner dashboard</a></h3>
+            <p class="offer__owner">One screen that says where the calls came from and what they were worth, so you stop guessing which advert works.</p>
+            <p class="offer__meta"><span class="offer__pkg">Engine</span> <span class="offer__sep" aria-hidden="true">&middot;</span> <span class="offer__upkeep">kept running by Bearing</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="dashboard" data-name="Owner dashboard">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="10" id="offer-11">
+            <p class="offer__n">11</p>
+            <h3><a href="#offer-11">Local SEO</a></h3>
+            <p class="offer__owner">You turn up when someone two towns over searches for what you do.</p>
+            <p class="offer__meta"><span class="offer__pkg">Beacon</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="seo" data-name="Local SEO">Add to my project</button></p>
+          </li>
+          <li class="offer" data-offer="11" id="offer-12">
+            <p class="offer__n">12</p>
+            <h3><a href="#offer-12">AI intake and auto-responder</a></h3>
+            <p class="offer__owner">Enquiries get read, sorted and answered in your voice before you have opened the laptop.</p>
+            <p class="offer__meta"><span class="offer__pkg offer__pkg--addon">Add-on &mdash; quoted per job</span></p>
+            <p class="offer__add"><button type="button" class="btn offer__addbtn" data-add="intake" data-name="AI intake and auto-responder">Add to my project</button></p>
+          </li>
+        </ol>
+
+        <div id="nb-mascot-mount" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== CLOSING -->
+  <section class="act act--close" id="contact" aria-labelledby="contact-h">
+    <div class="act__ink">
+      <p class="eyebrow">How we work</p>
+      <ul class="rules">
+        <li>50% up front, always. No deposit, no work.</li>
+        <li>Every proposal includes Bearing. It is part of the build, not an upsell.</li>
+        <li>Concept work is labelled as concept work. Every performance number is one we measured.</li>
+      </ul>
+
+      <!--
+        The work and the measurement, relocated.
+
+        The offerings procession took the section these used to live in, so
+        they moved here rather than off the site. They are the only two things
+        this studio has actually built and the only numbers on the page that
+        measured themselves; a section changing shape is not a reason to stop
+        saying either.
+      -->
+      <div class="closing-proof" id="work">
+        <h3 class="closing-proof__head">Two things we built. Open either one.</h3>
+        <p class="closing-proof__lede">
+          The front is the part you can see, and the front is the easy half.
+          What you are paying for is underneath it &mdash; the part that takes
+          the booking, checks the price, and keeps the lead when something
+          downstream breaks. Both of these are deployed and both of them run
+          that code. Click either one and use it.
+        </p>
+      <ul class="work-list">
+        <li class="work-card" data-work="atlas">
+          <div class="work-card__screen">
+            <div class="work-card__chrome" aria-hidden="true">
+              <span class="work-card__dot"></span>
+              <span class="work-card__dot"></span>
+              <span class="work-card__dot"></span>
+              <span class="work-card__url">northbound-dev.com/demos/atlas</span>
+            </div>
+            <img class="work-card__poster" src="posters/atlas.webp" alt="" width="1200" height="900" loading="lazy" decoding="async">
+          </div>
+          <div class="work-card__body">
+            <p class="work-card__kind">Concept build &middot; invented business</p>
+            <h3><a href="/demos/atlas">Ridgeline Roofing</a></h3>
+            <p class="work-card__job">A trades site built around one job: booking the call.</p>
+            <!--
+              Every line below is a claim about code in this repo, and each one
+              names where it lives. demos/atlas/src/pages/api/book.ts. If a line
+              here stops being true of that file, delete the line.
+            -->
+            <p class="work-card__behind-h">What is behind it</p>
+            <ul class="work-card__behind">
+              <li>Customers book the call on the site itself &mdash; it doesn&rsquo;t just open their email app.</li>
+              <li>The booking reaches you even if the email breaks. It&rsquo;s saved first, then sent.</li>
+              <li>Nobody can send a booking without a name and a number to call back.</li>
+            </ul>
+            <p class="work-card__tech">Online booking &middot; no lost leads</p>
+            <p class="work-card__open"><span>Open the build</span></p>
+          </div>
+        </li>
+        <li class="work-card" data-work="vector">
+          <div class="work-card__screen">
+            <div class="work-card__chrome" aria-hidden="true">
+              <span class="work-card__dot"></span>
+              <span class="work-card__dot"></span>
+              <span class="work-card__dot"></span>
+              <span class="work-card__url">northbound-dev.com/demos/vector</span>
+            </div>
+            <img class="work-card__poster" src="posters/vector.webp" alt="" width="1200" height="900" loading="lazy" decoding="async">
+          </div>
+          <div class="work-card__body">
+            <p class="work-card__kind">Concept build &middot; invented business</p>
+            <h3><a href="/demos/vector/">Marrow Coffee</a></h3>
+            <p class="work-card__job">A small storefront with real checkout and no plugin sprawl.</p>
+            <!-- demos/vector/src/pages/api/checkout.ts and api/webhook.ts. -->
+            <p class="work-card__behind-h">What is behind it</p>
+            <ul class="work-card__behind">
+              <li>Card payments run through Stripe, set up so nobody can get at your payment account from the website.</li>
+              <li>The price is checked on our server, so nobody can edit their cart to pay less.</li>
+              <li>Every paid order is checked with Stripe and recorded, so you see exactly what came in.</li>
+            </ul>
+            <p class="work-card__tech">Online store &middot; card checkout</p>
+            <p class="work-card__open"><span>Open the build</span></p>
+          </div>
+        </li>
+      </ul>
+
+      <div class="proof" data-budget-root hidden>
+        <h3>The numbers on this page measured themselves.</h3>
+        <p>
+          <a href="/data/perf-budget.json">
+            <strong><span data-budget="published.frameMs"></span></strong>
+          </a>
+          of a <span data-budget="published.budgetMs"></span> frame, at the
+          median, with <span data-budget="published.headroomPct"></span>
+          headroom left over.
+        </p>
+        <p class="proof__caption">
+          <span data-budget="published.caption"></span>
+          <time data-budget="measuredAt"></time>
+        </p>
+        <!--
+          One column, not two. The per-act figure is command-submission time —
+          how long each act spends asking the GPU for its frame — and at these
+          costs the median rounds to nothing on any timer the browser will give
+          us. Printing a column of zeroes would look like a broken table
+          pretending to be a result. The 95th percentile is the number that
+          actually moves when an act regresses, so it is the one shown.
+        -->
+        <table class="proof__table">
+          <caption>Submission cost per act, 95th percentile</caption>
+          <thead><tr><th scope="col">Act</th><th scope="col">What it is</th><th scope="col">p95, in milliseconds</th></tr></thead>
+          <tbody data-budget-rows>
+            <tr><th scope="row">Northlight</th><td>Aurora curtain</td><td data-budget="acts.northlight.p95Ms"></td></tr>
+            <tr><th scope="row">Drift</th><td>GPU particle field</td><td data-budget="acts.drift.p95Ms"></td></tr>
+            <tr><th scope="row">Solution</th><td>Type through fluid</td><td data-budget="acts.solution.p95Ms"></td></tr>
+            <tr><th scope="row">Offerings</th><td>Twelve loops on a helix</td><td data-budget="acts.offerings.p95Ms"></td></tr>
+          </tbody>
+        </table>
+        <p class="proof__method">
+          Measured by <a href="https://github.com/ceyre-boop/Northbound-Studio-/blob/main/scripts/perf.mjs">scripts/perf.mjs</a>
+          against this URL under DevTools throttling — a simulated 4G connection
+          and a 4&times; CPU slowdown, on a 390&times;844 viewport. Not a
+          Lighthouse estimate, and not typed by hand. The frame figure is real
+          frame-to-frame interval; the per-act figures are command submission,
+          not GPU execution, because
+          <code>EXT_disjoint_timer_query</code> is unavailable on most hardware
+          and nothing here will claim a measurement it cannot take. The
+          <a href="/data/perf-budget.json">raw artifact</a> records the renderer
+          and the quality tier it was measured on.
+        </p>
+      </div>
+      </div>
+
+      <h2 id="contact-h">Tell us what the job is.</h2>
+      <p class="lede">
+        The useful first question is what one new customer is worth to you, and
+        how many more you want a month. The answer decides the build.
+      </p>
+
+      <!--
+        Filled by the Add to my project buttons in the procession. The hidden
+        field is what actually reaches the inbox; the list is what reassures the
+        person that their click did something. Empty and inert until used, and
+        it never moves anything when it fills — the CLS gate is exactly zero.
+      -->
+      <div class="basket" data-basket hidden>
+        <p class="basket__head">On your project</p>
+        <ul class="basket__list" data-basket-list></ul>
+      </div>
+
+      <form class="contact" method="post" action="/api/quote">
+        <p class="field">
+          <label for="f-name">Your name</label>
+          <input id="f-name" name="name" type="text" autocomplete="name" required>
+        </p>
+        <p class="field">
+          <label for="f-email">Email</label>
+          <input id="f-email" name="email" type="email" autocomplete="email" required>
+        </p>
+        <p class="field">
+          <label for="f-phone">Phone</label>
+          <input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required>
+        </p>
+        <p class="field">
+          <label for="f-need">What you need</label>
+          <select id="f-need" name="need">
+            <option>A new marketing site</option>
+            <option>An online store</option>
+            <option>Booking and follow-up</option>
+            <option>Something else</option>
+          </select>
+        </p>
+        <p class="field">
+          <label for="f-note">What is the job?</label>
+          <textarea id="f-note" name="message" rows="4"></textarea>
+        </p>
+        <input type="hidden" name="offerings" value="" data-basket-field>
+        <p class="field field--hp" aria-hidden="true" tabindex="-1">
+          <label for="f-hp7">Leave this empty</label>
+          <input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1">
+        </p>
+        <p class="form-status" data-form-status aria-live="polite"></p>
+        <p><button type="submit" class="btn btn--go">Send it</button></p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<!--
+  The sticky "Get a quote" CTA. Outside <main> and position: fixed (see
+  css/stage.css), so it can never contribute a layout shift. Visible here in
+  the raw markup is the whole no-JS story: js/interact.js is the only thing
+  that ever hides it, so a visitor without it simply always has it.
+-->
+<div class="sticky-cta" data-sticky-cta>
+  <div class="sticky-cta__bar">
+    <a class="btn sticky-cta__call" href="tel:+14705738908">Call 470-573-8908</a>
+    <a class="btn btn--go sticky-cta__quote" href="#contact">Get a quote</a>
+  </div>
+  <div class="sticky-cta__desktop">
+    <a class="tel" href="tel:+14705738908">470-573-8908</a>
+    <a class="btn btn--go sticky-cta__pill" href="#contact">Get a quote</a>
+  </div>
+</div>
+
+<footer class="colophon">
+  <p>Northbound Studio · Grand Ledge, Michigan</p>
+  <p><a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a></p>
+  <p><a class="tel" href="tel:+14705738908">470-573-8908</a></p>
+  <p>Built without a framework. Four hand-written WebGL systems, one canvas, one render loop.</p>
+</footer>
+
+<noscript>
+  <p class="noscript-note">
+    JavaScript is off, so the four canvas acts are not running. Nothing else is
+    missing — every word, price, link and the contact form above work exactly
+    as they do with it on. The performance section only appears once a
+    measurement has been taken against the exact code you are looking at; the
+    raw artifact, when one exists, is at
+    <a href="/data/perf-budget.json">data/perf-budget.json</a>.
+  </p>
+</noscript>
+
+<!--
+  Load order matters and is deliberate.
+
+  motion.js owns the only rAF on this page. gl-core and afford are its
+  dependencies. content.js is the single source of copy. stage.js takes the
+  context and subscribes to the loop. Only the first act is eager — acts II-IV
+  are import()ed by the Stage at their preload margin, several seconds of
+  scrolling ahead of when they are needed, because four acts' worth of modules
+  and GLSL on the critical path would blow the 1200ms LCP gate outright, and
+  an LCP miss cannot be recovered by dropping a quality tier the way a frame
+  budget miss can.
+-->
+<!-- js/springs.js has no DOM dependency and costs under 1KB gzipped, so it
+     loads ahead of motion.js even though load order does not strictly matter
+     here (spring() looks NB_SPRINGS up lazily, at call time). -->
+<script src="js/springs.js" defer></script>
+<script src="js/motion.js" defer></script>
+<script src="js/gl/gl-core.js" defer></script>
+<script src="js/gl/afford.js" defer></script>
+<script src="js/content.js" defer></script>
+<script src="js/stage/stage.js" defer></script>
+<script src="js/proof.js" defer></script>
+<script defer src="js/stage/cast.js"></script>
+<!-- Buddy tags the wall. The headline is the graffiti; this is who painted it. -->
+<script src="js/hero-tag.js" defer></script>
+<!-- The veil: hold a quiet loading frame until the hero is ready to be seen. -->
+<script src="js/boot.js" defer></script>
+<!--
+  The motion layer, loaded after the page has landed rather than with it.
+
+  scroll.js (plus the Lenis it imports), entrance.js, interact.js and
+  panels.js are about 19KB gzipped between them. Module scripts do not block
+  parsing, but on the slow-4G profile the gate is measured at — 1.6 Mbps —
+  bytes are bytes: they competed with the hero for the same pipe and pushed
+  LCP from 1188ms to 1224ms against a 1200ms gate. The gate caught it on the
+  deploy that shipped them.
+
+  So they are appended on `load`, at the first idle after it. Nothing here is
+  needed for the first screen: Lenis only matters once someone scrolls,
+  entrances only prime what is already off-screen, and the viewer only
+  matters once a card is clicked. If requestIdleCallback is missing, a short
+  timeout stands in for it.
+-->
+<script>
+  addEventListener('load', function () {
+    var load = function () {
+      ['js/scroll.js', 'js/entrance.js', 'js/interact.js', 'js/panels.js'].forEach(function (src) {
+        var el = document.createElement('script');
+        el.type = 'module';
+        el.src = src;
+        document.body.appendChild(el);
+      });
+    };
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(load, { timeout: 1200 });
+    else setTimeout(load, 200);
+  });
+</script>
+</body>
+</html>

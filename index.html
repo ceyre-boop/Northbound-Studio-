@@ -93,10 +93,19 @@
   .buddy-art { position: relative; aspect-ratio: 522 / 506; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); }
   .buddy-art img, .buddy-art video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
   .buddy-art.is-playing img { opacity: 0; transition: opacity 0.3s ease-out; }
+  /* He stands on the left, the copy reads on his right — and he keeps his
+     place in the source after the headline, because he is decoration and the
+     h1 should still be the first thing in the document. Only the two
+     grid-column placements move him; under 640px the grid is one column and
+     he is display:none, so none of this applies. He is NOT mirrored: the
+     render points up and to his left, which from the left-hand column is a
+     gesture across the hero towards the headline. Flipped, he would point
+     off the page. */
   @media (min-width: 640px) {
     .hero { --buddy-w: clamp(220px, 32vw, 460px); }
-    .hero .wrap { grid-template-columns: minmax(0, 1fr) var(--buddy-w); }
-    .buddy { display: block; }
+    .hero .wrap { grid-template-columns: var(--buddy-w) minmax(0, 1fr); }
+    .hero-copy { grid-column: 2; grid-row: 1; }
+    .buddy { display: block; grid-column: 1; grid-row: 1; }
   }
   .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
   .hero h1 { font-family: var(--display); font-size: clamp(34px, 6vw, 62px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 20px; max-width: 16ch; }
@@ -192,13 +201,13 @@
       </div>
     </div>
     <!--
-      Buddy's wave. Fifteen seconds: a second and a half still, the two-second
-      wave, the wave played back so the arm comes down (the source clip ends
-      with it raised), then nine and a half seconds still. One wave every
-      fifteen seconds reads as a person; the raw two-second loop reads as a
-      GIF. HEVC-with-alpha is listed first because Safari answers "probably"
-      to VP9 too but cannot show its alpha; Chrome answers "" to hvc1 and
-      falls through to the WebM.
+      Buddy's wave. Fifteen seconds: a second and a half still, the arm comes
+      up, he waves three times, the raise is played back so the arm comes down
+      (the source clip ends with it raised), then eight and a half seconds
+      still. One wave every fifteen seconds reads as a person; the raw
+      two-second loop reads as a GIF. HEVC-with-alpha is listed first because
+      Safari answers "probably" to VP9 too but cannot show its alpha; Chrome
+      answers "" to hvc1 and falls through to the WebM.
 
       No autoplay attribute, on purpose. autoplay overrides preload="none"
       and starts the 190KB fetch at parse time, next to the fonts and the

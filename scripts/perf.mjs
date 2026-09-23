@@ -9,8 +9,9 @@
  *
  *   bun scripts/perf.mjs [url]
  *
- * Defaults to https://northbound-dev.com/. Exits non-zero on any gate
- * failure, so it can gate a merge in CI or a pre-deploy hook.
+ * Defaults to https://northbound-dev.com/studio.html — the WebGL page this
+ * harness measures now lives there, not at the site root. Exits non-zero on
+ * any gate failure, so it can gate a merge in CI or a pre-deploy hook.
  *
  * Real CDP throttling only — never Lighthouse's simulated numbers. Every
  * network/CPU condition below is applied through the DevTools protocol
@@ -571,7 +572,7 @@ export function toArtifact(url, budget, gateRows, commit, codeCommit, report) {
     schema: 1,
     measuredAt: new Date().toISOString(),
     commit,
-    /* The short hash of the last commit to touch js/, css/ or index.html —
+    /* The short hash of the last commit to touch js/, css/ or studio.html —
        the code the frame budget actually describes. js/proof.js compares this
        to data/release.json's codeCommit before it will show the section, so a
        stale measurement can never be presented as current. */
@@ -636,7 +637,7 @@ const ARTIFACT_PATH = new URL('../data/perf-budget.json', import.meta.url);
 async function main() {
   const args = process.argv.slice(2);
   const emit = args.includes('--emit');
-  const url = args.find((a) => !a.startsWith('--')) || 'https://northbound-dev.com/';
+  const url = args.find((a) => !a.startsWith('--')) || 'https://northbound-dev.com/studio.html';
 
   console.log(`Layer 5 perf harness — ${url}\n`);
   const { results, rows } = await run(url);
@@ -656,7 +657,7 @@ async function main() {
     try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch {}
 
     let codeCommit = 'unknown';
-    try { codeCommit = execSync('git log -1 --format=%h -- js css index.html', { encoding: 'utf8' }).trim() || 'unknown'; } catch {}
+    try { codeCommit = execSync('git log -1 --format=%h -- js css studio.html', { encoding: 'utf8' }).trim() || 'unknown'; } catch {}
 
     const artifact = toArtifact(url, budget, rows, commit, codeCommit, results.report);
     mkdirSync(new URL('../data/', import.meta.url), { recursive: true });

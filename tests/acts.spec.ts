@@ -89,7 +89,7 @@ test.describe('the acts', () => {
      checked. Every act owes a composed frame here, not a blank one. */
   test('every act composes a still frame under reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/');
+    await page.goto('/studio.html');
     await page.waitForFunction(() => (window as any).NB_STAGE?.ok, { timeout: 10_000 });
 
     for (const id of Object.keys(CEILING_MS)) {

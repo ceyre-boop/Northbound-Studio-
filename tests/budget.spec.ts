@@ -85,7 +85,7 @@ test.describe('the published measurement', () => {
     }
     await page.route('**/data/release.json', (route) => route.fulfill({ json: { codeCommit: rendered.codeCommit } }));
 
-    await page.goto('/');
+    await page.goto('/studio.html');
     await expect(page.locator('[data-budget-root]')).toHaveAttribute('data-proof', 'measured', { timeout: 10_000 });
     await expect(page.locator('[data-budget-root]')).toBeVisible();
 
@@ -111,7 +111,7 @@ test.describe('the published measurement', () => {
     await page.route('**/data/release.json', (route) => route.fulfill({ status: 404, body: 'not found' }));
     const warnings: string[] = [];
     page.on('console', (msg) => { if (msg.type() === 'warning') warnings.push(msg.text()); });
-    await page.goto('/');
+    await page.goto('/studio.html');
     await page.waitForTimeout(500);
     await expect(page.locator('[data-budget-root]')).toBeHidden();
     expect(warnings.some((w) => w.includes('[proof]'))).toBe(true);
@@ -123,7 +123,7 @@ test.describe('the published measurement', () => {
     const rendered = { ...a, codeCommit: 'aaaaaaa' };
     await page.route('**/data/perf-budget.json', (route) => route.fulfill({ json: rendered }));
     await page.route('**/data/release.json', (route) => route.fulfill({ json: { codeCommit: 'bbbbbbb' } }));
-    await page.goto('/');
+    await page.goto('/studio.html');
     await page.waitForTimeout(500);
     await expect(page.locator('[data-budget-root]')).toBeHidden();
   });
@@ -131,13 +131,13 @@ test.describe('the published measurement', () => {
   test('the panel stays hidden with JavaScript off', async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });
     const page = await context.newPage();
-    await page.goto('/');
+    await page.goto('/studio.html');
     await expect(page.locator('[data-budget-root]')).toBeHidden();
     await context.close();
   });
 
   test('no em dash appears inside the proof block in the served HTML', async ({ request }) => {
-    const res = await request.get('/');
+    const res = await request.get('/studio.html');
     const html = await res.text();
     const start = html.indexOf('<div class="proof"');
     expect(start, 'could not find the proof block in the served HTML').toBeGreaterThan(-1);

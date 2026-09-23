@@ -161,7 +161,7 @@ test.describe('the stage', () => {
        it is the path most likely to be seen and the one least likely to be
        checked. A blank canvas passes "it did not crash" and fails the point. */
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/');
+    await page.goto('/studio.html');
     await page.waitForFunction(() => window.NB_STAGE && window.NB_STAGE.ok, { timeout: 10_000 });
     expect(await page.evaluate(() => window.NB_STAGE.mode)).toBe('reduced');
 
@@ -211,7 +211,7 @@ test.describe('the stage', () => {
      * still MUST NOT: that is the whole promise of the mode, and it is what
      * keeps the idle cost at literally zero GL calls. */
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/');
+    await page.goto('/studio.html');
     await page.waitForFunction(() => window.NB_STAGE && window.NB_STAGE.ok, { timeout: 10_000 });
     expect(await page.evaluate(() => window.NB_STAGE.mode)).toBe('reduced');
 
@@ -275,7 +275,7 @@ test.describe('the stage', () => {
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 
-    await page.goto('/');
+    await page.goto('/studio.html');
     await page.waitForTimeout(600);
 
     expect(await page.locator('html').getAttribute('data-gl')).toBe('off');
@@ -291,7 +291,7 @@ test.describe('the stage', () => {
   test('the copy tells the truth with JavaScript off', async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });
     const page = await context.newPage();
-    await page.goto('/');
+    await page.goto('/studio.html');
 
     await expect(page.locator('h1')).toContainText('machine that brings customers in');
     for (const price of ['$3,500', '$8,500', '$600']) {

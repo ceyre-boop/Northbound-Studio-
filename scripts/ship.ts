@@ -46,6 +46,11 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RELEASE_PATH = join(ROOT, 'data', 'release.json');
 const ARTIFACT_PATH = join(ROOT, 'data', 'perf-budget.json');
 const PROD_URL = 'https://northbound-dev.com/';
+// The frame-budget/proof section lives on the WebGL page, which now sits at
+// /studio.html rather than the site root — the measurement has to describe
+// the page it's published on. release.json's poll and the artifact fetch in
+// verify() stay at the site root; only the re-measure step below targets it.
+const PERF_URL = `${PROD_URL}studio.html`;
 const POLL_TIMEOUT_MS = 3 * 60 * 1000;
 const POLL_INTERVAL_MS = 5000;
 
@@ -117,7 +122,7 @@ function preflight() {
 // --- step 2: write release.json + deploy ------------------------------------
 
 function codeCommit(): string {
-  return git('log -1 --format=%h -- js css index.html');
+  return git('log -1 --format=%h -- js css studio.html');
 }
 
 function writeRelease(commit: string) {
@@ -161,11 +166,11 @@ async function pollRelease(expectedCommit: string) {
 // --- step 4: re-measure production ------------------------------------------
 
 function reMeasure() {
-  log('4/7', `bun scripts/perf.mjs --emit ${PROD_URL}`);
+  log('4/7', `bun scripts/perf.mjs --emit ${PERF_URL}`);
   // perf.mjs exits 1 on a gate failure. That is a real result, not a script
   // error — it still writes the artifact, so ship keeps going and reports
   // the failure loudly at the end rather than aborting the publish.
-  const result = spawnSync('bun', ['scripts/perf.mjs', '--emit', PROD_URL], { cwd: ROOT, stdio: 'inherit' });
+  const result = spawnSync('bun', ['scripts/perf.mjs', '--emit', PERF_URL], { cwd: ROOT, stdio: 'inherit' });
   const gatesFailed = result.status !== 0;
   if (gatesFailed) {
     console.warn('\n[ship 4/7] one or more perf gates FAILED — the measurement is still real and will still publish.');

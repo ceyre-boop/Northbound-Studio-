@@ -21,7 +21,7 @@ let perf: PerfModule;
  * default — the harness exists to gate what actually ships.
  */
 
-const URL = process.env.PERF_URL || 'https://northbound-dev.com/';
+const URL = process.env.PERF_URL || 'https://northbound-dev.com/studio.html';
 
 test.describe('layer 5 — performance & grace', () => {
   // Every gate must report, even if an earlier one fails — this is a status

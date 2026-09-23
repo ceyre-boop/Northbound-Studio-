@@ -51,7 +51,7 @@ test.describe('one rAF, and Lenis only when motion is allowed', () => {
   test('reduced motion never constructs Lenis at all', async ({ browser }) => {
     const ctx = await browser.newContext({ reducedMotion: 'reduce' });
     const page = await ctx.newPage();
-    await page.goto('/');
+    await page.goto('/studio.html');
     await page.waitForTimeout(300);
     const lenis = await page.evaluate(() => (window as any).NB_SCROLL?.lenis ?? null);
     expect(lenis).toBeNull();
@@ -224,7 +224,7 @@ test.describe('springs come only from named presets', () => {
 
 test.describe('the sticky CTA and package CTAs prefill the form', () => {
   test('a package button writes into the message field and focuses the name field', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/studio.html', { waitUntil: 'networkidle' });
     const btn = page.locator('[data-package="Engine package"]');
     await btn.scrollIntoViewIfNeeded();
     await btn.click();
@@ -233,7 +233,7 @@ test.describe('the sticky CTA and package CTAs prefill the form', () => {
   });
 
   test('the sticky CTA is present with no JavaScript (baseline markup, always visible)', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     await expect(page.locator('[data-sticky-cta]')).toBeAttached();
   });
 
@@ -272,7 +272,7 @@ test.describe('390px overflow', () => {
   test('no sideways scroll at 390px (same sweep scripts/perf.mjs gates on)', async () => {
     const perf = await import('../scripts/perf.mjs');
     const { chromium } = await import('@playwright/test');
-    const url = (process.env.PERF_URL || 'http://localhost:8099/') + '?motion=full';
+    const url = (process.env.PERF_URL || 'http://localhost:8099/studio.html') + '?motion=full';
     const b = await chromium.launch();
     try {
       const breaches = await perf.sweepOverflow(b, url, [{ width: 390, height: 844 }]);

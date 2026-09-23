@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 async function boot(page: import('@playwright/test').Page, query = '?motion=full') {
-  await page.goto('/' + query);
+  await page.goto('/studio.html' + query);
   await page.waitForFunction(() => (window as any).NB_STAGE?.ok, { timeout: 15_000 });
   await page.evaluate(() => {
     const w = (window as any).NB_STAGE.debug().windows.offerings;
@@ -26,7 +26,7 @@ async function boot(page: import('@playwright/test').Page, query = '?motion=full
 
 test.describe('P0-2 — the separator between the package badge and the upkeep note', () => {
   test('the readable list shows "Engine · kept running by Bearing"', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     for (const n of [6, 7, 8, 9]) {
       const meta = page.locator(`[data-offer="${n}"] .offer__meta`);
       const sep = meta.locator('.offer__sep');
@@ -62,7 +62,7 @@ test.describe('P0-3 — the social card', () => {
   });
 
   test('the meta tags point at the PNG, not the SVG', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const html = await page.content();
     expect(html).toContain('https://northbound-dev.com/brand/og.png');
     expect(html).not.toContain('og:image" content="https://northbound-dev.com/brand/og.svg');
@@ -77,7 +77,7 @@ test.describe('P0-3 — the social card', () => {
   });
 
   test('the meta description no longer says "two-person"', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const desc = await page.locator('meta[name="description"]').getAttribute('content');
     expect(desc!.toLowerCase()).not.toContain('two-person');
     expect(desc).toContain('A design and engineering studio in Grand Ledge, Michigan.');
@@ -86,14 +86,14 @@ test.describe('P0-3 — the social card', () => {
 
 test.describe('P0-4 — phone', () => {
   test('the masthead and footer both link tel:+14705738908', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     await expect(page.locator('header.masthead a.tel')).toHaveAttribute('href', 'tel:+14705738908');
     await expect(page.locator('header.masthead a.tel')).toHaveText('470-573-8908');
     await expect(page.locator('footer.colophon a.tel')).toHaveAttribute('href', 'tel:+14705738908');
   });
 
   test('the form has a required phone field', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const phone = page.locator('#f-phone');
     await expect(phone).toHaveAttribute('name', 'phone');
     await expect(phone).toHaveAttribute('type', 'tel');
@@ -104,7 +104,7 @@ test.describe('P0-4 — phone', () => {
   test('at 390px the header phone is visible with a real touch target and there is no horizontal overflow', async ({ browser }) => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     const page = await context.newPage();
-    await page.goto('/');
+    await page.goto('/studio.html');
     const tel = page.locator('header.masthead a.tel');
     await expect(tel).toBeVisible();
     const box = await tel.boundingBox();
@@ -136,7 +136,7 @@ test.describe('P0-4 — phone', () => {
 
 test.describe('P1-5/6 — the market section', () => {
   test('the new heading and lede, verbatim, no count and no desk', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     await expect(page.locator('#drift-h')).toHaveText('Most local websites just sit there.');
     const lede = page.locator('[data-act="drift"] .lede');
     await expect(lede).toHaveText(
@@ -147,7 +147,7 @@ test.describe('P1-5/6 — the market section', () => {
 
 test.describe('P1-8 — byline', () => {
   test('the new byline, verbatim', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     await expect(page.locator('.byline')).toHaveText(
       'Design, engineering and brand under one roof. We built everything on this page, and every number on it measured itself.'
     );
@@ -156,7 +156,7 @@ test.describe('P1-8 — byline', () => {
 
 test.describe('P1-7 — the concept builds, in owner language', () => {
   test('banned words are absent from visible copy', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const bodyText = await page.locator('body').innerText();
     for (const banned of ['mailto:', 'webhook', 'secret key', 'endpoint', 'Astro']) {
       expect(bodyText, `"${banned}" is still visible on the page`).not.toContain(banned);
@@ -164,7 +164,7 @@ test.describe('P1-7 — the concept builds, in owner language', () => {
   });
 
   test('the Ridgeline card uses the plan copy', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const card = page.locator('[data-work="atlas"]');
     const text = (await card.innerText()).replace(/\s+/g, ' ');
     expect(text).toContain('Customers book the call on the site itself — it doesn’t just open their email app.');
@@ -174,7 +174,7 @@ test.describe('P1-7 — the concept builds, in owner language', () => {
   });
 
   test('the Marrow card uses the plan copy', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const card = page.locator('[data-work="vector"]');
     const text = (await card.innerText()).replace(/\s+/g, ' ');
     expect(text).toContain('Card payments run through Stripe, set up so nobody can get at your payment account from the website.');
@@ -184,7 +184,7 @@ test.describe('P1-7 — the concept builds, in owner language', () => {
   });
 
   test('the closing-proof lede drops "endpoint" and "server"', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const lede = (await page.locator('.closing-proof__lede').innerText()).replace(/\s+/g, ' ');
     expect(lede).toContain('the part that takes the booking, checks the price, and keeps the lead when something downstream breaks.');
   });
@@ -192,7 +192,7 @@ test.describe('P1-7 — the concept builds, in owner language', () => {
 
 test.describe('P2-9 — how we work', () => {
   test('the rules list has exactly three items and keeps deposit, Bearing, and the honesty rule', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const items = page.locator('.rules li');
     await expect(items).toHaveCount(3);
     const text = (await items.allInnerTexts()).join(' | ');
@@ -206,7 +206,7 @@ test.describe('P2-9 — how we work', () => {
 
 test.describe('the banned words, site-wide', () => {
   test('no "Forty", "desk", or any casing of "two people" / "two-person" remains', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const bodyText = await page.locator('body').innerText();
     expect(bodyText).not.toMatch(/\bForty\b/);
     expect(bodyText).not.toMatch(/\bdesk\b/i);
@@ -220,7 +220,7 @@ test.describe('the banned words, site-wide', () => {
 
 test.describe('#work resolves', () => {
   test('the skip link, nav "Work", and hero CTA all point at a real element', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     const target = page.locator('#work');
     await expect(target).toHaveCount(1);
 

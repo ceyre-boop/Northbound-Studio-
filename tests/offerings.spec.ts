@@ -30,7 +30,7 @@ async function toPanel(page, i: number) {
 }
 
 async function boot(page, query = '?motion=full') {
-  await page.goto('/' + query);
+  await page.goto('/studio.html' + query);
   await page.waitForFunction(() => (window as any).NB_STAGE?.ok, { timeout: 15_000 });
   await page.evaluate(() => {
     const w = (window as any).NB_STAGE.debug().windows.offerings;
@@ -45,7 +45,7 @@ test.describe('the procession', () => {
   test('all twelve offerings are in the document with JavaScript off', async ({ browser }) => {
     const ctx = await browser.newContext({ javaScriptEnabled: false });
     const page = await ctx.newPage();
-    await page.goto('/');
+    await page.goto('/studio.html');
     expect(await page.locator('[data-offer]').count()).toBe(12);
     /* Every one readable, not just present. */
     for (const sel of ['Booking flow', 'Owner dashboard', 'AI intake']) {
@@ -248,7 +248,7 @@ test.describe('the procession', () => {
      page would have looked correct, which is exactly why the loss would have
      gone unnoticed. This test fails if that binding disappears again. */
   test('the concept builds still open in place', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/studio.html');
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForTimeout(900);
 

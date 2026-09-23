@@ -51,11 +51,11 @@ test.describe('the published measurement', () => {
   test('the measurement is newer than the newest change to the rendering code', () => {
     const a = artifact();
     test.skip(!a, 'no artifact');
-    const newest = execSync('git log -1 --format=%cI -- js/ css/ index.html', { cwd: ROOT, encoding: 'utf8' }).trim();
+    const newest = execSync('git log -1 --format=%cI -- js/ css/ studio.html', { cwd: ROOT, encoding: 'utf8' }).trim();
     if (!newest) return;
     expect(
       new Date(a.measuredAt).getTime(),
-      `js/, css/ or index.html changed at ${newest}, after the measurement at ${a.measuredAt}. Re-run: bun scripts/perf.mjs --emit`
+      `js/, css/ or studio.html changed at ${newest}, after the measurement at ${a.measuredAt}. Re-run: bun scripts/perf.mjs --emit`
     ).toBeGreaterThan(new Date(newest).getTime());
   });
 
@@ -64,9 +64,9 @@ test.describe('the published measurement', () => {
      block, someone has started writing the number by hand and this whole
      mechanism is decorative. */
   test('no millisecond figure is hard-coded in the proof block', () => {
-    const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
+    const html = readFileSync(join(ROOT, 'studio.html'), 'utf8');
     const block = html.slice(html.indexOf('data-budget-root'), html.indexOf('</section>', html.indexOf('data-budget-root')));
-    expect(block.length, 'could not find the proof block in index.html').toBeGreaterThan(100);
+    expect(block.length, 'could not find the proof block in studio.html').toBeGreaterThan(100);
     const stripped = block.replace(/<[^>]+>/g, ' ');
     expect(stripped, 'a literal "N ms" is written into the markup — it must come from the artifact').not.toMatch(/\d+(\.\d+)?\s*ms/);
   });

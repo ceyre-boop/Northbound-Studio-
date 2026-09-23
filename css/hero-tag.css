@@ -343,3 +343,60 @@
     mask-image: none;
   }
 }
+
+/* =========================================================================
+   After the tag, he comes back: the idle post.
+   =========================================================================
+ * A few seconds after the bolt he wanders back in and settles in the hero
+ * corner — breathing, watching, saluting when the visitor returns to the
+ * hero. Absolute inside .act--arrival (already position:relative), so like
+ * the tag rig it can never move layout and the CLS gate stays at zero.
+ * pointer-events:none and aria-hidden: he is decoration, and nothing may
+ * depend on him. Sizing mirrors the offerings mascot's rule — height is the
+ * invariant, width follows the pose — via aspect-ratio on the tallest pose
+ * and object-fit:contain on both.
+ */
+.nb-hero-buddy {
+  position: absolute;
+  right: clamp(14px, 3.5vw, 54px);
+  bottom: clamp(14px, 5vh, 64px);
+  width: clamp(92px, 9vw, 148px);
+  aspect-ratio: 181 / 228;
+  z-index: 4;
+  pointer-events: none;
+  contain: layout paint;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.nb-hero-buddy.is-in {
+  opacity: 1;
+  transform: none;
+  animation: hero-buddy-breathe 5.2s ease-in-out infinite;
+}
+.nb-hero-buddy .hb-pose {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 280ms ease-out;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
+}
+.nb-hero-buddy[data-pose="thinking"] .hb-think { opacity: 1; }
+.nb-hero-buddy[data-pose="salute"] .hb-salute { opacity: 1; }
+@keyframes hero-buddy-breathe {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-hero-buddy { animation: none !important; transition: none !important; }
+}
+
+/* Phones: no Buddy — same guard as the tag sequence. js/hero-tag.js never
+   mounts him under 640px; this covers a window narrowed after he started. */
+@media (max-width: 639.98px) {
+  .nb-hero-buddy { display: none !important; }
+}

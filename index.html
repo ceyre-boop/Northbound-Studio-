@@ -33,8 +33,42 @@
 <link rel="stylesheet" href="css/mascot.css">
 <link rel="stylesheet" href="css/hero-stencil.css">
 <link rel="stylesheet" href="css/hero-tag.css">
+<style>
+/* The veil. First paint shows this, not a half-loaded hero: on a slow
+   connection the page used to assemble itself in public — fonts swapping
+   under the headline, images popping, the canvas blinking in — and every
+   one of those frames reads as jank. The veil holds a quiet loading frame
+   until the critical assets are ready (or a hard cap fires), then hands off.
+   Inline, because a separate stylesheet would be one more fetch on the
+   critical path for the first thing anyone sees. position:fixed, so it can
+   never move layout and the CLS gate stays at zero. */
+#nb-veil{position:fixed;inset:0;z-index:200;background:#05090C;display:flex;align-items:center;justify-content:center}
+#nb-veil.is-done{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s ease,visibility 0s .45s}
+.nb-veil__inner{text-align:center;padding:0 24px}
+.nb-veil__word{margin:0 0 20px;color:#E9F2EF;font:500 11px/1.6 system-ui,-apple-system,sans-serif;letter-spacing:.42em;text-transform:uppercase;opacity:.85}
+.nb-veil__track{width:132px;height:2px;margin:0 auto;overflow:hidden;border-radius:2px;background:rgba(233,242,239,.14)}
+.nb-veil__fill{height:100%;width:0%;background:#4FD8C4}
+.nb-veil__pct{margin:14px 0 0;color:rgba(233,242,239,.5);font:400 11px/1 system-ui,-apple-system,sans-serif;letter-spacing:.18em;font-variant-numeric:tabular-nums}
+/* Dead-man's switch: if js/boot.js never runs, the veil lifts on its own
+   rather than trapping the visitor. The script cancels this on start. */
+@keyframes nb-veil-failsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
+#nb-veil{animation:nb-veil-failsafe .6s ease 5.5s forwards}
+/* Reduced motion: no veil at all — content as fast as possible. The tiny
+   script below adds this class before first paint. */
+.nb-no-veil #nb-veil{display:none!important}
+</style>
+<script>if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.className+=' nb-no-veil';}</script>
+<noscript><style>#nb-veil{display:none!important}</style></noscript>
 </head>
 <body>
+
+<div id="nb-veil" aria-hidden="true">
+  <div class="nb-veil__inner">
+    <p class="nb-veil__word">Northbound Studio</p>
+    <div class="nb-veil__track"><div class="nb-veil__fill" id="nb-veil-fill"></div></div>
+    <p class="nb-veil__pct"><span id="nb-veil-num">00</span>%</p>
+  </div>
+</div>
 
 <!--
   The canvas is the treatment. This document is the site.
@@ -604,6 +638,8 @@
 <script defer src="js/stage/cast.js"></script>
 <!-- Buddy tags the wall. The headline is the graffiti; this is who painted it. -->
 <script src="js/hero-tag.js" defer></script>
+<!-- The veil: hold a quiet loading frame until the hero is ready to be seen. -->
+<script src="js/boot.js" defer></script>
 <!--
   The motion layer, loaded after the page has landed rather than with it.
 

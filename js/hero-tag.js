@@ -148,6 +148,34 @@
     });
   }
 
+  /* The veil owns the first paint. Starting the tag sequence under it would
+     play the sneak to an empty theater, so the full-motion path waits until
+     the stage is clear. Three ways to hear it: boot.js's nb:revealed event,
+     the veil node leaving the DOM, and a backstop that never holds the
+     sequence hostage if boot.js failed to load. */
+  function whenRevealed(fn) {
+    var done = false;
+    function go() { if (!done) { done = true; fn(); } }
+    if (!document.getElementById('nb-veil')) { go(); return; }
+    var mo = null, backstop = 0;
+    function cleanup() {
+      window.removeEventListener('nb:revealed', onEvent);
+      if (mo) { mo.disconnect(); mo = null; }
+      if (backstop) { clearTimeout(backstop); backstop = 0; }
+    }
+    function onEvent() { cleanup(); go(); }
+    window.addEventListener('nb:revealed', onEvent);
+    if ('MutationObserver' in window) {
+      mo = new MutationObserver(function () {
+        if (!document.getElementById('nb-veil')) { cleanup(); go(); }
+      });
+      mo.observe(document.documentElement, { childList: true, subtree: true });
+    }
+    /* After the CSS failsafe (5.5s) plus its fade: the veil is invisible by
+       now even if boot.js never ran. */
+    backstop = setTimeout(function () { cleanup(); go(); }, 6500);
+  }
+
   function playSequence(hero, headline) {
     var mount = document.createElement('div');
     mount.className = 'nb-hero-tag';
@@ -166,7 +194,7 @@
 
   function armObserver(hero, mount, headline) {
     if (!('IntersectionObserver' in window)) {
-      run(mount, headline);
+      run(hero, mount, headline);
       return;
     }
     var played = false;
@@ -175,14 +203,14 @@
         if (entries[i].isIntersecting && !played) {
           played = true;
           io.disconnect();
-          run(mount, headline);
+          run(hero, mount, headline);
         }
       }
     }, { threshold: 0.4 });
     io.observe(hero);
   }
 
-  function run(mount, headline) {
+  function run(hero, mount, headline) {
     headline.style.setProperty('--tag-delay', SNEAK_MS + 'ms');
     headline.style.setProperty('--tag-duration', TAG_MS + 'ms');
     headline.classList.add('nb-tag-paint');
@@ -206,7 +234,85 @@
     setTimeout(function () {
       mount.setAttribute('data-stage', 'gone');
       headline.classList.add('nb-tag-paint--done');
+      /* He comes back. Playing once and vanishing is what made the last
+         version read as broken rather than authored. */
+      setTimeout(function () { idleReturn(hero); }, IDLE_DELAY_MS);
     }, t);
+  }
+
+  /* After the tag, he takes up a post.
+   *
+   * A few seconds after the bolt he wanders back in and settles in the hero
+   * corner — breathing, watching. One hook: when the visitor scrolls away
+   * and comes back to the hero, he notices and salutes, then settles again.
+   * Thinking is the resting pose; salute is the acknowledgement; both are
+   * the same art the offerings mascot uses, so the character is one
+   * character all the way down the page. This only ever runs on the
+   * full-motion path — reduced motion keeps the still frame, phones never
+   * mount him at all (init() returns early under 640px, and the CSS guards
+   * a window that narrows after he has started). */
+  var IDLE_DELAY_MS = 4200;
+  var IDLE_SALUTE_MS = 900;
+
+  function idleReturn(hero) {
+    if (!hero || hero.querySelector('.nb-hero-buddy')) return;
+    var mount = document.createElement('div');
+    mount.className = 'nb-hero-buddy';
+    mount.setAttribute('aria-hidden', 'true');
+    mount.setAttribute('data-pose', 'thinking');
+
+    var think = document.createElement('img');
+    think.className = 'hb-pose hb-think';
+    think.src = 'buddy-thinking-sm.webp';
+    think.alt = '';
+    think.decoding = 'async';
+    think.setAttribute('aria-hidden', 'true');
+    var salute = document.createElement('img');
+    salute.className = 'hb-pose hb-salute';
+    salute.src = 'buddy-salute-sm.webp';
+    salute.alt = '';
+    salute.decoding = 'async';
+    salute.setAttribute('aria-hidden', 'true');
+    mount.appendChild(think);
+    mount.appendChild(salute);
+    hero.appendChild(mount);
+
+    /* Do not pop in over undecoded art: fade up once both poses are ready,
+       with a backstop so a hung decode still shows him eventually. */
+    var pending = 2, shown = false;
+    function show() {
+      if (shown) return;
+      shown = true;
+      mount.classList.add('is-in');
+      armReturnHook(hero, mount);
+    }
+    function oneReady() { if (--pending <= 0) show(); }
+    [think, salute].forEach(function (im) {
+      if (im.decode) { try { im.decode().then(oneReady, oneReady); } catch (e) { oneReady(); } }
+      else oneReady();
+    });
+    setTimeout(show, 2500);
+  }
+
+  function armReturnHook(hero, mount) {
+    if (mount.__nbHooked || !('IntersectionObserver' in window)) return;
+    mount.__nbHooked = true;
+    var away = false, saluting = false;
+    var io = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (!entries[i].isIntersecting) { away = true; continue; }
+        if (away && !saluting && !document.hidden) {
+          away = false;
+          saluting = true;
+          mount.setAttribute('data-pose', 'salute');
+          setTimeout(function () {
+            mount.setAttribute('data-pose', 'thinking');
+            saluting = false;
+          }, IDLE_SALUTE_MS);
+        }
+      }
+    }, { threshold: 0.35 });
+    io.observe(hero);
   }
 
   /* Phones get no Buddy at all — not the sequence, not the still, not even the
@@ -229,7 +335,9 @@
       return;
     }
 
-    playSequence(hero, headline);
+    /* Wait for the veil to clear: the sneak is only 1100ms and must not
+       play behind the curtain. */
+    whenRevealed(function () { playSequence(hero, headline); });
   }
 
   if (document.readyState === 'loading') {

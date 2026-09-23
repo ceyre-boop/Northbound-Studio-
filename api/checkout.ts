@@ -30,6 +30,20 @@
  * gets JSON, a native post gets a redirect to /order-received.html (or a
  * page with the phone number on it), so a refresh never re-sends the order.
  *
+ * FOUNDING OFFER (first 15 founding clients only). Beacon and Engine are not
+ * yet buyable directly from checkout.html — that CTA still sends people to
+ * the quote form — but their founding deposit amounts live in PRICES below
+ * so this table stays the single source of truth for every founding number
+ * on the site, and so a direct POST (e.g. once a future buy button exists)
+ * prices correctly from day one. Bearing is buyable here today, as an
+ * add-on to Cheap and Clean, and moves from a flat $600/mo to two founding
+ * terms: bearing_12 ($300/mo, locked for all twelve months) and
+ * bearing_mtm ($300 the first month, then $600/mo after). Whichever
+ * founding item is in the order (beacon, engine, or either Bearing term),
+ * the visitor must also have ticked the founding agreement checkbox
+ * (founding_agree) — early client, Google review once the profile is live —
+ * or the order is refused with a message saying so.
+ *
  * Env: RESEND_API_KEY, QUOTE_TO (the studio inbox), QUOTE_FROM (optional
  * override, "Name <address>" on a Resend-verified domain).
  */
@@ -56,12 +70,26 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /* The server-side price table. Nothing a visitor can edit decides what they
    pay — checkout.html's running total is a convenience only, and this table
-   is what the order is actually priced from. All amounts in cents. */
+   is what the order is actually priced from. All amounts in cents.
+
+   `founding: true` marks an item that only exists at the founding-client
+   price. Ordering one of these requires founding_agree to be checked (see
+   problem() below), and the emails say so in words a person can read. */
 const PRICES = {
   clean: { label: 'Cheap and Clean', cents: 60000, cadence: 'once' },
+  beacon: { label: 'Beacon — 50% deposit (founding price $1,750, standard $3,500)', cents: 87500, cadence: 'deposit', founding: true },
+  engine: { label: 'Engine — 50% deposit (founding price $4,250, standard $8,500)', cents: 212500, cadence: 'deposit', founding: true },
   care: { label: 'Changes and support', cents: 4900, cadence: '/mo' },
-  bearing: { label: 'Bearing', cents: 60000, cadence: '/mo' },
+  bearing_12: { label: 'Bearing — 12-month commitment (founding price)', cents: 30000, cadence: '/mo for 12 months', founding: true },
+  bearing_mtm: { label: 'Bearing — month-to-month (founding price)', cents: 30000, cadence: '/mo, first month', note: 'then $600/mo after', founding: true },
 } as const;
+
+const BEARING_TERMS = { '12': 'bearing_12', mtm: 'bearing_mtm' } as const;
+
+/* What can be posted as the primary `buy` item. care and the two bearing
+   terms are add-ons, priced from the same table, but never a `buy` value on
+   their own. */
+const BUYABLE = ['clean', 'beacon', 'engine'] as const;
 
 function money(cents: number): string {
   return `$${(cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
@@ -77,12 +105,27 @@ function checked(form: FormData, key: string): boolean {
   return typeof v === 'string' && v.trim() !== '' && v.trim() !== '0' && v.trim().toLowerCase() !== 'false';
 }
 
-function problem(o: Order, buy: keyof typeof PRICES | null): string | null {
+function isFounding(key: keyof typeof PRICES): boolean {
+  return (PRICES[key] as { founding?: boolean }).founding === true;
+}
+
+function problem(
+  o: Order,
+  buy: keyof typeof PRICES | null,
+  bearingChecked: boolean,
+  bearingKey: keyof typeof PRICES | null,
+  foundingAgree: boolean,
+): string | null {
   if (!buy) return "We don't recognise what you're buying.";
   if (!o.name) return 'Please tell us your name.';
   if (!o.business) return 'Please tell us your business name.';
   if (o.phone.replace(/\D/g, '').length < 7) return 'Please leave a phone number we can call.';
   if (!EMAIL_RE.test(o.email)) return 'Please check your email address.';
+  if (bearingChecked && !bearingKey) return "Please choose a Bearing term — 12-month commitment or month-to-month.";
+  const takingFounding = isFounding(buy) || bearingKey !== null;
+  if (takingFounding && !foundingAgree) {
+    return "Founding pricing needs the agreement checked — that you're happy to be an early client and to leave a Google review once our Google profile is live.";
+  }
   return null;
 }
 
@@ -102,24 +145,33 @@ async function send(key: string, email: Record<string, unknown>): Promise<Sent> 
   }
 }
 
+type LineItem = { label: string; cents: number; note?: string };
+
 type Summary = {
-  once: { label: string; cents: number }[];
-  monthly: { label: string; cents: number }[];
+  once: LineItem[];
+  monthly: LineItem[];
   dueToday: number;
   monthlyTotal: number;
 };
 
-function summarize(buy: keyof typeof PRICES, care: boolean, bearing: boolean): Summary {
-  const once = [{ label: PRICES[buy].label, cents: PRICES[buy].cents }];
-  const monthly: { label: string; cents: number }[] = [];
+function summarize(buy: keyof typeof PRICES, care: boolean, bearingKey: keyof typeof PRICES | null): Summary {
+  const once: LineItem[] = [{ label: PRICES[buy].label, cents: PRICES[buy].cents }];
+  const monthly: LineItem[] = [];
   if (care) monthly.push({ label: PRICES.care.label, cents: PRICES.care.cents });
-  if (bearing) monthly.push({ label: PRICES.bearing.label, cents: PRICES.bearing.cents });
+  if (bearingKey) {
+    const b = PRICES[bearingKey] as { label: string; cents: number; note?: string };
+    monthly.push({ label: b.label, cents: b.cents, note: b.note });
+  }
   const dueToday = once.reduce((n, l) => n + l.cents, 0);
   const monthlyTotal = monthly.reduce((n, l) => n + l.cents, 0);
   return { once, monthly, dueToday, monthlyTotal };
 }
 
-function notification(o: Order, summary: Summary, page: string): string {
+function monthlyLine(l: LineItem): string {
+  return `  ${l.label} — ${money(l.cents)}/mo${l.note ? ` (${l.note})` : ''}`;
+}
+
+function notification(o: Order, summary: Summary, foundingTaken: boolean, foundingAgree: boolean, page: string): string {
   const lines = [
     `Name:      ${o.name}`,
     `Business:  ${o.business}`,
@@ -128,27 +180,36 @@ function notification(o: Order, summary: Summary, page: string): string {
     '',
     'Order:',
     ...summary.once.map((l) => `  ${l.label} — ${money(l.cents)} once`),
-    ...summary.monthly.map((l) => `  ${l.label} — ${money(l.cents)}/mo`),
+    ...summary.monthly.map(monthlyLine),
     '',
     `Due today: ${money(summary.dueToday)}`,
   ];
   if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month`);
+  if (foundingTaken) {
+    lines.push('', `Founding agreement: ${foundingAgree ? 'confirmed — early client + Google review once the profile is live' : 'MISSING'}`);
+  }
   lines.push('', `Sent from: ${page || 'unknown'}`);
   return lines.join('\n');
 }
 
-function confirmation(o: Order, summary: Summary): string {
+function confirmation(o: Order, summary: Summary, foundingTaken: boolean): string {
   const first = o.name.split(/\s+/)[0];
   const lines = [
     `Hi ${first},`,
     '',
     "We have your order for:",
     ...summary.once.map((l) => `  ${l.label} — ${money(l.cents)} once`),
-    ...summary.monthly.map((l) => `  ${l.label} — ${money(l.cents)}/mo`),
+    ...summary.monthly.map(monthlyLine),
     '',
     `Due today: ${money(summary.dueToday)}`,
   ];
   if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month.`);
+  if (foundingTaken) {
+    lines.push(
+      '',
+      "As one of our founding clients, you've agreed to be an early client and to leave a Google review once our Google Business Profile is live — it isn't yet, so there's nothing to review today.",
+    );
+  }
   lines.push(
     '',
     "Nothing has been charged yet. We'll email a secure payment link within one business hour — once that's paid, we start the build.",
@@ -213,16 +274,20 @@ export async function POST(request: Request): Promise<Response> {
     (Object.keys(LIMITS) as Field[]).map((k) => [k, read(form, k)]),
   ) as Order;
 
-  const buy = (Object.keys(PRICES) as (keyof typeof PRICES)[]).includes(o.buy as keyof typeof PRICES)
-    ? (o.buy as keyof typeof PRICES)
-    : null;
-
-  const bad = problem(o, buy);
-  if (bad) return failed(request, 422, bad);
+  const buy = (BUYABLE as readonly string[]).includes(o.buy) ? (o.buy as (typeof BUYABLE)[number]) : null;
 
   const care = checked(form, 'care');
-  const bearing = checked(form, 'bearing');
-  const summary = summarize(buy!, care, bearing);
+  const bearingChecked = checked(form, 'bearing');
+  const bearingTermRaw = form.get('bearing_term');
+  const bearingTerm = typeof bearingTermRaw === 'string' ? bearingTermRaw.trim() : '';
+  const bearingKey = bearingChecked ? (BEARING_TERMS as Record<string, keyof typeof PRICES>)[bearingTerm] ?? null : null;
+  const foundingAgree = checked(form, 'founding_agree');
+
+  const bad = problem(o, buy, bearingChecked, bearingKey, foundingAgree);
+  if (bad) return failed(request, 422, bad);
+
+  const summary = summarize(buy!, care, bearingKey);
+  const foundingTaken = isFounding(buy!) || bearingKey !== null;
 
   const key = process.env.RESEND_API_KEY;
   const to = process.env.QUOTE_TO;
@@ -237,7 +302,7 @@ export async function POST(request: Request): Promise<Response> {
     to: [to],
     reply_to: o.email,
     subject: `Order: ${PRICES[buy!].label} — ${o.business}`.slice(0, 180),
-    text: notification(o, summary, request.headers.get('referer') ?? ''),
+    text: notification(o, summary, foundingTaken, foundingAgree, request.headers.get('referer') ?? ''),
   });
   if (!studio.ok) {
     console.error('[checkout] notification failed; order not delivered', studio.error, { name: o.name, phone: o.phone });
@@ -249,7 +314,7 @@ export async function POST(request: Request): Promise<Response> {
     to: [o.email],
     reply_to: to,
     subject: 'Your order — Northbound Studio',
-    text: confirmation(o, summary),
+    text: confirmation(o, summary, foundingTaken),
   });
   if (courtesy.ok) {
     console.log('[checkout] delivered', { notification: studio.id, confirmation: courtesy.id });

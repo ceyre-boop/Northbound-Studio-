@@ -42,6 +42,11 @@
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); }
   .site-header { background: #fff; border-bottom: 1px solid var(--line); }
   .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; max-width: 1080px; }
+  /* Syne at weight 800 runs wide: "Northbound Studio" plus the phone pill
+     overflow at 390px on one line (pre-existing, same fix as index.html). */
+  @media (max-width: 480px) {
+    .site-header .wrap { flex-wrap: wrap; row-gap: 10px; }
+  }
   .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
   .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
 
@@ -61,11 +66,27 @@
   .addon { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border: 1px solid var(--line); border-radius: 12px; margin-top: 14px; background: var(--panel); cursor: pointer; }
   .addon input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
   .addon .t { font-weight: 700; display: block; }
+  .addon .t .was { font-weight: 400; font-size: 13px; color: var(--ink-soft); text-decoration: line-through; margin-left: 6px; }
   .addon .d { color: var(--ink-soft); font-size: 15px; }
   .addon .p { font-family: var(--display); white-space: nowrap; margin-left: auto; }
 
+  /* The two Bearing terms and the founding agreement. Always present in the
+     markup (no `hidden`) so a no-JS visitor can still choose a term and
+     agree — JS only dims this block visually while Bearing is unchecked. */
+  .bearing-terms { display: grid; gap: 10px; margin: 10px 0 0 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; }
+  .bearing-terms.is-dim { opacity: 0.45; }
+  .term { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 14px; color: var(--ink-soft); }
+  .term input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+  .term strong { color: var(--ink); }
+  .founding-agree { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 14px; cursor: pointer; }
+  .founding-agree input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+
   .totals { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 16px; }
   .totals .row { display: flex; justify-content: space-between; color: var(--ink-soft); }
+  /* .totals .row's own display:flex outranks the plain [hidden] UA rule
+     (two classes beat one attribute), so a hidden row rendered anyway —
+     pre-existing, caught while testing the monthly row's visibility here. */
+  .totals .row[hidden] { display: none; }
   .totals .row.total { color: var(--ink); font-weight: 700; font-size: 19px; margin-top: 8px; }
   .totals .row.total .v { font-family: var(--display); font-size: 24px; }
   .then { font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
@@ -121,14 +142,39 @@
         <span class="p">$49<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
       </label>
 
-      <label class="addon">
-        <input type="checkbox" name="bearing" value="600" data-price="600">
+      <label class="addon" for="bearing-toggle">
+        <input type="checkbox" id="bearing-toggle" name="bearing" value="1" data-price="300" data-bearing-toggle>
         <span>
-          <span class="t">Bearing — $600/mo</span>
-          <span class="d">The full care plan: hosting, monitoring, backups, unlimited small edits, your automations kept running, and a monthly report on where the calls came from. Built for Engine sites; available here if you want it. Cancel any time.</span>
+          <span class="t">Bearing — founding price $300/mo <span class="was">standard $600/mo</span></span>
+          <span class="d">The full care plan: hosting, monitoring, backups, unlimited small edits, your automations kept running, and a monthly report on where the calls came from. Built for Engine sites; available here if you want it. One of the first 15 founding clients only — pick a term below.</span>
         </span>
-        <span class="p">$600<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
+        <span class="p">$300<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
       </label>
+
+      <!--
+        Two terms, same first-month price. The choice is which one comes
+        after: locked at $300 for a year, or free to leave any time but back
+        to $600 after month one. Left visible (not hidden) even before
+        Bearing is ticked, so a visitor with JavaScript disabled can still
+        pick a term and check the founding agreement below — the only thing
+        JavaScript does here is dim this block until Bearing is checked.
+      -->
+      <div class="bearing-terms" data-bearing-terms>
+        <label class="term">
+          <input type="radio" name="bearing_term" value="12" checked>
+          <span><strong>12-month commitment</strong> — $300/mo, locked for all twelve months.</span>
+        </label>
+        <label class="term">
+          <input type="radio" name="bearing_term" value="mtm">
+          <span><strong>Month-to-month</strong> — $300 the first month, then $600/mo after. Cancel any time.</span>
+        </label>
+      </div>
+
+      <label class="founding-agree">
+        <input type="checkbox" name="founding_agree" value="yes">
+        <span>I'm happy to be an early client and to leave a Google review once your Google profile is live.</span>
+      </label>
+      <p class="note">Required to add Bearing at the founding price above. Our Google Business Profile isn't live yet, so there's nothing to review today — reviews open once it is.</p>
 
       <!--
         Two numbers, and they are not the same number. The build is charged
@@ -172,9 +218,23 @@
       document.getElementById('total').textContent = money(600);
       document.getElementById('monthly').textContent = money(monthly);
       document.getElementById('monthly-row').hidden = monthly === 0;
-      document.getElementById('then').textContent = monthly
-        ? 'Your first monthly charge is next month. Cancel any time from your account.'
-        : 'No monthly charges. You can add support any time from your account.';
+
+      var bearingOn = form.querySelector('[data-bearing-toggle]').checked;
+      var terms = document.querySelector('[data-bearing-terms]');
+      if (terms) terms.classList.toggle('is-dim', !bearingOn);
+
+      var thenText;
+      if (!monthly) {
+        thenText = 'No monthly charges. You can add support any time from your account.';
+      } else if (bearingOn) {
+        var mtm = form.querySelector('input[name="bearing_term"]:checked').value === 'mtm';
+        thenText = mtm
+          ? 'Your first monthly charge is next month, at the founding price. Bearing is $300 the first month, then $600/mo after. Cancel any time from your account.'
+          : 'Your first monthly charge is next month, at the founding price. Bearing is locked at $300/mo for the full 12-month term.';
+      } else {
+        thenText = 'Your first monthly charge is next month. Cancel any time from your account.';
+      }
+      document.getElementById('then').textContent = thenText;
     };
     form.addEventListener('change', render);
     render();

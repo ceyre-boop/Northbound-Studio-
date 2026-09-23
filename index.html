@@ -20,12 +20,14 @@
 <meta name="twitter:description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
 <meta name="twitter:image" content="https://northbound-dev.com/brand/og.png">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="brand/buddy-wave-poster.webp" media="(min-width: 640px)">
 <!--
   THE BASE.
 
   This is 01-clean from the spec kit, carrying Northbound's own content and
   the studio's typefaces. It is deliberately plain: no WebGL, no smooth
-  scroll, no JavaScript at all. Everything that makes this page beautiful
+  scroll, and no JavaScript beyond the four lines at the foot that start
+  Buddy's wave. Everything that makes this page beautiful
   gets added on top of this file, one decision at a time, and every addition
   has to survive the same question — does the page still read, and still
   work, without it?
@@ -62,7 +64,40 @@
   .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
   .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
 
-  .hero { padding: clamp(48px, 9vw, 96px) 0 clamp(40px, 7vw, 72px); background: linear-gradient(180deg, var(--panel), #fff); }
+  .hero { --hero-pad-b: clamp(40px, 7vw, 72px); padding: clamp(48px, 9vw, 96px) 0 var(--hero-pad-b); background: linear-gradient(180deg, var(--panel), #fff); overflow: hidden; }
+  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; column-gap: clamp(16px, 3vw, 40px); }
+
+  /* BUDDY.
+     His own render — the keyed green-screen wave, in brand/ — not geometry.
+     He is decoration: aria-hidden, no JavaScript, and nothing on the page
+     depends on him. Phones never see him and never fetch him: the figure is
+     display:none under 640px AND every <source> carries a media query, so the
+     resource-selection algorithm finds no candidate and downloads nothing.
+     The same media query carries prefers-reduced-motion, so under "reduce"
+     there is no source to play and the poster still is all that shows.
+
+     The box is reserved by width/height attributes and aspect-ratio, so his
+     arrival moves nothing (CLS stays where it is). The bottom of the render
+     is the artist's crop at the shins, so the last fifth of him is masked out
+     into the page and a contact shadow sits on the page behind that fade —
+     he stands on the fold instead of ending in a straight line.
+
+     The still sits under the video and is faded out by the four-line script
+     at the foot of the page, on the video's first "playing" event. The
+     composed clip holds its first frame — the same pixels as the still — for
+     1.5s, so the hand-off is invisible on any connection. With JavaScript
+     off, or under reduced motion, nothing plays and the still is all there
+     is. */
+  .buddy { display: none; position: relative; margin: 0 0 calc(-1 * var(--hero-pad-b)); width: var(--buddy-w); pointer-events: none; }
+  .buddy::before { content: ""; position: absolute; left: 10%; right: 10%; bottom: 7%; height: 12%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(14,21,18,0.22) 0%, rgba(14,21,18,0.08) 45%, rgba(14,21,18,0) 72%); }
+  .buddy-art { position: relative; aspect-ratio: 522 / 506; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); }
+  .buddy-art img, .buddy-art video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
+  .buddy-art.is-playing img { opacity: 0; transition: opacity 0.3s ease-out; }
+  @media (min-width: 640px) {
+    .hero { --buddy-w: clamp(220px, 32vw, 460px); }
+    .hero .wrap { grid-template-columns: minmax(0, 1fr) var(--buddy-w); }
+    .buddy { display: block; }
+  }
   .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
   .hero h1 { font-family: var(--display); font-size: clamp(34px, 6vw, 62px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 20px; max-width: 16ch; }
   .hero .sub { font-size: clamp(17px, 2vw, 20px); color: var(--ink-soft); max-width: 54ch; margin: 0 0 14px; }
@@ -146,14 +181,50 @@
 
 <section class="hero">
   <div class="wrap">
-    <p class="eyebrow">Grand Ledge, Michigan</p>
-    <h1>We build the machine that brings customers in.</h1>
-    <p class="sub">The website is the front of it. The booking, the follow-up, the payments and the dashboard behind it are the part that pays for itself.</p>
-    <p class="byline">Design, engineering and brand under one roof.</p>
-    <div class="actions">
-      <a class="btn btn-primary" href="#quote">Get a quote</a>
-      <a class="btn btn-secondary" href="tel:+14705738908">Call 470-573-8908</a>
+    <div class="hero-copy">
+      <p class="eyebrow">Grand Ledge, Michigan</p>
+      <h1>We build the machine that brings customers in.</h1>
+      <p class="sub">The website is the front of it. The booking, the follow-up, the payments and the dashboard behind it are the part that pays for itself.</p>
+      <p class="byline">Design, engineering and brand under one roof.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#quote">Get a quote</a>
+        <a class="btn btn-secondary" href="tel:+14705738908">Call 470-573-8908</a>
+      </div>
     </div>
+    <!--
+      Buddy's wave. Fifteen seconds: a second and a half still, the two-second
+      wave, the wave played back so the arm comes down (the source clip ends
+      with it raised), then nine and a half seconds still. One wave every
+      fifteen seconds reads as a person; the raw two-second loop reads as a
+      GIF. HEVC-with-alpha is listed first because Safari answers "probably"
+      to VP9 too but cannot show its alpha; Chrome answers "" to hvc1 and
+      falls through to the WebM.
+
+      No autoplay attribute, on purpose. autoplay overrides preload="none"
+      and starts the 190KB fetch at parse time, next to the fonts and the
+      still; on slow 4G that moved LCP from 244ms to 976ms. The script at
+      the foot of the page calls play() on window load instead, once
+      everything the first paint needs has arrived.
+    -->
+    <figure class="buddy" aria-hidden="true">
+      <div class="buddy-art">
+        <!--
+          The still is a <picture>, not the video's poster attribute: Chrome
+          fetches a poster even for a display:none video, and phones must
+          make no request for him at all. A media-scoped <source> plus an
+          inline data-URI fallback is the one still-image pattern that
+          genuinely downloads nothing when the query does not match.
+        -->
+        <picture class="buddy-still">
+          <source media="(min-width: 640px)" srcset="brand/buddy-wave-poster.webp" type="image/webp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="522" height="506" decoding="async">
+        </picture>
+        <video width="522" height="506" muted loop playsinline preload="none" disablepictureinpicture>
+          <source src="brand/buddy-wave.mp4" type='video/mp4; codecs="hvc1"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+          <source src="brand/buddy-wave.webm" type='video/webm; codecs="vp9"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+        </video>
+      </div>
+    </figure>
   </div>
 </section>
 
@@ -280,6 +351,22 @@
     <a href="tel:+14705738908">470-573-8908</a> &middot; Grand Ledge, Michigan &middot; &copy; 2026 Northbound Studio &middot; <a href="studio.html">See the version we built to show off</a>
   </div>
 </footer>
+
+<!--
+  The one script on this page, and it only starts Buddy. It waits for window
+  load so his 190KB never competes with the fonts and the headline, and it
+  fades the still out on the first frame he actually shows. Under 640px and
+  under reduced motion no <source> matched, currentSrc is empty, and this
+  does nothing. Everything above works exactly the same with it removed.
+-->
+<script>
+  addEventListener('load', function () {
+    var v = document.querySelector('.buddy video');
+    if (!v || !v.currentSrc) return;
+    v.addEventListener('playing', function () { v.parentNode.classList.add('is-playing'); }, { once: true });
+    v.play().catch(function () {});
+  });
+</script>
 
 </body>
 </html>

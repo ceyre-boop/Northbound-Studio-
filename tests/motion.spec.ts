@@ -272,7 +272,7 @@ test.describe('390px overflow', () => {
   test('no sideways scroll at 390px (same sweep scripts/perf.mjs gates on)', async () => {
     const perf = await import('../scripts/perf.mjs');
     const { chromium } = await import('@playwright/test');
-    const url = (process.env.PERF_URL || 'http://localhost:8099/studio.html') + '?motion=full';
+    const url = (process.env.PERF_URL || `http://localhost:${process.env.NB_PORT ?? 8099}/studio.html`) + '?motion=full';
     const b = await chromium.launch();
     try {
       const breaches = await perf.sweepOverflow(b, url, [{ width: 390, height: 844 }]);

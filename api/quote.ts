@@ -23,6 +23,14 @@
  * Zero dependencies on purpose: the site has no install step, and one POST to
  * Resend's REST API does not justify adding one.
  *
+ * FOUNDING OFFER (first 15 founding clients only). The "Which package"
+ * field on index.html's quote form posts `package`: '', 'clean', 'beacon',
+ * 'engine' or 'bearing'. Beacon, Engine and Bearing are founding-priced —
+ * when one of those is chosen, the visitor must also have ticked
+ * founding_agree (early client, Google review once the profile is live) or
+ * the enquiry is refused, same as api/checkout.ts. Cheap and Clean and
+ * "Not sure yet" never require it.
+ *
  * Env: RESEND_API_KEY, QUOTE_TO (the studio inbox), QUOTE_FROM (optional
  * override, "Name <address>" on a Resend-verified domain).
  */
@@ -41,6 +49,7 @@ const LIMITS = {
   need: 2000,
   message: 5000,
   offerings: 400,
+  package: 20,
 } as const;
 
 type Field = keyof typeof LIMITS;
@@ -49,15 +58,33 @@ type Sent = { ok: true; id: string } | { ok: false; error: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/* The founding-priced packages a quote can carry, and what to call each one
+   in an email a person reads. Kept in one place so the notification, the
+   auto-reply and the validation below can never say three different things
+   about the same package. */
+const FOUNDING_PACKAGES: Record<string, string> = {
+  beacon: 'Beacon — founding price $1,750 (standard $3,500)',
+  engine: 'Engine — founding price $4,250 (standard $8,500)',
+  bearing: 'Bearing — founding price $300/mo',
+};
+
 function read(form: FormData, key: Field): string {
   const v = form.get(key);
   return typeof v === 'string' ? v.trim().slice(0, LIMITS[key]) : '';
 }
 
-function problem(q: Quote): string | null {
+function checked(form: FormData, key: string): boolean {
+  const v = form.get(key);
+  return typeof v === 'string' && v.trim() !== '' && v.trim() !== '0' && v.trim().toLowerCase() !== 'false';
+}
+
+function problem(q: Quote, foundingAgree: boolean): string | null {
   if (!q.name) return 'Please tell us your name.';
   if (q.phone.replace(/\D/g, '').length < 7) return 'Please leave a phone number we can call.';
   if (!EMAIL_RE.test(q.email)) return 'Please check your email address.';
+  if (q.package in FOUNDING_PACKAGES && !foundingAgree) {
+    return "Founding pricing needs the agreement checked — that you're happy to be an early client and to leave a Google review once our Google profile is live.";
+  }
   return null;
 }
 
@@ -77,12 +104,14 @@ async function send(key: string, email: Record<string, unknown>): Promise<Sent> 
   }
 }
 
-function notification(q: Quote, page: string): string {
+function notification(q: Quote, foundingAgree: boolean, page: string): string {
+  const foundingLabel = q.package ? FOUNDING_PACKAGES[q.package] : undefined;
   return [
     `Name:      ${q.name}`,
     `Business:  ${q.business || '—'}`,
     `Phone:     ${q.phone}`,
     `Email:     ${q.email}`,
+    `Package:   ${foundingLabel ?? (q.package === 'clean' ? 'Cheap and Clean — $600' : 'Not sure yet')}`,
     '',
     'What they need:',
     q.need || '—',
@@ -91,6 +120,7 @@ function notification(q: Quote, page: string): string {
     q.message || '—',
     '',
     `Added on the rail: ${q.offerings || 'nothing'}`,
+    ...(foundingLabel ? [`Founding agreement: ${foundingAgree ? 'confirmed — early client + Google review once the profile is live' : 'MISSING'}`] : []),
     `Sent from: ${page || 'unknown'}`,
   ].join('\n');
 }
@@ -98,11 +128,19 @@ function notification(q: Quote, page: string): string {
 function autoReply(q: Quote): string {
   const first = q.name.split(/\s+/)[0];
   const sent = [q.need, q.message].filter(Boolean).join('\n\n');
+  const foundingLabel = q.package ? FOUNDING_PACKAGES[q.package] : undefined;
   return [
     `Hi ${first},`,
     '',
     "Thanks for getting in touch. We have your request and we'll get back to you within one business day.",
     '',
+    ...(foundingLabel
+      ? [
+          `You asked about ${foundingLabel}.`,
+          "As one of our founding clients, you've agreed to be an early client and to leave a Google review once our Google Business Profile is live — it isn't yet, so there's nothing to review today.",
+          '',
+        ]
+      : []),
     ...(sent ? ['What you sent us:', sent, ''] : []),
     `If it can't wait, call ${PHONE}.`,
     '',
@@ -166,8 +204,9 @@ export async function POST(request: Request): Promise<Response> {
   const q = Object.fromEntries(
     (Object.keys(LIMITS) as Field[]).map((k) => [k, read(form, k)]),
   ) as Quote;
+  const foundingAgree = checked(form, 'founding_agree');
 
-  const bad = problem(q);
+  const bad = problem(q, foundingAgree);
   if (bad) return failed(request, 422, bad);
 
   const key = process.env.RESEND_API_KEY;
@@ -184,7 +223,7 @@ export async function POST(request: Request): Promise<Response> {
     to: [to],
     reply_to: q.email,
     subject: `Quote request: ${q.business || q.name}${firstNeed ? ` — ${firstNeed}` : ''}`.slice(0, 180),
-    text: notification(q, request.headers.get('referer') ?? ''),
+    text: notification(q, foundingAgree, request.headers.get('referer') ?? ''),
   });
   if (!studio.ok) {
     console.error('[quote] notification failed; enquiry not delivered', studio.error, { name: q.name, phone: q.phone });

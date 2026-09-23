@@ -70,7 +70,14 @@ test.describe('homepage — chrome', () => {
 });
 
 test.describe('checkout — add-ons and total', () => {
-  test('shows both add-ons and a total that updates as each is ticked', async ({ page }) => {
+  /* Two numbers, and they are not the same number (see the comment above
+     the .totals block in checkout.html): the build is $600 once, due today,
+     no matter what monthly add-ons are ticked — those bill next month, and
+     api/checkout.ts's summary keeps them split the same way. The old version
+     of this test expected #total itself to climb with each add-on, which
+     matched neither the page nor the server; it was a pre-existing failure
+     fixed here to assert the actually-correct behaviour instead. */
+  test('due today stays $600 no matter what is ticked; the monthly line is what updates', async ({ page }) => {
     await page.goto('/checkout.html');
     const care = page.locator('input[name="care"]');
     const bearing = page.locator('input[name="bearing"]');
@@ -78,18 +85,46 @@ test.describe('checkout — add-ons and total', () => {
     await expect(bearing).toHaveCount(1);
 
     await expect(page.locator('#total')).toHaveText('$600.00');
+    await expect(page.locator('#monthly-row')).toBeHidden();
 
     await care.check();
-    await expect(page.locator('#total')).toHaveText('$649.00');
+    await expect(page.locator('#total')).toHaveText('$600.00');
+    await expect(page.locator('#monthly')).toHaveText('$49.00');
+    await expect(page.locator('#monthly-row')).toBeVisible();
 
+    // Bearing's founding price is $300/mo the first month on either term.
     await bearing.check();
-    await expect(page.locator('#total')).toHaveText('$1,249.00');
+    await expect(page.locator('#total')).toHaveText('$600.00');
+    await expect(page.locator('#monthly')).toHaveText('$349.00');
 
     await care.uncheck();
-    await expect(page.locator('#total')).toHaveText('$1,200.00');
+    await expect(page.locator('#total')).toHaveText('$600.00');
+    await expect(page.locator('#monthly')).toHaveText('$300.00');
   });
 
-  test('still posts with JavaScript disabled', async ({ browser }) => {
+  test('Bearing term choice changes what happens after month one, not the next-month charge', async ({ page }) => {
+    await page.goto('/checkout.html');
+    await page.locator('input[name="bearing"]').check();
+
+    // Default term is the 12-month commitment.
+    await expect(page.locator('input[name="bearing_term"][value="12"]')).toBeChecked();
+    await expect(page.locator('#monthly')).toHaveText('$300.00');
+    await expect(page.locator('#then')).toContainText('locked at $300/mo for the full 12-month term');
+
+    await page.locator('input[name="bearing_term"][value="mtm"]').check();
+    await expect(page.locator('#monthly')).toHaveText('$300.00');
+    await expect(page.locator('#then')).toContainText('then $600/mo after');
+  });
+
+  test('the founding agreement checkbox is present and unchecked by default', async ({ page }) => {
+    await page.goto('/checkout.html');
+    const agree = page.locator('input[name="founding_agree"]');
+    await expect(agree).toHaveCount(1);
+    await expect(agree).not.toBeChecked();
+    await expect(page.locator('body')).toContainText("I'm happy to be an early client and to leave a Google review once your Google profile is live.");
+  });
+
+  test('still posts with JavaScript disabled, including the Bearing term and founding agreement', async ({ browser }) => {
     const ctx = await browser.newContext({ javaScriptEnabled: false });
     const page = await ctx.newPage();
     await page.goto('/checkout.html');
@@ -99,6 +134,9 @@ test.describe('checkout — add-ons and total', () => {
     await expect(form.locator('input[name="buy"]')).toHaveValue('clean');
     await expect(form.locator('input[name="care"]')).toHaveCount(1);
     await expect(form.locator('input[name="bearing"]')).toHaveCount(1);
+    await expect(form.locator('input[name="bearing_term"]')).toHaveCount(2);
+    await expect(form.locator('input[name="bearing_term"][value="12"]')).toBeChecked();
+    await expect(form.locator('input[name="founding_agree"]')).toHaveCount(1);
     await expect(page.locator('button[type="submit"]')).toBeVisible();
     await ctx.close();
   });

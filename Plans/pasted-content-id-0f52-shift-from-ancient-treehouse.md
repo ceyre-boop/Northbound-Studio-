@@ -1,5 +1,20 @@
 # buddy-alive-v1 — Buddy as a character, in the canvas
 
+> **Target changed 2026-09-23: the homepage, not studio.html.** Colin: "when am
+> I gonna see buddy on the main page." So he is built on `index.html`, the plain
+> page now live at northbound-dev.com, and becomes the one lavish thing on an
+> otherwise quiet page — which is what the brief described all along.
+>
+> What that costs, stated plainly: the homepage today has **zero `<script>`
+> tags** and that is why it is bulletproof. Buddy adds a canvas, a WebGL
+> context and a render loop to it. The mitigations are non-negotiable: he is
+> **desktop-only** (suppressed under 640px, so every phone visitor gets exactly
+> the page that is live now), he **loads after first paint** so LCP is
+> untouched, and the page must still read, sell and submit completely with
+> JavaScript off. The panel hooks the brief names do not exist here; his
+> reactions come from the page's own events instead — the package cards and the
+> Buy button.
+
 ## Context
 
 Buddy reads as a pasted image because he *is* one: three raster photographs of

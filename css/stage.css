@@ -290,9 +290,23 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   color: var(--aurora); margin: 0 0 10px; font-variant-numeric: tabular-nums;
 }
 .pkg__price span { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper-faint); }
+.pkg__price .pkg__was { display: inline-block; font-family: var(--body, inherit); font-size: 0.85rem; font-weight: 400; text-decoration: line-through; color: var(--paper-faint); margin-left: 8px; }
+.pkg__founding-tag { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal); margin: 0 0 6px; }
 .pkg__tag { font-style: italic; color: var(--paper-dim); font-size: 0.92rem; margin-bottom: 16px; }
 .pkg ul { margin: 0; padding-left: 1.05em; color: var(--paper-dim); font-size: 0.93rem; }
 .pkg li { margin-bottom: 7px; }
+
+/* The founding-offer explainer, once, above the three cards. Paint-only
+   border/background so it can never contribute layout shift — same
+   constraint as everything else in this static-DOM section. */
+.founding-offer {
+  margin: 0 0 var(--rhythm);
+  padding: clamp(18px, 2.2vw, 26px);
+  border: 1px solid var(--aurora);
+  background: rgba(79, 216, 196, 0.06);
+}
+.founding-offer .eyebrow { margin-bottom: 8px; }
+.founding-offer p:last-child { margin: 0; color: var(--paper-dim); max-width: 66ch; }
 
 /* --- the work ------------------------------------------------------------ */
 .work-list {

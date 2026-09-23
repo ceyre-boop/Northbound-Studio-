@@ -426,23 +426,32 @@ export async function run(url) {
     rows.push(row('fpsMedian', fps.median, `>= ${GATES.fpsMedian.threshold}`, `${fps.median.toFixed(0)}fps (samples: ${fps.samples.map((n) => n.toFixed(0)).join(', ')})`));
     rows.push(row('fpsMin', fps.min, `>= ${GATES.fpsMin.threshold}`, `${fps.min.toFixed(0)}fps`));
 
-    const js = await measureJSBytes(browser, url);
+    // These five are render-correctness checks, not timing measurements —
+    // each drives its own browser context, so running them concurrently
+    // saves wall-clock without touching LCP/CLS/FPS/frame-budget, which stay
+    // strictly serial below because they ARE timing-sensitive. Row order in
+    // the table and the artifact is preserved by pushing in the original
+    // sequence after every promise has settled, not in resolution order.
+    const [js, overflow, webgl, touch, reduced] = await Promise.all([
+      measureJSBytes(browser, url),
+      sweepOverflow(browser, url),
+      checkFallback(browser, url, 'webgl'),
+      checkFallback(browser, url, 'touch'),
+      checkFallback(browser, url, 'reduced-motion'),
+    ]);
+
     results.jsBytes = js.total;
     rows.push(row('jsBytes', js.total, fmt(GATES.jsBytes.threshold), fmt(js.total)));
 
-    const overflow = await sweepOverflow(browser, url);
     results.overflow = overflow.length;
     rows.push(row('overflow', overflow.length, '0 breaches', overflow.length === 0 ? '0 breaches' : overflow.map((b) => `floor ${b.floor} @ ${b.viewport}: ${b.tag} overflows by ${b.overflowPx}px`).join(' | ')));
 
-    const webgl = await checkFallback(browser, url, 'webgl');
     results.fallbackWebgl = webgl.navError ? 1 : webgl.consoleErrors.length + webgl.breaches.length;
     rows.push(row('fallbackWebgl', results.fallbackWebgl, '0 issues', describeFallback(webgl)));
 
-    const touch = await checkFallback(browser, url, 'touch');
     results.fallbackTouch = touch.navError ? 1 : touch.consoleErrors.length + touch.breaches.length;
     rows.push(row('fallbackTouch', results.fallbackTouch, '0 issues', describeFallback(touch)));
 
-    const reduced = await checkFallback(browser, url, 'reduced-motion');
     results.fallbackReducedMotion = reduced.navError ? 1 : reduced.consoleErrors.length + reduced.breaches.length;
     rows.push(row('fallbackReducedMotion', results.fallbackReducedMotion, '0 issues', describeFallback(reduced)));
 

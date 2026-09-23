@@ -25,7 +25,7 @@ test.describe('reveal — veil and buddy return', () => {
         }
       }).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['data-stage'] });
     });
-    await page.goto('/');
+    await page.goto('/studio.html');
 
     // The veil is the first paint, and it lifts without interaction.
     const veil = page.locator('#nb-veil');
@@ -55,7 +55,7 @@ test.describe('reveal — veil and buddy return', () => {
 
   test('mobile: no buddy anywhere, veil still lifts, pitch stays readable', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'the 640px suppression is a mobile concern');
-    await page.goto('/');
+    await page.goto('/studio.html');
     await expect(page.locator('#nb-veil')).toHaveCount(0, { timeout: 15000 });
     // Suppressed under 640px: not the sequence, not the idle post, not even
     // the fetch for his art — he covered the pitch text on phones.
@@ -67,7 +67,7 @@ test.describe('reveal — veil and buddy return', () => {
 
   test('reduced motion: no veil theater, static hero frame', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-reduced', 'reduced motion has its own project');
-    await page.goto('/');
+    await page.goto('/studio.html');
     // No veil at all — content as fast as possible.
     await expect(page.locator('#nb-veil')).toHaveCount(0, { timeout: 8000 });
     await expect(page.locator('#arrival-h')).toBeVisible();

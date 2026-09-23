@@ -1,0 +1,261 @@
+/* api/checkout.ts — where the checkout form lands.
+ *
+ * There is no Stripe integration yet. This endpoint captures the order
+ * honestly: it prices it server-side, tells the studio, and tells the
+ * customer exactly what is true — we have the order, here is what it costs,
+ * a secure payment link follows within one business hour, and nothing has
+ * been charged. When Stripe is connected, this becomes the handler that
+ * creates a Stripe Checkout Session and redirects there; order capture (this
+ * file, mostly unchanged) becomes its fallback for when Stripe itself is
+ * unreachable. Until then, do not add a Stripe SDK or stub a payment call —
+ * there is nothing to fake here, only an order to record and an honest email
+ * to send.
+ *
+ * Modelled closely on api/quote.ts: same Resend REST usage, same honeypot
+ * (nb_hp_7), same JSON-vs-form response split, same env vars.
+ *
+ * 1. The notification to the studio. This one has to arrive: if it does not,
+ *    the order is lost, so a failure here is a failure of the submit and the
+ *    visitor is told to phone instead. Reply-To is the customer, so
+ *    answering it answers them.
+ * 2. The confirmation to the customer. Attempted only after the studio
+ *    already has the order, and if it fails the submit still succeeds — a
+ *    bounced confirmation must never cost us the order.
+ *
+ * Both are sent from northbound-dev.com, which is verified in Resend.
+ *
+ * The form posts here natively, with no JavaScript needed — checkout.html's
+ * script only updates the displayed running total, never the price actually
+ * charged. The Accept header tells a fetch apart from a native post: fetch
+ * gets JSON, a native post gets a redirect to /order-received.html (or a
+ * page with the phone number on it), so a refresh never re-sends the order.
+ *
+ * Env: RESEND_API_KEY, QUOTE_TO (the studio inbox), QUOTE_FROM (optional
+ * override, "Name <address>" on a Resend-verified domain).
+ */
+
+const PHONE = '470-573-8908';
+const RESEND_URL = 'https://api.resend.com/emails';
+const FALLBACK_FROM = 'Northbound Studio <quotes@northbound-dev.com>';
+
+/* Generous, but bounded: nothing on this form needs more, and an unbounded
+   field is an invitation to paste a novel into someone's inbox. */
+const LIMITS = {
+  buy: 40,
+  name: 120,
+  business: 160,
+  phone: 40,
+  email: 200,
+} as const;
+
+type Field = keyof typeof LIMITS;
+type Order = Record<Field, string>;
+type Sent = { ok: true; id: string } | { ok: false; error: string };
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* The server-side price table. Nothing a visitor can edit decides what they
+   pay — checkout.html's running total is a convenience only, and this table
+   is what the order is actually priced from. All amounts in cents. */
+const PRICES = {
+  clean: { label: 'Cheap and Clean', cents: 60000, cadence: 'once' },
+  care: { label: 'Changes and support', cents: 4900, cadence: '/mo' },
+  bearing: { label: 'Bearing', cents: 60000, cadence: '/mo' },
+} as const;
+
+function money(cents: number): string {
+  return `$${(cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+}
+
+function read(form: FormData, key: Field): string {
+  const v = form.get(key);
+  return typeof v === 'string' ? v.trim().slice(0, LIMITS[key]) : '';
+}
+
+function checked(form: FormData, key: string): boolean {
+  const v = form.get(key);
+  return typeof v === 'string' && v.trim() !== '' && v.trim() !== '0' && v.trim().toLowerCase() !== 'false';
+}
+
+function problem(o: Order, buy: keyof typeof PRICES | null): string | null {
+  if (!buy) return "We don't recognise what you're buying.";
+  if (!o.name) return 'Please tell us your name.';
+  if (!o.business) return 'Please tell us your business name.';
+  if (o.phone.replace(/\D/g, '').length < 7) return 'Please leave a phone number we can call.';
+  if (!EMAIL_RE.test(o.email)) return 'Please check your email address.';
+  return null;
+}
+
+async function send(key: string, email: Record<string, unknown>): Promise<Sent> {
+  try {
+    const res = await fetch(RESEND_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(email),
+      signal: AbortSignal.timeout(8000),
+    });
+    const data = (await res.json().catch(() => ({}))) as { id?: string; message?: string };
+    if (res.ok && data.id) return { ok: true, id: data.id };
+    return { ok: false, error: `${res.status} ${data.message ?? 'no message'}` };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+type Summary = {
+  once: { label: string; cents: number }[];
+  monthly: { label: string; cents: number }[];
+  dueToday: number;
+  monthlyTotal: number;
+};
+
+function summarize(buy: keyof typeof PRICES, care: boolean, bearing: boolean): Summary {
+  const once = [{ label: PRICES[buy].label, cents: PRICES[buy].cents }];
+  const monthly: { label: string; cents: number }[] = [];
+  if (care) monthly.push({ label: PRICES.care.label, cents: PRICES.care.cents });
+  if (bearing) monthly.push({ label: PRICES.bearing.label, cents: PRICES.bearing.cents });
+  const dueToday = once.reduce((n, l) => n + l.cents, 0);
+  const monthlyTotal = monthly.reduce((n, l) => n + l.cents, 0);
+  return { once, monthly, dueToday, monthlyTotal };
+}
+
+function notification(o: Order, summary: Summary, page: string): string {
+  const lines = [
+    `Name:      ${o.name}`,
+    `Business:  ${o.business}`,
+    `Phone:     ${o.phone}`,
+    `Email:     ${o.email}`,
+    '',
+    'Order:',
+    ...summary.once.map((l) => `  ${l.label} — ${money(l.cents)} once`),
+    ...summary.monthly.map((l) => `  ${l.label} — ${money(l.cents)}/mo`),
+    '',
+    `Due today: ${money(summary.dueToday)}`,
+  ];
+  if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month`);
+  lines.push('', `Sent from: ${page || 'unknown'}`);
+  return lines.join('\n');
+}
+
+function confirmation(o: Order, summary: Summary): string {
+  const first = o.name.split(/\s+/)[0];
+  const lines = [
+    `Hi ${first},`,
+    '',
+    "We have your order for:",
+    ...summary.once.map((l) => `  ${l.label} — ${money(l.cents)} once`),
+    ...summary.monthly.map((l) => `  ${l.label} — ${money(l.cents)}/mo`),
+    '',
+    `Due today: ${money(summary.dueToday)}`,
+  ];
+  if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month.`);
+  lines.push(
+    '',
+    "Nothing has been charged yet. We'll email a secure payment link within one business hour — once that's paid, we start the build.",
+    '',
+    `If it can't wait, call ${PHONE}.`,
+    '',
+    'Northbound Studio',
+    'Grand Ledge, Michigan',
+  );
+  return lines.join('\n');
+}
+
+function wantsJson(request: Request): boolean {
+  return (request.headers.get('accept') ?? '').includes('application/json');
+}
+
+/* The no-JS failure page. Deliberately plain: it only has to get a phone
+   number in front of someone whose order did not go through. */
+function failurePage(message: string): Response {
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>That didn't send — Northbound Studio</title>
+<style>body{margin:0;padding:48px 20px;background:#05090C;color:#E8EFF2;font:18px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:34rem;margin:0 auto}a{color:#4FD8C4}</style></head>
+<body><main><h1>That didn't send.</h1><p>${message}</p>
+<p>Call <a href="tel:+14705738908">${PHONE}</a> and we'll take your order over the phone.</p>
+<p><a href="/checkout.html">Back to checkout</a></p></main></body></html>`;
+  return new Response(html, { status: 502, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
+function done(request: Request): Response {
+  return wantsJson(request)
+    ? Response.json({ ok: true })
+    : new Response(null, { status: 303, headers: { Location: '/order-received.html' } });
+}
+
+function failed(request: Request, status: number, message: string): Response {
+  return wantsJson(request) ? Response.json({ ok: false, error: message }, { status }) : failurePage(message);
+}
+
+export async function POST(request: Request): Promise<Response> {
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return failed(request, 400, 'The form arrived empty.');
+  }
+
+  /* The honeypot. A person never sees this field; a bot fills every field it
+     finds. Answer exactly as a success would, so there is nothing to learn. */
+  const trap = form.get('nb_hp_7');
+  if (typeof trap === 'string' && trap.trim() !== '') {
+    console.warn('[checkout] honeypot hit; not delivered', {
+      name: form.get('name'),
+      phone: form.get('phone'),
+      email: form.get('email'),
+    });
+    return done(request);
+  }
+
+  const o = Object.fromEntries(
+    (Object.keys(LIMITS) as Field[]).map((k) => [k, read(form, k)]),
+  ) as Order;
+
+  const buy = (Object.keys(PRICES) as (keyof typeof PRICES)[]).includes(o.buy as keyof typeof PRICES)
+    ? (o.buy as keyof typeof PRICES)
+    : null;
+
+  const bad = problem(o, buy);
+  if (bad) return failed(request, 422, bad);
+
+  const care = checked(form, 'care');
+  const bearing = checked(form, 'bearing');
+  const summary = summarize(buy!, care, bearing);
+
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.QUOTE_TO;
+  const from = process.env.QUOTE_FROM || FALLBACK_FROM;
+  if (!key || !to) {
+    console.error('[checkout] RESEND_API_KEY or QUOTE_TO is not set; order not delivered', { name: o.name, phone: o.phone });
+    return failed(request, 503, 'Our inbox is not connected right now.');
+  }
+
+  const studio = await send(key, {
+    from,
+    to: [to],
+    reply_to: o.email,
+    subject: `Order: ${PRICES[buy!].label} — ${o.business}`.slice(0, 180),
+    text: notification(o, summary, request.headers.get('referer') ?? ''),
+  });
+  if (!studio.ok) {
+    console.error('[checkout] notification failed; order not delivered', studio.error, { name: o.name, phone: o.phone });
+    return failed(request, 502, 'Something went wrong on our side.');
+  }
+
+  const courtesy = await send(key, {
+    from,
+    to: [o.email],
+    reply_to: to,
+    subject: 'Your order — Northbound Studio',
+    text: confirmation(o, summary),
+  });
+  if (courtesy.ok) {
+    console.log('[checkout] delivered', { notification: studio.id, confirmation: courtesy.id });
+  } else {
+    console.error('[checkout] confirmation failed (order was delivered)', courtesy.error, { notification: studio.id });
+  }
+
+  return done(request);
+}

@@ -78,10 +78,39 @@ path locally.
 
 ```sh
 bun run serve        # static server on :8099 — there is no build step
-bun run test         # Playwright: desktop, mobile, desktop-reduced
+bun run test         # Playwright: desktop, mobile, desktop-reduced, serial
+bun run test:fast    # a parallel subset, for a quick loop — see below
 bun run perf         # the gates, against the live site
 bun run perf:emit    # re-measure and rewrite data/perf-budget.json
 ```
+
+`test`, `test:fast`, `perf`, `perf:emit` and `ship` all go through
+`scripts/withlock.ts`, an exclusive run lock keyed to this repo path. Several
+Claude Code sessions run this suite against this machine at once; without the
+lock they starve each other's frame timing into false failures. Use
+`NB_NO_LOCK=1` to bypass it, or `test:nolock` to run Playwright directly.
+`NB_PORT` picks the dev-server port per session (default 8099), so two
+sessions running `test`/`test:fast` at once don't fight over the same server.
+
+### The fast lane
+
+`bun run test:fast` runs a handful of specs with `NB_WORKERS=4` (parallel)
+instead of the suite's honest default of one serial worker. It is opt-in and
+deliberately narrow: **acts.spec.ts, stage.spec.ts, motion.spec.ts,
+offerings.spec.ts, perf.spec.ts and reveal.spec.ts measure frame timing
+against the one shared `requestAnimationFrame` loop and must never run in
+it** — parallel workers starve each other's frame timing into false
+failures for exactly those specs.
+
+Right now the fast lane is `tests/budget.spec.ts` only. `tests/home.spec.ts`
+and `tests/polish.spec.ts` were tried and dropped, for different reasons:
+`home.spec.ts` has two pre-existing failures (a horizontal-overflow check and
+a checkout-total race) present even in the suite's normal serial mode on
+`main` — unrelated to parallelism, out of scope here, and left for whoever
+owns that page. `polish.spec.ts` passes 51/51 serially but times out waiting
+on `window.NB_STAGE` under four workers' GPU/CPU contention — a genuine
+timing-sensitive test, so it stays out per the same rule as the six specs
+above.
 
 `data/perf-budget.json` is generated, committed, and never edited by hand. If
 `tests/budget.spec.ts` fails on drift, the fix is to re-run `perf:emit` and

@@ -6,6 +6,7 @@
     "perf": "bun scripts/withlock.ts bun scripts/perf.mjs",
     "perf:emit": "bun scripts/withlock.ts bun scripts/perf.mjs --emit",
     "test": "bun scripts/withlock.ts bunx playwright test",
+    "test:fast": "NB_WORKERS=4 bun scripts/withlock.ts bunx playwright test tests/budget.spec.ts --reporter=line",
     "test:nolock": "bunx playwright test",
     "serve": "python3 scripts/serve.py 8099",
     "ship": "bun scripts/withlock.ts bun scripts/ship.ts"

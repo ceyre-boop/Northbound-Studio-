@@ -9,9 +9,12 @@ const PORT = Number(process.env.NB_PORT ?? 8099);
 export default defineConfig({
   testDir: './tests',
   // Four hand-written WebGL acts sharing one rAF: parallel workers starve each
-  // other's frame timing into false failures. Serial is honest.
-  fullyParallel: false,
-  workers: 1,
+  // other's frame timing into false failures. Serial is honest, and stays the
+  // default. The fast lane (NB_WORKERS, via `bun run test:fast`) is opt-in
+  // and must never be pointed at the timing-sensitive specs — acts, stage,
+  // motion, offerings, perf, reveal — only ones that read markup/copy/links.
+  fullyParallel: process.env.NB_WORKERS ? true : false,
+  workers: Number(process.env.NB_WORKERS ?? 1),
   reporter: [['list']],
   use: { baseURL: `http://localhost:${PORT}` },
   webServer: {

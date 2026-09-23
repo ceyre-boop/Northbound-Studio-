@@ -59,7 +59,7 @@
 
   .site-header { border-bottom: 1px solid var(--line); }
   .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
-  .brand { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -0.02em; text-decoration: none; }
+  .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
   .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
 
   .hero { padding: clamp(48px, 9vw, 96px) 0 clamp(40px, 7vw, 72px); background: linear-gradient(180deg, var(--panel), #fff); }

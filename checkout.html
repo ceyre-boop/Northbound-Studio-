@@ -42,7 +42,7 @@
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); }
   .site-header { background: #fff; border-bottom: 1px solid var(--line); }
   .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; max-width: 1080px; }
-  .brand { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -0.02em; text-decoration: none; }
+  .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
   .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
 
   main { padding: clamp(32px, 6vw, 64px) 0 80px; }
@@ -130,10 +130,16 @@
         <span class="p">$600<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
       </label>
 
+      <!--
+        Two numbers, and they are not the same number. The build is charged
+        once, now; a plan starts next month. Showing a combined "total" here
+        would contradict the line below it and, worse, would not match what
+        api/checkout.ts actually bills — its summary splits once from monthly.
+      -->
       <div class="totals">
-        <div class="row"><span>Due today</span><span class="v" id="due-today">$600.00</span></div>
-        <div class="row total"><span>Total</span><span class="v" id="total">$600.00</span></div>
-        <p class="then" id="then">No monthly charges. Add support any time from your account.</p>
+        <div class="row total"><span>Due today</span><span class="v" id="total">$600.00</span></div>
+        <div class="row" id="monthly-row" hidden><span>Then monthly, from next month</span><span class="v" id="monthly">$0.00</span></div>
+        <p class="then" id="then">No monthly charges. You can add support any time from your account.</p>
       </div>
 
       <div style="margin-top:24px">
@@ -161,11 +167,14 @@
       form.querySelectorAll('input[type=checkbox][data-price]').forEach(function (box) {
         if (box.checked) monthly += Number(box.getAttribute('data-price'));
       });
-      document.getElementById('due-today').textContent = money(600 + monthly);
-      document.getElementById('total').textContent = money(600 + monthly);
+      /* Due today is the build alone. A plan's first charge is next month,
+         which is what the server bills and what the line below promises. */
+      document.getElementById('total').textContent = money(600);
+      document.getElementById('monthly').textContent = money(monthly);
+      document.getElementById('monthly-row').hidden = monthly === 0;
       document.getElementById('then').textContent = monthly
-        ? 'Then ' + money(monthly) + ' a month, starting next month. Cancel any time from your account.'
-        : 'No monthly charges. Add support any time from your account.';
+        ? 'Your first monthly charge is next month. Cancel any time from your account.'
+        : 'No monthly charges. You can add support any time from your account.';
     };
     form.addEventListener('change', render);
     render();

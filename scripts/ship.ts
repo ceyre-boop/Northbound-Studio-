@@ -3,6 +3,8 @@
  * scripts/ship.ts — the only way to deploy production from now on.
  *
  *   bun run ship
+ *   bun run ship --remeasure   # force the re-measure in step 4 even if the
+ *                              # published artifact already covers this commit
  *
  * A plain `vercel --prod` is refused at build time: vercel.json's buildCommand
  * fails any production build that arrives without data/release.json, and
@@ -25,9 +27,14 @@
  *      the codeCommit just deployed.
  *   4. Re-measure production: `bun scripts/perf.mjs --emit
  *      https://northbound-dev.com/`. This writes a fresh
- *      data/perf-budget.json stamped with the same codeCommit.
+ *      data/perf-budget.json stamped with the same codeCommit. Skipped when
+ *      the published artifact's codeCommit already equals this ship's
+ *      codeCommit — nothing under js/, css/ or studio.html changed since the
+ *      last measurement, so it still describes this deploy. `--remeasure`
+ *      forces it anyway.
  *   5. Commit ONLY data/perf-budget.json ("Re-measure from production") and
- *      push the current branch.
+ *      push the current branch. Also skipped when step 4 was skipped —
+ *      there is nothing new to commit.
  *   6. Deploy again. Nothing but the artifact changed, so this is the same
  *      codeCommit shipped a second time — now the two stamps agree and the
  *      section shows.
@@ -38,7 +45,7 @@
  */
 
 import { execSync, spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -178,6 +185,18 @@ function reMeasure() {
   return { gatesFailed };
 }
 
+/** The codeCommit the currently-published artifact describes, or null if
+ *  there is no artifact on disk yet (first ship, or a clean checkout). */
+function publishedCodeCommit(): string | null {
+  if (!existsSync(ARTIFACT_PATH)) return null;
+  try {
+    const artifact = JSON.parse(readFileSync(ARTIFACT_PATH, 'utf8'));
+    return artifact.codeCommit ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // --- step 5: commit + push the artifact -------------------------------------
 
 function commitArtifact() {
@@ -230,6 +249,8 @@ async function verify(expectedCommit: string) {
 // --- main --------------------------------------------------------------------
 
 async function main() {
+  const forceRemeasure = process.argv.includes('--remeasure');
+
   preflight();
 
   const commit = codeCommit();
@@ -238,9 +259,15 @@ async function main() {
 
   await pollRelease(commit);
 
-  const { gatesFailed } = reMeasure();
-
-  commitArtifact();
+  let gatesFailed = false;
+  const published = publishedCodeCommit();
+  if (!forceRemeasure && published === commit) {
+    log('4/7', `rendering code unchanged since ${commit} — the published measurement still describes this deploy. Skipping re-measure.`);
+    log('5/7', 'skipped — step 4 was skipped, so there is nothing new to commit');
+  } else {
+    ({ gatesFailed } = reMeasure());
+    commitArtifact();
+  }
 
   deployProd();
 

@@ -49,6 +49,11 @@
 .nb-veil__track{width:132px;height:2px;margin:0 auto;overflow:hidden;border-radius:2px;background:rgba(233,242,239,.14)}
 .nb-veil__fill{height:100%;width:0%;background:#4FD8C4}
 .nb-veil__pct{margin:14px 0 0;color:rgba(233,242,239,.5);font:400 11px/1 system-ui,-apple-system,sans-serif;letter-spacing:.18em;font-variant-numeric:tabular-nums}
+/* The number is right-aligned in a box wide enough for "100". Without it the
+   centred text re-centres as 9%%->100%% grows, and that movement is a layout
+   shift: 0.000043 at ~1.3s, measured on production, against a gate of exactly
+   zero. tabular-nums alone does not help, because the character COUNT changes. */
+#nb-veil-num{display:inline-block;width:4.6ch;text-align:right;letter-spacing:0}
 /* Dead-man's switch: if js/boot.js never runs, the veil lifts on its own
    rather than trapping the visitor. The script cancels this on start. */
 @keyframes nb-veil-failsafe{to{opacity:0;visibility:hidden;pointer-events:none}}

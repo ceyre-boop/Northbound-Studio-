@@ -196,3 +196,92 @@ describe('honeypot', () => {
     expect(sentEmails.length).toBe(0);
   });
 });
+
+/* The guided build's `spec` field: descriptive only, never priced. */
+describe('the guided build, carried in `spec`', () => {
+  const ROOFER = '1tc33ny5e.Rivera%20Roofing';
+
+  test('Engine: both emails say $2,125 now and $2,125 on delivery, in those words', async () => {
+    const res = await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes', spec: ROOFER });
+    expect(res.status).toBe(200);
+    const notif = sentEmails[0].text as string;
+    const conf = sentEmails[1].text as string;
+    for (const text of [notif, conf]) {
+      expect(text).toContain('Due today: $2,125.00');
+      expect(text).toContain('On delivery: $2,125.00 (the balance)');
+      expect(text).toContain('$2,125.00 now, $2,125.00 on delivery — 50% up front, always. No deposit, no work.');
+    }
+  });
+
+  test('Beacon: $875 now, $875 on delivery', async () => {
+    await post({ ...baseFields(), buy: 'beacon', founding_agree: 'yes' });
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Due today: $875.00');
+    expect(notif).toContain('On delivery: $875.00 (the balance)');
+    expect(notif).toContain('$875.00 now, $875.00 on delivery');
+  });
+
+  test('Cheap and Clean is the whole price now, with no balance line', async () => {
+    await post({ ...baseFields(), buy: 'clean' });
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Payment: $600.00 now, in full.');
+    expect(notif).not.toContain('On delivery');
+  });
+
+  test('the build is described, part by part, in both emails', async () => {
+    await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes', spec: ROOFER });
+    for (const email of sentEmails) {
+      const text = email.text as string;
+      expect(text).toContain('Their build (from build.html):');
+      expect(text).toContain('Business:   Rivera Roofing — Trades & home services');
+      expect(text).toContain('Today:      They call me');
+      expect(text).toContain('Wants more: Booked jobs, Quote requests');
+      expect(text).toContain('Worth:      $1,000–$5,000 per customer');
+      expect(text).toContain('Nights:     Nobody — it waits until morning');
+      expect(text).toContain('Running it: Keep it running for me');
+      expect(text).toContain('Look:       Industrial');
+      expect(text).toContain('Parts:      A custom site, Booking flow, Quote flow, Payments, Lead capture, Automated follow-up, Reminders, Review requests');
+    }
+  });
+
+  test('a package the answers did not point at is noted, with what falls out', async () => {
+    // Same roofer, but they chose Beacon on the sheet (code ends in b).
+    await post({ ...baseFields(), buy: 'beacon', founding_agree: 'yes', spec: '1tc33ny5b.Rivera%20Roofing' });
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Parts:      A custom site');
+    expect(notif).toContain('Not in package: Booking flow, Quote flow, Payments, Lead capture, Automated follow-up, Reminders, Review requests');
+    expect(notif).toContain('(Their answers pointed at engine; they chose beacon.)');
+  });
+
+  test('the spec never changes the price: an Engine code on a Cheap and Clean order is still $600', async () => {
+    const res = await post({ ...baseFields(), buy: 'clean', spec: ROOFER });
+    expect(res.status).toBe(200);
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Due today: $600.00');
+    expect(notif).not.toContain('$2,125');
+    expect(notif).toContain('Their build (from build.html):');
+  });
+
+  test('Bearing chosen in the build is recorded, not charged today', async () => {
+    await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes', bearing: '1', bearing_term: '12', spec: ROOFER });
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Due today: $2,125.00');
+    expect(notif).toContain('Bearing — 12-month commitment (founding price) — $300.00/mo');
+    expect(notif).toContain('Then: $300.00/mo, starting next month');
+  });
+
+  test('a spec that cannot be read is ignored, and the order still goes through', async () => {
+    const res = await post({ ...baseFields(), buy: 'clean', spec: 'not-a-code' });
+    expect(res.status).toBe(200);
+    const notif = sentEmails[0].text as string;
+    expect(notif).not.toContain('Their build');
+  });
+
+  test('a spec is capped, so nobody can post a novel into the inbox', async () => {
+    const res = await post({ ...baseFields(), buy: 'clean', spec: '1tc33ny5e.' + 'A'.repeat(5000) });
+    expect(res.status).toBe(200);
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Their build (from build.html):');
+    expect(notif.length).toBeLessThan(2000);
+  });
+});

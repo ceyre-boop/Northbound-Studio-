@@ -84,7 +84,14 @@ function notification(md: Meta, sessionId: string): string {
   const balance = Number(md.nb_balance ?? '0');
   if (balance) lines.push(`On delivery: ${money(balance)} (the balance — collect before handoff)`);
   if (md.nb_spec) lines.push('', 'Their build:', ...md.nb_spec.split(' | ').map((l) => `  ${l}`));
-  if (md.nb_founding === '1') lines.push('', 'Founding client — early client + Google review once the profile is live.');
+  if (md.nb_founding === '1') {
+    lines.push(
+      '',
+      md.nb_review
+        ? `Founding client — review posted under "${md.nb_review}". Look it up on Google before finalising; nothing has checked it.`
+        : 'Founding client — but no review name came through. Check this one by hand before finalising.',
+    );
+  }
   lines.push('', `Stripe session: ${sessionId}`);
   return lines.join('\n');
 }
@@ -106,7 +113,9 @@ function confirmation(md: Meta): string {
   if (md.nb_founding === '1') {
     lines.push(
       '',
-      "As one of our founding clients, you've agreed to be an early client and to leave a Google review once our Google Business Profile is live — it isn't yet, so there's nothing to review today.",
+      md.nb_review
+        ? `You're taking founding pricing, and you told us your Google review is posted under "${md.nb_review}". We look that up ourselves before finalising — there's nothing automatic about it.`
+        : "You're taking founding pricing as one of our early clients. We'll be in touch about your Google review before finalising.",
     );
   }
   lines.push(

@@ -479,6 +479,7 @@ async function createCheckoutSession(
     'metadata[nb_balance]': String(summary.balance),
     'metadata[nb_monthly]': monthlyMeta.slice(0, 500),
     'metadata[nb_founding]': foundingTaken ? '1' : '0',
+    'metadata[nb_review]': o.review_name,
     'metadata[nb_spec]': specText.slice(0, 500),
   };
   try {

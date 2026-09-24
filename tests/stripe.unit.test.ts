@@ -131,11 +131,12 @@ describe('checkout routes to Stripe only when it can be honoured end to end', ()
   test('Beacon collects the 50% founding deposit and records the balance', async () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_x';
     process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    await order({ buy: 'beacon', founding_agree: 'yes' });
+    await order({ buy: 'beacon', review_name: 'Jamie R.' });
     const sent = stripeCall();
     expect(sent['line_items[0][price_data][unit_amount]']).toBe('87500');
     expect(sent['metadata[nb_balance]']).toBe('87500');
     expect(sent['metadata[nb_founding]']).toBe('1');
+    expect(sent['metadata[nb_review]']).toBe('Jamie R.');
   });
 
   test('the order survives Stripe refusing: it falls back to email capture', async () => {
@@ -151,7 +152,7 @@ describe('checkout routes to Stripe only when it can be honoured end to end', ()
   test('everything the webhook will need is carried in metadata', async () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_x';
     process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    await order({ buy: 'clean', bearing: '1', bearing_term: '12', founding_agree: 'yes' });
+    await order({ buy: 'clean', bearing: '1', bearing_term: '12', review_name: 'Jamie R.' });
     const sent = stripeCall();
     expect(sent['metadata[nb_name]']).toBe('Jamie Rivera');
     expect(sent['metadata[nb_business]']).toBe('Rivera Roofing');
@@ -162,10 +163,10 @@ describe('checkout routes to Stripe only when it can be honoured end to end', ()
     expect(sent.success_url).toContain('/order-paid.html');
   });
 
-  test('a refused founding order never reaches Stripe', async () => {
+  test('a founding order with no review name never reaches Stripe', async () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_x';
     process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const res = await order({ buy: 'beacon' }); // founding_agree missing
+    const res = await order({ buy: 'beacon' }); // no review_name
     expect(res.status).toBe(422);
     expect(calls.length).toBe(0);
   });
@@ -201,6 +202,7 @@ function completed(overrides: Record<string, unknown> = {}): string {
           nb_balance: '87500',
           nb_monthly: '',
           nb_founding: '1',
+          nb_review: 'Jamie R.',
           nb_spec: '',
         },
         ...overrides,
@@ -285,14 +287,17 @@ describe('the webhook believes only Stripe', () => {
     expect(notif).toContain('Deposit paid: $875.00');
     expect(notif).toContain('On delivery: $875.00');
     expect(notif).toContain('cs_test_9');
-    expect(notif).toContain('Founding client');
+    expect(notif).toContain('Founding client — review posted under "Jamie R."');
+    expect(notif).toContain('nothing has checked it');
 
     const customer = emails[1];
     expect(customer.to).toEqual(['jamie@example.com']);
     const conf = customer.text as string;
     expect(conf).toContain('Your deposit of $875.00 is paid');
     expect(conf).toContain('The remaining $875.00 is due on delivery');
-    expect(conf).toContain('Google review once our Google Business Profile is live');
+    expect(conf).toContain('your Google review is posted under "Jamie R."');
+    expect(conf).toContain('nothing automatic about it');
+    expect(conf).not.toMatch(/isn't yet|nothing to review today/);
   });
 
   test('a paid-in-full order mentions no balance', async () => {

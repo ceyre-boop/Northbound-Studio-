@@ -20,12 +20,14 @@
 <meta name="twitter:description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
 <meta name="twitter:image" content="https://northbound-dev.com/brand/og.png">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="brand/buddy-wave-poster.webp" media="(min-width: 640px)">
 <!--
   THE BASE.
 
   This is 01-clean from the spec kit, carrying Northbound's own content and
   the studio's typefaces. It is deliberately plain: no WebGL, no smooth
-  scroll, no JavaScript at all. Everything that makes this page beautiful
+  scroll, and no JavaScript beyond the four lines at the foot that start
+  Buddy's wave. Everything that makes this page beautiful
   gets added on top of this file, one decision at a time, and every addition
   has to survive the same question — does the page still read, and still
   work, without it?
@@ -62,7 +64,86 @@
   .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
   .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
 
-  .hero { padding: clamp(48px, 9vw, 96px) 0 clamp(40px, 7vw, 72px); background: linear-gradient(180deg, var(--panel), #fff); }
+  .hero { --hero-pad-b: clamp(40px, 7vw, 72px); padding: clamp(48px, 9vw, 96px) 0 var(--hero-pad-b); background: linear-gradient(180deg, var(--panel), #fff); overflow: hidden; }
+  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; column-gap: clamp(16px, 3vw, 40px); }
+
+  /* BUDDY.
+     His own render — the keyed green-screen wave, in brand/ — not geometry.
+     He is decoration: aria-hidden, no JavaScript, and nothing on the page
+     depends on him. Phones never fetch a video byte: every <source> carries
+     a min-width media query, so under 640px the resource-selection algorithm
+     finds no candidate and downloads nothing — what phones get instead is
+     the 8KB salute still, sized and placed by the phone rules further down.
+     The same media query carries prefers-reduced-motion, so under "reduce"
+     there is no source to play and the poster still is all that shows.
+
+     The box is reserved by width/height attributes and aspect-ratio, so his
+     arrival moves nothing (CLS stays where it is). The bottom of the render
+     is the artist's crop at the shins, so the last fifth of him is masked out
+     into the page and a contact shadow sits on the page behind that fade —
+     he stands on the fold instead of ending in a straight line.
+
+     The still sits under the video and is faded out by the four-line script
+     at the foot of the page, on the video's first "playing" event. The
+     composed clip holds its first frame — the same pixels as the still — for
+     1.5s, so the hand-off is invisible on any connection. With JavaScript
+     off, or under reduced motion, nothing plays and the still is all there
+     is. */
+  .buddy { display: none; position: relative; margin: 0 0 calc(-1 * var(--hero-pad-b)); width: var(--buddy-w); pointer-events: none; }
+  .buddy::before { content: ""; position: absolute; left: 10%; right: 10%; bottom: 7%; height: 12%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(14,21,18,0.22) 0%, rgba(14,21,18,0.08) 45%, rgba(14,21,18,0) 72%); }
+  .buddy-art { position: relative; aspect-ratio: 522 / 506; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); }
+  .buddy-art img, .buddy-art video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
+  .buddy-art.is-playing img { opacity: 0; transition: opacity 0.3s ease-out; }
+  /* He stands on the left, the copy reads on his right — and he keeps his
+     place in the source after the headline, because he is decoration and the
+     h1 should still be the first thing in the document. Only the two
+     grid-column placements move him. He is NOT mirrored: the render points
+     up and to his left, which from the left-hand column is a gesture across
+     the hero towards the headline. Flipped, he would point off the page. */
+  @media (min-width: 640px) {
+    .hero { --buddy-w: clamp(220px, 32vw, 460px); }
+    .hero .wrap { grid-template-columns: var(--buddy-w) minmax(0, 1fr); }
+    .hero-copy { grid-column: 2; grid-row: 1; }
+    .buddy { display: block; grid-column: 1; grid-row: 1; }
+  }
+  /* PHONES. No video — nothing under 640px matches a <source>, so not one
+     video byte is fetched — but he is not absent either: the small salute
+     still (buddy-salute-sm.webp, 8KB) stands beside the lede and byline, and
+     rocks a gentle hello. Sized by HEIGHT, as css/mascot.css explains every
+     -sm pose must be, and tucked into a second column that only the lede
+     and byline share, so the headline keeps the full width and nothing is
+     ever under him. The copy wrapper becomes display:contents here so its
+     children can take grid areas without moving in the source. */
+  @media (max-width: 639.98px) {
+    .hero { --buddy-h: clamp(120px, 33vw, 150px); }
+    .hero .wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow eyebrow" "h1 h1" "sub buddy" "byline buddy" "actions actions"; }
+    .hero-copy { display: contents; }
+    .hero .eyebrow { grid-area: eyebrow; }
+    .hero h1 { grid-area: h1; }
+    .hero .sub { grid-area: sub; }
+    .hero .byline { grid-area: byline; }
+    .hero .actions { grid-area: actions; }
+    .buddy { display: block; grid-area: buddy; align-self: end; width: auto; margin: 0 0 30px 14px; }
+    .buddy::before { display: none; }
+    .buddy .buddy-art { aspect-ratio: auto; height: var(--buddy-h); width: calc(var(--buddy-h) * 212 / 228); -webkit-mask-image: none; mask-image: none; }
+    .buddy .buddy-art video { display: none; }
+    .buddy .buddy-art img { transform-origin: 50% 100%; animation: buddy-rock 7s ease-in-out infinite; }
+  }
+  /* Two rocks from the feet, then he stands still for the rest of the
+     seven seconds. Transform only, so it costs no layout. */
+  @keyframes buddy-rock {
+    0%, 16%, 100% { transform: rotate(0); }
+    3% { transform: rotate(-4deg); }
+    6% { transform: rotate(4deg); }
+    9% { transform: rotate(-4deg); }
+    12% { transform: rotate(3deg); }
+  }
+  /* Under "reduce" the salute does not rock. (The matching rule for the
+     Buddy at the prices sits after his own rules, further down, so that it
+     wins the cascade against the shrug.) */
+  @media (prefers-reduced-motion: reduce) {
+    .buddy .buddy-art img { animation: none; }
+  }
   .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
   .hero h1 { font-family: var(--display); font-size: clamp(34px, 6vw, 62px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 20px; max-width: 16ch; }
   .hero .sub { font-size: clamp(17px, 2vw, 20px); color: var(--ink-soft); max-width: 54ch; margin: 0 0 14px; }
@@ -101,6 +182,37 @@
   .founding-offer { margin: 0 0 28px; padding: 20px 22px; background: #fff; border: 1px solid var(--accent); border-radius: 14px; }
   .founding-offer .eyebrow { margin: 0 0 8px; }
   .founding-offer p:last-child { margin: 0; color: var(--ink-soft); max-width: 70ch; }
+  /* Buddy at the prices. Left of the caption, feet on the caption's
+     baseline, no card behind him — he stands on the panel. Desktop is the
+     pointing clip in a box reserved by width/height and aspect-ratio (CLS
+     0); phones are the thinking still, sized by height like every -sm pose. */
+  .founding-buddy { display: grid; grid-template-columns: var(--point-w) minmax(0, 1fr); align-items: end; column-gap: clamp(14px, 3vw, 28px); margin: 22px 0 0; --point-w: clamp(180px, 22vw, 250px); }
+  .buddy-point { margin: 0; position: relative; width: var(--point-w); pointer-events: none; }
+  .buddy-point::before { content: ""; position: absolute; left: 14%; right: 14%; bottom: 4%; height: 10%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(14,21,18,0.18) 0%, rgba(14,21,18,0.06) 45%, rgba(14,21,18,0) 72%); }
+  .buddy-point .buddy-art { aspect-ratio: 392 / 380; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 84%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 84%, transparent 100%); }
+  .founding-caption { margin: 0 0 10px; color: var(--ink-soft); max-width: 46ch; font-size: 15px; }
+  @media (max-width: 639.98px) {
+    .founding-buddy { --point-w: auto; --point-h: clamp(120px, 34vw, 150px); grid-template-columns: auto minmax(0, 1fr); }
+    .buddy-point { width: auto; }
+    .buddy-point::before { display: none; }
+    .buddy-point .buddy-art { aspect-ratio: auto; height: var(--point-h); width: calc(var(--point-h) * 181 / 228); -webkit-mask-image: none; mask-image: none; }
+    .buddy-point .buddy-art video { display: none; }
+    .buddy-point .buddy-art img { transform-origin: 50% 100%; }
+    /* One small shrug when he scrolls into view (the class is set by the
+       observer at the foot of the page), then he rests. */
+    .buddy-point.is-seen .buddy-art img { animation: buddy-shrug 1.1s ease-in-out 1; }
+  }
+  @keyframes buddy-shrug {
+    0%, 100% { transform: none; }
+    25% { transform: rotate(-3deg) translateY(-2px); }
+    50% { transform: rotate(3deg) translateY(-2px); }
+    75% { transform: rotate(-1.5deg); }
+  }
+  /* Under "reduce" he does not shrug either. Same specificity as the shrug
+     rule and later in the source, so this one wins. */
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-point.is-seen .buddy-art img { animation: none; }
+  }
   .keeping { margin-top: 28px; padding: 24px; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
   .keeping h3 { font-family: var(--display); font-size: 20px; margin: 0 0 8px; }
   .keeping p { margin: 0 0 10px; color: var(--ink-soft); max-width: 66ch; }
@@ -146,14 +258,51 @@
 
 <section class="hero">
   <div class="wrap">
-    <p class="eyebrow">Grand Ledge, Michigan</p>
-    <h1>We build the machine that brings customers in.</h1>
-    <p class="sub">The website is the front of it. The booking, the follow-up, the payments and the dashboard behind it are the part that pays for itself.</p>
-    <p class="byline">Design, engineering and brand under one roof.</p>
-    <div class="actions">
-      <a class="btn btn-primary" href="build.html">Build your machine</a>
-      <a class="btn btn-secondary" href="tel:+14705738908">Call 470-573-8908</a>
+    <div class="hero-copy">
+      <p class="eyebrow">Grand Ledge, Michigan</p>
+      <h1>We build the machine that brings customers in.</h1>
+      <p class="sub">The website is the front of it. The booking, the follow-up, the payments and the dashboard behind it are the part that pays for itself.</p>
+      <p class="byline">Design, engineering and brand under one roof.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="build.html">Build your machine</a>
+        <a class="btn btn-secondary" href="tel:+14705738908">Call 470-573-8908</a>
+      </div>
     </div>
+    <!--
+      Buddy's wave. Fifteen seconds: a second and a half still, the arm comes
+      up, he waves three times, the raise is played back so the arm comes down
+      (the source clip ends with it raised), then eight and a half seconds
+      still. One wave every fifteen seconds reads as a person; the raw
+      two-second loop reads as a GIF. HEVC-with-alpha is listed first because
+      Safari answers "probably" to VP9 too but cannot show its alpha; Chrome
+      answers "" to hvc1 and falls through to the WebM.
+
+      No autoplay attribute, on purpose. autoplay overrides preload="none"
+      and starts the 190KB fetch at parse time, next to the fonts and the
+      still; on slow 4G that moved LCP from 244ms to 976ms. The script at
+      the foot of the page calls play() on window load instead, once
+      everything the first paint needs has arrived.
+    -->
+    <figure class="buddy" aria-hidden="true">
+      <div class="buddy-art">
+        <!--
+          The still is a <picture>, not the video's poster attribute: Chrome
+          fetches a poster even for a display:none video, and phones must
+          make no request for him at all. A media-scoped <source> plus an
+          inline data-URI fallback is the one still-image pattern that
+          genuinely downloads nothing when the query does not match.
+        -->
+        <picture class="buddy-still">
+          <source media="(max-width: 639.98px)" srcset="buddy-salute-sm.webp" type="image/webp">
+          <source media="(min-width: 640px)" srcset="brand/buddy-wave-poster.webp" type="image/webp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Buddy waving hello" width="522" height="506" decoding="async">
+        </picture>
+        <video width="522" height="506" muted loop playsinline preload="none" disablepictureinpicture>
+          <source src="brand/buddy-wave.mp4" type='video/mp4; codecs="hvc1"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+          <source src="brand/buddy-wave.webm" type='video/webm; codecs="vp9"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+        </video>
+      </div>
+    </figure>
   </div>
 </section>
 
@@ -228,6 +377,49 @@
       </li>
     </ol>
     <!--
+      Buddy, reacting to the prices. Below the fold, so he costs nothing
+      until he is in view: preload="none", no autoplay, and the script at the
+      foot of the page starts him from an IntersectionObserver. The poster IS
+      the pointing pose and the clip's first frame is the same pixels, so the
+      hand-off is invisible and JavaScript-off and reduced-motion visitors
+      see him pointing. He stands bottom-left of the price row and the render
+      points up and to his left, i.e. up into the Beacon and Engine cards.
+      Phones get the small thinking still with a one-off shrug on arrival.
+      The caption is a plain fact from the block above: the founding price is
+      exactly half the standard one, for the first fifteen.
+    -->
+    <div class="founding-buddy">
+      <figure class="buddy-point" aria-hidden="true">
+        <div class="buddy-art">
+          <!--
+            The still's sources carry data-srcset, not srcset, and the script
+            copies them across when the block is within a screen of the
+            viewport. loading="lazy" is not a gate: Chrome's lazy threshold
+            runs 1250-2500px ahead, which reaches this block from the fold,
+            and on slow 4G the 13KB poster then competes with the headline.
+            With scripting off the <noscript> picture is the still instead.
+          -->
+          <picture class="buddy-still">
+            <source media="(max-width: 639.98px)" data-srcset="buddy-thinking-sm.webp" type="image/webp">
+            <source media="(min-width: 640px)" data-srcset="brand/buddy-point-poster.webp" type="image/webp">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="392" height="380" decoding="async">
+          </picture>
+          <noscript>
+            <picture class="buddy-still">
+              <source media="(max-width: 639.98px)" srcset="buddy-thinking-sm.webp" type="image/webp">
+              <source media="(min-width: 640px)" srcset="brand/buddy-point-poster.webp" type="image/webp">
+              <img src="brand/buddy-point-poster.webp" alt="" width="392" height="380" loading="lazy" decoding="async">
+            </picture>
+          </noscript>
+          <video width="392" height="380" muted loop playsinline preload="none" disablepictureinpicture>
+            <source src="brand/buddy-point.mp4" type='video/mp4; codecs="hvc1"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+            <source src="brand/buddy-point.webm" type='video/webm; codecs="vp9"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+          </video>
+        </div>
+      </figure>
+      <p class="founding-caption">Yes, half. Beacon and Engine at the founding price for the first 15 founding clients; the standard price is the one struck through.</p>
+    </div>
+    <!--
       Bearing is not a fourth card any more. It is offered at checkout, where
       someone is already deciding, and it stays available afterwards from
       Your account — because the person who says "I don't need that yet" in
@@ -280,6 +472,49 @@
     <a href="tel:+14705738908">470-573-8908</a> &middot; Grand Ledge, Michigan &middot; &copy; 2026 Northbound Studio &middot; <a href="studio.html">See the version we built to show off</a>
   </div>
 </footer>
+
+<!--
+  The one script on this page, and it only starts Buddy. It waits for window
+  load so his 190KB never competes with the fonts and the headline, and it
+  fades the still out on the first frame he actually shows. Under 640px and
+  under reduced motion no <source> matched, currentSrc is empty, and this
+  does nothing. Everything above works exactly the same with it removed.
+-->
+<script>
+  addEventListener('load', function () {
+    function start(v) {
+      if (!v || !v.currentSrc) return;
+      v.addEventListener('playing', function () { v.parentNode.classList.add('is-playing'); }, { once: true });
+      v.play().catch(function () {});
+    }
+    start(document.querySelector('.buddy video'));
+
+    // The Buddy at the prices is below the fold. Nothing for him — not even
+    // the poster — moves over the wire until the block is within a screen
+    // of the viewport, and the shrug and the clip wait until it is actually
+    // in view. Without IntersectionObserver he is simply the poster.
+    var fig = document.querySelector('.buddy-point');
+    if (!fig) return;
+    function poster() {
+      var s = fig.querySelectorAll('source[data-srcset]');
+      for (var i = 0; i < s.length; i++) s[i].setAttribute('srcset', s[i].getAttribute('data-srcset'));
+    }
+    if (!('IntersectionObserver' in window)) { poster(); return; }
+    var near = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (e) { return e.isIntersecting; })) return;
+      near.disconnect();
+      poster();
+    }, { rootMargin: '100% 0px' });
+    near.observe(fig);
+    var seen = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (e) { return e.isIntersecting; })) return;
+      seen.disconnect();
+      fig.classList.add('is-seen');
+      start(fig.querySelector('video'));
+    }, { rootMargin: '0px 0px 120px 0px' });
+    seen.observe(fig);
+  });
+</script>
 
 </body>
 </html>

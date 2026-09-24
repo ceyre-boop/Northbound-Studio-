@@ -279,6 +279,14 @@
        comment on .brand — puts the pill on its own line instead of forcing
        horizontal scroll. */
     .site-header .wrap { flex-wrap: wrap; row-gap: 10px; }
+    /* ...and the brand takes the whole first row whether Syne has loaded or
+       not. Allowing the wrap was only half a fix: the fallback face is narrow
+       enough to fit beside the pill, so the header rendered one row tall,
+       then grew to two the moment Syne swapped in — a 39px push of everything
+       below it, measured as 0.22 CLS at 390px. Reserving the row up front
+       makes the before and after identical. The finished header looks exactly
+       as it did; only the half-second before the font arrives changes. */
+    .site-header .brand { flex: 1 0 100%; }
   }
 </style>
 </head>

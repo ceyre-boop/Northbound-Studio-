@@ -23,6 +23,15 @@
 
   JavaScript only updates the running total. With it off, the form still
   posts every choice to /api/checkout and the server prices it.
+
+  THE GUIDED BUILD. build.html sends people here with ?buy=<package>&s=<code>.
+  js/checkout-build.js reads both: it switches the page to Beacon or Engine
+  (the 50% deposit now, the balance on delivery — "50% up front, always. No
+  deposit, no work."), shows the build they assembled, pre-ticks Bearing if
+  they asked us to keep it running, and carries the code in a hidden field so
+  the order emails describe the build. The package key and the code are the
+  only things that travel; api/checkout.ts prices from its own table. Without
+  JavaScript this page is Cheap and Clean, as it always was.
 -->
 <style>
   @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
@@ -46,6 +55,11 @@
      overflow at 390px on one line (pre-existing, same fix as index.html). */
   @media (max-width: 480px) {
     .site-header .wrap { flex-wrap: wrap; row-gap: 10px; }
+    /* Three nested paddings left the add-on text ~160px wide at 390px. The
+       price is already in each add-on's title, so the separate column goes. */
+    .card { padding: 18px; }
+    .addon { padding: 14px; }
+    .addon .p { display: none; }
   }
   .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
   .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
@@ -64,7 +78,9 @@
   .includes li { margin-bottom: 5px; }
 
   .addon { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border: 1px solid var(--line); border-radius: 12px; margin-top: 14px; background: var(--panel); cursor: pointer; }
+  .addon[hidden] { display: none; }
   .addon input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+  .addon > span:not(.p) { flex: 1 1 auto; min-width: 0; }  /* the text column was shrinking to a third of the row at 390px, leaving the price alone on the right */
   .addon .t { font-weight: 700; display: block; }
   .addon .t .was { font-weight: 400; font-size: 13px; color: var(--ink-soft); text-decoration: line-through; margin-left: 6px; }
   .addon .d { color: var(--ink-soft); font-size: 15px; }
@@ -101,6 +117,13 @@
   .reassure strong { color: var(--ink); }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .back { display: inline-block; margin-bottom: 18px; font-size: 14px; color: var(--ink-soft); }
+  .build-card[hidden] { display: none; }
+  .build-card h2 { font-family: var(--display); font-size: 18px; margin: 0 0 8px; }
+  .build-card .parts { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 15px; }
+  .build-card .parts li::before { content: '·'; color: var(--accent); margin-right: 8px; font-weight: 700; }
+  .build-card .answers { margin: 12px 0 0; font-size: 14px; color: var(--ink-soft); }
+  .build-card .change { display: inline-block; margin-top: 12px; font-size: 14px; }
+  .totals .row.balance { margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -118,8 +141,16 @@
     <p class="step">Step 1 of 2 · your order</p>
     <h1>Cheap and Clean</h1>
 
-    <form class="card" method="post" action="/api/checkout" id="order">
+    <section class="card build-card" id="build-card" hidden aria-label="Your build">
+      <h2>Your build</h2>
+      <ul class="parts" id="build-parts"></ul>
+      <p class="answers" id="build-answers"></p>
+      <a class="change" id="build-change" href="build.html">Change it</a>
+    </section>
+
+    <form class="card" method="post" action="/api/checkout" id="order" data-today="600" data-balance="0">
       <input type="hidden" name="buy" value="clean">
+      <input type="hidden" name="spec" value="" id="spec">
 
       <div class="line">
         <h2>Cheap and Clean</h2>
@@ -184,6 +215,7 @@
       -->
       <div class="totals">
         <div class="row total"><span>Due today</span><span class="v" id="total">$600.00</span></div>
+        <div class="row balance" id="balance-row" hidden><span>Then on delivery</span><span class="v" id="balance">$0.00</span></div>
         <div class="row" id="monthly-row" hidden><span>Then monthly, from next month</span><span class="v" id="monthly">$0.00</span></div>
         <p class="then" id="then">No monthly charges. You can add support any time from your account.</p>
       </div>
@@ -214,8 +246,15 @@
         if (box.checked) monthly += Number(box.getAttribute('data-price'));
       });
       /* Due today is the build alone. A plan's first charge is next month,
-         which is what the server bills and what the line below promises. */
-      document.getElementById('total').textContent = money(600);
+         which is what the server bills and what the line below promises.
+         The amounts come from the form's data attributes so
+         js/checkout-build.js can switch the page to a Beacon or Engine
+         deposit; they default to Cheap and Clean. */
+      var today = Number(form.getAttribute('data-today')) || 600;
+      var balance = Number(form.getAttribute('data-balance')) || 0;
+      document.getElementById('total').textContent = money(today);
+      document.getElementById('balance').textContent = money(balance);
+      document.getElementById('balance-row').hidden = balance === 0;
       document.getElementById('monthly').textContent = money(monthly);
       document.getElementById('monthly-row').hidden = monthly === 0;
 
@@ -240,6 +279,7 @@
     render();
   })();
 </script>
+<script type="module" src="js/checkout-build.js"></script>
 
 </body>
 </html>

@@ -70,9 +70,10 @@
   /* BUDDY.
      His own render — the keyed green-screen wave, in brand/ — not geometry.
      He is decoration: aria-hidden, no JavaScript, and nothing on the page
-     depends on him. Phones never see him and never fetch him: the figure is
-     display:none under 640px AND every <source> carries a media query, so the
-     resource-selection algorithm finds no candidate and downloads nothing.
+     depends on him. Phones never fetch a video byte: every <source> carries
+     a min-width media query, so under 640px the resource-selection algorithm
+     finds no candidate and downloads nothing — what phones get instead is
+     the 8KB salute still, sized and placed by the phone rules further down.
      The same media query carries prefers-reduced-motion, so under "reduce"
      there is no source to play and the poster still is all that shows.
 
@@ -96,16 +97,52 @@
   /* He stands on the left, the copy reads on his right — and he keeps his
      place in the source after the headline, because he is decoration and the
      h1 should still be the first thing in the document. Only the two
-     grid-column placements move him; under 640px the grid is one column and
-     he is display:none, so none of this applies. He is NOT mirrored: the
-     render points up and to his left, which from the left-hand column is a
-     gesture across the hero towards the headline. Flipped, he would point
-     off the page. */
+     grid-column placements move him. He is NOT mirrored: the render points
+     up and to his left, which from the left-hand column is a gesture across
+     the hero towards the headline. Flipped, he would point off the page. */
   @media (min-width: 640px) {
     .hero { --buddy-w: clamp(220px, 32vw, 460px); }
     .hero .wrap { grid-template-columns: var(--buddy-w) minmax(0, 1fr); }
     .hero-copy { grid-column: 2; grid-row: 1; }
     .buddy { display: block; grid-column: 1; grid-row: 1; }
+  }
+  /* PHONES. No video — nothing under 640px matches a <source>, so not one
+     video byte is fetched — but he is not absent either: the small salute
+     still (buddy-salute-sm.webp, 8KB) stands beside the lede and byline, and
+     rocks a gentle hello. Sized by HEIGHT, as css/mascot.css explains every
+     -sm pose must be, and tucked into a second column that only the lede
+     and byline share, so the headline keeps the full width and nothing is
+     ever under him. The copy wrapper becomes display:contents here so its
+     children can take grid areas without moving in the source. */
+  @media (max-width: 639.98px) {
+    .hero { --buddy-h: clamp(120px, 33vw, 150px); }
+    .hero .wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow eyebrow" "h1 h1" "sub buddy" "byline buddy" "actions actions"; }
+    .hero-copy { display: contents; }
+    .hero .eyebrow { grid-area: eyebrow; }
+    .hero h1 { grid-area: h1; }
+    .hero .sub { grid-area: sub; }
+    .hero .byline { grid-area: byline; }
+    .hero .actions { grid-area: actions; }
+    .buddy { display: block; grid-area: buddy; align-self: end; width: auto; margin: 0 0 30px 14px; }
+    .buddy::before { display: none; }
+    .buddy .buddy-art { aspect-ratio: auto; height: var(--buddy-h); width: calc(var(--buddy-h) * 212 / 228); -webkit-mask-image: none; mask-image: none; }
+    .buddy .buddy-art video { display: none; }
+    .buddy .buddy-art img { transform-origin: 50% 100%; animation: buddy-rock 7s ease-in-out infinite; }
+  }
+  /* Two rocks from the feet, then he stands still for the rest of the
+     seven seconds. Transform only, so it costs no layout. */
+  @keyframes buddy-rock {
+    0%, 16%, 100% { transform: rotate(0); }
+    3% { transform: rotate(-4deg); }
+    6% { transform: rotate(4deg); }
+    9% { transform: rotate(-4deg); }
+    12% { transform: rotate(3deg); }
+  }
+  /* Under "reduce" the salute does not rock. (The matching rule for the
+     Buddy at the prices sits after his own rules, further down, so that it
+     wins the cascade against the shrug.) */
+  @media (prefers-reduced-motion: reduce) {
+    .buddy .buddy-art img { animation: none; }
   }
   .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
   .hero h1 { font-family: var(--display); font-size: clamp(34px, 6vw, 62px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 20px; max-width: 16ch; }
@@ -225,8 +262,9 @@
           genuinely downloads nothing when the query does not match.
         -->
         <picture class="buddy-still">
+          <source media="(max-width: 639.98px)" srcset="buddy-salute-sm.webp" type="image/webp">
           <source media="(min-width: 640px)" srcset="brand/buddy-wave-poster.webp" type="image/webp">
-          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="522" height="506" decoding="async">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Buddy waving hello" width="522" height="506" decoding="async">
         </picture>
         <video width="522" height="506" muted loop playsinline preload="none" disablepictureinpicture>
           <source src="brand/buddy-wave.mp4" type='video/mp4; codecs="hvc1"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">

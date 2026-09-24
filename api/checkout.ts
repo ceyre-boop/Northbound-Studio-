@@ -55,7 +55,12 @@
  * together, part by part, in words. The decoder and the answers-to-parts
  * mapping are copied here rather than imported from js/spec.js — a browser
  * module is not something to bundle into a serverless function on trust —
- * and tests/checkout.unit.test.ts proves the two copies agree.
+ * and tests/spec.unit.test.ts proves the two copies agree.
+ *
+ * THE TWELVE ON THE HOMEPAGE. index.html's panels send their picks here the
+ * same way, as the version-2 code (a mask of the twelve, then the package);
+ * the emails list exactly the parts that were clicked, and which of them
+ * the package covers.
  *
  * Beacon and Engine are a 50% deposit now and the balance on delivery, and
  * the emails say both numbers: "$875.00 now, $875.00 on delivery". 50% up
@@ -278,9 +283,13 @@ type Spec = {
   run: string | null;
   look: string | null;
   pkg: string | null;
+  /* Parts picked by hand on the homepage (the version-2 code); null when
+     the build came from answers on build.html. */
+  parts: string[] | null;
 };
 
 const SPEC_VERSION = '1';
+const SPEC_PARTS_VERSION = '2';
 const SPEC_UNSURE = '_';
 const SPEC_BIZ: Record<string, string> = { t: 'Trades & home services', f: 'Food & drink', s: 'Salon, spa or fitness', r: 'Shop or store', p: 'Professional services', o: 'Something else' };
 const SPEC_BIZ_KEY: Record<string, string> = { t: 'trades', f: 'food', s: 'salon', r: 'shop', p: 'pro', o: 'other' };
@@ -320,6 +329,17 @@ export function decodeSpec(s: string): Spec | null {
   if (!s) return null;
   const dot = s.indexOf('.');
   const code = dot === -1 ? s : s.slice(0, dot);
+  if (code[0] === SPEC_PARTS_VERSION) {
+    if (code.length !== 5 || !/^[0-9a-z]{3}$/.test(code.slice(1, 4))) return null;
+    const picked = parseInt(code.slice(1, 4), 36);
+    if (picked >= 1 << SPEC_OFFERINGS.length) return null;
+    return {
+      name: '',
+      biz: SPEC_UNSURE, now: SPEC_UNSURE, want: [], worth: SPEC_UNSURE, answers: SPEC_UNSURE, run: SPEC_UNSURE, look: SPEC_UNSURE,
+      pkg: SPEC_PKG_KEY[code[4]] ?? null,
+      parts: SPEC_OFFERINGS.filter((_, i) => picked & (1 << i)),
+    };
+  }
   if (code.length !== 9 || code[0] !== SPEC_VERSION) return null;
   const mask = parseInt(code[3], 36);
   let name = '';
@@ -336,10 +356,12 @@ export function decodeSpec(s: string): Spec | null {
     run: keyFor(SPEC_RUN_KEY, code[6]),
     look: code[7] === SPEC_UNSURE ? SPEC_UNSURE : SPEC_LOOK[code[7]] ? code[7] : null,
     pkg: SPEC_PKG_KEY[code[8]] ?? null,
+    parts: null,
   };
 }
 
 export function specParts(a: Spec): string[] {
+  if (Array.isArray(a.parts)) return SPEC_OFFERINGS.filter((o) => a.parts!.includes(o));
   const set = new Set<string>(['A custom site']);
   const add = (...names: string[]) => names.forEach((n) => set.add(n));
   if (a.now === 'hope') add('Local SEO');
@@ -375,6 +397,18 @@ function specLines(a: Spec): string[] {
   const pkg = a.pkg ?? recommended;
   const included = parts.filter((p) => SPEC_INCLUDES[pkg]?.includes(p));
   const extra = parts.filter((p) => !SPEC_INCLUDES[pkg]?.includes(p));
+  if (a.parts) {
+    /* Picked by hand on the homepage: there are no answers to report, only
+       the parts they clicked and how those fell into the package. */
+    const lines = [
+      'Their build (picked from the twelve on the homepage):',
+      `  Picked:     ${parts.length ? parts.join(', ') : 'nothing'}`,
+      `  Parts:      ${included.join(', ') || 'none of the picked parts are in this package'}`,
+    ];
+    if (extra.length) lines.push(`  Not in package: ${extra.join(', ')}`);
+    if (pkg !== recommended) lines.push(`  (Their picks pointed at ${recommended}; they chose ${pkg}.)`);
+    return lines;
+  }
   const lines = [
     'Their build (from build.html):',
     `  Business:   ${[a.name, label(SPEC_BIZ, SPEC_BIZ_KEY, a.biz)].filter(Boolean).join(' — ')}`,

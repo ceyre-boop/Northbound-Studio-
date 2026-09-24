@@ -7,10 +7,15 @@
  *   2. The codec. A build is seven answers plus an optional business name,
  *      packed into a short string so a link can carry it between devices
  *      with no database behind it:  1tc33ny5e.Rivera%20Roofing
+ *      A version-2 code carries parts picked straight off the homepage
+ *      instead of answers — a 12-bit mask of the twelve, then the package:
+ *      2005e (see encode/decode). The answers all read "not sure yet",
+ *      because nobody asked them anything.
  *   3. The mapping. Answers select parts (named exactly as the twelve
  *      offerings on index.html), parts decide a package, and the package
  *      plus the customer's own "what is one customer worth" bracket gives a
- *      payback line that is arithmetic, not a claim.
+ *      payback line that is arithmetic, not a claim. Picked parts skip the
+ *      first step and go straight to the second.
  *
  * Nothing here is a price the server trusts. checkout.html carries the code
  * and the package key to api/checkout.ts, which prices only from its own
@@ -20,6 +25,11 @@
  */
 
 export const VERSION = '1';
+
+/* The homepage's picked-parts code. Same `s=` parameter, same decoder, next
+   version: '2' + a three-character base-36 mask of the twelve + the package
+   character. Five characters, no name. */
+export const PARTS_VERSION = '2';
 
 /* '_' is "not sure yet", offered on every question. It is a real answer,
    never a validation failure. */
@@ -142,11 +152,11 @@ const CORE = ['Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automat
 const ENGINE_ONLY = [...CORE, 'Reminders', 'Review requests', 'Owner dashboard'];
 const BEACON_PARTS = ['Brand identity', 'Local SEO'];
 
-/** @typedef {{ biz: string|null, now: string|null, want: string[], wantUnsure: boolean, worth: string|null, answers: string|null, run: string|null, look: string|null, pkg: string|null, name: string }} Answers */
+/** @typedef {{ biz: string|null, now: string|null, want: string[], wantUnsure: boolean, worth: string|null, answers: string|null, run: string|null, look: string|null, pkg: string|null, name: string, parts: string[]|null }} Answers */
 
 /** @returns {Answers} */
 export function blank() {
-  return { biz: null, now: null, want: [], wantUnsure: false, worth: null, answers: null, run: null, look: null, pkg: null, name: '' };
+  return { biz: null, now: null, want: [], wantUnsure: false, worth: null, answers: null, run: null, look: null, pkg: null, name: '', parts: null };
 }
 
 const byKey = (list, key) => list.find((o) => o.key === key) || null;
@@ -157,8 +167,11 @@ const keyFor = (list, code) => (code === UNSURE ? UNSURE : byCode(list, code)?.k
 
 /* ---- the mapping ------------------------------------------------------ */
 
-/** Which of the twelve parts these answers call for, in the site's order. */
+/** Which of the twelve parts these answers call for, in the site's order.
+    Parts picked by hand on the homepage (a.parts) are exactly the parts —
+    nothing is inferred, nothing is added. */
 export function partsFor(a) {
+  if (Array.isArray(a.parts)) return OFFERINGS.filter((o) => a.parts.includes(o));
   const set = new Set(['A custom site']);
   const add = (...names) => names.forEach((n) => set.add(n));
 
@@ -241,8 +254,14 @@ export function money(n) {
 
 /* ---- the codec -------------------------------------------------------- */
 
-/** Pack answers into a short string. Never throws; unknown values become '_'. */
+/** Pack answers into a short string. Never throws; unknown values become '_'.
+    Picked parts pack as the version-2 code instead: the mask, then the package. */
 export function encode(a) {
+  if (Array.isArray(a.parts)) {
+    const mask = OFFERINGS.reduce((n, o, i) => (a.parts.includes(o) ? n | (1 << i) : n), 0);
+    const pkg = a.pkg && PACKAGES[a.pkg] ? PACKAGES[a.pkg].code : UNSURE;
+    return PARTS_VERSION + mask.toString(36).padStart(3, '0') + pkg;
+  }
   const c = (list, key) => byKey(list, key)?.code || UNSURE;
   const mask = a.want.reduce((n, k) => n | (byKey(WANT, k)?.bit || 0), 0);
   const look = byKey(LOOKS, a.look)?.code || UNSURE;
@@ -259,6 +278,16 @@ export function decode(s) {
   if (typeof s !== 'string') return null;
   const dot = s.indexOf('.');
   const code = dot === -1 ? s : s.slice(0, dot);
+  if (code[0] === PARTS_VERSION) {
+    if (code.length !== 5 || !/^[0-9a-z]{3}$/.test(code.slice(1, 4))) return null;
+    const mask = parseInt(code.slice(1, 4), 36);
+    if (mask >= 1 << OFFERINGS.length) return null;
+    const a = blank();
+    a.biz = UNSURE; a.now = UNSURE; a.wantUnsure = true; a.worth = UNSURE; a.answers = UNSURE; a.run = UNSURE; a.look = UNSURE;
+    a.parts = OFFERINGS.filter((o, i) => mask & (1 << i));
+    a.pkg = Object.values(PACKAGES).find((p) => p.code === code[4])?.key ?? null;
+    return a;
+  }
   if (code.length !== 9 || code[0] !== VERSION) return null;
   const a = blank();
   a.biz = keyFor(BIZ, code[1]);
@@ -283,6 +312,11 @@ export function link(a, origin) {
 }
 
 /* ---- words ------------------------------------------------------------ */
+
+/** Picked on the homepage rather than answered on build.html. */
+export function isPicked(a) {
+  return Array.isArray(a.parts);
+}
 
 /** The answers in plain words, for the spec sheet and the emails. */
 export function describe(a) {

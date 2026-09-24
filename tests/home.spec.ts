@@ -5,6 +5,7 @@
  * string verbatim rather than a paraphrase.
  */
 import { test, expect } from '@playwright/test';
+import { GOOGLE_REVIEW_URL } from '../js/config.js';
 
 test.describe('homepage — pricing', () => {
   test('the three prices are present: $600, $3,500, $8,500', async ({ page }) => {
@@ -116,15 +117,23 @@ test.describe('checkout — add-ons and total', () => {
     await expect(page.locator('#then')).toContainText('then $600/mo after');
   });
 
-  test('the founding agreement checkbox is present and unchecked by default', async ({ page }) => {
+  test('the review link and the review-name field are present, the field empty and not yet required', async ({ page }) => {
     await page.goto('/checkout.html');
-    const agree = page.locator('input[name="founding_agree"]');
-    await expect(agree).toHaveCount(1);
-    await expect(agree).not.toBeChecked();
-    await expect(page.locator('body')).toContainText("I'm happy to be an early client and to leave a Google review once your Google profile is live.");
+    const link = page.locator('a', { hasText: 'Leave your Google review' });
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', GOOGLE_REVIEW_URL);
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener');
+    const name = page.locator('input[name="review_name"]');
+    await expect(name).toHaveCount(1);
+    await expect(name).toHaveValue('');
+    await expect(name).not.toHaveAttribute('required', '');
+    await expect(page.locator('label[for="f-review-name"]')).toHaveText('The name your review is posted under');
+    await expect(page.locator('#founding-claim')).toContainText('we check it ourselves before finalising');
+    await expect(page.locator('input[name="founding_agree"]')).toHaveCount(0);
   });
 
-  test('still posts with JavaScript disabled, including the Bearing term and founding agreement', async ({ browser }) => {
+  test('still posts with JavaScript disabled, including the Bearing term, the review link and the review name', async ({ browser }) => {
     const ctx = await browser.newContext({ javaScriptEnabled: false });
     const page = await ctx.newPage();
     await page.goto('/checkout.html');
@@ -136,8 +145,109 @@ test.describe('checkout — add-ons and total', () => {
     await expect(form.locator('input[name="bearing"]')).toHaveCount(1);
     await expect(form.locator('input[name="bearing_term"]')).toHaveCount(2);
     await expect(form.locator('input[name="bearing_term"][value="12"]')).toBeChecked();
-    await expect(form.locator('input[name="founding_agree"]')).toHaveCount(1);
+    await expect(form.locator('a', { hasText: 'Leave your Google review' })).toHaveAttribute('href', GOOGLE_REVIEW_URL);
+    await expect(form.locator('input[name="review_name"]')).toBeVisible();
     await expect(page.locator('button[type="submit"]')).toBeVisible();
+    await ctx.close();
+  });
+});
+
+/* The founding claim: a review, not a checkbox. The server refuses founding
+   pricing without the review name; the browser has to refuse it first,
+   because a server refusal on a native POST throws away everything typed. */
+test.describe('founding pricing — claimed with a review', () => {
+  const STALE = /isn't live yet|nothing to review today|once (your|our) Google (Business )?[Pp]rofile is live/;
+
+  for (const path of ['/', '/studio.html', '/checkout.html', '/account.html']) {
+    test(`${path} no longer says the profile isn't live`, async ({ page }) => {
+      await page.goto(path);
+      const body = await page.locator('body').innerText();
+      expect(body).not.toMatch(STALE);
+      expect(body).not.toMatch(/verified automatically|checked automatically/i);
+    });
+  }
+
+  test('the quote form has the review link (new tab) and the name field; the field is only required for a founding package', async ({ page }) => {
+    await page.goto('/');
+    const form = page.locator('#quote form');
+    const link = form.locator('a', { hasText: 'Leave your Google review' });
+    await expect(link).toHaveAttribute('href', GOOGLE_REVIEW_URL);
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener');
+    await expect(form.locator('#founding-claim')).toContainText('We check it ourselves before finalising the quote');
+    const name = form.locator('input[name="review_name"]');
+    await expect(name).toHaveValue('');
+    expect(await name.evaluate((el: HTMLInputElement) => el.required)).toBe(false);
+    await form.locator('#f-package').selectOption('engine');
+    expect(await name.evaluate((el: HTMLInputElement) => el.required)).toBe(true);
+    await form.locator('#f-package').selectOption('clean');
+    expect(await name.evaluate((el: HTMLInputElement) => el.required)).toBe(false);
+  });
+
+  test('the quote form blocks the submit in the browser while a founding package is picked and the name is empty', async ({ page }) => {
+    await page.goto('/');
+    const form = page.locator('#quote form');
+    await form.locator('#f-name').fill('Jamie Rivera');
+    await form.locator('#f-phone').fill('5551234567');
+    await form.locator('#f-email').fill('jamie@example.com');
+    await form.locator('#f-package').selectOption('bearing');
+    const name = form.locator('input[name="review_name"]');
+    let requests = 0;
+    page.on('request', (r) => { if (r.url().includes('/api/quote')) requests++; });
+    await form.locator('button[type="submit"]').click();
+    await expect(page).toHaveURL(/\/$|\/#/);
+    expect(requests).toBe(0);
+    expect(await name.evaluate((el: HTMLInputElement) => el.validationMessage)).toContain('leave your Google review');
+    await expect(name).toBeFocused();
+    await expect(form.locator('#founding-claim')).toHaveClass(/is-required/);
+    await name.fill('Jamie R.');
+    expect(await name.evaluate((el: HTMLInputElement) => el.checkValidity())).toBe(true);
+    await expect(form.locator('#founding-claim')).not.toHaveClass(/is-empty/);
+    // Everything typed is still there — nothing was posted, nothing was lost.
+    await expect(form.locator('#f-name')).toHaveValue('Jamie Rivera');
+  });
+
+  test('checkout blocks the submit while Bearing is ticked and the name is empty, and clears once it is filled', async ({ page }) => {
+    await page.goto('/checkout.html');
+    await page.locator('#f-name').fill('Jamie Rivera');
+    await page.locator('#f-business').fill('Rivera Roofing');
+    await page.locator('#f-email').fill('jamie@example.com');
+    await page.locator('#f-phone').fill('5551234567');
+    const name = page.locator('input[name="review_name"]');
+    expect(await name.evaluate((el: HTMLInputElement) => el.required)).toBe(false);
+    await page.locator('input[name="bearing"]').check();
+    expect(await name.evaluate((el: HTMLInputElement) => el.required)).toBe(true);
+    await expect(page.locator('#founding-claim')).toHaveClass(/is-required/);
+    let requests = 0;
+    page.on('request', (r) => { if (r.url().includes('/api/checkout')) requests++; });
+    await page.locator('button.pay').click();
+    await expect(page).toHaveURL(/checkout\.html/);
+    expect(requests).toBe(0);
+    expect(await name.evaluate((el: HTMLInputElement) => el.validationMessage)).toContain('We check it ourselves');
+    await name.fill('Jamie R.');
+    expect(await name.evaluate((el: HTMLInputElement) => el.checkValidity())).toBe(true);
+    await page.locator('input[name="bearing"]').uncheck();
+    expect(await name.evaluate((el: HTMLInputElement) => el.required)).toBe(false);
+  });
+
+  test('checkout for Engine (from the guided build) requires the name for the package itself, and says so', async ({ page }) => {
+    await page.goto('/checkout.html?buy=engine&s=1tc33ny5e.Rivera%20Roofing');
+    await expect(page.locator('h1')).toHaveText('Engine');
+    const name = page.locator('input[name="review_name"]');
+    expect(await name.evaluate((el: HTMLInputElement) => el.required)).toBe(true);
+    await expect(page.locator('#founding-note')).toContainText('Needed for Engine at the founding price, and for Bearing.');
+    await expect(page.locator('#founding-note')).toContainText('we check it ourselves before finalising');
+  });
+
+  test('with JavaScript off the quote form still has the link and the field, and posts natively', async ({ browser }) => {
+    const ctx = await browser.newContext({ javaScriptEnabled: false });
+    const page = await ctx.newPage();
+    await page.goto('/');
+    const form = page.locator('#quote form');
+    await expect(form).toHaveAttribute('action', '/api/quote');
+    await expect(form.locator('a', { hasText: 'Leave your Google review' })).toHaveAttribute('href', GOOGLE_REVIEW_URL);
+    await expect(form.locator('input[name="review_name"]')).toBeVisible();
+    await expect(form.locator('button[type="submit"]')).toBeVisible();
     await ctx.close();
   });
 });

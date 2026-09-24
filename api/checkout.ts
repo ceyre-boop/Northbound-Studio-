@@ -127,9 +127,15 @@ function money(cents: number): string {
   return `$${(cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 }
 
+/* Characters with no width: zero-width space and friends, the bidi marks,
+   the word joiner, the BOM. String.trim() does not remove them, so without
+   this a review name of "\u200B" satisfied the founding requirement and
+   arrived in the order email as an empty pair of quotes. */
+const INVISIBLE = /[\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2064\uFEFF]/gu;
+
 function read(form: FormData, key: Field): string {
   const v = form.get(key);
-  return typeof v === 'string' ? v.trim().slice(0, LIMITS[key]) : '';
+  return typeof v === 'string' ? v.replace(INVISIBLE, '').trim().slice(0, LIMITS[key]) : '';
 }
 
 function checked(form: FormData, key: string): boolean {
@@ -212,7 +218,7 @@ function monthlyLine(l: LineItem): string {
   return `  ${l.label} — ${money(l.cents)}/mo${l.note ? ` (${l.note})` : ''}`;
 }
 
-function notification(o: Order, summary: Summary, foundingTaken: boolean, page: string, spec: Spec | null): string {
+function notification(o: Order, summary: Summary, foundingTaken: boolean, page: string, spec: Spec | null, buy: keyof typeof PRICES): string {
   const lines = [
     `Name:      ${o.name}`,
     `Business:  ${o.business}`,
@@ -228,7 +234,7 @@ function notification(o: Order, summary: Summary, foundingTaken: boolean, page: 
   if (summary.balance) lines.push(`On delivery: ${money(summary.balance)} (the balance)`);
   lines.push(`Payment: ${depositLine(summary)}`);
   if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month`);
-  if (spec) lines.push('', ...specLines(spec));
+  if (spec) lines.push('', ...specLines(spec, buy));
   if (foundingTaken) {
     lines.push('', `Founding review: posted under "${o.review_name}" — look it up on Google before finalising; nothing has checked it.`);
   }
@@ -236,7 +242,7 @@ function notification(o: Order, summary: Summary, foundingTaken: boolean, page: 
   return lines.join('\n');
 }
 
-function confirmation(o: Order, summary: Summary, foundingTaken: boolean, spec: Spec | null): string {
+function confirmation(o: Order, summary: Summary, foundingTaken: boolean, spec: Spec | null, buy: keyof typeof PRICES): string {
   const first = o.name.split(/\s+/)[0];
   const lines = [
     `Hi ${first},`,
@@ -250,7 +256,7 @@ function confirmation(o: Order, summary: Summary, foundingTaken: boolean, spec: 
   if (summary.balance) lines.push(`On delivery: ${money(summary.balance)} (the balance)`);
   lines.push(`Payment: ${depositLine(summary)}`);
   if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month.`);
-  if (spec) lines.push('', ...specLines(spec));
+  if (spec) lines.push('', ...specLines(spec, buy));
   if (foundingTaken) {
     lines.push(
       '',
@@ -384,19 +390,32 @@ export function specParts(a: Spec): string[] {
 
 export function specRecommend(parts: string[]): string {
   const engineParts = parts.filter((p) => SPEC_ENGINE_ONLY.includes(p));
-  if (engineParts.some((p) => SPEC_CORE.includes(p)) || engineParts.length >= 2) return 'engine';
-  if (engineParts.length || parts.some((p) => SPEC_BEACON_PARTS.includes(p))) return 'beacon';
-  return 'clean';
+  let pkg = 'clean';
+  if (engineParts.some((p) => SPEC_CORE.includes(p)) || engineParts.length >= 2) pkg = 'engine';
+  else if (engineParts.length || parts.some((p) => SPEC_BEACON_PARTS.includes(p))) pkg = 'beacon';
+  /* A package containing none of what they picked is not a recommendation,
+     it is an upsell. Picking only Reminders used to propose Beacon at $1,750
+     with an empty build card, because one ride-along part is deliberately not
+     enough to justify Engine. Fall back to the entry package instead and let
+     the "not in package" line offer to quote the part on its own. */
+  if (parts.length && !parts.some((p) => SPEC_INCLUDES[pkg].includes(p))) pkg = 'clean';
+  return pkg;
 }
 
-function specLines(a: Spec): string[] {
+/* `buy` is the package the server priced and is charging for. The spec code
+   carries a package too, but it came from the visitor's URL — describing the
+   order from that let `?buy=clean&s=<engine code>` produce a $600 order whose
+   confirmation email listed eleven parts as covered. Money was never at risk
+   (PRICES is the only source of an amount); what the email claimed they had
+   bought was. */
+function specLines(a: Spec, buy?: keyof typeof PRICES | null): string[] {
   const label = (map: Record<string, string>, keyMap: Record<string, string>, key: string | null) => {
     const code = Object.keys(keyMap).find((c) => keyMap[c] === key);
     return code ? map[code] : 'Not sure yet';
   };
   const parts = specParts(a);
   const recommended = specRecommend(parts);
-  const pkg = a.pkg ?? recommended;
+  const pkg = (buy && SPEC_INCLUDES[buy] ? buy : a.pkg) ?? recommended;
   const included = parts.filter((p) => SPEC_INCLUDES[pkg]?.includes(p));
   const extra = parts.filter((p) => !SPEC_INCLUDES[pkg]?.includes(p));
   if (a.parts) {
@@ -573,7 +592,7 @@ export async function POST(request: Request): Promise<Response> {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (stripeKey && webhookSecret) {
-    const specText = spec ? specLines(spec).join(' | ') : '';
+    const specText = spec ? specLines(spec, buy).join(' | ') : '';
     const referer = request.headers.get('referer') ?? '';
     const session = await createCheckoutSession(stripeKey, o, summary, buy!, foundingTaken, specText, referer);
     if (session.ok) {
@@ -601,7 +620,7 @@ export async function POST(request: Request): Promise<Response> {
     to: [to],
     reply_to: o.email,
     subject: `Order: ${PRICES[buy!].label} — ${o.business}`.slice(0, 180),
-    text: notification(o, summary, foundingTaken, request.headers.get('referer') ?? '', spec),
+    text: notification(o, summary, foundingTaken, request.headers.get('referer') ?? '', spec, buy!),
   });
   if (!studio.ok) {
     console.error('[checkout] notification failed; order not delivered', studio.error, { name: o.name, phone: o.phone });
@@ -613,7 +632,7 @@ export async function POST(request: Request): Promise<Response> {
     to: [o.email],
     reply_to: to,
     subject: 'Your order — Northbound Studio',
-    text: confirmation(o, summary, foundingTaken, spec),
+    text: confirmation(o, summary, foundingTaken, spec, buy!),
   });
   if (courtesy.ok) {
     console.log('[checkout] delivered', { notification: studio.id, confirmation: courtesy.id });

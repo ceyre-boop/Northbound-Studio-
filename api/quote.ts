@@ -73,16 +73,21 @@ const FOUNDING_PACKAGES: Record<string, string> = {
   bearing: 'Bearing — founding price $300/mo',
 };
 
+/* Zero-width and bidi characters survive String.trim(), so without stripping
+   them a review name of "\u200B" satisfied the founding requirement. Same
+   rule as api/checkout.ts. */
+const INVISIBLE = /[\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2064\uFEFF]/gu;
+
 function read(form: FormData, key: Field): string {
   const v = form.get(key);
-  return typeof v === 'string' ? v.trim().slice(0, LIMITS[key]) : '';
+  return typeof v === 'string' ? v.replace(INVISIBLE, '').trim().slice(0, LIMITS[key]) : '';
 }
 
 function problem(q: Quote): string | null {
   if (!q.name) return 'Please tell us your name.';
   if (q.phone.replace(/\D/g, '').length < 7) return 'Please leave a phone number we can call.';
   if (!EMAIL_RE.test(q.email)) return 'Please check your email address.';
-  if (q.package in FOUNDING_PACKAGES && !q.review_name) {
+  if (Object.hasOwn(FOUNDING_PACKAGES, q.package) && !q.review_name) {
     return "Founding pricing needs the name your Google review is posted under — leave the review first, then tell us the name it shows. We check it ourselves before finalising the quote.";
   }
   return null;
@@ -105,7 +110,7 @@ async function send(key: string, email: Record<string, unknown>): Promise<Sent> 
 }
 
 function notification(q: Quote, page: string): string {
-  const foundingLabel = q.package ? FOUNDING_PACKAGES[q.package] : undefined;
+  const foundingLabel = Object.hasOwn(FOUNDING_PACKAGES, q.package) ? FOUNDING_PACKAGES[q.package] : undefined;
   return [
     `Name:      ${q.name}`,
     `Business:  ${q.business || '—'}`,

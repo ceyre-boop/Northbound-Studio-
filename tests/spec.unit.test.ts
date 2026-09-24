@@ -230,3 +230,30 @@ describe('the server copy agrees with the browser', () => {
     expect(d.look).toBe('Industrial');
   });
 });
+
+describe('a package that contains none of the picks is not recommended', () => {
+  /* Picking one ride-along part on the homepage used to propose Beacon at
+     $1,750 with an empty build card: the rule that one such part is not
+     enough for Engine sent it down to Beacon, which contains none of them. */
+  test('a lone ride-along part falls to the entry package, on both sides', () => {
+    for (const part of ['Reminders', 'Review requests', 'Owner dashboard']) {
+      expect(recommend([part])).toBe('clean');
+      expect(specRecommend([part])).toBe('clean');
+    }
+  });
+
+  test('a ride-along beside a part the package does contain keeps that package', () => {
+    expect(recommend(['Reminders', 'Brand identity'])).toBe('beacon');
+    expect(specRecommend(['Reminders', 'Brand identity'])).toBe('beacon');
+  });
+
+  test('two ride-alongs still add up to Engine, which contains them', () => {
+    expect(recommend(['Reminders', 'Owner dashboard'])).toBe('engine');
+    expect(specRecommend(['Reminders', 'Owner dashboard'])).toBe('engine');
+  });
+
+  test('nothing picked is still the entry package', () => {
+    expect(recommend([])).toBe('clean');
+    expect(specRecommend([])).toBe('clean');
+  });
+});

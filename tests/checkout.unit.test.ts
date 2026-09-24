@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { GOOGLE_REVIEW_URL, POST } from '../api/checkout.ts';
+import { POST as quotePOST } from '../api/quote.ts';
 import { GOOGLE_REVIEW_URL as BROWSER_REVIEW_URL } from '../js/config.js';
 
 const ENV_KEY = 'RESEND_API_KEY';
@@ -356,5 +357,82 @@ describe('the guided build, carried in `spec`', () => {
     const notif = sentEmails[0].text as string;
     expect(notif).toContain('Their build (from build.html):');
     expect(notif.length).toBeLessThan(2000);
+  });
+});
+
+/* ---- three ways the founding gate and the order emails were got around ---- */
+
+function quote(fields: Record<string, string>): Promise<Response> {
+  const form = new FormData();
+  const base = { name: 'Jamie Rivera', business: 'Rivera Roofing', phone: '5551234567', email: 'jamie@example.com' };
+  for (const [k, v] of Object.entries({ ...base, ...fields })) form.set(k, v);
+  return quotePOST(new Request('http://localhost/api/quote', {
+    method: 'POST', body: form, headers: { accept: 'application/json' },
+  }));
+}
+
+describe('an invisible review name is not a review name', () => {
+  const ZWSP = '\u200B';
+  const BIDI = '\u200E\u202A\u2060\uFEFF';
+
+  test('checkout: a zero-width space alone is refused', async () => {
+    const res = await post({ ...baseFields(), buy: 'beacon', review_name: ZWSP });
+    expect(res.status).toBe(422);
+    expect(sentEmails.length).toBe(0);
+  });
+
+  test('checkout: bidi and joiner marks alone are refused', async () => {
+    const res = await post({ ...baseFields(), buy: 'engine', review_name: BIDI });
+    expect(res.status).toBe(422);
+    expect(sentEmails.length).toBe(0);
+  });
+
+  test('quote: a zero-width space alone is refused', async () => {
+    const res = await quote({ package: 'engine', review_name: ZWSP });
+    expect(res.status).toBe(422);
+    expect(sentEmails.length).toBe(0);
+  });
+
+  test('a real name still passes, and the marks around it are stripped', async () => {
+    const res = await post({ ...baseFields(), buy: 'beacon', review_name: `${ZWSP}Jamie R.${ZWSP}` });
+    expect(res.status).toBe(200);
+    expect(sentEmails[0].text as string).toContain('posted under "Jamie R."');
+  });
+});
+
+describe('the order emails describe the package that was priced', () => {
+  /* 235re = every one of the twelve, package Engine. Posted with buy=clean it
+     used to produce a $600 order whose confirmation listed eleven parts. */
+  const EVERYTHING_AS_ENGINE = '235re';
+
+  test('a spec code claiming Engine cannot make a $600 order list eleven parts', async () => {
+    const res = await post({ ...baseFields(), buy: 'clean', spec: EVERYTHING_AS_ENGINE });
+    expect(res.status).toBe(200);
+    const [notif, conf] = sentEmails.map((e) => e.text as string);
+    for (const text of [notif, conf]) {
+      expect(text).toContain('Due today: $600.00');
+      expect(text).toContain('Parts:      A custom site');
+      expect(text).not.toMatch(/Parts:.*Brand identity/);
+      expect(text).toContain('Not in package: Brand identity');
+    }
+  });
+
+  test('the price was never the thing at risk', async () => {
+    await post({ ...baseFields(), buy: 'clean', spec: EVERYTHING_AS_ENGINE });
+    expect(sentEmails[0].text as string).toContain('Cheap and Clean');
+    expect(sentEmails[0].text as string).not.toContain('$4,250');
+  });
+});
+
+describe('inherited object keys are not packages', () => {
+  test('package=constructor is neither founding nor a label', async () => {
+    const res = await quote({ package: 'constructor' });
+    expect(res.status).toBe(200); // not a founding package, so no review name is demanded
+    expect(sentEmails[0].text as string).not.toContain('native code');
+  });
+
+  test('a real founding package still demands the review name', async () => {
+    const res = await quote({ package: 'engine' });
+    expect(res.status).toBe(422);
   });
 });

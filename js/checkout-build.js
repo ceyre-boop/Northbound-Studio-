@@ -80,8 +80,10 @@ if (a) {
     // From the twelve on the homepage: there are no answers to recap, and
     // "change it" means the panels, not the questions.
     $('#build-answers').textContent = `Picked from the twelve on the homepage: ${b.parts.join(', ')}.`;
-    $('#build-change').href = '/#offerings';
-    if (back) { back.href = '/#offerings'; back.textContent = '← Back to the twelve'; }
+    /* Carry the picks home too, or "change it" meant "start again". */
+    const home = `/?s=${encodeURIComponent(encode(a))}#offerings`;
+    $('#build-change').href = home;
+    if (back) { back.href = home; back.textContent = '← Back to the twelve'; }
   } else {
     const d = describe(a);
     $('#build-answers').textContent = [

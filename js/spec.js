@@ -198,9 +198,17 @@ export function partsFor(a) {
 /** The package the parts add up to: 'clean' | 'beacon' | 'engine'. */
 export function recommend(parts) {
   const engineParts = parts.filter((p) => ENGINE_ONLY.includes(p));
-  if (engineParts.some((p) => CORE.includes(p)) || engineParts.length >= 2) return 'engine';
-  if (engineParts.length || parts.some((p) => BEACON_PARTS.includes(p))) return 'beacon';
-  return 'clean';
+  let pkg = 'clean';
+  if (engineParts.some((p) => CORE.includes(p)) || engineParts.length >= 2) pkg = 'engine';
+  else if (engineParts.length || parts.some((p) => BEACON_PARTS.includes(p))) pkg = 'beacon';
+  /* A package containing none of what they picked is not a recommendation,
+     it is an upsell. Picking only Reminders used to propose Beacon at $1,750
+     with an empty build card, because one ride-along part is deliberately not
+     enough to justify Engine. Fall back to the entry package instead and let
+     the "not in package" line offer to quote the part on its own. Mirrored in
+     api/checkout.ts's specRecommend; tests/spec.unit.test.ts proves they agree. */
+  if (parts.length && !parts.some((p) => PACKAGES[pkg].includes.includes(p))) pkg = 'clean';
+  return pkg;
 }
 
 /** Everything the spec sheet needs, from a set of answers. */

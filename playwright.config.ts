@@ -8,6 +8,11 @@ const PORT = Number(process.env.NB_PORT ?? 8099);
 /* The site is static: serve the repo root and drive it. */
 export default defineConfig({
   testDir: './tests',
+  /* Only the browser specs. Playwright's default matcher also picks up
+     *.test.ts, which here are bun:test unit files — it loaded them and
+     reported three ESM failures ("protocol 'bun:'") that had nothing to do
+     with the site. `bun run test:unit` runs those. */
+  testMatch: '**/*.spec.ts',
   // Four hand-written WebGL acts sharing one rAF: parallel workers starve each
   // other's frame timing into false failures. Serial is honest, and stays the
   // default. The fast lane (NB_WORKERS, via `bun run test:fast`) is opt-in

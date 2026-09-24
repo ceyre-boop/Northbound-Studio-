@@ -390,6 +390,35 @@
 </footer>
 
 <!-- If the module never arrives, the plain form comes back. -->
+<!--
+  The same guard index.html puts on its copy of this form. It matters most
+  here: this block is only reachable when the module failed to load, which is
+  exactly when a server refusal would throw away everything they typed.
+-->
+<script>
+  (function () {
+    var form = document.querySelector('.quote-form');
+    var pkg = document.getElementById('f-package');
+    var name = form && form.querySelector('[data-founding-agree]');
+    if (!form || !pkg || !name) return;
+    var block = name.closest('.founding-claim');
+    var sync = function () {
+      var needed = pkg.value === 'beacon' || pkg.value === 'engine' || pkg.value === 'bearing';
+      var empty = name.value.trim() === '';
+      name.required = needed;
+      name.setCustomValidity(
+        needed && empty
+          ? 'To take the founding price, leave your Google review (the link above opens it), then type the name it\u2019s posted under here. We check it ourselves before finalising.'
+          : ''
+      );
+      if (block) { block.classList.toggle('is-required', needed); block.classList.toggle('is-empty', empty); }
+    };
+    pkg.addEventListener('change', sync);
+    name.addEventListener('input', sync);
+    sync();
+  })();
+</script>
+
 <script type="module" src="js/build.js" onerror="document.documentElement.classList.add('no-module')"></script>
 
 </body>

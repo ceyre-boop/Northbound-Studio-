@@ -166,6 +166,12 @@ test.describe('guided build — the spec sheet', () => {
     await expect(sheet).toContainText('$2,125 now, $2,125 on delivery.');
     await expect(sheet).toContainText('50% up front, always. No deposit, no work.');
     await expect(sheet.locator('#reserve')).toHaveText('Reserve my build — $2,125 now');
+    await expect(sheet.locator('#reserve-top')).toHaveText('Reserve my build — $2,125 now');
+    expect(await sheet.locator('#reserve-top').getAttribute('href')).toBe(await sheet.locator('#reserve').getAttribute('href'));
+    // The first Reserve sits under the price, above the parts list.
+    const topY = await sheet.locator('#reserve-top').evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+    const partsY = await sheet.locator('.parts').evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+    expect(topY).toBeLessThan(partsY);
     await expect(sheet).toContainText('Your build for Rivera Roofing');
     const body = await page.locator('body').innerText();
     expect(body).not.toMatch(/spots? (left|remaining)|hurry|countdown|hours left|ends (today|soon)/i);
@@ -212,6 +218,28 @@ test.describe('guided build — the spec sheet', () => {
     await expect(sheet.locator('#reserve')).toHaveAttribute('href', /buy=beacon/);
   });
 
+  test('the recap and the send block are folded on a phone and open on a desktop', async ({ page }) => {
+    await fresh(page);
+    await walk(page, ROOFER);
+    const wide = (await page.viewportSize())!.width > 860;
+    for (const id of ['#fold-answers', '#fold-send']) {
+      const d = page.locator(id);
+      await expect(d.locator('summary')).toBeVisible();
+      expect(await d.evaluate((el: HTMLDetailsElement) => el.open)).toBe(wide);
+    }
+    await expect(page.locator('#fold-answers .answers-list li')).toHaveCount(7);
+    await expect(page.locator('#fold-send #email-form')).toHaveCount(1);
+  });
+
+  test('Copy the link says what it did', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
+    await fresh(page);
+    await walk(page, ROOFER);
+    await page.locator('#fold-send').evaluate((d: HTMLDetailsElement) => { d.open = true; });
+    await page.locator('#copy-link').click();
+    await expect(page.locator('#copy-status')).toHaveText('Link copied — it restores this exact build.');
+  });
+
   test('"not sure" on worth gives no payback line and no invented number', async ({ page }) => {
     await fresh(page);
     await walk(page, [ROOFER[0], ROOFER[1], ROOFER[2], { value: '_' }, ROOFER[4], ROOFER[5], ROOFER[6]]);
@@ -254,6 +282,9 @@ test.describe('guided build — saved and restored', () => {
     const link = await page.locator('#link-field').inputValue();
     expect(link).toMatch(/\/build\.html\?s=1tc33ny5/);
     expect(link).toContain('Rivera');
+    // The raw URL is not painted on the sheet; the copy button is the way to it.
+    expect(await page.locator('#panel').innerText()).not.toContain('build.html?s=');
+    await expect(page.locator('#link-field')).toHaveAttribute('data-build-link', link);
 
     const ctx = await browser.newContext();
     const other = await ctx.newPage();
@@ -369,6 +400,7 @@ test.describe('guided build — the page itself', () => {
       await page.locator('#panel [data-nav="next"]').click();
       expect(await overflow()).toBeLessThanOrEqual(0);
     }
+    await page.locator('#fold-send summary').click();
     await page.locator('#email-toggle').click();
     expect(await overflow()).toBeLessThanOrEqual(0);
   });
@@ -403,7 +435,9 @@ test.describe('guided build — the page itself', () => {
     page.on('pageerror', (err) => errors.push(String(err)));
     await fresh(page);
     await walk(page, ROOFER);
+    await page.locator('#fold-send').evaluate((d: HTMLDetailsElement) => { d.open = true; });
     await page.locator('#email-toggle').click();
+    await page.locator('#copy-link').click();
     await page.locator('#reserve').click();
     await expect(page).toHaveURL(/checkout\.html/);
     expect(errors).toEqual([]);

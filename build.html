@@ -206,8 +206,18 @@
   .email-form .field { margin: 0; }
   .email-form .status { margin: 0; font-size: 14px; }
   .email-form .status.err { color: #8a2e1f; }
-  .link-box { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
-  .link-box input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-family: var(--mono); font-size: 12px; color: var(--ink-soft); background: #fff; }
+  .copy-status { margin: 10px 0 0; font-size: 14px; color: var(--accent); min-height: 1.4em; }
+  .copy-status:empty { display: none; }
+  .copy-status code { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); word-break: break-all; }
+  .card .reserve { display: flex; margin-top: 16px; min-height: 54px; font-size: 17px; }
+  .card .reassure { margin-top: 8px; }
+  .fold { border: 1px solid var(--line); border-radius: 14px; background: #fff; margin: 0 0 14px; padding: 0 22px; }
+  .fold summary { cursor: pointer; padding: 16px 0; font-family: var(--display); font-size: 18px; letter-spacing: -0.02em; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  .fold summary::-webkit-details-marker { display: none; }
+  .fold summary::after { content: '+'; font-family: var(--mono); color: var(--ink-soft); }
+  .fold[open] summary::after { content: '–'; }
+  .fold[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .fold > *:last-child { margin-bottom: 20px; }
   .answers-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 14px; color: var(--ink-soft); }
   .answers-list b { color: var(--ink); font-weight: 600; }
   .start-over { margin-top: 16px; text-align: center; font-size: 14px; }

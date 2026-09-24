@@ -235,6 +235,7 @@ function sheetHtml() {
   const p = b.pkg;
   const d = describe(A);
   const url = link(A, location.origin);
+  const wide = window.innerWidth > 860;
   const checkoutHref = `checkout.html?buy=${p.key}&s=${encodeURIComponent(encode(A))}`;
   const pkgOpts = Object.values(PACKAGES).map((k) =>
     `<li><button type="button" class="pkg-opt" data-pkg="${k.key}" aria-pressed="${k.key === p.key}"><b>${esc(k.name)}</b><small>${money(k.price)}${k.standard ? ` founding` : ''}</small>${k.key === b.recommended ? '<em>Our pick from your answers</em>' : ''}</button></li>`,
@@ -267,6 +268,10 @@ function sheetHtml() {
       <p class="price">${money(p.price)}${p.standard ? `<span class="was">${money(p.standard)}</span>` : ''}</p>
       ${p.standard ? '<p class="price-note">Founding price · first 15 founding clients</p>' : ''}
       <p class="extra" style="margin-top:6px">${esc(p.tag)}</p>
+      <!-- The close sits under the price, not under three screens of detail.
+           The same button repeats at the bottom for whoever reads it all. -->
+      <a class="btn btn-primary reserve" id="reserve-top" href="${esc(checkoutHref)}">Reserve my build — ${money(p.deposit)} now</a>
+      <p class="reassure">${p.deposit === p.price ? `${money(p.price)} in full.` : `${money(p.deposit)} now, ${money(b.balance)} on delivery.`} Nothing is charged today — a secure payment link follows within one business hour.</p>
     </div>
 
     <div class="card">
@@ -294,8 +299,16 @@ function sheetHtml() {
       </ol>
     </div>
 
-    <div class="card">
-      <h2>Your answers</h2>
+    <div class="actions">
+      <a class="btn btn-primary reserve" id="reserve" href="${esc(checkoutHref)}">Reserve my build — ${money(p.deposit)} now</a>
+      <p class="reassure">No card details are entered on this site. Reserving sends us the order; a secure payment link follows within one business hour, and nothing is charged until you pay it. Or call <a href="tel:+14705738908">${PHONE}</a>.</p>
+    </div>
+
+    <!-- Folded on a phone, open on a desktop where there is room. The
+         contents are always in the DOM, so nothing here depends on the
+         disclosure to exist. -->
+    <details class="fold" id="fold-answers"${wide ? ' open' : ''}>
+      <summary>Your answers</summary>
       <ul class="answers-list">
         <li><b>Business:</b> ${esc(d.business)}</li>
         <li><b>Today:</b> ${esc(d.now)}</li>
@@ -305,15 +318,17 @@ function sheetHtml() {
         <li><b>Running it:</b> ${esc(d.run)}</li>
         <li><b>Look:</b> ${esc(d.look)}</li>
       </ul>
-    </div>
+    </details>
 
-    <div class="actions">
-      <a class="btn btn-primary" id="reserve" href="${esc(checkoutHref)}">Reserve my build — ${money(p.deposit)} now</a>
+    <details class="fold" id="fold-send"${wide ? ' open' : ''}>
+      <summary>Send this build to yourself</summary>
+      <p class="extra" style="margin:0 0 12px">A link brings this exact build back on any device — no account, no password.</p>
       <div class="actions-row">
         <button type="button" class="btn btn-secondary" id="email-toggle" aria-expanded="false" aria-controls="email-form">Email me this build</button>
         <button type="button" class="btn btn-quiet" id="copy-link">Copy the link</button>
       </div>
-      <p class="reassure">No card details are entered on this site. Reserving sends us the order; a secure payment link follows within one business hour, and nothing is charged until you pay it. Or call <a href="tel:+14705738908">${PHONE}</a>.</p>
+      <p class="status copy-status" id="copy-status" aria-live="polite"></p>
+      <input type="hidden" id="link-field" value="${esc(url)}" data-build-link="${esc(url)}">
       <form class="email-form" id="email-form" hidden>
         <p class="status">We'll email you this link, and a person here sees the build. Nothing else happens until you say so.</p>
         <p class="field"><label for="e-name">Your name</label><input id="e-name" name="name" type="text" autocomplete="name" required></p>
@@ -323,8 +338,7 @@ function sheetHtml() {
         <button type="submit" class="btn btn-primary">Send it to me</button>
         <p class="status" id="email-status" aria-live="polite"></p>
       </form>
-      <div class="link-box"><input type="text" readonly value="${esc(url)}" id="link-field" aria-label="The link that restores this build"></div>
-    </div>
+    </details>
 
     <div class="nav">
       <button type="button" class="btn btn-quiet" data-nav="back">← Back</button>
@@ -419,9 +433,12 @@ el.panel.addEventListener('click', (e) => {
   }
   if (t.id === 'copy-link') {
     const url = $('#link-field', el.panel).value;
-    const done = () => { t.textContent = 'Copied'; setTimeout(() => { t.textContent = 'Copy the link'; }, 1800); };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => $('#link-field', el.panel).select());
-    else $('#link-field', el.panel).select();
+    const status = $('#copy-status', el.panel);
+    const done = () => { status.textContent = 'Link copied — it restores this exact build.'; };
+    // No clipboard (old browser, insecure context): show the link so it can be copied by hand.
+    const byHand = () => { status.innerHTML = `Copy this: <code>${esc(url)}</code>`; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, byHand);
+    else byHand();
   }
 });
 

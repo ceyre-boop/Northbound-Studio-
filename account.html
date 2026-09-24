@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Your account — Northbound Studio</title>
+<meta name="description" content="Add or drop a Northbound plan, or ask for a change to your site.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<!--
+  YOUR ACCOUNT.
+
+  index.html and order-received.html both promise that a client can add or
+  drop a plan "any time from your account", so this page has to exist and has
+  to do that. It was 404ing in production, which is the worst version of a
+  promise.
+
+  What it is NOT, yet: a login, a billing portal, or a purchase history.
+  Payments are not connected — there is no Stripe customer to look anyone up
+  against, so a "sign in to see your invoices" page would be a lie told in
+  UI. When Stripe is wired, this page becomes the door to its billing portal
+  (customer looked up by email, portal session created server-side) and the
+  request form below becomes the fallback for anything the portal can't do.
+
+  Until then it does the honest thing: it takes the request, tells you
+  exactly what happens next, and reaches a human. Same visual language as
+  checkout.html / order-received.html, no scripts, works with JS off.
+-->
+<style>
+  @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
+  @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('fonts/jetbrains-mono.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  :root {
+    --ink: #0E1512; --ink-soft: #55635C; --line: #E4EAE6; --bg: #FFFFFF;
+    --panel: #F4F8F6; --accent: #0E6F5C; --accent-dark: #0A5445;
+    --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
+    --body: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --gutter: clamp(20px, 5vw, 40px);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--panel); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); }
+  .site-header { background: #fff; border-bottom: 1px solid var(--line); }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; max-width: 1080px; flex-wrap: wrap; }
+  .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }
+  .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
+
+  main { padding: clamp(32px, 6vw, 64px) 0 80px; }
+  h1 { font-family: var(--display); font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -0.02em; margin: 0 0 8px; }
+  .lede { color: var(--ink-soft); margin: 0 0 24px; max-width: 58ch; }
+  h2 { font-family: var(--display); font-size: 20px; margin: 0 0 6px; }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 18px; }
+  .card > p { color: var(--ink-soft); margin: 0 0 16px; }
+  .card > p:last-child { margin-bottom: 0; }
+  .card strong { color: var(--ink); }
+
+  .plan { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px; background: var(--panel); cursor: pointer; }
+  .plan input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+  .plan .t { font-weight: 700; display: block; }
+  .plan .d { color: var(--ink-soft); font-size: 15px; }
+  .plan .p { font-family: var(--display); white-space: nowrap; margin-left: auto; }
+
+  .field { display: grid; gap: 6px; margin: 0 0 14px; }
+  .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+  .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: #fff; color: inherit; width: 100%; max-width: 100%; }
+  /* A <select> sizes itself to its longest option, and the Bearing terms are
+     long sentences: without this it grew wider than its own card at 390px. */
+  .field textarea { min-height: 110px; resize: vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .send { width: 100%; min-height: 52px; border: none; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer; }
+  .send:hover { background: var(--accent-dark); }
+  .note { font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .back { display: inline-block; font-size: 14px; color: var(--ink-soft); margin-bottom: 18px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/">Northbound Studio</a>
+    <a class="phone-link" href="tel:+14705738908">470-573-8908</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <a class="back" href="/">← Back to Northbound</a>
+    <h1>Your account</h1>
+    <p class="lede">Add a plan, drop one, or ask for a change to your site. Tell us your email and we'll match it to your build — there's no password to remember.</p>
+
+    <div class="card">
+      <h2>What you can change here</h2>
+      <p>Your site stays live either way. Hosting is ours, and a Cheap and Clean build stays up exactly as delivered whether or not you carry a plan.</p>
+
+      <form method="post" action="/api/account">
+        <label class="plan">
+          <input type="checkbox" name="want_care" value="1">
+          <span>
+            <span class="t">Add changes and support — $49/mo</span>
+            <span class="d">Text or email us and a person answers. Edits, fixes, new photos, new sections. Cancel any time.</span>
+          </span>
+          <span class="p">$49<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
+        </label>
+
+        <label class="plan">
+          <input type="checkbox" name="want_bearing" value="1">
+          <span>
+            <span class="t">Add Bearing — $300/mo as a founding client</span>
+            <span class="d">Hosting, monitoring, backups, unlimited small edits, your automations kept running, and a monthly report on where the calls came from. Standard price is $600/mo. A 12-month commitment locks $300/mo for all twelve months; month-to-month is $300 the first month, then $600/mo after. Say which you'd prefer below.</span>
+          </span>
+          <span class="p">$300<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
+        </label>
+
+        <label class="plan">
+          <input type="checkbox" name="want_cancel" value="1">
+          <span>
+            <span class="t">Drop a plan I'm on</span>
+            <span class="d">No notice period and no exit fee. Your site stays live; it simply stops changing.</span>
+          </span>
+        </label>
+
+        <p class="field" style="margin-top:20px"><label for="a-name">Your name</label><input id="a-name" name="name" type="text" autocomplete="name" required></p>
+        <p class="field"><label for="a-business">Business name</label><input id="a-business" name="business" type="text" autocomplete="organization" required></p>
+        <p class="field"><label for="a-email">Email you ordered with</label><input id="a-email" name="email" type="email" autocomplete="email" required></p>
+        <p class="field"><label for="a-phone">Phone</label><input id="a-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
+        <p class="field">
+          <label for="a-term">If you're adding Bearing, which term?</label>
+          <select id="a-term" name="term">
+            <option value="">Not adding Bearing</option>
+            <option value="bearing_12">12-month commitment — $300/mo for twelve months</option>
+            <option value="bearing_mtm">Month-to-month — $300 first month, then $600/mo</option>
+          </select>
+        </p>
+        <p class="field"><label for="a-note">Anything else</label><textarea id="a-note" name="message" rows="4" placeholder="What you'd like changed, added or dropped."></textarea></p>
+        <p class="hp" aria-hidden="true"><label for="a-hp7">Leave this empty</label><input id="a-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
+        <p><button class="send" type="submit">Send this request</button></p>
+        <p class="note">No card details are entered on this site. If a change costs money, we email a secure payment link first — nothing is charged until you pay it. We answer within one business hour on a plan, and within one business day otherwise.</p>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Invoices and receipts</h2>
+      <p>Your receipt arrives by email the moment a payment goes through — that email is your record. A self-serve billing history is coming when card payments go live here; until then, ask and we'll send anything you need.</p>
+    </div>
+
+    <div class="card">
+      <h2>Rather just talk?</h2>
+      <p>Call or text <a href="tel:+14705738908"><strong>470-573-8908</strong></a>. That reaches a person, not a queue.</p>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

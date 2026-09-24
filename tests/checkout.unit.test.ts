@@ -318,6 +318,31 @@ describe('the guided build, carried in `spec`', () => {
     expect(notif).toContain('Then: $300.00/mo, starting next month');
   });
 
+  test('the twelve picked on the homepage: both emails list exactly what was clicked, and what the package does not cover', async () => {
+    // A custom site, Booking flow and AI intake: bits 0, 2 and 11.
+    const code = '2' + (1 | 4 | 2048).toString(36).padStart(3, '0') + 'e';
+    await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', spec: code });
+    for (const email of sentEmails) {
+      const text = email.text as string;
+      expect(text).toContain('Their build (picked from the twelve on the homepage):');
+      expect(text).toContain('Picked:     A custom site, Booking flow, AI intake');
+      expect(text).toContain('Parts:      A custom site, Booking flow');
+      expect(text).toContain('Not in package: AI intake');
+      expect(text).not.toContain('from build.html');
+      expect(text).not.toContain('Today:');
+      expect(text).not.toContain('Nights:');
+    }
+  });
+
+  test('picks that pointed at Engine but were bought as Beacon are noted', async () => {
+    const code = '2' + (1 | 4).toString(36).padStart(3, '0') + 'b';
+    await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.', spec: code });
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Parts:      A custom site');
+    expect(notif).toContain('Not in package: Booking flow');
+    expect(notif).toContain('(Their picks pointed at engine; they chose beacon.)');
+  });
+
   test('a spec that cannot be read is ignored, and the order still goes through', async () => {
     const res = await post({ ...baseFields(), buy: 'clean', spec: 'not-a-code' });
     expect(res.status).toBe(200);

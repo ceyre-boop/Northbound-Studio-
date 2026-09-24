@@ -10,7 +10,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { BIZ, NOW, WANT, WORTH, ANSWERS, RUN, LOOKS, PACKAGES, OFFERINGS, blank, encode, decode, partsFor, recommend, build, payback, describe as words } from '../js/spec.js';
+import { BIZ, NOW, WANT, WORTH, ANSWERS, RUN, LOOKS, PACKAGES, OFFERINGS, blank, encode, decode, partsFor, recommend, build, payback, isPicked, describe as words } from '../js/spec.js';
 import { decodeSpec, specParts, specRecommend } from '../api/checkout.ts';
 
 const KEYS = (list: { key: string }[]) => list.map((l) => l.key);
@@ -18,8 +18,11 @@ const KEYS = (list: { key: string }[]) => list.map((l) => l.key);
 describe('the twelve names', () => {
   test('are spelled exactly as index.html spells them, in its order', () => {
     const html = readFileSync(join(import.meta.dir, '..', 'index.html'), 'utf8');
-    const onPage = Array.from(html.matchAll(/<span class="t">([^<]+)<\/span>/g)).map((m) => m[1]);
+    const onPage = Array.from(html.matchAll(/<span class="t"[^>]*>([^<]+)<\/span>/g)).map((m) => m[1]);
     expect(onPage).toEqual(OFFERINGS);
+    // And each panel's data-part — what js/pick.js actually sends — is that same name.
+    const dataParts = Array.from(html.matchAll(/class="offer" data-part="([^"]+)"/g)).map((m) => m[1]);
+    expect(dataParts).toEqual(OFFERINGS);
   });
 
   test('every package lists only real parts, and AI intake is never in one', () => {
@@ -63,6 +66,53 @@ describe('the codec', () => {
     const b = { ...blank(), name: '<b>Bad</b>' };
     expect(decode(encode(b))!.name).toBe('<b>Bad</b>');
     expect(encode(b)).not.toContain('<');
+  });
+});
+
+/* The homepage's picks: the version-2 code carries the parts themselves. */
+describe('the picked-parts code', () => {
+  test('three picks pack as a five-character code and come back exactly, in the site\'s order', () => {
+    const a = { ...blank(), parts: ['AI intake', 'A custom site', 'Booking flow'], pkg: 'engine' };
+    const code = encode(a);
+    expect(code).toBe('21l1e');   // bits 0, 2 and 11 → 2053 → "1l1" in base 36, then Engine's 'e'
+    const back = decode(code)!;
+    expect(isPicked(back)).toBe(true);
+    expect(back.parts).toEqual(['A custom site', 'Booking flow', 'AI intake']);
+    expect(back.pkg).toBe('engine');
+    expect(back.biz).toBe('_');
+    expect(back.wantUnsure).toBe(true);
+  });
+
+  test('every one of the 4096 subsets survives the round trip', () => {
+    for (let mask = 0; mask < 1 << 12; mask++) {
+      const parts = OFFERINGS.filter((_, i) => mask & (1 << i));
+      const back = decode(encode({ ...blank(), parts, pkg: null }))!;
+      expect(back.parts).toEqual(parts);
+      expect(back.pkg).toBeNull();
+    }
+  });
+
+  test('picked parts are the parts — nothing inferred, nothing added, and the package follows the same rule as the guided build', () => {
+    expect(partsFor({ ...blank(), parts: ['Reminders'] })).toEqual(['Reminders']);
+    expect(partsFor({ ...blank(), parts: [] })).toEqual([]);
+    const b = build({ ...blank(), parts: ['A custom site', 'Booking flow', 'AI intake'], pkg: 'engine' });
+    expect(b.parts).toEqual(['A custom site', 'Booking flow', 'AI intake']);
+    expect(b.recommended).toBe('engine');
+    expect(b.included).toEqual(['A custom site', 'Booking flow']);
+    expect(b.extra).toEqual(['AI intake']);
+    expect(b.bearing).toBe(false);
+    expect(b.payback).toBeNull();
+    expect(recommend(['A custom site'])).toBe('clean');
+    expect(recommend(['A custom site', 'Brand identity'])).toBe('beacon');
+  });
+
+  test('refuses a version-2 code it cannot read', () => {
+    expect(decode('2')).toBeNull();
+    expect(decode('2005')).toBeNull();
+    expect(decode('2zzze')).toBeNull();      // 46655 is more than twelve bits
+    expect(decode('2-05e')).toBeNull();
+    expect(decode('2005e.Rivera')).not.toBeNull(); // a stray name is ignored, not fatal
+    expect(decode('2005e.Rivera')!.name).toBe('');
   });
 });
 
@@ -154,6 +204,21 @@ describe('the server copy agrees with the browser', () => {
       expect({ ...server, look: undefined }).toEqual({ ...browser, wantUnsure: undefined, look: undefined });
       expect(specParts(server)).toEqual(partsFor(browser));
       expect(specRecommend(specParts(server))).toEqual(recommend(partsFor(browser)));
+    }
+  });
+
+  test('decode and parts match on every picked-parts code', () => {
+    for (let mask = 0; mask < 1 << 12; mask++) {
+      const parts = OFFERINGS.filter((_, i) => mask & (1 << i));
+      for (const pkg of [...Object.keys(PACKAGES), null]) {
+        const code = encode({ ...blank(), parts, pkg });
+        const browser = decode(code)!;
+        const server = decodeSpec(code)!;
+        expect(server).not.toBeNull();
+        expect({ ...server, look: undefined }).toEqual({ ...browser, wantUnsure: undefined, look: undefined });
+        expect(specParts(server)).toEqual(partsFor(browser));
+        expect(specRecommend(specParts(server))).toEqual(recommend(partsFor(browser)));
+      }
     }
   });
 

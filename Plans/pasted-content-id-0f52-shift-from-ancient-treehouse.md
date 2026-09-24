@@ -1,135 +1,131 @@
-# buddy-alive-v1 — Buddy as a character, in the canvas
-
-> **Target changed 2026-09-23: the homepage, not studio.html.** Colin: "when am
-> I gonna see buddy on the main page." So he is built on `index.html`, the plain
-> page now live at northbound-dev.com, and becomes the one lavish thing on an
-> otherwise quiet page — which is what the brief described all along.
->
-> What that costs, stated plainly: the homepage today has **zero `<script>`
-> tags** and that is why it is bulletproof. Buddy adds a canvas, a WebGL
-> context and a render loop to it. The mitigations are non-negotiable: he is
-> **desktop-only** (suppressed under 640px, so every phone visitor gets exactly
-> the page that is live now), he **loads after first paint** so LCP is
-> untouched, and the page must still read, sell and submit completely with
-> JavaScript off. The panel hooks the brief names do not exist here; his
-> reactions come from the page's own events instead — the package cards and the
-> Buy button.
+# guided-build-v1 — the page that closes
 
 ## Context
 
-Buddy reads as a pasted image because he *is* one: three raster photographs of
-a render (`buddy-thinking-sm` / `salute-sm` / `awesome-320w`), cross-faded in
-DOM over the canvas, with a 5.2s CSS bob and a 24-step whole-body lean. A
-photograph cannot breathe, cannot lag an antenna, cannot turn its head, and
-can never be occluded by a panel it passes, because it is a sibling *over* the
-canvas, not a thing *in* the scene.
+The homepage ends in a blank "what you need" textarea. That asks a contractor
+to do the discovery himself: to imagine what a booking flow is, decide whether
+he wants automations, and write it down. Colin's read, and it's right: no
+emotional investment, no urgency, nothing saved and ready to order.
 
-You chose real 3D in the canvas, so he stops being a picture and becomes
-geometry the scene lights and the panels can pass in front of.
+This replaces the asking with a guided build — a scripted Socratic flow that
+takes someone from "I dunno, a website?" to a specific, priced, saved spec and
+a payment, with a visual they can watch assemble while they answer. They arrive
+at the paywall already knowing exactly what they're buying.
 
-Three findings from the code that shape this:
+Scripted, not an LLM: Colin asked for "our script of pre set questions", and a
+fixed tree keeps the sales line on-message, answers instantly, costs nothing
+per visitor and cannot hallucinate a promise we'd have to honour.
 
-- **There is no wave.** `git grep -i wave` returns nothing. "Salute" is one
-  static frame held 900ms. The wave gets built, not reused.
-- **His art is already failing a gate.** Slow-4G LCP measured **1248ms against
-  a 1200ms limit** (`data/perf-budget.json`), and `js/hero-tag.js`'s own
-  comments record dropping a 1200w frame because it cost 132KB of hero
-  bandwidth. `brand/buddy-spray-900w.webp` is **334KB** and still in a live
-  srcset. This task must leave the page lighter, not heavier.
-- **`contain: layout` on his container is load-bearing.** An overflowing
-  descendant changes `documentElement.scrollHeight`, which the Stage divides by
-  for page progress — one uncontained Buddy silently rescales every act's
-  scroll window (`css/mascot.css:53-58`, `css/stage.css:530-533`).
+## Where it lives
 
-## Step 0 — finish and ship the homepage swap (this is blocking)
+New `build.html` at `/build.html`, its own page so the homepage stays
+script-free and instant. Every "Get a quote" CTA on `index.html` points there.
+The plain form stays on the homepage at `#quote` as the no-JavaScript path, and
+`build.html` ships that same form in its HTML, with JS replacing it — never a
+blank page.
 
-`home-swap-v1` is committed and rebased but unverified, because plan mode
-stopped its builder mid-run and two Playwright runs collided on one server.
+## The flow — one question per screen, and the order IS the sales logic
 
-1. Kill the stray runs (PIDs 53113, 29208, 29204, 30136, 30116 and their eight
-   headless Chromes), free :8099, then one clean `bunx playwright test`.
-2. The manual walk: home → Buy it now → checkout → both add-ons (**$1,249.00**)
-   → Place order → order-received, screenshotted at 390 and 1280 and looked at.
-3. Unit-test `api/checkout.ts` pricing and honeypot against a mocked `fetch`.
-4. Merge, `bun run ship`, confirm live: plain page at `/`, WebGL site at
-   `/studio.html`, perf section still true (it now measures studio.html).
+1. **What kind of business?** trades & home services · food & drink · salon,
+   spa or fitness · shop or store · professional services · something else.
+   Sets the vocabulary and the preview for everything after.
+2. **When someone wants to buy from you today, what happens?** they call me ·
+   they message me on Facebook or Instagram · nothing, I hope they find me ·
+   I have a site but it doesn't do anything.
+3. **What do you want more of?** booked jobs · quote requests · orders · people
+   walking in · being found at all. Multi-select, minimum one.
+4. **What's one new customer worth to you?** under $200 · $200–$1,000 ·
+   $1,000–$5,000 · more than $5,000. **Asked before any price appears**, so the
+   price later reads as arithmetic rather than a number.
+5. **Who answers when someone asks at nine at night?** me, always · my partner
+   or family · nobody, it waits until morning.
+6. **Do you want to run it, or should we keep it running?** — the Bearing
+   question, in the words Colin uses for it.
+7. **Pick the look** — five real thumbnails rendered from the existing spec-kit
+   templates (`~/northbound-outreach/templates/looks/0*.html`), generated with
+   Playwright into `brand/looks/`. This is the touch-and-feel moment.
+8. **Your build** — the spec sheet below.
 
-Then branch `buddy-alive-v1` from the shipped `main`.
+Keyboard accessible, back and forward, progress indicator, `aria-live` per
+step, generous tap targets, honest "not sure yet" everywhere, reduced-motion
+respected.
 
-## The medium, precisely
+## Buddy hosts it
 
-**Procedural geometry, hand-written, no model file and no loader** — Buddy
-assembled from primitives (head, visor, torso, hips, upper/fore arms, hands,
-legs, antenna) as indexed meshes built at init, in the offerings act's own
-canvas. Not a sculpted `.glb`: a rigged model plus a glTF loader and skinning
-is hundreds of KB and a multi-day build, on a page whose load gate is already
-red, in a task budgeted at +30KB. Procedural costs a few KB, is riggable to the
-joint, and every part of the rig interface stays identical if you later want a
-sculpted mesh dropped in behind it. That swap is a later push, not this one.
+His existing stills (`buddy-thinking-sm.webp`, `buddy-salute-sm.webp`,
+`buddy-awesome-320w.webp`) beside the questions, one short line per step in the
+studio's plain voice, pose swapping with the mood. Example, after "nobody, it
+waits until morning": *"That's the one that costs you. An enquiry that waits
+overnight usually doesn't wait."* Never cutesy, never a statistic we can't back.
 
-He will read as a stylised, faceted version of the blue robot rather than the
-photoreal render. That is the honest trade and it is worth naming before I build.
+## The visual aid — a phone that builds itself
 
-## The work
+Beside the questions, a phone frame assembling live as they answer: their
+business name in the header, a hero line in their trade's language, a tappable
+Book-a-time / Get-a-quote / Order button the moment they pick it in step 3, a
+Text-us bar if nobody answers at night, and their chosen look's palette and
+type applied at step 7. CSS and DOM, no iframes. Anything resembling a review
+or a rating is labelled "example".
 
-**In the scene.** New `js/offerings/buddy3d.js`, drawn from
-`js/acts/offerings.js`'s `draw()` — interleaved into the wall's back-to-front
-panel order at his own depth, so a panel in front of him **occludes him** and
-one behind does not. Parallax falls out of the same depth: he moves at his own
-rate against the backdrop. A projected contact shadow onto the backdrop plane
-replaces `css/mascot.css`'s faked gradient ellipse.
+## The spec sheet — the close
 
-**Lit by the scene, not by a filter.** He samples the same cursor-driven point
-light the glass uses (`js/gl/offering-material.js:215-217`,
-`toLight = normalize(vec3(u_cursorPx - v_worldPos, 140.0))`), the same Fresnel
-rim and the same ambient, so his light and the panels' light are one light.
+- **What you're getting:** the parts, named exactly as the twelve offerings are
+  named on the live site, selected by their answers.
+- **The package** it adds up to — Cheap and Clean $600 · Beacon $1,750 founding
+  · Engine $4,250 founding — with the standard price struck through, plus
+  Bearing $300/mo and its two terms if they chose "keep it running".
+- **The payback line in their own number:** "One $1,000–$5,000 job covers this
+  build." Their bracket, phrased as their number, with no invented conversion
+  rate or revenue claim.
+- **What happens next:** 50% upfront, what they get first, when.
+- **Reserve my build** (carries the spec into `checkout.html`) and **Email me
+  this build**.
 
-**Alive at rest.** A small transform hierarchy driven by `js/springs.js`
-presets: breathing on the torso, weight shifts through the hips, the antenna
-lagging the head by a beat, and a head that turns toward the cursor through a
-spring with a hard clamp — he looks, he never locks on. The wave is built as a
-rig animation and fired on a **random 12–25s interval**, suppressed while the
-tab is hidden, while scrolling, and immediately after any other Buddy motion.
-The four hooks (`onPanelHover/Focus/Open/Throw`) get small acknowledgements —
-a glance, a shoulder turn, a brace on throw — never a performance. Note the
-hooks carry only an index; richer reactions read `__NB_WALL` state, which the
-act already passes to `update()`.
+## Saved and ready to order
 
-**Lighter than we found it.** The DOM mascot and its three `<img>` go away with
-`js/offerings/mascot.js` and most of `css/mascot.css`. The 334KB
-`buddy-spray-900w` srcset entry goes, along with the orphan rasters
-(`buddy-awesome-sm`, `-720w`, `buddy-awesome.webp`, `brand/buddy-tagger.svg`,
-~108KB). The geometry loads at idle after first paint, so it is never on the
-LCP path. Target: slow-4G LCP back **under 1200ms**, which also clears the gate
-that is red today.
+- `localStorage` as they go; on return, "your build is waiting" with resume or
+  start over.
+- The spec also encodes into a compact URL, so "Email me this build" produces a
+  link that restores it exactly on any device — no database.
+- `checkout.html` and `api/checkout.ts` accept the spec: a hidden encoded
+  field, pricing still **only** from the server table, and a readable build
+  summary in both the studio notification and the customer confirmation.
+- **No countdown, no spots-remaining, no deadline.** The only scarcity remains
+  the fixed "first 15 founding clients".
 
-**Discipline.** Nothing else on the page gains motion. Desktop only: suppressed
-under 640px, which also fixes today's asymmetry (the hero Buddy is suppressed;
-the offerings mascot is merely shrunk). The stage contract holds — `update()`
-stays CPU-only with zero `gl.*`, `draw()` restores GL state exactly and passes
-`?strict=1`, and there is still exactly one rAF on the page.
+## Constraints
+
+- Vanilla JS modules, no dependencies, no build step, page JS under ~25KB gz.
+- Excellent at 390px — the preview may move above or below the question there.
+- CLS 0, LCP unaffected (flow JS loads after first paint), works with JS off.
+- No new fonts, no CDN; only the generated look thumbnails and Buddy's stills.
 
 ## Verification
 
-- `bun run test` green apart from the known staleness failure until ship.
-- New `tests/buddy.spec.ts`: idle never settles to a fixed transform; head turn
-  stays inside its clamp; the wave fires on a random interval and is suppressed
-  while hidden and while scrolling; each hook produces a distinct response; a
-  panel passing in front actually occludes him (pixel probe); absent under
-  640px; reduced motion composes a still frame; CLS stays 0; `?strict=1` clean.
-- `PERF_URL=<preview>/studio.html bun scripts/perf.mjs` before and after, with
-  the gates table in the report — slow-4G LCP must come back under 1200ms.
-- **A 15-second recording** of Buddy at rest, cursor moving nearby, one wave
-  firing — converted to mp4 — plus the preview URL.
+- Walk the whole flow with Playwright at 390×844 and 1280×800, screenshot
+  **every step** plus the spec sheet and the restored-from-link state, look at
+  all of them, fix what's ugly, twice.
+- Full run-through recorded as `guided-build.mp4`.
+- `tests/build.spec.ts`: every step advances and goes back; multi-select
+  minimum; the spec sheet is correct for three named answer paths; localStorage
+  restore; URL restore; Reserve carries the spec into checkout; no-JS shows the
+  plain form; no horizontal scroll at 390px; CLS 0; zero console errors.
+- Checkout additions unit-tested with a mocked `fetch`, as
+  `tests/checkout.unit.test.ts` already does.
+- Built by a Fable builder (this is sales-copy and visual judgement work),
+  reviewed by me before merge, then shipped with `bun run ship`.
 
-## Guardrails
+## Open items, numbered as requested
 
-- +30KB gzipped JS for the whole task; the page must end lighter overall.
-- 60fps at 4× CPU, CLS exactly 0, no sideways scroll at 390px, reduced motion
-  composes a still.
-- Not in this push: the large set-piece animation.
-
-## Also open
-
-- `salvage-v1` (support exchange) — built, tested, previewed, unmerged.
-- Stripe terms unaccepted, so checkout captures orders rather than charging.
+1. Buddy in the hero — built and tested on `buddy-video-v1`, waiting on a word.
+2. Stripe terms + `vercel integration add stripe` — until then checkout
+   captures orders instead of charging.
+3. Atera removal — needs sudo in Terminal.
+4. Bearing month-to-month doubling in month two — a pricing decision.
+5. Founding Engine $4,250 equalling the standard Engine deposit — same.
+6. `salvage-v1` — support exchange, previewed, unmerged.
+7. `sellable-v1` — the full conversion rebuild, parked.
+8. Unshipped inventory: hero atomizer, glass work panels, full-bleed showcase,
+   Buddy-as-narrator.
+9. A clean full test-suite run — never completed; the machine was pegged.
+10. Active Theory references for the flagship look.

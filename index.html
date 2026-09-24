@@ -182,6 +182,37 @@
   .founding-offer { margin: 0 0 28px; padding: 20px 22px; background: #fff; border: 1px solid var(--accent); border-radius: 14px; }
   .founding-offer .eyebrow { margin: 0 0 8px; }
   .founding-offer p:last-child { margin: 0; color: var(--ink-soft); max-width: 70ch; }
+  /* Buddy at the prices. Left of the caption, feet on the caption's
+     baseline, no card behind him — he stands on the panel. Desktop is the
+     pointing clip in a box reserved by width/height and aspect-ratio (CLS
+     0); phones are the thinking still, sized by height like every -sm pose. */
+  .founding-buddy { display: grid; grid-template-columns: var(--point-w) minmax(0, 1fr); align-items: end; column-gap: clamp(14px, 3vw, 28px); margin: 22px 0 0; --point-w: clamp(180px, 22vw, 250px); }
+  .buddy-point { margin: 0; position: relative; width: var(--point-w); pointer-events: none; }
+  .buddy-point::before { content: ""; position: absolute; left: 14%; right: 14%; bottom: 4%; height: 10%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(14,21,18,0.18) 0%, rgba(14,21,18,0.06) 45%, rgba(14,21,18,0) 72%); }
+  .buddy-point .buddy-art { aspect-ratio: 392 / 380; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 84%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 84%, transparent 100%); }
+  .founding-caption { margin: 0 0 10px; color: var(--ink-soft); max-width: 46ch; font-size: 15px; }
+  @media (max-width: 639.98px) {
+    .founding-buddy { --point-w: auto; --point-h: clamp(120px, 34vw, 150px); grid-template-columns: auto minmax(0, 1fr); }
+    .buddy-point { width: auto; }
+    .buddy-point::before { display: none; }
+    .buddy-point .buddy-art { aspect-ratio: auto; height: var(--point-h); width: calc(var(--point-h) * 181 / 228); -webkit-mask-image: none; mask-image: none; }
+    .buddy-point .buddy-art video { display: none; }
+    .buddy-point .buddy-art img { transform-origin: 50% 100%; }
+    /* One small shrug when he scrolls into view (the class is set by the
+       observer at the foot of the page), then he rests. */
+    .buddy-point.is-seen .buddy-art img { animation: buddy-shrug 1.1s ease-in-out 1; }
+  }
+  @keyframes buddy-shrug {
+    0%, 100% { transform: none; }
+    25% { transform: rotate(-3deg) translateY(-2px); }
+    50% { transform: rotate(3deg) translateY(-2px); }
+    75% { transform: rotate(-1.5deg); }
+  }
+  /* Under "reduce" he does not shrug either. Same specificity as the shrug
+     rule and later in the source, so this one wins. */
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-point.is-seen .buddy-art img { animation: none; }
+  }
   .keeping { margin-top: 28px; padding: 24px; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
   .keeping h3 { font-family: var(--display); font-size: 20px; margin: 0 0 8px; }
   .keeping p { margin: 0 0 10px; color: var(--ink-soft); max-width: 66ch; }
@@ -346,6 +377,34 @@
       </li>
     </ol>
     <!--
+      Buddy, reacting to the prices. Below the fold, so he costs nothing
+      until he is in view: preload="none", no autoplay, and the script at the
+      foot of the page starts him from an IntersectionObserver. The poster IS
+      the pointing pose and the clip's first frame is the same pixels, so the
+      hand-off is invisible and JavaScript-off and reduced-motion visitors
+      see him pointing. He stands bottom-left of the price row and the render
+      points up and to his left, i.e. up into the Beacon and Engine cards.
+      Phones get the small thinking still with a one-off shrug on arrival.
+      The caption is a plain fact from the block above: the founding price is
+      exactly half the standard one, for the first fifteen.
+    -->
+    <div class="founding-buddy">
+      <figure class="buddy-point" aria-hidden="true">
+        <div class="buddy-art">
+          <picture class="buddy-still">
+            <source media="(max-width: 639.98px)" srcset="buddy-thinking-sm.webp" type="image/webp">
+            <source media="(min-width: 640px)" srcset="brand/buddy-point-poster.webp" type="image/webp">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="392" height="380" loading="lazy" decoding="async">
+          </picture>
+          <video width="392" height="380" muted loop playsinline preload="none" disablepictureinpicture>
+            <source src="brand/buddy-point.mp4" type='video/mp4; codecs="hvc1"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+            <source src="brand/buddy-point.webm" type='video/webm; codecs="vp9"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+          </video>
+        </div>
+      </figure>
+      <p class="founding-caption">Yes, half. Beacon and Engine at the founding price for the first 15 founding clients; the standard price is the one struck through.</p>
+    </div>
+    <!--
       Bearing is not a fourth card any more. It is offered at checkout, where
       someone is already deciding, and it stays available afterwards from
       Your account — because the person who says "I don't need that yet" in
@@ -408,10 +467,25 @@
 -->
 <script>
   addEventListener('load', function () {
-    var v = document.querySelector('.buddy video');
-    if (!v || !v.currentSrc) return;
-    v.addEventListener('playing', function () { v.parentNode.classList.add('is-playing'); }, { once: true });
-    v.play().catch(function () {});
+    function start(v) {
+      if (!v || !v.currentSrc) return;
+      v.addEventListener('playing', function () { v.parentNode.classList.add('is-playing'); }, { once: true });
+      v.play().catch(function () {});
+    }
+    start(document.querySelector('.buddy video'));
+
+    // The Buddy at the prices is below the fold. He does nothing — no fetch,
+    // no shrug — until the block is actually in view. Without
+    // IntersectionObserver he simply stays the poster.
+    var fig = document.querySelector('.buddy-point');
+    if (!fig || !('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (e) { return e.isIntersecting; })) return;
+      io.disconnect();
+      fig.classList.add('is-seen');
+      start(fig.querySelector('video'));
+    }, { rootMargin: '0px 0px 120px 0px' });
+    io.observe(fig);
   });
 </script>
 

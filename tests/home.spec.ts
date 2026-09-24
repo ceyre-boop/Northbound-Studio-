@@ -353,8 +353,10 @@ test.describe('the twelve — a selectable order', () => {
     await expect(page.locator('#build-extra')).toHaveText("Not in Engine: AI intake — ask us and we'll quote it on its own.");
     await expect(page.locator('#build-answers')).toHaveText('Picked from the twelve on the homepage: A custom site, Booking flow, AI intake.');
     await expect(page.locator('#build-answers')).not.toContainText('Not sure yet');
-    await expect(page.locator('.back')).toHaveAttribute('href', '/#offerings');
-    await expect(page.locator('#build-change')).toHaveAttribute('href', '/#offerings');
+    /* Back to the twelve, carrying the picks: landing on an empty set of
+       panels would make "change it" mean "start again". */
+    await expect(page.locator('.back')).toHaveAttribute('href', /^\/\?s=.+#offerings$/);
+    await expect(page.locator('#build-change')).toHaveAttribute('href', /^\/\?s=.+#offerings$/);
     await expect(page.locator('input[name="bearing"]')).not.toBeChecked();
     // Engine is founding-priced, so the review name is required here.
     expect(await page.locator('input[name="review_name"]').evaluate((el: HTMLInputElement) => el.required)).toBe(true);

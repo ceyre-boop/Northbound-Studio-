@@ -24,7 +24,10 @@ const go = document.getElementById('pick-continue');
 const count = document.getElementById('pick-count');
 if (list && go) {
   const buttons = Array.from(list.querySelectorAll('.offer[data-part]'));
-  const buyLinks = Array.from(document.querySelectorAll('a[href^="checkout.html?buy="]'));
+  /* Scoped to the price cards on purpose: once picks exist the Continue's
+     own href also starts with checkout.html?buy=, and a page-wide selector
+     would pick it up and rewrite it from its own stale value. */
+  const buyLinks = Array.from(document.querySelectorAll('.pkg a[href^="checkout.html?buy="]'));
   for (const b of buyLinks) b.dataset.buyHref = b.getAttribute('href');
   for (const b of buttons) {
     b.removeAttribute('tabindex');
@@ -71,17 +74,6 @@ if (list && go) {
     b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
     sync();
   });
-
-  /* Stand down over the founding terms. Fixed to the bottom-left it sat on
-     that paragraph at 390px — the one place on the page where the reader is
-     being asked to agree to something. */
-  const terms = document.getElementById('founding');
-  if (terms && 'IntersectionObserver' in window) {
-    new IntersectionObserver(
-      ([entry]) => go.classList.toggle('is-away', entry.isIntersecting),
-      { threshold: 0 },
-    ).observe(terms);
-  }
 
   list.classList.add('is-live');
   sync();

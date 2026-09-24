@@ -4,8 +4,8 @@
  * Companion to the panel tests already in home.spec.ts, which cover the
  * happy path (toggle, Continue appears, the code reaches checkout). These
  * cover what happens around the edges of it: with JavaScript off, on the way
- * back from checkout, over the founding terms, and past the one other link
- * on the page that goes straight to checkout.
+ * back from checkout, and past the one other link on the page that goes
+ * straight to checkout.
  */
 import { test, expect } from '@playwright/test';
 
@@ -67,23 +67,9 @@ test.describe('the twelve, live', () => {
     await expect(page.locator('#pick-continue')).toBeVisible();
   });
 
-  test('Continue stands down over the founding terms', async ({ page }) => {
-    await page.goto('/');
-    await panel(page, 'A custom site').click();
-    const go = page.locator('#pick-continue');
-    await expect(go).toBeVisible();
-
-    await page.locator('#founding').scrollIntoViewIfNeeded();
-    await expect(go).toHaveClass(/is-away/);
-    await expect(go).toHaveCSS('opacity', '0');
-
-    await page.locator('#offerings-list').scrollIntoViewIfNeeded();
-    await expect(go).not.toHaveClass(/is-away/);
-  });
-
   test('"Buy it now" carries the picks rather than dropping them', async ({ page }) => {
     await page.goto('/');
-    const buy = page.locator('a[href^="checkout.html?buy=clean"]').first();
+    const buy = page.locator('.pkg a[href^="checkout.html?buy=clean"]').first();
     expect(await buy.getAttribute('href')).toBe('checkout.html?buy=clean');
 
     for (const name of PICKS) await panel(page, name).click();

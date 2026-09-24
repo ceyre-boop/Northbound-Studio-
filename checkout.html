@@ -115,6 +115,8 @@
   .pay:hover { background: var(--accent-dark); }
   .reassure { font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
   .reassure strong { color: var(--ink); }
+  .founding-agree.is-required { outline: 2px solid transparent; }
+  .founding-agree.is-required:has(input:not(:checked)) { border-color: var(--accent); background: #fff; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .back { display: inline-block; margin-bottom: 18px; font-size: 14px; color: var(--ink-soft); }
   .build-card[hidden] { display: none; }
@@ -202,7 +204,7 @@
       </div>
 
       <label class="founding-agree">
-        <input type="checkbox" name="founding_agree" value="yes">
+        <input type="checkbox" name="founding_agree" value="yes" data-founding-agree>
         <span>I'm happy to be an early client and to leave a Google review once your Google profile is live.</span>
       </label>
       <p class="note">Required to add Bearing at the founding price above. Our Google Business Profile isn't live yet, so there's nothing to review today — reviews open once it is.</p>
@@ -275,8 +277,30 @@
       }
       document.getElementById('then').textContent = thenText;
     };
-    form.addEventListener('change', render);
+    /* The server refuses founding pricing without the agreement, and it is right
+       to. But a server refusal on a native POST throws away everything they
+       typed — which is exactly what happened to the first real order through
+       this page. So the browser enforces it too, only while something
+       founding-priced is actually selected, and the message says which box. */
+    var agree = form.querySelector('[data-founding-agree]');
+    var syncAgree = function () {
+      if (!agree) return;
+      var buying = form.querySelector('input[name="buy"]');
+      var foundingBuy = buying && (buying.value === 'beacon' || buying.value === 'engine');
+      var needed = foundingBuy || form.querySelector('[data-bearing-toggle]').checked;
+      agree.required = !!needed;
+      agree.setCustomValidity(
+        needed && !agree.checked
+          ? "Tick this to take the founding price \u2014 you're agreeing to be an early client and to leave a Google review once our profile is live."
+          : ''
+      );
+      var note = agree.closest('.founding-agree');
+      if (note) note.classList.toggle('is-required', !!needed);
+    };
+    agree && agree.addEventListener('change', syncAgree);
+    form.addEventListener('change', function () { render(); syncAgree(); });
     render();
+    syncAgree();
   })();
 </script>
 <script type="module" src="js/checkout-build.js"></script>

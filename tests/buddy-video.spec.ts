@@ -13,6 +13,7 @@ import { test, expect, type Page, type Locator } from '@playwright/test';
 const ANY_VIDEO = /brand\/buddy-(wave|point)\.(mp4|webm)/;
 const HERO_VIDEO = /brand\/buddy-wave\.(mp4|webm)/;
 const POINT_VIDEO = /brand\/buddy-point\.(mp4|webm)/;
+const POINT_ANY = /brand\/buddy-point/;
 
 const PHONE = { width: 390, height: 844 };
 const DESKTOP = { width: 1280, height: 800 };
@@ -105,7 +106,7 @@ test.describe('Buddy in the hero', () => {
     await page.locator('.founding-buddy').scrollIntoViewIfNeeded();
     await page.waitForTimeout(600);
     const point = page.locator('.buddy-point .buddy-still img');
-    expect(await currentSrc(point)).toMatch(/buddy-thinking-sm\.webp$/);
+    await expect.poll(() => currentSrc(point)).toMatch(/buddy-thinking-sm\.webp$/);
     expect(await animationName(point)).toBe('none');
     expect(await point.evaluate((i) => i.getAnimations().length)).toBe(0);
     expect(fetched).toEqual([]);
@@ -117,11 +118,11 @@ test.describe('Buddy at the founding prices', () => {
   test('desktop: waits below the fold, then points on scroll — up into the founding cards', async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: DESKTOP, reducedMotion: 'no-preference' });
     const page = await ctx.newPage();
-    const fetched = recordRequests(page, POINT_VIDEO);
+    const fetched = recordRequests(page, POINT_ANY);
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
-    // Lazy: nothing for him has moved over the wire while he is off screen.
-    expect(fetched, 'the pointing clip was fetched before it was in view').toEqual([]);
+    // Lazy: nothing for him — not the poster either — has moved over the wire while he is off screen.
+    expect(fetched, 'something for the pointing Buddy was fetched before it was in view').toEqual([]);
     const video = page.locator('.buddy-point video');
     expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
 
@@ -129,7 +130,7 @@ test.describe('Buddy at the founding prices', () => {
     await expect.poll(() => currentSrc(video)).toMatch(POINT_VIDEO);
     await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused && v.readyState >= 2), { timeout: 10_000 }).toBe(true);
     await expect(page.locator('.buddy-point .buddy-art')).toHaveClass(/is-playing/);
-    expect(fetched.length).toBeGreaterThan(0);
+    expect(fetched.some((u) => POINT_VIDEO.test(u))).toBe(true);
 
     // Geometry: he stands below the price row, left of the founding cards,
     // and the render points up and to his left — so the point lands in
@@ -152,7 +153,7 @@ test.describe('Buddy at the founding prices', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.locator('.founding-buddy').scrollIntoViewIfNeeded();
     await page.waitForTimeout(1200);
-    expect(await currentSrc(page.locator('.buddy-point .buddy-still img'))).toMatch(/buddy-point-poster\.webp$/);
+    await expect.poll(() => currentSrc(page.locator('.buddy-point .buddy-still img'))).toMatch(/buddy-point-poster\.webp$/);
     expect(await currentSrc(page.locator('.buddy-point video'))).toBe('');
     expect(fetched).toEqual([]);
     await ctx.close();
@@ -168,7 +169,7 @@ test.describe('Buddy at the founding prices', () => {
     await page.locator('.founding-buddy').scrollIntoViewIfNeeded();
     await expect(fig).toHaveClass(/is-seen/);
     const still = page.locator('.buddy-point .buddy-still img');
-    expect(await currentSrc(still)).toMatch(/buddy-thinking-sm\.webp$/);
+    await expect.poll(() => currentSrc(still)).toMatch(/buddy-thinking-sm\.webp$/);
     expect(await animationName(still)).toBe('buddy-shrug');
     // Plays once: after it has run, no animation is live on him.
     await expect.poll(() => still.evaluate((i) => i.getAnimations().length), { timeout: 5_000 }).toBe(0);
@@ -238,7 +239,7 @@ test.describe('Buddy, either of him', () => {
     await page.locator('.founding-buddy').scrollIntoViewIfNeeded();
     await page.waitForTimeout(800);
     expect(await page.locator('.buddy .buddy-still img').first().evaluate((i) => getComputedStyle(i).opacity)).toBe('1');
-    const point = page.locator('.buddy-point .buddy-still img');
+    const point = page.locator('.buddy-point noscript .buddy-still img');
     await expect(point).toBeVisible();
     expect(await currentSrc(point)).toMatch(/buddy-point-poster\.webp$/);
     expect(await point.evaluate((i) => getComputedStyle(i).opacity)).toBe('1');

@@ -391,11 +391,26 @@
     <div class="founding-buddy">
       <figure class="buddy-point" aria-hidden="true">
         <div class="buddy-art">
+          <!--
+            The still's sources carry data-srcset, not srcset, and the script
+            copies them across when the block is within a screen of the
+            viewport. loading="lazy" is not a gate: Chrome's lazy threshold
+            runs 1250-2500px ahead, which reaches this block from the fold,
+            and on slow 4G the 13KB poster then competes with the headline.
+            With scripting off the <noscript> picture is the still instead.
+          -->
           <picture class="buddy-still">
-            <source media="(max-width: 639.98px)" srcset="buddy-thinking-sm.webp" type="image/webp">
-            <source media="(min-width: 640px)" srcset="brand/buddy-point-poster.webp" type="image/webp">
-            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="392" height="380" loading="lazy" decoding="async">
+            <source media="(max-width: 639.98px)" data-srcset="buddy-thinking-sm.webp" type="image/webp">
+            <source media="(min-width: 640px)" data-srcset="brand/buddy-point-poster.webp" type="image/webp">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="392" height="380" decoding="async">
           </picture>
+          <noscript>
+            <picture class="buddy-still">
+              <source media="(max-width: 639.98px)" srcset="buddy-thinking-sm.webp" type="image/webp">
+              <source media="(min-width: 640px)" srcset="brand/buddy-point-poster.webp" type="image/webp">
+              <img src="brand/buddy-point-poster.webp" alt="" width="392" height="380" loading="lazy" decoding="async">
+            </picture>
+          </noscript>
           <video width="392" height="380" muted loop playsinline preload="none" disablepictureinpicture>
             <source src="brand/buddy-point.mp4" type='video/mp4; codecs="hvc1"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
             <source src="brand/buddy-point.webm" type='video/webm; codecs="vp9"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
@@ -474,18 +489,30 @@
     }
     start(document.querySelector('.buddy video'));
 
-    // The Buddy at the prices is below the fold. He does nothing — no fetch,
-    // no shrug — until the block is actually in view. Without
-    // IntersectionObserver he simply stays the poster.
+    // The Buddy at the prices is below the fold. Nothing for him — not even
+    // the poster — moves over the wire until the block is within a screen
+    // of the viewport, and the shrug and the clip wait until it is actually
+    // in view. Without IntersectionObserver he is simply the poster.
     var fig = document.querySelector('.buddy-point');
-    if (!fig || !('IntersectionObserver' in window)) return;
-    var io = new IntersectionObserver(function (entries) {
+    if (!fig) return;
+    function poster() {
+      var s = fig.querySelectorAll('source[data-srcset]');
+      for (var i = 0; i < s.length; i++) s[i].setAttribute('srcset', s[i].getAttribute('data-srcset'));
+    }
+    if (!('IntersectionObserver' in window)) { poster(); return; }
+    var near = new IntersectionObserver(function (entries) {
       if (!entries.some(function (e) { return e.isIntersecting; })) return;
-      io.disconnect();
+      near.disconnect();
+      poster();
+    }, { rootMargin: '100% 0px' });
+    near.observe(fig);
+    var seen = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (e) { return e.isIntersecting; })) return;
+      seen.disconnect();
       fig.classList.add('is-seen');
       start(fig.querySelector('video'));
     }, { rootMargin: '0px 0px 120px 0px' });
-    io.observe(fig);
+    seen.observe(fig);
   });
 </script>
 

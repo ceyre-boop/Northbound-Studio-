@@ -32,6 +32,10 @@
   the order emails describe the build. The package key and the code are the
   only things that travel; api/checkout.ts prices from its own table. Without
   JavaScript this page is Cheap and Clean, as it always was.
+
+  THE TWELVE ON THE HOMEPAGE arrive the same way — index.html's panels send
+  ?buy=<package>&s=<version-2 code> — and the build card lists exactly the
+  parts that were clicked, naming any the package does not cover.
 -->
 <style>
   @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
@@ -153,6 +157,7 @@
     <section class="card build-card" id="build-card" hidden aria-label="Your build">
       <h2>Your build</h2>
       <ul class="parts" id="build-parts"></ul>
+      <p class="answers" id="build-extra" hidden></p>
       <p class="answers" id="build-answers"></p>
       <a class="change" id="build-change" href="build.html">Change it</a>
     </section>

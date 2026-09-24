@@ -14,7 +14,7 @@
  * The amounts written here are for display. The form posts only the package
  * key, the add-ons and the code; api/checkout.ts prices from its own table.
  */
-import { PACKAGES, decode, encode, build, describe, money } from './spec.js';
+import { PACKAGES, decode, encode, build, describe, isPicked, money } from './spec.js';
 
 const params = new URLSearchParams(location.search);
 const buyKey = params.get('buy');
@@ -66,17 +66,32 @@ if (a) {
   // can say when it differs from what the answers pointed at.
   const bought = { ...a, pkg: pkg ? pkg.key : a.pkg };
   const b = build(bought);
-  const d = describe(a);
   $('#spec').value = encode(bought);
   $('#build-parts').innerHTML = b.included.map((p) => `<li>${p}</li>`).join('');
-  $('#build-answers').textContent = [
-    d.business, `today: ${d.now}`, `wants more: ${d.want}`, `one customer is worth ${d.worth}`,
-    `nine at night: ${d.answers}`, `running it: ${d.run}`, `look: ${d.look}`,
-  ].join(' · ');
-  const backHref = `build.html?s=${encodeURIComponent(encode(a))}`;
-  $('#build-change').href = backHref;
+  // Picked parts the package does not cover are still their picks, so they
+  // are named here rather than dropped on the way to the order.
+  const extra = $('#build-extra');
+  if (extra) {
+    extra.hidden = b.extra.length === 0;
+    if (b.extra.length) extra.textContent = `Not in ${b.pkg.name}: ${b.extra.join(', ')} — ask us and we'll quote ${b.extra.length === 1 ? 'it' : 'them'} on ${b.extra.length === 1 ? 'its' : 'their'} own.`;
+  }
   const back = $('.back');
-  if (back) { back.href = backHref; back.textContent = '← Back to your build'; }
+  if (isPicked(a)) {
+    // From the twelve on the homepage: there are no answers to recap, and
+    // "change it" means the panels, not the questions.
+    $('#build-answers').textContent = `Picked from the twelve on the homepage: ${b.parts.join(', ')}.`;
+    $('#build-change').href = '/#offerings';
+    if (back) { back.href = '/#offerings'; back.textContent = '← Back to the twelve'; }
+  } else {
+    const d = describe(a);
+    $('#build-answers').textContent = [
+      d.business, `today: ${d.now}`, `wants more: ${d.want}`, `one customer is worth ${d.worth}`,
+      `nine at night: ${d.answers}`, `running it: ${d.run}`, `look: ${d.look}`,
+    ].join(' · ');
+    const backHref = `build.html?s=${encodeURIComponent(encode(a))}`;
+    $('#build-change').href = backHref;
+    if (back) { back.href = backHref; back.textContent = '← Back to your build'; }
+  }
   $('#build-card').hidden = false;
 
   if (b.bearing) {

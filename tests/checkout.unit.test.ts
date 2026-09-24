@@ -8,7 +8,10 @@
  * those. Mirrors api/quote.ts's own honeypot/JSON/validation conventions.
  */
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
-import { POST } from '../api/checkout.ts';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { GOOGLE_REVIEW_URL, POST } from '../api/checkout.ts';
+import { GOOGLE_REVIEW_URL as BROWSER_REVIEW_URL } from '../js/config.js';
 
 const ENV_KEY = 'RESEND_API_KEY';
 const ENV_TO = 'QUOTE_TO';
@@ -59,7 +62,7 @@ afterEach(() => {
 
 describe('founding Beacon and Engine amounts', () => {
   test('Beacon: 50% deposit of the founding price ($875.00 of $1,750)', async () => {
-    const res = await post({ ...baseFields(), buy: 'beacon', founding_agree: 'yes' });
+    const res = await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.' });
     expect(res.status).toBe(200);
     const notif = sentEmails[0].text as string;
     expect(notif).toContain('$875.00 once');
@@ -69,7 +72,7 @@ describe('founding Beacon and Engine amounts', () => {
   });
 
   test('Engine: 50% deposit of the founding price ($2,125.00 of $4,250)', async () => {
-    const res = await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes' });
+    const res = await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.' });
     expect(res.status).toBe(200);
     const notif = sentEmails[0].text as string;
     expect(notif).toContain('$2,125.00 once');
@@ -78,11 +81,48 @@ describe('founding Beacon and Engine amounts', () => {
     expect(notif).toContain('standard $8,500');
   });
 
-  test('the founding agreement is recorded in the notification email', async () => {
-    await post({ ...baseFields(), buy: 'beacon', founding_agree: 'yes' });
+  test('the review name is carried into both emails, with the manual check said plainly', async () => {
+    await post({ ...baseFields(), buy: 'beacon', review_name: '  Jamie R.  ' });
     const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Founding agreement: confirmed');
+    const conf = sentEmails[1].text as string;
+    expect(notif).toContain('Founding review: posted under "Jamie R."');
+    expect(notif).toContain('look it up on Google before finalising');
+    expect(conf).toContain('posted under "Jamie R."');
+    expect(conf).toContain('we check it ourselves before finalising');
+    expect(conf).toContain(GOOGLE_REVIEW_URL);
+    for (const text of [notif, conf]) {
+      expect(text).not.toMatch(/isn't live|nothing to review|verified automatically/i);
+    }
   });
+
+  test('Cheap and Clean alone says nothing about a review', async () => {
+    await post({ ...baseFields(), buy: 'clean' });
+    for (const email of sentEmails) expect(email.text as string).not.toContain('Founding review');
+  });
+});
+
+/* One URL, written in four places on purpose (the pages need a plain href
+   for JavaScript-off), and this is what stops them drifting apart. */
+describe('GOOGLE_REVIEW_URL', () => {
+  const ROOT = join(import.meta.dir, '..');
+  test('the server and the browser hold the same string', () => {
+    expect(GOOGLE_REVIEW_URL).toBe(BROWSER_REVIEW_URL);
+    expect(GOOGLE_REVIEW_URL).toBe('https://www.google.com/maps/search/?api=1&query=NorthBound+website+designer+Swartz+Creek+MI');
+  });
+
+  for (const page of ['index.html', 'checkout.html', 'build.html']) {
+    test(`${page}'s "Leave your Google review" link is that URL, in a new tab`, () => {
+      const html = readFileSync(join(ROOT, page), 'utf8');
+      const links = Array.from(html.matchAll(/<a\s+([^>]*)>Leave your Google review<\/a>/g)).map((m) => m[1]);
+      expect(links.length).toBe(1);
+      const href = links[0].match(/href="([^"]+)"/)![1].replace(/&amp;/g, '&');
+      expect(href).toBe(GOOGLE_REVIEW_URL);
+      expect(links[0]).toContain('target="_blank"');
+      expect(links[0]).toContain('rel="noopener"');
+      expect(html).toContain('name="review_name"');
+      expect(html).not.toMatch(/isn't live yet|nothing to review today/);
+    });
+  }
 });
 
 describe('Bearing — both founding term variants', () => {
@@ -92,7 +132,7 @@ describe('Bearing — both founding term variants', () => {
       buy: 'clean',
       bearing: '1',
       bearing_term: '12',
-      founding_agree: 'yes',
+      review_name: 'Jamie R.',
     });
     expect(res.status).toBe(200);
     const notif = sentEmails[0].text as string;
@@ -108,7 +148,7 @@ describe('Bearing — both founding term variants', () => {
       buy: 'clean',
       bearing: '1',
       bearing_term: 'mtm',
-      founding_agree: 'yes',
+      review_name: 'Jamie R.',
     });
     expect(res.status).toBe(200);
     const notif = sentEmails[0].text as string;
@@ -122,7 +162,7 @@ describe('Bearing — both founding term variants', () => {
       buy: 'clean',
       bearing: '1',
       bearing_term: '12',
-      founding_agree: 'yes',
+      review_name: 'Jamie R.',
     });
     const notif = sentEmails[0].text as string;
     expect(notif).toContain('Due today: $600.00');
@@ -130,16 +170,16 @@ describe('Bearing — both founding term variants', () => {
 });
 
 describe('refusals', () => {
-  test('refuses founding pricing without the agreement checkbox — Beacon', async () => {
+  test('refuses founding pricing without the review name — Beacon', async () => {
     const res = await post({ ...baseFields(), buy: 'beacon' });
     expect(res.status).toBe(422);
     const body = await res.json();
     expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/early client/i);
+    expect(body.error).toMatch(/name your Google review is posted under/i);
     expect(sentEmails.length).toBe(0);
   });
 
-  test('refuses founding pricing without the agreement checkbox — Bearing', async () => {
+  test('refuses founding pricing without the review name — Bearing', async () => {
     const res = await post({
       ...baseFields(),
       buy: 'clean',
@@ -149,11 +189,19 @@ describe('refusals', () => {
     expect(res.status).toBe(422);
     const body = await res.json();
     expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/early client/i);
+    expect(body.error).toMatch(/name your Google review is posted under/i);
     expect(sentEmails.length).toBe(0);
   });
 
-  test('Cheap and Clean alone never requires the founding agreement', async () => {
+  test('a review name that is only whitespace is absent, and the old checkbox no longer counts', async () => {
+    const blank = await post({ ...baseFields(), buy: 'engine', review_name: '   ' });
+    expect(blank.status).toBe(422);
+    const checkbox = await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes' });
+    expect(checkbox.status).toBe(422);
+    expect(sentEmails.length).toBe(0);
+  });
+
+  test('Cheap and Clean alone never requires the review name', async () => {
     const res = await post({ ...baseFields(), buy: 'clean' });
     expect(res.status).toBe(200);
   });
@@ -164,7 +212,7 @@ describe('refusals', () => {
       buy: 'clean',
       bearing: '1',
       bearing_term: 'quarterly',
-      founding_agree: 'yes',
+      review_name: 'Jamie R.',
     });
     expect(res.status).toBe(422);
     const body = await res.json();
@@ -202,7 +250,7 @@ describe('the guided build, carried in `spec`', () => {
   const ROOFER = '1tc33ny5e.Rivera%20Roofing';
 
   test('Engine: both emails say $2,125 now and $2,125 on delivery, in those words', async () => {
-    const res = await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes', spec: ROOFER });
+    const res = await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', spec: ROOFER });
     expect(res.status).toBe(200);
     const notif = sentEmails[0].text as string;
     const conf = sentEmails[1].text as string;
@@ -214,7 +262,7 @@ describe('the guided build, carried in `spec`', () => {
   });
 
   test('Beacon: $875 now, $875 on delivery', async () => {
-    await post({ ...baseFields(), buy: 'beacon', founding_agree: 'yes' });
+    await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.' });
     const notif = sentEmails[0].text as string;
     expect(notif).toContain('Due today: $875.00');
     expect(notif).toContain('On delivery: $875.00 (the balance)');
@@ -229,7 +277,7 @@ describe('the guided build, carried in `spec`', () => {
   });
 
   test('the build is described, part by part, in both emails', async () => {
-    await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes', spec: ROOFER });
+    await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', spec: ROOFER });
     for (const email of sentEmails) {
       const text = email.text as string;
       expect(text).toContain('Their build (from build.html):');
@@ -246,7 +294,7 @@ describe('the guided build, carried in `spec`', () => {
 
   test('a package the answers did not point at is noted, with what falls out', async () => {
     // Same roofer, but they chose Beacon on the sheet (code ends in b).
-    await post({ ...baseFields(), buy: 'beacon', founding_agree: 'yes', spec: '1tc33ny5b.Rivera%20Roofing' });
+    await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.', spec: '1tc33ny5b.Rivera%20Roofing' });
     const notif = sentEmails[0].text as string;
     expect(notif).toContain('Parts:      A custom site');
     expect(notif).toContain('Not in package: Booking flow, Quote flow, Payments, Lead capture, Automated follow-up, Reminders, Review requests');
@@ -263,11 +311,36 @@ describe('the guided build, carried in `spec`', () => {
   });
 
   test('Bearing chosen in the build is recorded, not charged today', async () => {
-    await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes', bearing: '1', bearing_term: '12', spec: ROOFER });
+    await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', bearing: '1', bearing_term: '12', spec: ROOFER });
     const notif = sentEmails[0].text as string;
     expect(notif).toContain('Due today: $2,125.00');
     expect(notif).toContain('Bearing — 12-month commitment (founding price) — $300.00/mo');
     expect(notif).toContain('Then: $300.00/mo, starting next month');
+  });
+
+  test('the twelve picked on the homepage: both emails list exactly what was clicked, and what the package does not cover', async () => {
+    // A custom site, Booking flow and AI intake: bits 0, 2 and 11.
+    const code = '2' + (1 | 4 | 2048).toString(36).padStart(3, '0') + 'e';
+    await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', spec: code });
+    for (const email of sentEmails) {
+      const text = email.text as string;
+      expect(text).toContain('Their build (picked from the twelve on the homepage):');
+      expect(text).toContain('Picked:     A custom site, Booking flow, AI intake');
+      expect(text).toContain('Parts:      A custom site, Booking flow');
+      expect(text).toContain('Not in package: AI intake');
+      expect(text).not.toContain('from build.html');
+      expect(text).not.toContain('Today:');
+      expect(text).not.toContain('Nights:');
+    }
+  });
+
+  test('picks that pointed at Engine but were bought as Beacon are noted', async () => {
+    const code = '2' + (1 | 4).toString(36).padStart(3, '0') + 'b';
+    await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.', spec: code });
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Parts:      A custom site');
+    expect(notif).toContain('Not in package: Booking flow');
+    expect(notif).toContain('(Their picks pointed at engine; they chose beacon.)');
   });
 
   test('a spec that cannot be read is ignored, and the order still goes through', async () => {

@@ -14,7 +14,7 @@
  * The amounts written here are for display. The form posts only the package
  * key, the add-ons and the code; api/checkout.ts prices from its own table.
  */
-import { PACKAGES, decode, encode, build, describe, money } from './spec.js';
+import { PACKAGES, decode, encode, build, describe, isPicked, money } from './spec.js';
 
 const params = new URLSearchParams(location.search);
 const buyKey = params.get('buy');
@@ -52,10 +52,10 @@ if (pkg && pkg.key !== 'clean') {
   const bearingDesc = form.querySelector('[data-bearing-toggle]').closest('.addon').querySelector('.d');
   if (bearingDesc) bearingDesc.textContent = 'The full care plan: hosting, monitoring, backups, unlimited small edits, your automations kept running, and a monthly report on where the calls came from. Not charged today; the first monthly charge is next month. One of the first 15 founding clients only — pick a term below.';
 
-  // The founding agreement is required for the package itself now, not only
-  // for Bearing.
-  const note = document.querySelector('.founding-agree + .note');
-  if (note) note.textContent = `Required for ${pkg.name} at the founding price, and for Bearing. Our Google Business Profile isn't live yet, so there's nothing to review today — reviews open once it is.`;
+  // The founding claim is needed for the package itself now, not only for
+  // Bearing.
+  const note = document.getElementById('founding-note');
+  if (note) note.textContent = `Needed for ${pkg.name} at the founding price, and for Bearing. Founding pricing is confirmed once we can see the review — we check it ourselves before finalising, there's no automatic check.`;
 
   const reassure = form.querySelector('.reassure');
   if (reassure) reassure.textContent = `No card details are entered on this site. We'll email a secure payment link for the ${money(pkg.deposit)} deposit within one business hour — nothing is charged until you pay it. The remaining ${money(pkg.price - pkg.deposit)} is due on delivery.`;
@@ -66,17 +66,32 @@ if (a) {
   // can say when it differs from what the answers pointed at.
   const bought = { ...a, pkg: pkg ? pkg.key : a.pkg };
   const b = build(bought);
-  const d = describe(a);
   $('#spec').value = encode(bought);
   $('#build-parts').innerHTML = b.included.map((p) => `<li>${p}</li>`).join('');
-  $('#build-answers').textContent = [
-    d.business, `today: ${d.now}`, `wants more: ${d.want}`, `one customer is worth ${d.worth}`,
-    `nine at night: ${d.answers}`, `running it: ${d.run}`, `look: ${d.look}`,
-  ].join(' · ');
-  const backHref = `build.html?s=${encodeURIComponent(encode(a))}`;
-  $('#build-change').href = backHref;
+  // Picked parts the package does not cover are still their picks, so they
+  // are named here rather than dropped on the way to the order.
+  const extra = $('#build-extra');
+  if (extra) {
+    extra.hidden = b.extra.length === 0;
+    if (b.extra.length) extra.textContent = `Not in ${b.pkg.name}: ${b.extra.join(', ')} — ask us and we'll quote ${b.extra.length === 1 ? 'it' : 'them'} on ${b.extra.length === 1 ? 'its' : 'their'} own.`;
+  }
   const back = $('.back');
-  if (back) { back.href = backHref; back.textContent = '← Back to your build'; }
+  if (isPicked(a)) {
+    // From the twelve on the homepage: there are no answers to recap, and
+    // "change it" means the panels, not the questions.
+    $('#build-answers').textContent = `Picked from the twelve on the homepage: ${b.parts.join(', ')}.`;
+    $('#build-change').href = '/#offerings';
+    if (back) { back.href = '/#offerings'; back.textContent = '← Back to the twelve'; }
+  } else {
+    const d = describe(a);
+    $('#build-answers').textContent = [
+      d.business, `today: ${d.now}`, `wants more: ${d.want}`, `one customer is worth ${d.worth}`,
+      `nine at night: ${d.answers}`, `running it: ${d.run}`, `look: ${d.look}`,
+    ].join(' · ');
+    const backHref = `build.html?s=${encodeURIComponent(encode(a))}`;
+    $('#build-change').href = backHref;
+    if (back) { back.href = backHref; back.textContent = '← Back to your build'; }
+  }
   $('#build-card').hidden = false;
 
   if (b.bearing) {

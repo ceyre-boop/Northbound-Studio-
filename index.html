@@ -26,8 +26,9 @@
 
   This is 01-clean from the spec kit, carrying Northbound's own content and
   the studio's typefaces. It is deliberately plain: no WebGL, no smooth
-  scroll, and no JavaScript beyond the four lines at the foot that start
-  Buddy's wave. Everything that makes this page beautiful
+  scroll, and only the small scripts at the foot (Buddy's wave, the founding
+  claim's validity message, and js/pick.js for the twelve panels).
+  Everything that makes this page beautiful
   gets added on top of this file, one decision at a time, and every addition
   has to survive the same question — does the page still read, and still
   work, without it?
@@ -159,10 +160,38 @@
   .section-lede { color: var(--ink-soft); max-width: 58ch; margin: 0 0 32px; }
 
   .offerings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; list-style: none; margin: 0; padding: 0; counter-reset: offering; }
-  .offerings li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  /* Each of the twelve is a real toggle button (aria-pressed), styled as the
+     panel it always was, so the list reads the same with JavaScript off. The
+     check circle at the top right only appears once js/pick.js has taken
+     the list over (.is-live) — a control that does nothing should not look
+     like one. It is absolutely positioned, so its arrival moves nothing. */
+  .offerings li { display: grid; }
+  .offer { position: relative; display: grid; align-content: start; width: 100%; min-height: 44px;  /* grid, not block: a <button> centres its contents vertically, which put a short panel's number lower than its neighbours' in the same row */ margin: 0; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; color: inherit; font: inherit; line-height: inherit; text-align: left; -webkit-appearance: none; appearance: none; cursor: default; }
+  .offerings.is-live .offer { cursor: pointer; }
+  .offerings.is-live .offer:not([aria-pressed="true"]):hover { border-color: var(--ink-soft); }
+  .offer:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .offer[aria-pressed="true"] { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 1px var(--accent), 0 8px 20px rgba(14,111,92,0.10); }
+  .offerings.is-live .offer::before { content: ""; position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); background: #fff; }
+  .offerings.is-live .offer[aria-pressed="true"]::before { border-color: var(--accent); background: var(--accent); }
+  /* The check: two edges of a box, turned 45°, white on the accent circle. */
+  .offer[aria-pressed="true"]::after { content: ""; position: absolute; top: 21px; right: 24px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
   .offerings .n { font-family: var(--mono); font-size: 11px; color: var(--accent); display: block; margin-bottom: 6px; }
   .offerings .t { font-weight: 700; display: block; margin-bottom: 4px; }
-  .offerings .d { font-size: 14px; color: var(--ink-soft); }
+  .offerings .d { font-size: 14px; color: var(--ink-soft); display: block; }
+
+  /* Continue: fixed bottom-left, up only while something is picked. It is
+     an <a> whose href is the checkout the picks add up to. The page reserves
+     its height underneath (body.has-pick) so it never sits on the footer or
+     on the last thing a phone is trying to read. Enters with a short rise;
+     under "reduce" it simply appears. */
+  .pick-continue { position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 20; min-height: 54px; padding: 12px 22px; font-size: 17px; gap: 10px; box-shadow: 0 12px 32px rgba(14,21,18,0.28); }
+  .pick-continue .count { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; background: #fff; color: var(--accent); font-family: var(--mono); font-size: 13px; }
+  .pick-continue[hidden] { display: none; }
+  body.has-pick { padding-bottom: 96px; }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes pick-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .pick-continue { animation: pick-rise 220ms ease-out; }
+  }
 
   .packages { background: var(--panel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .pkg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; list-style: none; margin: 0; padding: 0; }
@@ -177,7 +206,7 @@
   .pkg .tag { color: var(--ink-soft); margin: 0 0 16px; }
   .pkg ul { margin: 0 0 20px; padding-left: 1.1em; color: var(--ink-soft); font-size: 15px; }
   .pkg li { margin-bottom: 6px; }
-  .pkg .btn { margin-top: auto; }
+  .pkg .btn { margin-top: auto; width: 100%; min-height: 54px; font-size: 17px; }  /* the way into checkout was an inline pill lost under the bullets; it is the card's one action, so it takes the card's width */
   .note { color: var(--ink-soft); font-size: 14px; max-width: 58ch; margin: 24px 0 0; }
   .founding-offer { margin: 0 0 28px; padding: 20px 22px; background: #fff; border: 1px solid var(--accent); border-radius: 14px; }
   .founding-offer .eyebrow { margin: 0 0 8px; }
@@ -221,9 +250,15 @@
   .quote-form { display: grid; gap: 14px; max-width: 520px; }
   .field { display: grid; gap: 6px; margin: 0; }
   .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
-  .field-checkbox { display: flex; gap: 10px; align-items: flex-start; margin: 0; }
-  .field-checkbox input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
-  .field-checkbox .hint { display: block; font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+  /* The founding claim: the review link, the name it is posted under, and
+     the honest line. One bordered block so it reads as one thing; the border
+     turns accent while a founding package is selected and the name is empty. */
+  .founding-claim { display: grid; gap: 10px; margin: 4px 0 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .founding-claim.is-required.is-empty { border-color: var(--accent); background: #fff; }
+  .founding-claim p { margin: 0; }
+  .founding-claim .claim-lede { font-size: 15px; }
+  .founding-claim .claim-link .btn { min-height: 44px; padding: 10px 20px; }
+  .founding-claim .hint { font-size: 13px; color: var(--ink-soft); }
   .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: #fff; color: inherit; width: 100%; min-width: 0; }  /* min-width:0 — a <select> with a long founding-price option otherwise sets the grid item's intrinsic minimum from that text and overflows at 390px */
   .field textarea { min-height: 110px; resize: vertical; }
   .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -310,20 +345,29 @@
   <div class="wrap">
     <h2>Twelve things, and what each one does for you.</h2>
     <p class="section-lede">The website is the front of it. These are the parts behind it — the ones that answer, quote, book, take the deposit and remember to ask for the review.</p>
-    <ol class="offerings">
-      <li><span class="n">01</span><span class="t">A custom site</span><span class="d">Built for your business rather than adapted from someone else's, so it says what you do in the first five seconds.</span></li>
-      <li><span class="n">02</span><span class="t">Brand identity</span><span class="d">A logo, a typeface and a colour that work on a van, a business card and a phone screen without being redrawn each time.</span></li>
-      <li><span class="n">03</span><span class="t">Booking flow</span><span class="d">Customers pick a time themselves, at eleven at night, without anyone answering a phone.</span></li>
-      <li><span class="n">04</span><span class="t">Quote flow</span><span class="d">People tell you what the job is before you drive out to look at it, so you quote the ones worth quoting.</span></li>
-      <li><span class="n">05</span><span class="t">Payments</span><span class="d">Deposits land before the work starts, which is the rule that prevents most of the ways small projects go wrong.</span></li>
-      <li><span class="n">06</span><span class="t">Lead capture</span><span class="d">The people who almost called you leave a name instead of leaving.</span></li>
-      <li><span class="n">07</span><span class="t">Automated follow-up</span><span class="d">Every enquiry gets an answer within a minute, including the ones that arrive while you are on a roof.</span></li>
-      <li><span class="n">08</span><span class="t">Reminders</span><span class="d">Fewer no-shows, because the appointment reminds them and not you.</span></li>
-      <li><span class="n">09</span><span class="t">Review requests</span><span class="d">The review gets asked for at the one moment the customer is happiest, every time, without you remembering.</span></li>
-      <li><span class="n">10</span><span class="t">Owner dashboard</span><span class="d">One screen that says where the calls came from and what they were worth, so you stop guessing which advert works.</span></li>
-      <li><span class="n">11</span><span class="t">Local SEO</span><span class="d">You turn up when someone two towns over searches for what you do.</span></li>
-      <li><span class="n">12</span><span class="t">AI intake</span><span class="d">Enquiries get read, sorted and answered in your voice before you have opened the laptop.</span></li>
+    <!--
+      Twelve toggle buttons. Picking any of them raises a Continue button
+      (fixed, bottom-left) whose href is the existing checkout — the package
+      the picks add up to in ?buy=, and the picks themselves in ?s= as the
+      version-2 code from js/spec.js — so checkout and the order emails list
+      exactly what was clicked. js/pick.js does that; without it the buttons
+      are inert and the list reads as it always did.
+    -->
+    <ol class="offerings" id="offerings-list" aria-label="The twelve parts — pick the ones you want">
+      <li><button type="button" class="offer" data-part="A custom site" aria-pressed="false" aria-labelledby="o1-t" aria-describedby="o1-d"><span class="n">01</span><span class="t" id="o1-t">A custom site</span><span class="d" id="o1-d">Built for your business rather than adapted from someone else's, so it says what you do in the first five seconds.</span></button></li>
+      <li><button type="button" class="offer" data-part="Brand identity" aria-pressed="false" aria-labelledby="o2-t" aria-describedby="o2-d"><span class="n">02</span><span class="t" id="o2-t">Brand identity</span><span class="d" id="o2-d">A logo, a typeface and a colour that work on a van, a business card and a phone screen without being redrawn each time.</span></button></li>
+      <li><button type="button" class="offer" data-part="Booking flow" aria-pressed="false" aria-labelledby="o3-t" aria-describedby="o3-d"><span class="n">03</span><span class="t" id="o3-t">Booking flow</span><span class="d" id="o3-d">Customers pick a time themselves, at eleven at night, without anyone answering a phone.</span></button></li>
+      <li><button type="button" class="offer" data-part="Quote flow" aria-pressed="false" aria-labelledby="o4-t" aria-describedby="o4-d"><span class="n">04</span><span class="t" id="o4-t">Quote flow</span><span class="d" id="o4-d">People tell you what the job is before you drive out to look at it, so you quote the ones worth quoting.</span></button></li>
+      <li><button type="button" class="offer" data-part="Payments" aria-pressed="false" aria-labelledby="o5-t" aria-describedby="o5-d"><span class="n">05</span><span class="t" id="o5-t">Payments</span><span class="d" id="o5-d">Deposits land before the work starts, which is the rule that prevents most of the ways small projects go wrong.</span></button></li>
+      <li><button type="button" class="offer" data-part="Lead capture" aria-pressed="false" aria-labelledby="o6-t" aria-describedby="o6-d"><span class="n">06</span><span class="t" id="o6-t">Lead capture</span><span class="d" id="o6-d">The people who almost called you leave a name instead of leaving.</span></button></li>
+      <li><button type="button" class="offer" data-part="Automated follow-up" aria-pressed="false" aria-labelledby="o7-t" aria-describedby="o7-d"><span class="n">07</span><span class="t" id="o7-t">Automated follow-up</span><span class="d" id="o7-d">Every enquiry gets an answer within a minute, including the ones that arrive while you are on a roof.</span></button></li>
+      <li><button type="button" class="offer" data-part="Reminders" aria-pressed="false" aria-labelledby="o8-t" aria-describedby="o8-d"><span class="n">08</span><span class="t" id="o8-t">Reminders</span><span class="d" id="o8-d">Fewer no-shows, because the appointment reminds them and not you.</span></button></li>
+      <li><button type="button" class="offer" data-part="Review requests" aria-pressed="false" aria-labelledby="o9-t" aria-describedby="o9-d"><span class="n">09</span><span class="t" id="o9-t">Review requests</span><span class="d" id="o9-d">The review gets asked for at the one moment the customer is happiest, every time, without you remembering.</span></button></li>
+      <li><button type="button" class="offer" data-part="Owner dashboard" aria-pressed="false" aria-labelledby="o10-t" aria-describedby="o10-d"><span class="n">10</span><span class="t" id="o10-t">Owner dashboard</span><span class="d" id="o10-d">One screen that says where the calls came from and what they were worth, so you stop guessing which advert works.</span></button></li>
+      <li><button type="button" class="offer" data-part="Local SEO" aria-pressed="false" aria-labelledby="o11-t" aria-describedby="o11-d"><span class="n">11</span><span class="t" id="o11-t">Local SEO</span><span class="d" id="o11-d">You turn up when someone two towns over searches for what you do.</span></button></li>
+      <li><button type="button" class="offer" data-part="AI intake" aria-pressed="false" aria-labelledby="o12-t" aria-describedby="o12-d"><span class="n">12</span><span class="t" id="o12-t">AI intake</span><span class="d" id="o12-d">Enquiries get read, sorted and answered in your voice before you have opened the laptop.</span></button></li>
     </ol>
+    <a class="btn btn-primary pick-continue" id="pick-continue" href="checkout.html" hidden>Continue <span class="count" id="pick-count" aria-hidden="true">0</span></a>
   </div>
 </section>
 
@@ -334,7 +378,7 @@
 
     <div class="founding-offer" id="founding">
       <p class="eyebrow">First 15 founding clients</p>
-      <p>Beacon and Engine are shown below at the founding price — the standard price is listed next to it, struck through. Founding pricing means you agree to be an early client and to leave a Google review once our Google Business Profile is live (it isn't yet, so there's nothing to review today). 50% is due upfront on any build either way.</p>
+      <p>Beacon and Engine are shown below at the founding price — the standard price is listed next to it, struck through. Founding pricing means you're an early client and you leave us a Google review: the link is on the quote form and at checkout, and we check for the review ourselves before finalising. 50% is due upfront on any build either way.</p>
     </div>
 
     <ol class="pkg-grid">
@@ -455,12 +499,22 @@
       </p>
       <p class="field"><label for="f-need">What you need</label><textarea id="f-need" name="need" rows="3"></textarea></p>
       <p class="field"><label for="f-message">Anything else</label><textarea id="f-message" name="message" rows="3"></textarea></p>
-      <label class="field-checkbox" for="f-founding-agree">
-        <input id="f-founding-agree" type="checkbox" name="founding_agree" value="yes">
-        <span>I'm happy to be an early client and to leave a Google review once your Google profile is live.
-          <span class="hint">Required only if you're taking founding pricing (Beacon, Engine, or Bearing). Our Google Business Profile isn't live yet, so there's nothing to review today.</span>
-        </span>
-      </label>
+      <!--
+        The founding claim. Founding pricing is an early client who leaves us
+        a Google review, so the claim is the review itself: the link opens
+        Google in a new tab, and the name the review is posted under is what
+        we need to find it. Nothing here verifies anything — Colin looks it up
+        himself before finalising the quote, and the line below says so. The
+        href is the same string as GOOGLE_REVIEW_URL in js/config.js and
+        api/checkout.ts (tests/checkout.unit.test.ts keeps them equal); it is
+        written out here so the link works with JavaScript off.
+      -->
+      <div class="founding-claim" id="founding-claim">
+        <p class="claim-lede">Taking founding pricing (Beacon, Engine or Bearing)? Leave your Google review, then tell us the name it's posted under.</p>
+        <p class="claim-link"><a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&amp;query=NorthBound+website+designer+Swartz+Creek+MI" target="_blank" rel="noopener">Leave your Google review</a></p>
+        <p class="field"><label for="f-review-name">The name your review is posted under</label><input id="f-review-name" name="review_name" type="text" maxlength="120" data-founding-agree></p>
+        <p class="hint">Founding pricing is confirmed once we can see the review. We check it ourselves before finalising the quote — there's no automatic check. Not needed for Cheap and Clean.</p>
+      </div>
       <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
       <p><button type="submit">Send it</button></p>
     </form>
@@ -474,11 +528,44 @@
 </footer>
 
 <!--
-  The one script on this page, and it only starts Buddy. It waits for window
-  load so his 190KB never competes with the fonts and the headline, and it
-  fades the still out on the first frame he actually shows. Under 640px and
-  under reduced motion no <source> matched, currentSrc is empty, and this
-  does nothing. Everything above works exactly the same with it removed.
+  The founding claim, enforced in the browser too. api/quote.ts refuses
+  founding pricing without the review name, and it is right to — but a
+  server refusal on a native POST throws away everything they typed, which
+  is what happened to a real order at checkout. So while Beacon, Engine or
+  Bearing is selected the name field is required, with a message that says
+  what to do. With this script gone the form still posts and the server
+  still refuses; nothing is lost but the typing.
+-->
+<script>
+  (function () {
+    var form = document.querySelector('.quote-form');
+    var pkg = document.getElementById('f-package');
+    var name = form && form.querySelector('[data-founding-agree]');
+    if (!form || !pkg || !name) return;
+    var block = name.closest('.founding-claim');
+    var sync = function () {
+      var needed = pkg.value === 'beacon' || pkg.value === 'engine' || pkg.value === 'bearing';
+      var empty = name.value.trim() === '';
+      name.required = needed;
+      name.setCustomValidity(
+        needed && empty
+          ? 'To take the founding price, leave your Google review (the link above opens it), then type the name it’s posted under here. We check it ourselves before finalising.'
+          : ''
+      );
+      if (block) { block.classList.toggle('is-required', needed); block.classList.toggle('is-empty', empty); }
+    };
+    pkg.addEventListener('change', sync);
+    name.addEventListener('input', sync);
+    sync();
+  })();
+</script>
+
+<!--
+  Buddy's script. It waits for window load so his 190KB never competes with
+  the fonts and the headline, and it fades the still out on the first frame
+  he actually shows. Under 640px and under reduced motion no <source>
+  matched, currentSrc is empty, and this does nothing. Everything above
+  works exactly the same with it removed.
 -->
 <script>
   addEventListener('load', function () {
@@ -515,6 +602,9 @@
     seen.observe(fig);
   });
 </script>
+<!-- The twelve panels as an order. A module, so it is deferred and never
+     in the way of the first paint; with it missing the panels are inert. -->
+<script type="module" src="js/pick.js"></script>
 
 </body>
 </html>

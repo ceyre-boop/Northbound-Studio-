@@ -52,10 +52,10 @@ if (pkg && pkg.key !== 'clean') {
   const bearingDesc = form.querySelector('[data-bearing-toggle]').closest('.addon').querySelector('.d');
   if (bearingDesc) bearingDesc.textContent = 'The full care plan: hosting, monitoring, backups, unlimited small edits, your automations kept running, and a monthly report on where the calls came from. Not charged today; the first monthly charge is next month. One of the first 15 founding clients only — pick a term below.';
 
-  // The founding agreement is required for the package itself now, not only
-  // for Bearing.
-  const note = document.querySelector('.founding-agree + .note');
-  if (note) note.textContent = `Required for ${pkg.name} at the founding price, and for Bearing. Our Google Business Profile isn't live yet, so there's nothing to review today — reviews open once it is.`;
+  // The founding claim is needed for the package itself now, not only for
+  // Bearing.
+  const note = document.getElementById('founding-note');
+  if (note) note.textContent = `Needed for ${pkg.name} at the founding price, and for Bearing. Founding pricing is confirmed once we can see the review — we check it ourselves before finalising, there's no automatic check.`;
 
   const reassure = form.querySelector('.reassure');
   if (reassure) reassure.textContent = `No card details are entered on this site. We'll email a secure payment link for the ${money(pkg.deposit)} deposit within one business hour — nothing is charged until you pay it. The remaining ${money(pkg.price - pkg.deposit)} is due on delivery.`;

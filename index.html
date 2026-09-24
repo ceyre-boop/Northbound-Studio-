@@ -26,8 +26,8 @@
 
   This is 01-clean from the spec kit, carrying Northbound's own content and
   the studio's typefaces. It is deliberately plain: no WebGL, no smooth
-  scroll, and no JavaScript beyond the four lines at the foot that start
-  Buddy's wave. Everything that makes this page beautiful
+  scroll, and only the small scripts at the foot (Buddy's wave, the founding
+  claim's validity message). Everything that makes this page beautiful
   gets added on top of this file, one decision at a time, and every addition
   has to survive the same question — does the page still read, and still
   work, without it?
@@ -221,9 +221,15 @@
   .quote-form { display: grid; gap: 14px; max-width: 520px; }
   .field { display: grid; gap: 6px; margin: 0; }
   .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
-  .field-checkbox { display: flex; gap: 10px; align-items: flex-start; margin: 0; }
-  .field-checkbox input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
-  .field-checkbox .hint { display: block; font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+  /* The founding claim: the review link, the name it is posted under, and
+     the honest line. One bordered block so it reads as one thing; the border
+     turns accent while a founding package is selected and the name is empty. */
+  .founding-claim { display: grid; gap: 10px; margin: 4px 0 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .founding-claim.is-required.is-empty { border-color: var(--accent); background: #fff; }
+  .founding-claim p { margin: 0; }
+  .founding-claim .claim-lede { font-size: 15px; }
+  .founding-claim .claim-link .btn { min-height: 44px; padding: 10px 20px; }
+  .founding-claim .hint { font-size: 13px; color: var(--ink-soft); }
   .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: #fff; color: inherit; width: 100%; min-width: 0; }  /* min-width:0 — a <select> with a long founding-price option otherwise sets the grid item's intrinsic minimum from that text and overflows at 390px */
   .field textarea { min-height: 110px; resize: vertical; }
   .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -334,7 +340,7 @@
 
     <div class="founding-offer" id="founding">
       <p class="eyebrow">First 15 founding clients</p>
-      <p>Beacon and Engine are shown below at the founding price — the standard price is listed next to it, struck through. Founding pricing means you agree to be an early client and to leave a Google review once our Google Business Profile is live (it isn't yet, so there's nothing to review today). 50% is due upfront on any build either way.</p>
+      <p>Beacon and Engine are shown below at the founding price — the standard price is listed next to it, struck through. Founding pricing means you're an early client and you leave us a Google review: the link is on the quote form and at checkout, and we check for the review ourselves before finalising. 50% is due upfront on any build either way.</p>
     </div>
 
     <ol class="pkg-grid">
@@ -455,12 +461,22 @@
       </p>
       <p class="field"><label for="f-need">What you need</label><textarea id="f-need" name="need" rows="3"></textarea></p>
       <p class="field"><label for="f-message">Anything else</label><textarea id="f-message" name="message" rows="3"></textarea></p>
-      <label class="field-checkbox" for="f-founding-agree">
-        <input id="f-founding-agree" type="checkbox" name="founding_agree" value="yes">
-        <span>I'm happy to be an early client and to leave a Google review once your Google profile is live.
-          <span class="hint">Required only if you're taking founding pricing (Beacon, Engine, or Bearing). Our Google Business Profile isn't live yet, so there's nothing to review today.</span>
-        </span>
-      </label>
+      <!--
+        The founding claim. Founding pricing is an early client who leaves us
+        a Google review, so the claim is the review itself: the link opens
+        Google in a new tab, and the name the review is posted under is what
+        we need to find it. Nothing here verifies anything — Colin looks it up
+        himself before finalising the quote, and the line below says so. The
+        href is the same string as GOOGLE_REVIEW_URL in js/config.js and
+        api/checkout.ts (tests/checkout.unit.test.ts keeps them equal); it is
+        written out here so the link works with JavaScript off.
+      -->
+      <div class="founding-claim" id="founding-claim">
+        <p class="claim-lede">Taking founding pricing (Beacon, Engine or Bearing)? Leave your Google review, then tell us the name it's posted under.</p>
+        <p class="claim-link"><a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&amp;query=NorthBound+website+designer+Swartz+Creek+MI" target="_blank" rel="noopener">Leave your Google review</a></p>
+        <p class="field"><label for="f-review-name">The name your review is posted under</label><input id="f-review-name" name="review_name" type="text" maxlength="120" data-founding-agree></p>
+        <p class="hint">Founding pricing is confirmed once we can see the review. We check it ourselves before finalising the quote — there's no automatic check. Not needed for Cheap and Clean.</p>
+      </div>
       <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
       <p><button type="submit">Send it</button></p>
     </form>
@@ -474,11 +490,44 @@
 </footer>
 
 <!--
-  The one script on this page, and it only starts Buddy. It waits for window
-  load so his 190KB never competes with the fonts and the headline, and it
-  fades the still out on the first frame he actually shows. Under 640px and
-  under reduced motion no <source> matched, currentSrc is empty, and this
-  does nothing. Everything above works exactly the same with it removed.
+  The founding claim, enforced in the browser too. api/quote.ts refuses
+  founding pricing without the review name, and it is right to — but a
+  server refusal on a native POST throws away everything they typed, which
+  is what happened to a real order at checkout. So while Beacon, Engine or
+  Bearing is selected the name field is required, with a message that says
+  what to do. With this script gone the form still posts and the server
+  still refuses; nothing is lost but the typing.
+-->
+<script>
+  (function () {
+    var form = document.querySelector('.quote-form');
+    var pkg = document.getElementById('f-package');
+    var name = form && form.querySelector('[data-founding-agree]');
+    if (!form || !pkg || !name) return;
+    var block = name.closest('.founding-claim');
+    var sync = function () {
+      var needed = pkg.value === 'beacon' || pkg.value === 'engine' || pkg.value === 'bearing';
+      var empty = name.value.trim() === '';
+      name.required = needed;
+      name.setCustomValidity(
+        needed && empty
+          ? 'To take the founding price, leave your Google review (the link above opens it), then type the name it’s posted under here. We check it ourselves before finalising.'
+          : ''
+      );
+      if (block) { block.classList.toggle('is-required', needed); block.classList.toggle('is-empty', empty); }
+    };
+    pkg.addEventListener('change', sync);
+    name.addEventListener('input', sync);
+    sync();
+  })();
+</script>
+
+<!--
+  Buddy's script. It waits for window load so his 190KB never competes with
+  the fonts and the headline, and it fades the still out on the first frame
+  he actually shows. Under 640px and under reduced motion no <source>
+  matched, currentSrc is empty, and this does nothing. Everything above
+  works exactly the same with it removed.
 -->
 <script>
   addEventListener('load', function () {

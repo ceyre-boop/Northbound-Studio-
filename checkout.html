@@ -86,16 +86,25 @@
   .addon .d { color: var(--ink-soft); font-size: 15px; }
   .addon .p { font-family: var(--display); white-space: nowrap; margin-left: auto; }
 
-  /* The two Bearing terms and the founding agreement. Always present in the
+  /* The two Bearing terms and the founding claim. Always present in the
      markup (no `hidden`) so a no-JS visitor can still choose a term and
-     agree — JS only dims this block visually while Bearing is unchecked. */
+     make the claim — JS only dims this block visually while Bearing is unchecked. */
   .bearing-terms { display: grid; gap: 10px; margin: 10px 0 0 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; }
   .bearing-terms.is-dim { opacity: 0.45; }
   .term { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 14px; color: var(--ink-soft); }
   .term input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
   .term strong { color: var(--ink); }
-  .founding-agree { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 14px; cursor: pointer; }
-  .founding-agree input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+  /* The founding claim: the review link, the name it is posted under, and
+     the honest note. The border turns accent while something founding-priced
+     is in the order and the name is empty. */
+  .founding-claim { display: grid; gap: 10px; margin-top: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .founding-claim.is-required.is-empty { border-color: var(--accent); background: #fff; }
+  .founding-claim p { margin: 0; }
+  .founding-claim .claim-lede { font-size: 15px; }
+  .founding-claim .field { margin: 0; }
+  .founding-claim .note { font-size: 13px; color: var(--ink-soft); }
+  .btn-review { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 20px; border-radius: 10px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .btn-review:hover { border-color: var(--accent); color: var(--accent); }
 
   .totals { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 16px; }
   .totals .row { display: flex; justify-content: space-between; color: var(--ink-soft); }
@@ -115,8 +124,6 @@
   .pay:hover { background: var(--accent-dark); }
   .reassure { font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
   .reassure strong { color: var(--ink); }
-  .founding-agree.is-required { outline: 2px solid transparent; }
-  .founding-agree.is-required:has(input:not(:checked)) { border-color: var(--accent); background: #fff; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .back { display: inline-block; margin-bottom: 18px; font-size: 14px; color: var(--ink-soft); }
   .build-card[hidden] { display: none; }
@@ -189,7 +196,7 @@
         after: locked at $300 for a year, or free to leave any time but back
         to $600 after month one. Left visible (not hidden) even before
         Bearing is ticked, so a visitor with JavaScript disabled can still
-        pick a term and check the founding agreement below — the only thing
+        pick a term and make the founding claim below — the only thing
         JavaScript does here is dim this block until Bearing is checked.
       -->
       <div class="bearing-terms" data-bearing-terms>
@@ -203,11 +210,22 @@
         </label>
       </div>
 
-      <label class="founding-agree">
-        <input type="checkbox" name="founding_agree" value="yes" data-founding-agree>
-        <span>I'm happy to be an early client and to leave a Google review once your Google profile is live.</span>
-      </label>
-      <p class="note">Required to add Bearing at the founding price above. Our Google Business Profile isn't live yet, so there's nothing to review today — reviews open once it is.</p>
+      <!--
+        The founding claim. Founding pricing is an early client who leaves us
+        a Google review, so the claim is the review itself: the link opens
+        Google in a new tab, and the name the review is posted under is what
+        we need to find it. Nothing here verifies anything — Colin looks it
+        up himself before finalising, and the note says so. The href is the
+        same string as GOOGLE_REVIEW_URL in js/config.js and api/checkout.ts
+        (tests/checkout.unit.test.ts keeps them equal); it is written out
+        here so the link works with JavaScript off.
+      -->
+      <div class="founding-claim" id="founding-claim">
+        <p class="claim-lede">Taking founding pricing? Leave your Google review, then tell us the name it's posted under.</p>
+        <p class="claim-link"><a class="btn-review" href="https://www.google.com/maps/search/?api=1&amp;query=NorthBound+website+designer+Swartz+Creek+MI" target="_blank" rel="noopener">Leave your Google review</a></p>
+        <p class="field"><label for="f-review-name">The name your review is posted under</label><input id="f-review-name" name="review_name" type="text" maxlength="120" data-founding-agree></p>
+        <p class="note" id="founding-note">Needed to add Bearing at the founding price above. Founding pricing is confirmed once we can see the review — we check it ourselves before finalising, there's no automatic check.</p>
+      </div>
 
       <!--
         Two numbers, and they are not the same number. The build is charged
@@ -277,27 +295,28 @@
       }
       document.getElementById('then').textContent = thenText;
     };
-    /* The server refuses founding pricing without the agreement, and it is right
-       to. But a server refusal on a native POST throws away everything they
-       typed — which is exactly what happened to the first real order through
-       this page. So the browser enforces it too, only while something
-       founding-priced is actually selected, and the message says which box. */
+    /* The server refuses founding pricing without the review name, and it is
+       right to. But a server refusal on a native POST throws away everything
+       they typed — which is exactly what happened to the first real order
+       through this page. So the browser enforces it too, only while something
+       founding-priced is actually selected, and the message says what to do. */
     var agree = form.querySelector('[data-founding-agree]');
     var syncAgree = function () {
       if (!agree) return;
       var buying = form.querySelector('input[name="buy"]');
       var foundingBuy = buying && (buying.value === 'beacon' || buying.value === 'engine');
       var needed = foundingBuy || form.querySelector('[data-bearing-toggle]').checked;
+      var empty = agree.value.trim() === '';
       agree.required = !!needed;
       agree.setCustomValidity(
-        needed && !agree.checked
-          ? "Tick this to take the founding price \u2014 you're agreeing to be an early client and to leave a Google review once our profile is live."
+        needed && empty
+          ? 'To take the founding price, leave your Google review (the link above opens it), then type the name it\u2019s posted under here. We check it ourselves before finalising.'
           : ''
       );
-      var note = agree.closest('.founding-agree');
-      if (note) note.classList.toggle('is-required', !!needed);
+      var block = agree.closest('.founding-claim');
+      if (block) { block.classList.toggle('is-required', !!needed); block.classList.toggle('is-empty', empty); }
     };
-    agree && agree.addEventListener('change', syncAgree);
+    agree && agree.addEventListener('input', syncAgree);
     form.addEventListener('change', function () { render(); syncAgree(); });
     render();
     syncAgree();

@@ -238,9 +238,11 @@
   .section-lede { color: var(--ink-soft); max-width: 58ch; margin: 0 0 24px; }
   .quote-form { display: grid; gap: 14px; max-width: 520px; }
   .quote-form .field { margin: 0; }
-  .field-checkbox { display: flex; gap: 10px; align-items: flex-start; margin: 0; }
-  .field-checkbox input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
-  .field-checkbox .hint { display: block; font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+  .founding-claim { display: grid; gap: 10px; margin: 4px 0 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .founding-claim p { margin: 0; }
+  .founding-claim .claim-lede { font-size: 15px; }
+  .founding-claim .claim-link .btn { min-height: 44px; padding: 10px 20px; }
+  .founding-claim .hint { font-size: 13px; color: var(--ink-soft); margin: 0; }
   .quote-form button { min-height: 48px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
@@ -366,12 +368,13 @@
         </p>
         <p class="field"><label for="f-need">What you need</label><textarea id="f-need" name="need" rows="3"></textarea></p>
         <p class="field"><label for="f-message">Anything else</label><textarea id="f-message" name="message" rows="3"></textarea></p>
-        <label class="field-checkbox" for="f-founding-agree">
-          <input id="f-founding-agree" type="checkbox" name="founding_agree" value="yes">
-          <span>I'm happy to be an early client and to leave a Google review once your Google profile is live.
-            <span class="hint">Required only if you're taking founding pricing (Beacon, Engine, or Bearing). Our Google Business Profile isn't live yet, so there's nothing to review today.</span>
-          </span>
-        </label>
+        <!-- The founding claim, same as index.html's form: see the comment there. -->
+        <div class="founding-claim" id="founding-claim">
+          <p class="claim-lede">Taking founding pricing (Beacon, Engine or Bearing)? Leave your Google review, then tell us the name it's posted under.</p>
+          <p class="claim-link"><a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&amp;query=NorthBound+website+designer+Swartz+Creek+MI" target="_blank" rel="noopener">Leave your Google review</a></p>
+          <p class="field"><label for="f-review-name">The name your review is posted under</label><input id="f-review-name" name="review_name" type="text" maxlength="120" data-founding-agree></p>
+          <p class="hint">Founding pricing is confirmed once we can see the review. We check it ourselves before finalising the quote — there's no automatic check. Not needed for Cheap and Clean.</p>
+        </div>
         <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
         <p><button type="submit">Send it</button></p>
       </form>

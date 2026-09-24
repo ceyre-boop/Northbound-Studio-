@@ -40,9 +40,13 @@
  * terms: bearing_12 ($300/mo, locked for all twelve months) and
  * bearing_mtm ($300 the first month, then $600/mo after). Whichever
  * founding item is in the order (beacon, engine, or either Bearing term),
- * the visitor must also have ticked the founding agreement checkbox
- * (founding_agree) — early client, Google review once the profile is live —
- * or the order is refused with a message saying so.
+ * the visitor must also have claimed it: founding pricing is an early
+ * client who leaves us a Google review, and the claim is the name that
+ * review is posted under (review_name, non-empty after trimming). Without
+ * it the order is refused with a message saying so. Nothing here verifies
+ * the review — Colin looks it up on Google himself before finalising, and
+ * both emails say so in those words. The name travels in both emails so he
+ * can find it.
  *
  * THE GUIDED BUILD. build.html sends its "Reserve my build" here with the
  * package key in `buy` and the build's answers in `spec`, a short code from
@@ -65,6 +69,12 @@ const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
 const FALLBACK_FROM = 'Northbound Studio <quotes@northbound-dev.com>';
 
+/* Where "Leave your Google review" goes. The same string as js/config.js —
+   the pages carry it as a plain href so the link works with JavaScript off,
+   and the emails carry it from here. api/quote.ts imports this one.
+   tests/checkout.unit.test.ts asserts the copies agree. */
+export const GOOGLE_REVIEW_URL = 'https://www.google.com/maps/search/?api=1&query=NorthBound+website+designer+Swartz+Creek+MI';
+
 /* Generous, but bounded: nothing on this form needs more, and an unbounded
    field is an invitation to paste a novel into someone's inbox. */
 const LIMITS = {
@@ -74,6 +84,7 @@ const LIMITS = {
   phone: 40,
   email: 200,
   spec: 120,
+  review_name: 120,
 } as const;
 
 type Field = keyof typeof LIMITS;
@@ -87,7 +98,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
    is what the order is actually priced from. All amounts in cents.
 
    `founding: true` marks an item that only exists at the founding-client
-   price. Ordering one of these requires founding_agree to be checked (see
+   price. Ordering one of these requires review_name to be filled in (see
    problem() below), and the emails say so in words a person can read. */
 const PRICES = {
   clean: { label: 'Cheap and Clean', cents: 60000, cadence: 'once' },
@@ -128,7 +139,6 @@ function problem(
   buy: keyof typeof PRICES | null,
   bearingChecked: boolean,
   bearingKey: keyof typeof PRICES | null,
-  foundingAgree: boolean,
 ): string | null {
   if (!buy) return "We don't recognise what you're buying.";
   if (!o.name) return 'Please tell us your name.';
@@ -137,8 +147,8 @@ function problem(
   if (!EMAIL_RE.test(o.email)) return 'Please check your email address.';
   if (bearingChecked && !bearingKey) return "Please choose a Bearing term — 12-month commitment or month-to-month.";
   const takingFounding = isFounding(buy) || bearingKey !== null;
-  if (takingFounding && !foundingAgree) {
-    return "Founding pricing needs the agreement checked — that you're happy to be an early client and to leave a Google review once our Google profile is live.";
+  if (takingFounding && !o.review_name) {
+    return "Founding pricing needs the name your Google review is posted under — leave the review first, then tell us the name it shows. We check it ourselves before finalising.";
   }
   return null;
 }
@@ -195,7 +205,7 @@ function monthlyLine(l: LineItem): string {
   return `  ${l.label} — ${money(l.cents)}/mo${l.note ? ` (${l.note})` : ''}`;
 }
 
-function notification(o: Order, summary: Summary, foundingTaken: boolean, foundingAgree: boolean, page: string, spec: Spec | null): string {
+function notification(o: Order, summary: Summary, foundingTaken: boolean, page: string, spec: Spec | null): string {
   const lines = [
     `Name:      ${o.name}`,
     `Business:  ${o.business}`,
@@ -213,7 +223,7 @@ function notification(o: Order, summary: Summary, foundingTaken: boolean, foundi
   if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month`);
   if (spec) lines.push('', ...specLines(spec));
   if (foundingTaken) {
-    lines.push('', `Founding agreement: ${foundingAgree ? 'confirmed — early client + Google review once the profile is live' : 'MISSING'}`);
+    lines.push('', `Founding review: posted under "${o.review_name}" — look it up on Google before finalising; nothing has checked it.`);
   }
   lines.push('', `Sent from: ${page || 'unknown'}`);
   return lines.join('\n');
@@ -237,7 +247,7 @@ function confirmation(o: Order, summary: Summary, foundingTaken: boolean, spec: 
   if (foundingTaken) {
     lines.push(
       '',
-      "As one of our founding clients, you've agreed to be an early client and to leave a Google review once our Google Business Profile is live — it isn't yet, so there's nothing to review today.",
+      `You're taking founding pricing, and you told us your Google review is posted under "${o.review_name}". Founding pricing is confirmed once we can see that review — we check it ourselves before finalising, there's nothing automatic about it. If it isn't up yet, this is the place to leave it: ${GOOGLE_REVIEW_URL}`,
     );
   }
   lines.push(
@@ -440,9 +450,8 @@ export async function POST(request: Request): Promise<Response> {
   const bearingTermRaw = form.get('bearing_term');
   const bearingTerm = typeof bearingTermRaw === 'string' ? bearingTermRaw.trim() : '';
   const bearingKey = bearingChecked ? (BEARING_TERMS as Record<string, keyof typeof PRICES>)[bearingTerm] ?? null : null;
-  const foundingAgree = checked(form, 'founding_agree');
 
-  const bad = problem(o, buy, bearingChecked, bearingKey, foundingAgree);
+  const bad = problem(o, buy, bearingChecked, bearingKey);
   if (bad) return failed(request, 422, bad);
 
   const summary = summarize(buy!, care, bearingKey);
@@ -462,7 +471,7 @@ export async function POST(request: Request): Promise<Response> {
     to: [to],
     reply_to: o.email,
     subject: `Order: ${PRICES[buy!].label} — ${o.business}`.slice(0, 180),
-    text: notification(o, summary, foundingTaken, foundingAgree, request.headers.get('referer') ?? '', spec),
+    text: notification(o, summary, foundingTaken, request.headers.get('referer') ?? '', spec),
   });
   if (!studio.ok) {
     console.error('[checkout] notification failed; order not delivered', studio.error, { name: o.name, phone: o.phone });

@@ -1,15 +1,17 @@
 /* api/checkout.ts — where the checkout form lands.
  *
- * There is no Stripe integration yet. This endpoint captures the order
- * honestly: it prices it server-side, tells the studio, and tells the
- * customer exactly what is true — we have the order, here is what it costs,
- * a secure payment link follows within one business hour, and nothing has
- * been charged. When Stripe is connected, this becomes the handler that
- * creates a Stripe Checkout Session and redirects there; order capture (this
- * file, mostly unchanged) becomes its fallback for when Stripe itself is
- * unreachable. Until then, do not add a Stripe SDK or stub a payment call —
- * there is nothing to fake here, only an order to record and an honest email
- * to send.
+ * Stripe is connected. A validated order becomes a Stripe Checkout Session
+ * and the visitor pays the deposit on Stripe's hosted page — card details
+ * never touch this site. The order emails are NOT sent here; they go out
+ * from api/stripe-webhook.ts when Stripe reports the payment completed, so
+ * the studio only ever hears about money that arrived. If Stripe is not
+ * fully configured (both STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET set),
+ * or Stripe itself can't be reached, the order falls back to the email
+ * capture below, honestly labelled as it always was: a secure payment link
+ * follows within one business hour, and nothing has been charged. Either
+ * way, do not add a Stripe SDK or stub a payment call — the REST calls below
+ * are the integration, raw fetch, no dependencies (the project ships with
+ * no install step).
  *
  * Modelled closely on api/quote.ts: same Resend REST usage, same honeypot
  * (nb_hp_7), same JSON-vs-form response split, same env vars.
@@ -381,6 +383,75 @@ function specLines(a: Spec): string[] {
   return lines;
 }
 
+/* ---- Stripe ---------------------------------------------------------------
+ *
+ * Raw REST, no SDK: POST /v1/checkout/sessions with the secret key as a
+ * bearer token, form-encoded the way Stripe expects. The amount charged is
+ * summary.dueToday — the deposit (or the whole price for Cheap and Clean) —
+ * priced from PRICES above, never from the client. Everything the webhook
+ * needs for the order emails rides in metadata (values capped at 500
+ * chars, Stripe's limit), including the build description in words.
+ */
+
+const STRIPE_SESSIONS_URL = 'https://api.stripe.com/v1/checkout/sessions';
+const SITE = 'https://northbound-dev.com';
+
+type SessionResult = { ok: true; url: string } | { ok: false; error: string };
+
+function stripeForm(params: Record<string, string>): string {
+  return Object.entries(params)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
+}
+
+async function createCheckoutSession(
+  key: string,
+  o: Order,
+  summary: Summary,
+  buy: keyof typeof PRICES,
+  foundingTaken: boolean,
+  specText: string,
+  referer: string,
+): Promise<SessionResult> {
+  const monthlyMeta = summary.monthly
+    .map((l) => `${l.label} — ${money(l.cents)}/mo${l.note ? ` (${l.note})` : ''}`)
+    .join(' | ');
+  const params: Record<string, string> = {
+    mode: 'payment',
+    'line_items[0][price_data][currency]': 'usd',
+    'line_items[0][price_data][unit_amount]': String(summary.dueToday),
+    'line_items[0][price_data][product_data][name]': `Northbound Studio — ${PRICES[buy].label}`.slice(0, 200),
+    'line_items[0][quantity]': '1',
+    customer_email: o.email,
+    success_url: `${SITE}/order-paid.html?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: referer.startsWith(SITE) ? referer : `${SITE}/checkout.html`,
+    'payment_intent_data[description]': `${PRICES[buy].label} — ${o.business}`.slice(0, 200),
+    'metadata[nb_name]': o.name,
+    'metadata[nb_business]': o.business,
+    'metadata[nb_phone]': o.phone,
+    'metadata[nb_email]': o.email,
+    'metadata[nb_item]': `${PRICES[buy].label} — ${money(summary.dueToday)}`.slice(0, 500),
+    'metadata[nb_due]': String(summary.dueToday),
+    'metadata[nb_balance]': String(summary.balance),
+    'metadata[nb_monthly]': monthlyMeta.slice(0, 500),
+    'metadata[nb_founding]': foundingTaken ? '1' : '0',
+    'metadata[nb_spec]': specText.slice(0, 500),
+  };
+  try {
+    const res = await fetch(STRIPE_SESSIONS_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: stripeForm(params),
+      signal: AbortSignal.timeout(12000),
+    });
+    const data = (await res.json().catch(() => ({}))) as { url?: string; error?: { message?: string } };
+    if (res.ok && data.url) return { ok: true, url: data.url };
+    return { ok: false, error: data.error?.message ?? `Stripe returned ${res.status}` };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 function wantsJson(request: Request): boolean {
   return (request.headers.get('accept') ?? '').includes('application/json');
 }
@@ -448,6 +519,30 @@ export async function POST(request: Request): Promise<Response> {
   const summary = summarize(buy!, care, bearingKey);
   const foundingTaken = isFounding(buy!) || bearingKey !== null;
   const spec = decodeSpec(o.spec);
+
+  /* Stripe, when fully configured: the validated order becomes a Checkout
+     Session and the visitor pays the deposit on Stripe's hosted page. The
+     order emails wait for the webhook — the studio only hears about money
+     that arrived. Both keys must be set; a half-configured Stripe is worse
+     than none, so anything less falls through to the email capture below,
+     honestly labelled as it always was. */
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (stripeKey && webhookSecret) {
+    const specText = spec ? specLines(spec).join(' | ') : '';
+    const referer = request.headers.get('referer') ?? '';
+    const session = await createCheckoutSession(stripeKey, o, summary, buy!, foundingTaken, specText, referer);
+    if (session.ok) {
+      console.log('[checkout] stripe session created', { name: o.name, buy: o.buy });
+      return wantsJson(request)
+        ? Response.json({ ok: true, url: session.url })
+        : new Response(null, { status: 303, headers: { Location: session.url } });
+    }
+    /* Stripe itself unreachable or refused: fall through to the email
+       capture below, which promises a payment link — and then one really
+       does follow, sent by hand from the Stripe dashboard. */
+    console.error('[checkout] stripe session failed; falling back to email capture', session.error, { name: o.name });
+  }
 
   const key = process.env.RESEND_API_KEY;
   const to = process.env.QUOTE_TO;

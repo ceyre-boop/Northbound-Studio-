@@ -660,7 +660,31 @@ async function main() {
     console.log('\nMeasuring frame budget (this scrolls the whole page so every act runs)...');
     const browser = await chromium.launch();
     let budget;
-    try { budget = await measureFrameBudget(browser, url); } finally { await browser.close(); }
+    /* Bounded, because this step has hung twice — both times mid-scroll, both
+       times holding the repo lock until it was killed by hand, and both times
+       after the deploy had already gone out. A hang here must not be
+       indistinguishable from slow work: the artifact simply does not get
+       rewritten, the stamps stay mismatched, and js/proof.js hides the perf
+       section rather than showing a stale one. That is already the designed
+       failure, so failing loudly into it costs nothing. */
+    const BUDGET_TIMEOUT_MS = Number(process.env.NB_FRAME_TIMEOUT_MS ?? 240000);
+    try {
+      budget = await Promise.race([
+        measureFrameBudget(browser, url),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`frame budget did not finish in ${Math.round(BUDGET_TIMEOUT_MS / 1000)}s`)), BUDGET_TIMEOUT_MS).unref?.(),
+        ),
+      ]);
+    } catch (err) {
+      await browser.close();
+      console.error(`\nFAILED — ${err instanceof Error ? err.message : String(err)}`);
+      console.error('data/perf-budget.json was NOT rewritten, so the published');
+      console.error('section stays hidden rather than showing a number from before');
+      console.error('this deploy. Re-run when the machine is quiet:');
+      console.error('  bun run perf:emit');
+      process.exit(1);
+    }
+    await browser.close();
 
     let commit = 'unknown';
     try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch {}

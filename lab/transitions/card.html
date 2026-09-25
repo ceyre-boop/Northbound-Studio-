@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>Candidate card</title>
+<!-- A title card for the review reel. ffmpeg on this machine has no drawtext
+     filter, so the labels are rendered as pages and screenshotted — which
+     also means they are in the studio's own type rather than something
+     generic. Not shipped; lab only. -->
+<style>
+  @font-face { font-family: 'Syne'; src: url('/fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: block; }
+  @font-face { font-family: 'Instrument Sans'; src: url('/fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: block; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('/fonts/jetbrains-mono.woff2') format('woff2'); font-weight: 400 600; font-display: block; }
+  html,body { margin:0; height:100%; }
+  body { background:#0E1512; color:#F4F8F6; display:grid; place-content:center; text-align:center;
+         font-family:'Instrument Sans',system-ui,sans-serif; gap:18px; padding:0 12vw; }
+  .n { font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:.34em; color:#4FC3A1; }
+  h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:72px; letter-spacing:-.02em; margin:0; }
+  p { margin:0; font-size:22px; line-height:1.5; color:#A9BDB5; max-width:26ch; justify-self:center; }
+</style></head><body>
+<p class="n" id="n"></p><h1 id="t"></h1><p id="d"></p>
+<script>
+  var q = new URLSearchParams(location.search);
+  document.getElementById('n').textContent = q.get('n') || '';
+  document.getElementById('t').textContent = q.get('t') || '';
+  document.getElementById('d').textContent = q.get('d') || '';
+</script></body></html>

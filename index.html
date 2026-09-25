@@ -37,6 +37,97 @@
   act canvas build this page used to sit behind, noindexed — lives at
   studio.html and keeps working exactly as it did.
 -->
+<!--
+  THE WAY OUT. Twelve bands close over the page, left to right, and the next
+  page opens from behind them. Twelve because that is how many things are on
+  the homepage: the transition is made of the site's own count, not a stock
+  wipe.
+
+  Inline and in the head on purpose. The arrival half has to be applied
+  before the first paint — loaded any later and you would see the page, then
+  the bands arrive, then they leave, which is worse than no transition at
+  all. It is about 1.2KB gzipped and costs no request.
+
+  It never delays the sale. The href is followed at 85% of the close, the
+  destination is prefetched the moment a pointer touches the link, and under
+  prefers-reduced-motion none of it runs and a link is just a link. The three
+  pages carry identical copies; tests/checkout.unit.test.ts asserts they stay
+  identical.
+-->
+<style>
+  :root { --nb-leave-ms: 620; --nb-arrive-ms: 700; --nb-veil-cells: 12; }
+  .nb-veil { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; display: grid; grid-template-columns: repeat(12, 1fr); }
+  .nb-veil i { display: block; background: #0E1512; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
+  .nb-veil i:nth-child(1) { animation-delay: 0ms; }
+  .nb-veil i:nth-child(2) { animation-delay: 26ms; }
+  .nb-veil i:nth-child(3) { animation-delay: 52ms; }
+  .nb-veil i:nth-child(4) { animation-delay: 78ms; }
+  .nb-veil i:nth-child(5) { animation-delay: 104ms; }
+  .nb-veil i:nth-child(6) { animation-delay: 130ms; }
+  .nb-veil i:nth-child(7) { animation-delay: 156ms; }
+  .nb-veil i:nth-child(8) { animation-delay: 182ms; }
+  .nb-veil i:nth-child(9) { animation-delay: 208ms; }
+  .nb-veil i:nth-child(10) { animation-delay: 234ms; }
+  .nb-veil i:nth-child(11) { animation-delay: 260ms; }
+  .nb-veil i:nth-child(12) { animation-delay: 286ms; }
+  @keyframes nb-drop { to { transform: none; } }
+  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #0E1512; }
+  html.nb-arriving::before { animation: nb-open-l 700ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+  html.nb-arriving::after { animation: nb-open-r 700ms 60ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+  @keyframes nb-open-l { from { clip-path: inset(0 50% 0 0); } to { clip-path: inset(0 100% 0 0); } }
+  @keyframes nb-open-r { from { clip-path: inset(0 0 0 50%); } to { clip-path: inset(0 0 0 100%); } }
+  html.nb-arriving body { animation: nb-up 700ms 180ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  @keyframes nb-up { from { transform: translateY(24px); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .nb-veil { display: none; } html.nb-arriving::before, html.nb-arriving::after, html.nb-arriving body { animation: none; } }
+</style>
+<script>
+  (function () {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var root = document.documentElement;
+    var LINKS = 'a[href^="checkout.html"], a[href^="/checkout.html"]';
+    var ms = function (name, fallback) {
+      var n = parseFloat(getComputedStyle(root).getPropertyValue(name));
+      return isNaN(n) ? fallback : n;
+    };
+    try {
+      if (sessionStorage.getItem('nb-transit') === '1') {
+        sessionStorage.removeItem('nb-transit');
+        root.classList.add('nb-arriving');
+        setTimeout(function () { root.classList.remove('nb-arriving'); }, ms('--nb-arrive-ms', 700) + 160);
+      }
+    } catch (e) {}
+    var warmed = {};
+    document.addEventListener('pointerover', function (e) {
+      var a = e.target.closest && e.target.closest(LINKS);
+      if (!a || warmed[a.href]) return;
+      warmed[a.href] = 1;
+      var l = document.createElement('link');
+      l.rel = 'prefetch';
+      l.href = a.href;
+      document.head.appendChild(l);
+    }, true);
+    var going = false;
+    document.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest && e.target.closest(LINKS);
+      if (!a || going) return;
+      e.preventDefault();
+      going = true;
+      try { sessionStorage.setItem('nb-transit', '1'); } catch (err) {}
+      var veil = document.createElement('div');
+      veil.className = 'nb-veil';
+      veil.setAttribute('aria-hidden', 'true');
+      var cells = ms('--nb-veil-cells', 12);
+      for (var i = 0; i < cells; i++) veil.appendChild(document.createElement('i'));
+      /* On <html>: a transformed <body> would become the containing block for
+         a fixed child and the bands would size to the whole document. */
+      root.appendChild(veil);
+      var leave = ms('--nb-leave-ms', 620);
+      setTimeout(function () { location.href = a.href; }, leave * 0.85);
+      setTimeout(function () { location.href = a.href; }, leave + 700);
+    }, true);
+  })();
+</script>
 <style>
   @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
   @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }

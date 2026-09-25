@@ -490,3 +490,46 @@ describe('inherited object keys are not packages', () => {
     expect(res.status).toBe(422);
   });
 });
+
+describe('the page-to-page transition', () => {
+  const ROOT = join(import.meta.dir, '..');
+  const PAGES = ['index.html', 'build.html', 'checkout.html'];
+
+  /* It is inlined in three heads rather than loaded from one file, because
+     the arrival half has to apply before the first paint. Three copies drift;
+     this is what stops them. */
+  function block(page: string): string {
+    const html = readFileSync(join(ROOT, page), 'utf8');
+    const start = html.indexOf('<!--\n  THE WAY OUT.');
+    const end = html.indexOf('</script>', start);
+    expect(start, `${page} is missing the transition block`).toBeGreaterThan(-1);
+    return html.slice(start, end);
+  }
+
+  test('all three pages carry the same block, character for character', () => {
+    const [a, b, c] = PAGES.map(block);
+    expect(b).toBe(a);
+    expect(c).toBe(a);
+  });
+
+  test('it is twelve bands, matching the twelve on the homepage', () => {
+    const b = block('index.html');
+    expect(b).toContain('--nb-veil-cells: 12');
+    expect(b).toContain('repeat(12, 1fr)');
+    for (let i = 1; i <= 12; i++) expect(b).toContain(`i:nth-child(${i})`);
+  });
+
+  test('it cannot outlive the click: the href is followed either way', () => {
+    const b = block('index.html');
+    expect(b).toContain('leave * 0.85');
+    expect(b).toContain('leave + 700');
+  });
+
+  test('reduced motion turns it off rather than shortening it', () => {
+    const b = block('index.html');
+    expect(b).toContain("matchMedia('(prefers-reduced-motion: reduce)').matches) return");
+    const reduce = b.slice(b.indexOf('@media (prefers-reduced-motion: reduce)'));
+    expect(reduce).toContain('.nb-veil { display: none; }');
+    expect(reduce).toContain('animation: none');
+  });
+});

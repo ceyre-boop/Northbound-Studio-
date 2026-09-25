@@ -17,7 +17,9 @@
  *
  * Usage:
  *   bun scripts/stripe-webhook.ts              # live mode (default)
+ *   bun scripts/stripe-webhook.ts --key-file=… # read the key from a file
  *   bun scripts/stripe-webhook.ts --preview    # store on Vercel Preview instead
+ *   bun scripts/stripe-webhook.ts --replace    # replace an endpoint already there
  *   bun scripts/stripe-webhook.ts --dry-run    # show what it would do
  *
  * After it succeeds the deployment must be replaced — a Vercel environment
@@ -43,24 +45,59 @@ function die(line: string): never {
   process.exit(1);
 }
 
-/* Read the key without echoing it. Deliberately not a Bun prompt: `read -rs`
-   is the one thing every shell on this machine agrees on. */
+/* Three ways in, and none of them puts the key on screen or in shell
+   history. A hidden prompt when there is a terminal to prompt at; the
+   clipboard when there is not — which is the case inside an agent shell,
+   where stdin is not a TTY and `read` returns instantly on EOF; and a file
+   for anyone who would rather not trust either. */
 function readKey(): string {
   const fromEnv = process.env.STRIPE_SECRET_KEY;
   if (fromEnv) {
     say('Using STRIPE_SECRET_KEY from the environment.');
     return fromEnv.trim();
   }
-  process.stderr.write('Stripe secret key (sk_live_… — not echoed): ');
-  const res = Bun.spawnSync(['sh', '-c', 'read -rs k; printf %s "$k"'], {
-    stdin: 'inherit',
-    stdout: 'pipe',
-    stderr: 'inherit',
-  });
-  process.stderr.write('\n');
-  const key = res.stdout.toString().trim();
-  if (!key) die('No key entered.');
+
+  const fileArg = process.argv.find((a) => a.startsWith('--key-file='));
+  if (fileArg) {
+    const path = fileArg.slice('--key-file='.length);
+    const key = Bun.spawnSync(['cat', path], { stdout: 'pipe' }).stdout.toString().trim();
+    if (!key) die(`Nothing readable in ${path}.`);
+    say(`Read the key from ${path}. Delete that file when this is done.`);
+    return key;
+  }
+
+  if (process.stdin.isTTY) {
+    process.stderr.write('Stripe secret key (sk_live_… — not echoed): ');
+    const res = Bun.spawnSync(['sh', '-c', 'read -rs k; printf %s "$k"'], {
+      stdin: 'inherit',
+      stdout: 'pipe',
+      stderr: 'inherit',
+    });
+    process.stderr.write('\n');
+    const key = res.stdout.toString().trim();
+    if (!key) die('No key entered.');
+    return key;
+  }
+
+  /* No terminal: take it from the clipboard. Copy the key in Stripe, run
+     this, and it is never typed, echoed, or recorded anywhere. */
+  const clip = Bun.spawnSync(['pbpaste'], { stdout: 'pipe' });
+  const key = clip.stdout.toString().trim();
+  if (!key) {
+    die('No terminal to prompt at, and the clipboard is empty.\n' +
+        '  Copy your Stripe secret key, then run this again —\n' +
+        '  or pass --key-file=/path/to/a/file holding just the key.');
+  }
+  say('Took the key from the clipboard (not shown, not stored).');
   return key;
+}
+
+/* A live secret key sitting in the clipboard is the kind of thing that gets
+   pasted into the wrong window an hour later. */
+function clearClipboardIfUsed(used: boolean) {
+  if (!used) return;
+  Bun.spawnSync(['sh', '-c', 'printf "" | pbcopy']);
+  say('Cleared the clipboard.');
 }
 
 function looksLikeAKey(key: string): boolean {
@@ -123,6 +160,14 @@ async function alreadyThere(key: string): Promise<{ id: string; events: string[]
 }
 
 function confirm(question: string): boolean {
+  if (args.has('--yes') || args.has('--replace')) return true;
+  if (!process.stdin.isTTY) {
+    /* Nothing to prompt at. Saying "no" is the safe answer, but say why, or
+       it looks like the script simply gave up. */
+    say(`\n${question}`);
+    say('  No terminal to answer at — re-run with --replace to say yes.');
+    return false;
+  }
   process.stderr.write(`${question} [y/N] `);
   const res = Bun.spawnSync(['sh', '-c', 'read -r a; printf %s "$a"'], {
     stdin: 'inherit',
@@ -142,9 +187,12 @@ if (dryRun) {
   process.exit(0);
 }
 
+const usedClipboard = !process.env.STRIPE_SECRET_KEY && !process.stdin.isTTY && !process.argv.some((a) => a.startsWith('--key-file='));
 const key = readKey();
 if (!looksLikeAKey(key)) {
-  die("That doesn't look like a Stripe secret key (expected sk_live_… or sk_test_…). Nothing was sent.");
+  clearClipboardIfUsed(usedClipboard);
+  die("That doesn't look like a Stripe secret key (expected sk_live_… or sk_test_…).\n" +
+      '  Nothing was sent. If it came from the clipboard, copy the key and try again.');
 }
 if (key.startsWith('sk_test_') && target === 'production') {
   if (!confirm('That is a TEST key but you are writing to Production. Continue?')) {
@@ -188,6 +236,8 @@ say(`Stored the signing secret as ${ENV_NAME} on ${target}. It was never printed
 const check = Bun.spawnSync(['vercel', 'env', 'ls', target], { stdout: 'pipe', stderr: 'pipe' });
 const listed = check.stdout.toString().includes(ENV_NAME);
 say(listed ? `Confirmed: ${ENV_NAME} is set on ${target}.` : `Warning: ${ENV_NAME} is not showing in \`vercel env ls ${target}\` yet.`);
+
+clearClipboardIfUsed(usedClipboard);
 
 say('\nOne step left — the variable only reaches a new deployment:');
 say('  bun run ship\n');

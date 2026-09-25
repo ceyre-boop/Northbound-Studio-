@@ -1,0 +1,28 @@
+/* 01 — MORPH. The card becomes the page.
+ *
+ * The least abstract of the five and the most expensive-looking: the title
+ * of the card they clicked flies up and lands as the checkout headline, and
+ * the green button they pressed stretches into the price panel. Nothing
+ * fades in from nowhere — every important thing on the new page is a thing
+ * from the old page that moved. 420ms.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+
+  ::view-transition-group(*) { animation-duration: 420ms; animation-timing-function: cubic-bezier(0.2, 0.9, 0.1, 1); }
+
+  /* The page behind the shared elements is a plain, quick cross-fade — it
+     must not compete with the two things that are travelling. */
+  ::view-transition-old(root) { animation: nb-out 200ms ease-out forwards; }
+  ::view-transition-new(root) { animation: nb-in 320ms 90ms ease-out backwards; }
+
+  @keyframes nb-out { to { opacity: 0; transform: scale(0.985); } }
+  @keyframes nb-in { from { opacity: 0; transform: scale(1.01); } }
+
+  /* The two travellers. Their names are assigned in 01-morph.js, on the
+     clicked card only, because a view-transition-name has to be unique. */
+  ::view-transition-group(nb-title),
+  ::view-transition-group(nb-cta) { animation-duration: 520ms; z-index: 5; }
+  ::view-transition-old(nb-title), ::view-transition-new(nb-title),
+  ::view-transition-old(nb-cta), ::view-transition-new(nb-cta) { height: 100%; }
+}

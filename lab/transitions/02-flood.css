@@ -1,0 +1,24 @@
+/* 02 — FLOOD. Ink from the exact pixel they pressed.
+ *
+ * The homepage drops away into a field of brand green, and the checkout
+ * grows out of it as a circle centred on the button they actually touched,
+ * not on the middle of the screen. It reads as caused by them. 640ms.
+ *
+ * No overlay element and no snapshotting: the green is the view-transition
+ * backdrop, which paints behind both snapshots, so the old page fading is
+ * what uncovers it.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+
+  ::view-transition { background: #0E6F5C; }
+
+  ::view-transition-old(root) { animation: nb-sink 260ms ease-in forwards; }
+  ::view-transition-new(root) { animation: nb-flood 520ms 140ms cubic-bezier(0.8, 0, 0.15, 1) backwards; }
+
+  @keyframes nb-sink { to { opacity: 0; transform: scale(0.94); } }
+  @keyframes nb-flood {
+    from { clip-path: circle(0% at var(--nb-x, 50%) var(--nb-y, 50%)); }
+    to { clip-path: circle(150% at var(--nb-x, 50%) var(--nb-y, 50%)); }
+  }
+}

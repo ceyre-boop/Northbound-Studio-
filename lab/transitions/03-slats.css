@@ -1,0 +1,36 @@
+/* 03 — SLATS. Twelve, like the twelve.
+ *
+ * The homepage closes like a venetian blind: twelve vertical bands snap
+ * shut, odd ones first, and the checkout is behind them rising a little as
+ * they go. The number is not decoration — it is the twelve things on the
+ * page they just came from. 620ms.
+ *
+ * The stagger is real: two mask layers, odd bands and even bands, with their
+ * widths animated as registered custom properties on different keyframe
+ * stops. No JavaScript, no elements, no snapshot handling.
+ */
+@property --nb-odd { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+@property --nb-even { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+
+  ::view-transition { background: #0E1512; }
+
+  ::view-transition-old(root) {
+    mask-image:
+      repeating-linear-gradient(90deg, #000 0 var(--nb-odd), transparent var(--nb-odd) 16.6667%),
+      repeating-linear-gradient(90deg, transparent 0 8.3333%, #000 8.3333% calc(8.3333% + var(--nb-even)), transparent calc(8.3333% + var(--nb-even)) 16.6667%);
+    mask-composite: add;
+    animation: nb-close 620ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  }
+
+  ::view-transition-new(root) { animation: nb-rise 520ms 180ms cubic-bezier(0.2, 0.9, 0.1, 1) backwards; }
+
+  @keyframes nb-close {
+    0% { --nb-odd: 8.3333%; --nb-even: 8.3333%; }
+    62% { --nb-odd: 0%; --nb-even: 5%; }
+    100% { --nb-odd: 0%; --nb-even: 0%; }
+  }
+  @keyframes nb-rise { from { transform: translateY(26px); opacity: 0; } }
+}

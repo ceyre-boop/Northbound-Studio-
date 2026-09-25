@@ -1,24 +1,32 @@
 /* 02 — FLOOD. Ink from the exact pixel they pressed.
  *
- * The homepage drops away into a field of brand green, and the checkout
- * grows out of it as a circle centred on the button they actually touched,
- * not on the middle of the screen. It reads as caused by them. 640ms.
- *
- * No overlay element and no snapshotting: the green is the view-transition
- * backdrop, which paints behind both snapshots, so the old page fading is
- * what uncovers it.
+ * Brand green floods out from under their finger and swallows the page, then
+ * drains downward off the bottom of the screen to leave the checkout
+ * standing there. The circle starts where they touched, not in the middle of
+ * the screen, which is the whole difference between a transition that feels
+ * caused and one that feels played at you.
  */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition { navigation: auto; }
+:root { --nb-leave-ms: 560; --nb-arrive-ms: 680; }
 
-  ::view-transition { background: #0E6F5C; }
-
-  ::view-transition-old(root) { animation: nb-sink 260ms ease-in forwards; }
-  ::view-transition-new(root) { animation: nb-flood 520ms 140ms cubic-bezier(0.8, 0, 0.15, 1) backwards; }
-
-  @keyframes nb-sink { to { opacity: 0; transform: scale(0.94); } }
-  @keyframes nb-flood {
-    from { clip-path: circle(0% at var(--nb-x, 50%) var(--nb-y, 50%)); }
-    to { clip-path: circle(150% at var(--nb-x, 50%) var(--nb-y, 50%)); }
-  }
+.nb-veil {
+  position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
+  background:
+    radial-gradient(circle at var(--nb-x, 50%) var(--nb-y, 50%), #12836C 0%, #0E6F5C 45%, #0A5445 100%);
+  clip-path: circle(0px at var(--nb-x, 50%) var(--nb-y, 50%));
+  animation: nb-ink 560ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
+@keyframes nb-ink {
+  from { clip-path: circle(0px at var(--nb-x, 50%) var(--nb-y, 50%)); }
+  to   { clip-path: circle(150vmax at var(--nb-x, 50%) var(--nb-y, 50%)); }
+}
+html.nb-leaving body { animation: nb-sink 560ms ease-in forwards; }
+@keyframes nb-sink { to { transform: scale(0.94) translateY(10px); filter: saturate(0.4); opacity: 0.5; } }
+
+html.nb-arriving::before {
+  content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
+  background: linear-gradient(#0A5445, #0E6F5C);
+  animation: nb-drain 680ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+html.nb-arriving body { animation: nb-rise 680ms 120ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+@keyframes nb-drain { to { transform: translateY(105vh); } }
+@keyframes nb-rise { from { opacity: 0; transform: translateY(18px); } }

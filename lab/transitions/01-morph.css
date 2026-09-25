@@ -1,28 +1,30 @@
-/* 01 — MORPH. The card becomes the page.
+/* 01 — MORPH. The button you pressed becomes the page.
  *
- * The least abstract of the five and the most expensive-looking: the title
- * of the card they clicked flies up and lands as the checkout headline, and
- * the green button they pressed stretches into the price panel. Nothing
- * fades in from nowhere — every important thing on the new page is a thing
- * from the old page that moved. 420ms.
+ * The green of the button grows out of its own rectangle until it is the
+ * whole screen, the page behind it settling back a fraction as it goes; the
+ * checkout then rises out of that green. The least abstract of the five and
+ * the most expensive-looking. Nothing arrives from off-screen — the thing
+ * that fills the view is the thing they touched.
  */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition { navigation: auto; }
+:root { --nb-leave-ms: 520; --nb-arrive-ms: 620; }
 
-  ::view-transition-group(*) { animation-duration: 420ms; animation-timing-function: cubic-bezier(0.2, 0.9, 0.1, 1); }
-
-  /* The page behind the shared elements is a plain, quick cross-fade — it
-     must not compete with the two things that are travelling. */
-  ::view-transition-old(root) { animation: nb-out 200ms ease-out forwards; }
-  ::view-transition-new(root) { animation: nb-in 320ms 90ms ease-out backwards; }
-
-  @keyframes nb-out { to { opacity: 0; transform: scale(0.985); } }
-  @keyframes nb-in { from { opacity: 0; transform: scale(1.01); } }
-
-  /* The two travellers. Their names are assigned in 01-morph.js, on the
-     clicked card only, because a view-transition-name has to be unique. */
-  ::view-transition-group(nb-title),
-  ::view-transition-group(nb-cta) { animation-duration: 520ms; z-index: 5; }
-  ::view-transition-old(nb-title), ::view-transition-new(nb-title),
-  ::view-transition-old(nb-cta), ::view-transition-new(nb-cta) { height: 100%; }
+.nb-veil {
+  position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
+  background: #0E6F5C;
+  clip-path: circle(0px at var(--nb-x, 50%) var(--nb-y, 50%));
+  animation: nb-grow 520ms cubic-bezier(0.7, 0, 0.2, 1) forwards;
 }
+@keyframes nb-grow {
+  from { clip-path: circle(0px at var(--nb-x, 50%) var(--nb-y, 50%)); }
+  to   { clip-path: circle(140vmax at var(--nb-x, 50%) var(--nb-y, 50%)); }
+}
+html.nb-leaving body { animation: nb-settle 520ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes nb-settle { to { transform: scale(0.975); opacity: 0.75; } }
+
+html.nb-arriving body { animation: nb-lift 620ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+html.nb-arriving::before {
+  content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
+  background: #0E6F5C; animation: nb-part 620ms cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+@keyframes nb-lift { from { transform: translateY(26px); opacity: 0; } }
+@keyframes nb-part { to { clip-path: inset(0 0 100% 0); } }

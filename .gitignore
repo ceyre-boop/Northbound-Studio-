@@ -22,3 +22,7 @@ check-*.mjs
 .agents/
 .claude/
 skills-lock.json
+
+# Transition candidates: the mp4s are for judging, not for shipping.
+# Regenerate with: bun lab/transitions/capture.mjs http://localhost:8340
+lab/transitions/video/

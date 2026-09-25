@@ -1,36 +1,42 @@
 /* 03 — SLATS. Twelve, like the twelve.
  *
- * The homepage closes like a venetian blind: twelve vertical bands snap
- * shut, odd ones first, and the checkout is behind them rising a little as
- * they go. The number is not decoration — it is the twelve things on the
- * page they just came from. 620ms.
- *
- * The stagger is real: two mask layers, odd bands and even bands, with their
- * widths animated as registered custom properties on different keyframe
- * stops. No JavaScript, no elements, no snapshot handling.
+ * The page closes behind twelve vertical bands that drop in one after
+ * another, left to right, and the checkout opens from behind them the same
+ * way. The count is not decoration: it is the twelve things on the page they
+ * just came from, which is the only reason to choose twelve over eight.
  */
-@property --nb-odd { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
-@property --nb-even { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+:root { --nb-leave-ms: 620; --nb-arrive-ms: 700; --nb-veil-cells: 12; }
 
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition { navigation: auto; }
-
-  ::view-transition { background: #0E1512; }
-
-  ::view-transition-old(root) {
-    mask-image:
-      repeating-linear-gradient(90deg, #000 0 var(--nb-odd), transparent var(--nb-odd) 16.6667%),
-      repeating-linear-gradient(90deg, transparent 0 8.3333%, #000 8.3333% calc(8.3333% + var(--nb-even)), transparent calc(8.3333% + var(--nb-even)) 16.6667%);
-    mask-composite: add;
-    animation: nb-close 620ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
-  }
-
-  ::view-transition-new(root) { animation: nb-rise 520ms 180ms cubic-bezier(0.2, 0.9, 0.1, 1) backwards; }
-
-  @keyframes nb-close {
-    0% { --nb-odd: 8.3333%; --nb-even: 8.3333%; }
-    62% { --nb-odd: 0%; --nb-even: 5%; }
-    100% { --nb-odd: 0%; --nb-even: 0%; }
-  }
-  @keyframes nb-rise { from { transform: translateY(26px); opacity: 0; } }
+.nb-veil {
+  position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
+  display: grid; grid-template-columns: repeat(12, 1fr);
 }
+/* Twelve real boxes, not a repeating gradient: a gradient cannot stagger,
+   and the stagger is the whole effect. The engine makes as many as
+   --nb-veil-cells asks for. */
+.nb-veil i { display: block; background: #0E1512; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
+.nb-veil i:nth-child(1) { animation-delay: 0ms; }
+.nb-veil i:nth-child(2) { animation-delay: 26ms; }
+.nb-veil i:nth-child(3) { animation-delay: 52ms; }
+.nb-veil i:nth-child(4) { animation-delay: 78ms; }
+.nb-veil i:nth-child(5) { animation-delay: 104ms; }
+.nb-veil i:nth-child(6) { animation-delay: 130ms; }
+.nb-veil i:nth-child(7) { animation-delay: 156ms; }
+.nb-veil i:nth-child(8) { animation-delay: 182ms; }
+.nb-veil i:nth-child(9) { animation-delay: 208ms; }
+.nb-veil i:nth-child(10) { animation-delay: 234ms; }
+.nb-veil i:nth-child(11) { animation-delay: 260ms; }
+.nb-veil i:nth-child(12) { animation-delay: 286ms; }
+@keyframes nb-drop { to { transform: none; } }
+
+html.nb-arriving::before,
+html.nb-arriving::after {
+  content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
+  background: #0E1512;
+}
+html.nb-arriving::before { animation: nb-open-l 700ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+html.nb-arriving::after  { animation: nb-open-r 700ms 60ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+@keyframes nb-open-l { from { clip-path: inset(0 50% 0 0); } to { clip-path: inset(0 100% 0 0); } }
+@keyframes nb-open-r { from { clip-path: inset(0 0 0 50%); } to { clip-path: inset(0 0 0 100%); } }
+html.nb-arriving body { animation: nb-up 700ms 180ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+@keyframes nb-up { from { transform: translateY(24px); opacity: 0; } }

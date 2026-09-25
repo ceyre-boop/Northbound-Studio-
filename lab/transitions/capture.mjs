@@ -47,8 +47,8 @@ for (const c of CANDIDATES) {
   if (only && only !== c.id && only !== c.slug) continue;
 
   const css = `${c.id}-${c.slug}.css`;
-  const js = `${c.id}-${c.slug}.js`;
-  const hasJs = existsSync(join('lab/transitions', js));
+  /* One engine, five stylesheets — the stylesheet is the candidate. */
+  const engine = readFileSync(join('lab/transitions', 'engine.js'), 'utf8');
 
   const ctx = await browser.newContext({
     viewport: VP,
@@ -68,37 +68,61 @@ for (const c of CANDIDATES) {
      winner's CSS belongs in the <style> block each page already has, not
      in a separate file. */
   await ctx.addInitScript(
-    ({ cssText, jsText, rate }) => {
-      const root = document.documentElement;
-      const style = document.createElement('style');
-      style.textContent = cssText;
-      root.appendChild(style);
-      if (jsText) {
-        const s = document.createElement('script');
-        s.textContent = jsText;
-        root.appendChild(s);
-      }
+    ({ cssText, jsText, rate, slowVars }) => {
+      /* This runs before the document is parsed, so documentElement can still
+         be null — appending to it then throws, the candidate silently does
+         nothing, and every recording is a plain navigation. Wait for the root
+         element, then inject. */
+      const inject = () => {
+        const root = document.documentElement;
+        const style = document.createElement('style');
+        style.textContent = cssText;
+        root.appendChild(style);
 
-      /* Slow every view-transition animation down so the recording has
-         frames to spare. ffmpeg puts the speed back afterwards. */
-      const slow = () => {
-        for (const a of document.getAnimations()) {
-          try {
-            if (a.effect?.pseudoElement?.includes('view-transition')) a.updatePlaybackRate(rate);
-          } catch {}
+        const over = document.createElement('style');
+        over.textContent = ':root{' + Object.entries(slowVars).map(([k, v]) => `${k}:${v}`).join(';') + '}';
+        root.appendChild(over);
+
+        if (jsText) {
+          const sc = document.createElement('script');
+          sc.textContent = jsText;
+          root.appendChild(sc);
         }
       };
-      addEventListener('pagereveal', (e) => {
-        if (e.viewTransition) e.viewTransition.ready.then(slow).catch(() => {});
-      });
-      addEventListener('pageswap', (e) => {
-        if (e.viewTransition) e.viewTransition.ready.then(slow).catch(() => {});
-      });
+      if (document.documentElement) inject();
+      else {
+        new MutationObserver((_, obs) => {
+          if (document.documentElement) { obs.disconnect(); inject(); }
+        }).observe(document, { childList: true });
+      }
+
+      /* Slow every transition animation down so the recording has frames to
+         spare; ffmpeg puts the speed back afterwards. Polled rather than
+         hooked, because these are ordinary CSS animations on the page and
+         there is no single event that marks them all starting. */
+      const seen = new WeakSet();
+      setInterval(() => {
+        for (const a of document.getAnimations()) {
+          if (seen.has(a)) continue;
+          seen.add(a);
+          try { if (String(a.animationName ?? '').startsWith('nb-')) a.updatePlaybackRate(rate); } catch {}
+        }
+      }, 16);
     },
     {
       cssText: readFileSync(join('lab/transitions', css), 'utf8'),
-      jsText: hasJs ? readFileSync(join('lab/transitions', js), 'utf8') : null,
+      jsText: engine,
       rate: SLOW,
+      /* The engine navigates on a wall-clock timer read from these two
+         variables. Slowing the animations without slowing that timer just
+         cuts the transition off mid-way, which is exactly what the first
+         recording did. */
+      slowVars: Object.fromEntries(
+        ['--nb-leave-ms', '--nb-arrive-ms'].map((k) => {
+          const m = readFileSync(join('lab/transitions', css), 'utf8').match(new RegExp(`${k}:\\s*([0-9.]+)`));
+          return [k, m ? Math.round(Number(m[1]) / SLOW) : null];
+        }).filter(([, v]) => v !== null),
+      ),
     },
   );
 

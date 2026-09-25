@@ -1,0 +1,159 @@
+/* 03 — WIRES. The wiring runs on down the page and draws what comes next.
+ *
+ * Behind the hero the machine is wired: thin teal lines with a light running
+ * along them, dotted where the signal is intermittent, square nodes where
+ * they join. When the visitor scrolls, the boxes the wires connect fade off
+ * the board and the wires themselves keep going — every vertical run
+ * stretches downward, its light still travelling, out of the hero and down
+ * through the section below. There they meet the twelve: each card is drawn
+ * before it exists, a single accent line running round its outline — top
+ * edge left to right, right edge down, bottom edge back, left edge up — and
+ * only once the outline is closed does the card fill in and the line dry to
+ * the grey border the page always had. Cards leaving at the top of the
+ * screen do it in reverse, emptying back to an outline before they go, so
+ * between any two sections the page is briefly its own blueprint.
+ *
+ * The second seam is the same language without the hero's wires to carry
+ * it: the last row empties to outlines as it leaves, the founding block and
+ * the three price cards are drawn as outlines as they arrive and fill in
+ * behind the line. The drawing is a clip-path animation on two pseudo-
+ * elements per box (one holds the top and right edges, one the bottom and
+ * left), which is compositor work; the wires are an SVG scaleY with a
+ * non-scaling stroke, so a line eight times longer is still one pixel wide.
+ *
+ * Phones have no wiring behind the hero, so on a phone the hero's one card
+ * simply fades and the cards draw themselves as they arrive — the outline
+ * half of the idea, without the feed. Between 640 and 1160 the stage is
+ * scaled and the wires are not aimed at anything, so they just fade with
+ * the rest. Without scroll-driven animations, with JavaScript off, or under
+ * reduced motion, none of this applies.
+ */
+@media (prefers-reduced-motion: no-preference) {
+@supports (animation-timeline: view()) and (animation-range: cover 0px cover 100vh) {
+
+  body { timeline-scope: --hero, --twelve, --prices; }
+  .hero { view-timeline: --hero block; overflow: clip visible; }
+  .hero-scene { overflow: visible; }
+  .hs-fl { clip-path: inset(0 0 20px 0); }
+  #offerings { view-timeline: --twelve block; }
+  #packages { view-timeline: --prices block; }
+
+  /* ---- Seam A: the boxes go, the wires run on ------------------------------ */
+
+  .hs-lb, .hs-fl, .hs-dp, .hs-sq, .hs-net g:nth-child(3) {
+    animation: nb-fade linear both;
+    animation-timeline: --hero;
+    animation-range: exit 0% exit 45%;
+  }
+  .hs-sq + .hs-sq { animation-duration: auto; }
+  .hs-gl {
+    animation: hs-breath 9s ease-in-out infinite, nb-fade linear both;
+    animation-timeline: auto, --hero;
+    animation-range: normal, exit 0% exit 45%;
+  }
+  /* The panels keep their drift and fade on top of it. */
+  .hs-web { animation: hs-da 23s ease-in-out infinite, nb-fade linear both; }
+  .hs-ed  { animation: hs-db 29s ease-in-out infinite, nb-fade linear both; }
+  .hs-bk  { animation: hs-dc 19s ease-in-out infinite, nb-fade linear both; }
+  .hs-pay { animation: hs-da 31s ease-in-out infinite, nb-fade linear both; }
+  .hs-db  { animation: hs-db 37s ease-in-out infinite, nb-fade linear both; }
+  .hs-cu  { animation: hs-dc 27s ease-in-out infinite, nb-fade linear both; }
+  .hs-t1  { animation: hs-db 21s ease-in-out infinite, nb-fade linear both; }
+  .hs-t2  { animation: hs-da 17s ease-in-out infinite, nb-fade linear both; }
+  .hs-t3  { animation: hs-dc 25s ease-in-out infinite, nb-fade linear both; }
+  .hs-web, .hs-ed, .hs-bk, .hs-pay, .hs-db, .hs-cu, .hs-t1, .hs-t2, .hs-t3 {
+    animation-timeline: auto, --hero;
+    animation-range: normal, exit 0% exit 45%;
+  }
+  @keyframes nb-fade { to { opacity: 0; } }
+
+  @media (min-width: 1160px) {
+    /* Every vertical run stretches from its own top, its stroke held at one
+       pixel, until its foot is level with the first row of cards; the
+       horizontal runs have no height to scale and just go. The light on the
+       flow lines keeps running the whole way because pathLength is fixed.
+       They fade in the last stretch, once the outlines have taken over. */
+    .hs-net path { transform-box: fill-box; transform-origin: 50% 0; vector-effect: non-scaling-stroke; }
+    .hs-net .hs-w { animation: nb-run linear both; animation-timeline: --hero; animation-range: exit 10% exit 100%; }
+    .hs-net .hs-f { animation: hs-flow 11s linear infinite, nb-run linear both; animation-timeline: auto, --hero; animation-range: normal, exit 10% exit 100%; }
+    .hs-net .hs-f:nth-child(2n) { animation-duration: 15s, auto; animation-delay: -4s, 0s; }
+    .hs-net .hs-f:nth-child(3n) { animation-duration: 8s, auto; animation-delay: -6s, 0s; }
+    .hs-net .hs-f:nth-child(4n+1) { animation-duration: 19s, auto; animation-delay: -9s, 0s; }
+    @keyframes nb-run { 0% { transform: scaleY(1); opacity: 1; } 55% { transform: scaleY(var(--nb-run, 1)); opacity: 1; } 100% { transform: scaleY(var(--nb-run, 1)); opacity: 0; } }
+    /* Foot of each run at 933px below the hero's top, which is the first
+       row's top edge at 1280. Each factor is (933 − top) / height. */
+    .hs-net g:nth-child(1) path:nth-child(2)  { --nb-run: 4.7; }
+    .hs-net g:nth-child(1) path:nth-child(3)  { --nb-run: 8.1; }
+    .hs-net g:nth-child(1) path:nth-child(4)  { --nb-run: 6.3; }
+    .hs-net g:nth-child(1) path:nth-child(5)  { --nb-run: 5.9; }
+    .hs-net g:nth-child(1) path:nth-child(8)  { --nb-run: 10.7; }
+    .hs-net g:nth-child(1) path:nth-child(9)  { --nb-run: 12.6; }
+    .hs-net g:nth-child(1) path:nth-child(10) { --nb-run: 10.1; }
+    .hs-net g:nth-child(1) path:nth-child(11) { --nb-run: 5.4; }
+    .hs-net g:nth-child(1) path:nth-child(12) { --nb-run: 3.7; }
+    .hs-net g:nth-child(2) path:nth-child(2)  { --nb-run: 8.1; }
+    .hs-net g:nth-child(2) path:nth-child(3)  { --nb-run: 6.3; }
+    .hs-net g:nth-child(2) path:nth-child(4)  { --nb-run: 5.9; }
+    .hs-net g:nth-child(2) path:nth-child(6)  { --nb-run: 10.7; }
+    .hs-net g:nth-child(2) path:nth-child(7)  { --nb-run: 3.7; }
+    .hs-net g:nth-child(2) path:nth-child(8)  { --nb-run: 4.7; }
+  }
+  @media (min-width: 640px) and (max-width: 1159.98px) {
+    .hs-net { animation: nb-fade linear both; animation-timeline: --hero; animation-range: exit 0% exit 60%; }
+  }
+  @media (max-width: 639.98px) {
+    .hs-m { animation: nb-fade linear both; animation-timeline: --hero; animation-range: exit 0% exit 50%; }
+  }
+
+  /* ---- The outline, drawn, then filled --------------------------------- */
+
+  /* Two pseudo-elements per box, above its contents. ::before carries the
+     top and right edges, ::after the bottom and left; a clip-path inset
+     reveals each pair in turn, so the line goes clockwise from the top-left
+     corner. The box's own contents fill in once the line is round, and the
+     line then fades into the box's real border. Everything keyed to the
+     box's own position, so it is right at any height of screen. */
+  .offerings li, .pkg, .founding-offer { position: relative; }
+  .offerings li::before, .offerings li::after, .pkg::before, .pkg::after, .founding-offer::before, .founding-offer::after {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    border: 0 solid #17A08A; border-radius: 12px;
+    animation-timing-function: linear; animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 34%;
+  }
+  .pkg::before, .pkg::after, .founding-offer::before, .founding-offer::after { border-radius: 14px; }
+  .offerings li::before, .pkg::before, .founding-offer::before { border-top-width: 1.5px; border-right-width: 1.5px; animation-name: nb-ink-a; }
+  .offerings li::after,  .pkg::after,  .founding-offer::after  { border-bottom-width: 1.5px; border-left-width: 1.5px; animation-name: nb-ink-b; }
+  @keyframes nb-ink-a {
+    0%   { clip-path: inset(0 100% calc(100% - 2px) 0); opacity: 1; }
+    30%  { clip-path: inset(0 0 calc(100% - 2px) 0); }
+    55%  { clip-path: inset(0 0 0 0); opacity: 1; }
+    100% { clip-path: inset(0 0 0 0); opacity: 0; }
+  }
+  @keyframes nb-ink-b {
+    0%, 25% { clip-path: inset(calc(100% - 2px) 0 0 100%); opacity: 1; }
+    55%  { clip-path: inset(calc(100% - 2px) 0 0 0); }
+    80%  { clip-path: inset(0 0 0 0); opacity: 1; }
+    100% { clip-path: inset(0 0 0 0); opacity: 0; }
+  }
+  /* The contents: nothing until the outline is closed, then in. On the way
+     out at the top of the screen, back to nothing — as a filter, so the two
+     never fight over one property. */
+  .offer, .pkg > *, .founding-offer > * {
+    animation: nb-fill linear both, nb-empty linear both;
+    animation-timeline: view(), view();
+    animation-range: entry 0% cover 34%, exit 0% exit 100%;
+  }
+  /* A card's children ride on the card's own timeline, which is theirs
+     minus its padding — close enough that nobody can tell. */
+  @keyframes nb-fill { 0%, 70% { opacity: 0; } 100% { opacity: 1; } }
+  @keyframes nb-empty { 0%, 20% { filter: opacity(1); } 100% { filter: opacity(0); } }
+
+  /* Phones: the outline is a smaller flourish on a narrow screen, and the
+     cards are close together, so the draw runs a little shorter. */
+  @media (max-width: 639.98px) {
+    .offerings li::before, .offerings li::after, .pkg::before, .pkg::after, .founding-offer::before, .founding-offer::after,
+    .offer, .pkg > *, .founding-offer > * { animation-range: entry 0% cover 28%, exit 0% exit 100%; }
+  }
+}
+}

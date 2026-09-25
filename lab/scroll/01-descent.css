@@ -1,0 +1,198 @@
+/* 01 — DESCENT. The machine comes down and becomes the cards.
+ *
+ * The hero is a machine drawn behind the headline: a website, an editor, the
+ * bookings, the payments, a dashboard, the customers, wired together over a
+ * floor of rings. The section below it is the same machine written out as
+ * twelve cards. So as the visitor scrolls, the wiring goes dark, the floor
+ * and the glow dissolve, and the parts detach one at a time — a small lift
+ * first, then down — and travel to the slots in the grid where their card is.
+ * Each card only exists once its part has arrived: the panel lands, the card
+ * fills in underneath it, the panel is gone. Six panels become the first six
+ * cards, the three tiles become the third row, and the last row simply
+ * arrives, because by then the idea has been made.
+ *
+ * At the second seam the same thing happens again with the twelve: the grid
+ * is three columns and so are the prices, so each column of cards drops into
+ * the price card standing beneath it, last row first, and the three prices
+ * fill in as the twelve land. The whole page is one set of parts moving
+ * downward into more and more decided shapes, which is what buying from a
+ * studio feels like from the inside.
+ *
+ * All of it is scroll-driven: three named view timelines on the hero, the
+ * twelve and the prices, and every motion is translate, scale, transform,
+ * filter or opacity. Scrolling back up runs it in reverse, exactly, which
+ * reads as the parts going home rather than as a rewind, because nothing
+ * ever happened on a clock. The hero's overflow is opened vertically so the
+ * parts can leave it; horizontally it still clips the 1280-wide stage, and
+ * the floor's own clip-path keeps its rings from poking under the seam.
+ *
+ * The landing targets are measured against the 1280 stage and the 1080 wrap,
+ * which is the only geometry the machine is drawn for; between 640 and 1160
+ * the stage is scaled and the parts just dissolve. Phones have one part, the
+ * bookings card beside Buddy, and it becomes card 01 on its own. Every card
+ * this stylesheet hides is hidden only inside the transition's range, so
+ * without scroll-driven animations, with JavaScript off, or under reduced
+ * motion, the page is exactly the page.
+ */
+@media (prefers-reduced-motion: no-preference) {
+@supports (animation-timeline: view()) and (animation-range: cover 0px cover 100vh) {
+
+  body { timeline-scope: --hero, --twelve, --prices; }
+  .hero { view-timeline: --hero block; overflow: clip visible; }
+  .hero-scene { overflow: visible; }
+  .hs-fl { clip-path: inset(0 0 20px 0); }
+  #offerings { view-timeline: --twelve block; }
+  #packages { view-timeline: --prices block; }
+
+  /* ---- Seam A: hero → the twelve, over the hero's exit ------------------ */
+
+  /* The scaffolding goes first: wires, labels, floor, glow, the deploy call. */
+  .hs-net, .hs-lb, .hs-fl, .hs-dp {
+    animation: nb-fade linear both;
+    animation-timeline: --hero;
+    animation-range: exit 0% exit 40%;
+  }
+  .hs-gl {
+    animation: hs-breath 9s ease-in-out infinite, nb-fade linear both;
+    animation-timeline: auto, --hero;
+    animation-range: normal, exit 0% exit 40%;
+  }
+  .hs-sq {
+    animation: nb-sink linear both;
+    animation-timeline: --hero;
+    animation-range: exit 10% exit 70%;
+  }
+  /* The page gives the second square a 23s drift; on a scroll timeline the
+     duration has to be auto or the range means nothing. */
+  .hs-sq + .hs-sq { animation-duration: auto; }
+  @keyframes nb-fade { to { opacity: 0; } }
+  @keyframes nb-sink { to { translate: 0 140px; opacity: 0; } }
+
+  /* The parts. Each keeps its own drift (the first animation in the list is
+     the one the page already had) and gains a second, scroll-driven one on
+     the individual translate/scale properties, so the two compose. Each
+     part lifts a few pixels first — it lets go of the wiring — then travels
+     to the centre of its card, and fades in the last stretch while the card
+     fills in beneath it. */
+  @media (min-width: 1160px) {
+    .hs-web { animation: hs-da 23s ease-in-out infinite, nb-d-web linear both; }
+    .hs-ed  { animation: hs-db 29s ease-in-out infinite, nb-d-ed linear both; }
+    .hs-bk  { animation: hs-dc 19s ease-in-out infinite, nb-d-bk linear both; }
+    .hs-pay { animation: hs-da 31s ease-in-out infinite, nb-d-pay linear both; }
+    .hs-db  { animation: hs-db 37s ease-in-out infinite, nb-d-db linear both; }
+    .hs-cu  { animation: hs-dc 27s ease-in-out infinite, nb-d-cu linear both; }
+    .hs-t1  { animation: hs-db 21s ease-in-out infinite, nb-d-t1 linear both; }
+    .hs-t2  { animation: hs-da 17s ease-in-out infinite, nb-d-t2 linear both; }
+    .hs-t3  { animation: hs-dc 25s ease-in-out infinite, nb-d-t3 linear both; }
+    .hs-web, .hs-ed, .hs-bk, .hs-pay, .hs-db, .hs-cu, .hs-t1, .hs-t2, .hs-t3 {
+      animation-timeline: auto, --hero;
+      animation-range: normal, exit 0% exit 100%;
+    }
+    /* Website → 01. Bookings → 02. Payments → 03. Editor → 04. Customers → 05.
+       Dashboard → 06. The tiles → 07, 08, 09. Offsets are centre to centre. */
+    @keyframes nb-d-web { 0%, 8%  { translate: 0 0; scale: 1; opacity: 1; } 16% { translate: 0 -10px; scale: 1.03; } 78% { opacity: 1; } 100% { translate: -164px 899px; scale: 1.34 .86; opacity: 0; } }
+    @keyframes nb-d-bk  { 0%, 12% { translate: 0 0; scale: 1; opacity: 1; } 20% { translate: 0 -10px; scale: 1.05; } 80% { opacity: 1; } 100% { translate: -175px 967px; scale: 1.7; opacity: 0; } }
+    @keyframes nb-d-pay { 0%, 16% { translate: 0 0; scale: 1; opacity: 1; } 24% { translate: 0 -10px; scale: 1.05; } 82% { opacity: 1; } 100% { translate: -69px 967px; scale: 1.8; opacity: 0; } }
+    @keyframes nb-d-ed  { 0%, 20% { translate: 0 0; scale: 1; opacity: 1; } 28% { translate: 0 -10px; scale: 1.03; } 60% { opacity: .55; } 100% { translate: 98px 988px; scale: 1.2 .84; opacity: 0; } }
+    @keyframes nb-d-cu  { 0%, 24% { translate: 0 0; scale: 1; opacity: 1; } 32% { translate: 0 -10px; scale: 1.04; } 86% { opacity: 1; } 100% { translate: 528px 694px; scale: 1.5 1.1; opacity: 0; } }
+    @keyframes nb-d-db  { 0%, 28% { translate: 0 0; scale: 1; opacity: 1; } 36% { translate: 0 -10px; scale: 1.03; } 88% { opacity: 1; } 100% { translate: -182px 981px; scale: 1.4 1.02; opacity: 0; } }
+    @keyframes nb-d-t1  { 0%, 34% { translate: 0 0; scale: 1; opacity: 1; } 40% { translate: 0 -8px; scale: 1.08; } 90% { opacity: 1; } 100% { translate: 254px 1096px; scale: 2; opacity: 0; } }
+    @keyframes nb-d-t2  { 0%, 38% { translate: 0 0; scale: 1; opacity: 1; } 44% { translate: 0 -8px; scale: 1.08; } 91% { opacity: 1; } 100% { translate: 568px 1008px; scale: 2; opacity: 0; } }
+    @keyframes nb-d-t3  { 0%, 42% { translate: 0 0; scale: 1; opacity: 1; } 48% { translate: 0 -8px; scale: 1.08; } 92% { opacity: 1; } 100% { translate: -230px 998px; scale: 2; opacity: 0; } }
+  }
+  /* Between a phone and the full stage the machine is scaled and cannot
+     land anywhere in particular, so it simply dissolves as the hero goes. */
+  @media (min-width: 640px) and (max-width: 1159.98px) {
+    .hs {
+      animation: nb-fade linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 60%;
+    }
+  }
+  /* Phones: the one card beside Buddy detaches and becomes card 01. */
+  @media (max-width: 639.98px) {
+    .hs-m .hs-lb {
+      animation: nb-fade linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 40%;
+    }
+    .hs-m .hs-bk {
+      animation: nb-m-bk linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 100%;
+    }
+    @keyframes nb-m-bk { 0%, 10% { translate: 0 0; scale: 1; opacity: 1; } 18% { translate: 0 -8px; scale: 1.04; } 82% { opacity: 1; } 100% { translate: -119px 693px; scale: 2.2 1.6; opacity: 0; } }
+  }
+
+  /* The cards. A card made from a part is nothing until the part is nearly
+     there, then fills in under it (nb-fill). A card not made from a part
+     rises into place as it reaches the screen (nb-rise), so the grid never
+     has two kinds of card. The seam-B drop below is a second animation on
+     the same elements and uses transform, filter and visibility so the two
+     never fight over a property. Every card selector carries two nth-child
+     terms so they all cascade at the same specificity. */
+  @keyframes nb-fill { from { opacity: 0; scale: .96; } to { opacity: 1; scale: 1; } }
+  @keyframes nb-rise { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
+
+  /* ---- Seam B: the twelve → the three, over the prices' arrival -------- */
+
+  /* The prices' top edge crossing the screen, bottom to top, is the range.
+     Each column of cards drops into the price card beneath it; the last row
+     is nearest and goes first. Hidden outright at the end so an invisible
+     card is never sitting over a Buy button. */
+  @media (min-width: 1160px) {
+    .offerings li:nth-child(n+1):nth-child(-n+3) .offer   { animation: nb-fill linear both, nb-d-r1 linear both; }
+    .offerings li:nth-child(n+4):nth-child(-n+6) .offer   { animation: nb-fill linear both, nb-d-r2 linear both; }
+    .offerings li:nth-child(n+7):nth-child(-n+9) .offer   { animation: nb-fill linear both, nb-d-r3 linear both; }
+    .offerings li:nth-child(n+1):nth-child(-n+9) .offer   { animation-timeline: --hero, --prices; animation-range: exit 76% exit 100%, cover 0px cover 100vh; }
+    .offerings li:nth-child(n+10):nth-child(-n+12) .offer { animation: nb-rise linear both, nb-d-r4 linear both; animation-timeline: view(), --prices; animation-range: entry 0% entry 100%, cover 0px cover 100vh; }
+    @keyframes nb-d-r4 { 0%      { transform: none; filter: none; visibility: visible; } 6%  { transform: translateY(-8px); } 30% { filter: opacity(1); } 50%, 100% { transform: translateY(823px);  filter: opacity(0); visibility: hidden; } }
+    @keyframes nb-d-r3 { 0%, 8%  { transform: none; filter: none; visibility: visible; } 14% { transform: translateY(-8px); } 38% { filter: opacity(1); } 58%, 100% { transform: translateY(996px);  filter: opacity(0); visibility: hidden; } }
+    @keyframes nb-d-r2 { 0%, 16% { transform: none; filter: none; visibility: visible; } 22% { transform: translateY(-8px); } 46% { filter: opacity(1); } 66%, 100% { transform: translateY(1168px); filter: opacity(0); visibility: hidden; } }
+    @keyframes nb-d-r1 { 0%, 24% { transform: none; filter: none; visibility: visible; } 30% { transform: translateY(-8px); } 54% { filter: opacity(1); } 74%, 100% { transform: translateY(1340px); filter: opacity(0); visibility: hidden; } }
+
+    #packages h2, #packages .section-lede, .founding-offer {
+      animation: nb-fill linear both;
+      animation-timeline: --prices;
+      animation-range: cover 0px cover 40vh;
+    }
+    .pkg {
+      animation: nb-fill linear both;
+      animation-timeline: --prices;
+      animation-range: cover 70vh cover 100vh;
+    }
+  }
+  @media (min-width: 640px) and (max-width: 1159.98px) {
+    .offerings li:nth-child(n):nth-child(n) .offer { animation: nb-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+  }
+  /* Phones: one column, so the four cards on screen when the seam arrives
+     drop into the first price card; the eight above them are already gone
+     and just leave. The range runs longer than a screen so the landing
+     happens with the price card in view, not at the fold. */
+  @media (max-width: 639.98px) {
+    .offerings li:nth-child(1):nth-child(n) .offer        { animation: nb-fill linear both; animation-timeline: --hero; animation-range: exit 62% exit 100%; }
+    .offerings li:nth-child(n+2):nth-child(-n+8) .offer   { animation: nb-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+    .offerings li:nth-child(n+9):nth-child(-n+12) .offer  { animation: nb-rise linear both, nb-m-drop linear both; animation-timeline: view(), --prices; animation-range: entry 0% entry 100%, cover 0px cover 130vh; }
+    .offerings li:nth-child(9) .offer  { --nb-fall: 1360px; }
+    .offerings li:nth-child(10) .offer { --nb-fall: 1188px; }
+    .offerings li:nth-child(11) .offer { --nb-fall: 1026px; }
+    .offerings li:nth-child(12) .offer { --nb-fall: 877px; }
+    @keyframes nb-m-drop { 0%, 10% { transform: none; filter: none; visibility: visible; } 16% { transform: translateY(-6px); } 40% { filter: opacity(1); } 66%, 100% { transform: translateY(var(--nb-fall)); filter: opacity(0); visibility: hidden; } }
+    .pkg:first-child {
+      animation: nb-fill linear both;
+      animation-timeline: --prices;
+      animation-range: cover 90vh cover 130vh;
+    }
+    .pkg:not(:first-child) {
+      animation: nb-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+    .founding-offer {
+      animation: nb-fill linear both;
+      animation-timeline: --prices;
+      animation-range: cover 30vh cover 70vh;
+    }
+  }
+}
+}

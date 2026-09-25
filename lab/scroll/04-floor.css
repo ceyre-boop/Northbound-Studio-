@@ -1,0 +1,96 @@
+/* 04 — FLOOR. The sections are floors, and the next one slides over the last.
+ *
+ * The studio's first site was an elevator: every section a floor, the page
+ * moving between them, a readout counting. This brings the floors back
+ * without the elevator. The hero does not scroll away — it stays where it
+ * is, the way a floor does when you leave it, and the twelve slide up over
+ * it. As they come, the hero sinks: it settles back and down, dims, and by
+ * the time the twelve have covered it, it is gone. The rings under Buddy's
+ * feet lift to meet the seam and stay just under the twelve's top edge as
+ * it rises, so what the new section stands on is the old section's floor.
+ * A soft shadow under the arriving edge tells the eye which one is on top.
+ * Then the twelve do the same for the prices: their heading and grid hold
+ * still and sink while the prices' panel slides up over them.
+ *
+ * The pin is a transform, not position: sticky. A section pinned with
+ * translate moves nothing in layout, so the layout-shift score stays at
+ * zero, and it is scroll-driven — the hero is translated by exactly its own
+ * height over exactly the range where it leaves the screen, which is what
+ * "held still" means in a coordinate system that is moving. The offerings
+ * section is given a white background it always effectively had, so the
+ * hero underneath it cannot show through except in the short strip under
+ * its top edge, which is left clear on purpose for the rings.
+ *
+ * Only the twelve's heading, lede and grid are pinned at the second seam,
+ * not the section itself — the section contains the fixed Continue button,
+ * and a transformed ancestor would become its containing block and stick
+ * it inside the page. The hero is sent to z-index -1 rather than lifting
+ * the twelve above it, for the same reason: a z-index on the section would
+ * wrap the button in a stacking context and the prices would paint over it.
+ * The same at any width; phones have no rings and skip the lift. Without
+ * scroll-driven animations, with JavaScript off, or under reduced motion,
+ * none of this applies and the page scrolls as it always did.
+ */
+@media (prefers-reduced-motion: no-preference) {
+@supports (animation-timeline: view()) and (animation-range: cover 0px cover 100vh) {
+
+  body { timeline-scope: --hero, --twelve, --prices; }
+  .hero { view-timeline: --hero block; z-index: -1; }
+  #offerings { view-timeline: --twelve block; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 64px); }
+  @media (max-width: 639.98px) { #offerings { background: #fff; } }
+  #packages { view-timeline: --prices block; position: relative; z-index: 1; }
+
+  /* ---- Seam A: the hero holds, sinks, and the twelve slide over it -------- */
+
+  .hero {
+    transform-origin: 50% 85%;
+    animation: nb-floor-a linear both;
+    animation-timeline: --hero;
+    animation-range: exit 0% exit 100%;
+  }
+  @keyframes nb-floor-a {
+    0%   { translate: 0 0;    scale: 1;   filter: brightness(1);   opacity: 1; }
+    60%  { filter: brightness(.94); opacity: 1; }
+    100% { translate: 0 100%; scale: .9; filter: brightness(.86); opacity: 0; }
+  }
+  /* The rings lift with the seam and grow a little; they are the floor the
+     twelve stand on, seen through the clear strip under its top edge. Their
+     own breathing keeps going underneath. */
+  @media (min-width: 640px) {
+    .hs-fl {
+      transform-origin: 50% 75%;
+      animation: nb-lift linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 100%;
+    }
+    @keyframes nb-lift { 0% { translate: 0 0; scale: 1; opacity: 1; } 15% { opacity: 1; } 100% { translate: 0 calc(90px - 100vh); scale: 1.35; opacity: .9; } }
+    .hs-gl { animation: hs-breath 9s ease-in-out infinite, nb-fade linear both; animation-timeline: auto, --hero; animation-range: normal, exit 20% exit 80%; }
+  }
+  @keyframes nb-fade { to { opacity: 0; } }
+  /* The shadow under the arriving edge: a strip above the section, only
+     visible while the seam is in motion. */
+  #offerings::before, #packages::before {
+    content: ""; position: absolute; left: 0; right: 0; top: -72px; height: 72px; pointer-events: none;
+    background: linear-gradient(to top, rgba(14,21,18,.16), rgba(14,21,18,0));
+    opacity: 0;
+    animation: nb-shade linear both;
+  }
+  #offerings { position: relative; }
+  #offerings::before { animation-timeline: --hero; animation-range: exit 0% exit 100%; }
+  #packages::before  { animation-timeline: --prices; animation-range: cover 0px cover 100vh; }
+  @keyframes nb-shade { 0% { opacity: 0; } 12% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+
+  /* ---- Seam B: the twelve hold and sink under the prices ------------------- */
+
+  #offerings > .wrap > h2, #offerings > .wrap > .section-lede, #offerings > .wrap > .offerings {
+    transform-origin: 50% 100%;
+    animation: nb-floor-b linear both;
+    animation-timeline: --prices;
+    animation-range: cover 0px cover 100vh;
+  }
+  @keyframes nb-floor-b {
+    0%   { translate: 0 0;     scale: 1;   opacity: 1; visibility: visible; }
+    100% { translate: 0 100vh; scale: .94; opacity: .15; visibility: hidden; }
+  }
+}
+}

@@ -1,0 +1,159 @@
+/* 05 — TYPE. The words come apart and set themselves as the next heading.
+ *
+ * The other four move boxes. This one moves only what is written. As the
+ * hero leaves, the headline lets go a word at a time — each word drops at
+ * its own pace, softening as it goes, so "We build the machine that brings
+ * customers in." is briefly a loose column of words falling down the page —
+ * and the heading of the section below sets itself out of the same fall:
+ * its words arrive from above, sharpen and settle on their line one after
+ * another, left to right. The eye is told the second heading was made from
+ * the first. Nothing else in the hero moves; the machine and Buddy scroll
+ * away as they always did, because the sentence is the thing being handed
+ * on.
+ *
+ * At the second seam it is the numbers. The twelve cards each carry a small
+ * index in the accent mono — 01 to 12 — and the three prices are the only
+ * other numerals on the page. So as the prices arrive the twelve indices
+ * leave their cards and pour down their column into the price standing at
+ * the foot of it, and the price sets itself as they land: four small numbers
+ * become one big one, three times over. "Three ways in." arrives the way
+ * "Twelve things" did. A page's type rearranging itself is the quietest of
+ * the five and the one that costs the visitor the least attention; it is
+ * also the only one that says something about the sentence rather than the
+ * furniture.
+ *
+ * The words need to be elements to move, and the page's headings are plain
+ * text, so 05-type.js wraps each word of the three headings in a span at
+ * load. Words, not letters: a span round a letter breaks the kerning pair
+ * either side of it, which is a shift in layout, and the score for that has
+ * to stay at zero. A word-span is inline-block so it can be transformed,
+ * and sits on the same baseline at the same line-height, so the heading
+ * measures exactly as it did. Without the script the headings are text and
+ * only the numbers move, which is still a transition; without scroll-driven
+ * animations, with JavaScript off, or under reduced motion, nothing here
+ * applies.
+ */
+@media (prefers-reduced-motion: no-preference) {
+@supports (animation-timeline: view()) and (animation-range: cover 0px cover 100vh) {
+
+  body { timeline-scope: --hero, --twelve, --prices; }
+  .hero { view-timeline: --hero block; }
+  #offerings { view-timeline: --twelve block; }
+  #packages { view-timeline: --prices block; }
+
+  .nb-w { display: inline-block; }
+
+  /* ---- Seam A: the headline falls, the heading sets ------------------------ */
+
+  /* Each word has its index in --i from the script; each lets go a little
+     after the one before it and falls a little further, so the sentence
+     comes apart from the start. They fade fast: a blurred headline lying
+     across the lede for long is a smear, not a fall. */
+  .hero h1 .nb-w {
+    animation: nb-fall linear both;
+    animation-timeline: --hero;
+    animation-range: exit calc(4% + var(--i, 0) * 3%) exit calc(36% + var(--i, 0) * 3%);
+  }
+  @keyframes nb-fall {
+    0%   { translate: 0 0; opacity: 1; filter: blur(0); }
+    45%  { opacity: .2; }
+    100% { translate: calc(var(--i, 0) * 6px - 20px) calc(170px + var(--i, 0) * 22px); opacity: 0; filter: blur(3px); }
+  }
+  /* The next heading sets left to right as the hero goes, each word from a
+     little above and a little blurred. */
+  #offerings h2 .nb-w {
+    animation: nb-set linear both;
+    animation-timeline: --hero;
+    animation-range: exit calc(44% + var(--i, 0) * 3%) exit calc(76% + var(--i, 0) * 3%);
+  }
+  @keyframes nb-set {
+    0%   { translate: 0 calc(-90px - var(--i, 0) * 8px); opacity: 0; filter: blur(6px); }
+    100% { translate: 0 0; opacity: 1; filter: blur(0); }
+  }
+
+  /* ---- Seam B: the indices pour into the prices --------------------------- */
+
+  /* Each card's index goes to the price at the foot of its column; the
+     offsets are top-left to top-left at 1280, so the numerals start where
+     the price's numerals start. The four in a column leave last-row first
+     and arrive together as the price sets itself under them. */
+  /* Scaled about the left edge, where the numerals are: the index is a
+     block the width of the card, and scaled about its centre the numerals
+     drift left — on a phone, clean off the screen. */
+  .offerings .n {
+    transform-origin: 0 50%;
+    animation: nb-pour linear both;
+    animation-timeline: --prices;
+  }
+  @keyframes nb-pour {
+    0%   { translate: 0 0; scale: 1; opacity: 1; filter: blur(0); }
+    12%  { translate: 0 -6px; }
+    78%  { opacity: 1; filter: blur(0); }
+    100% { translate: var(--nb-dx, 0px) var(--nb-dy, 0px); scale: 2.2; opacity: 0; filter: blur(2px); }
+  }
+  @media (min-width: 1160px) {
+    .offerings li:nth-child(10) .n { --nb-dx: 4px; --nb-dy: 722px;  animation-range: cover 0px  cover 84vh; }
+    .offerings li:nth-child(11) .n { --nb-dx: 5px; --nb-dy: 745px;  animation-range: cover 3vh  cover 87vh; }
+    .offerings li:nth-child(12) .n { --nb-dx: 7px; --nb-dy: 749px;  animation-range: cover 6vh  cover 90vh; }
+    .offerings li:nth-child(7) .n  { --nb-dx: 4px; --nb-dy: 895px;  animation-range: cover 8vh  cover 88vh; }
+    .offerings li:nth-child(8) .n  { --nb-dx: 5px; --nb-dy: 918px;  animation-range: cover 11vh cover 91vh; }
+    .offerings li:nth-child(9) .n  { --nb-dx: 7px; --nb-dy: 922px;  animation-range: cover 14vh cover 94vh; }
+    .offerings li:nth-child(4) .n  { --nb-dx: 4px; --nb-dy: 1067px; animation-range: cover 16vh cover 92vh; }
+    .offerings li:nth-child(5) .n  { --nb-dx: 5px; --nb-dy: 1090px; animation-range: cover 19vh cover 95vh; }
+    .offerings li:nth-child(6) .n  { --nb-dx: 7px; --nb-dy: 1094px; animation-range: cover 22vh cover 98vh; }
+    .offerings li:nth-child(1) .n  { --nb-dx: 4px; --nb-dy: 1239px; animation-range: cover 24vh cover 96vh; }
+    .offerings li:nth-child(2) .n  { --nb-dx: 5px; --nb-dy: 1262px; animation-range: cover 27vh cover 99vh; }
+    .offerings li:nth-child(3) .n  { --nb-dx: 7px; --nb-dy: 1266px; animation-range: cover 30vh cover 102vh; }
+    .pkg .price {
+      animation: nb-price linear both;
+      animation-timeline: --prices;
+      animation-range: cover 82vh cover 104vh;
+    }
+  }
+  /* Between a phone and the full stage the columns are not where the
+     numbers expect them; the indices just leave with their cards. */
+  @media (min-width: 640px) and (max-width: 1159.98px) {
+    .offerings .n { animation: none; }
+  }
+  /* Phones: one column, so the twelve pour into the first price, and the
+     range runs past the seam so the landing is on screen. The eight cards
+     furthest up are out of view by then and their numbers arrive from
+     above; the four that are on screen visibly leave. */
+  @media (max-width: 639.98px) {
+    .offerings li:nth-child(12) .n { --nb-dx: 4px; --nb-dy: 765px;  animation-range: cover 0px  cover 110vh; }
+    .offerings li:nth-child(11) .n { --nb-dx: 4px; --nb-dy: 914px;  animation-range: cover 4vh  cover 114vh; }
+    .offerings li:nth-child(10) .n { --nb-dx: 4px; --nb-dy: 1087px; animation-range: cover 8vh  cover 118vh; }
+    .offerings li:nth-child(9) .n  { --nb-dx: 4px; --nb-dy: 1259px; animation-range: cover 12vh cover 122vh; }
+    .offerings li:nth-child(8) .n  { --nb-dx: 4px; --nb-dy: 1409px; animation-range: cover 16vh cover 126vh; }
+    .offerings li:nth-child(7) .n  { --nb-dx: 4px; --nb-dy: 1582px; animation-range: cover 20vh cover 130vh; }
+    .offerings li:nth-child(6) .n  { --nb-dx: 4px; --nb-dy: 1731px; animation-range: cover 22vh cover 132vh; }
+    .offerings li:nth-child(5) .n  { --nb-dx: 4px; --nb-dy: 1904px; animation-range: cover 24vh cover 134vh; }
+    .offerings li:nth-child(4) .n  { --nb-dx: 4px; --nb-dy: 2076px; animation-range: cover 26vh cover 136vh; }
+    .offerings li:nth-child(3) .n  { --nb-dx: 4px; --nb-dy: 2226px; animation-range: cover 28vh cover 138vh; }
+    .offerings li:nth-child(2) .n  { --nb-dx: 4px; --nb-dy: 2399px; animation-range: cover 30vh cover 140vh; }
+    .offerings li:nth-child(1) .n  { --nb-dx: 4px; --nb-dy: 2571px; animation-range: cover 32vh cover 142vh; }
+    .pkg:first-child .price {
+      animation: nb-price linear both;
+      animation-timeline: --prices;
+      animation-range: cover 116vh cover 142vh;
+    }
+    .pkg:not(:first-child) .price {
+      animation: nb-price linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+  }
+  @keyframes nb-price {
+    0%   { opacity: 0; scale: .55; translate: 0 -10px; filter: blur(3px); }
+    100% { opacity: 1; scale: 1; translate: 0 0; filter: blur(0); }
+  }
+  .pkg .price { transform-origin: 0 50%; }
+
+  /* "Three ways in." sets itself the way "Twelve things" did. */
+  #packages h2 .nb-w {
+    animation: nb-set linear both;
+    animation-timeline: --prices;
+    animation-range: cover calc(28vh + var(--i, 0) * 6vh) cover calc(66vh + var(--i, 0) * 6vh);
+  }
+}
+}

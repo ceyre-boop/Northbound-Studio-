@@ -581,7 +581,7 @@ export function toArtifact(url, budget, gateRows, commit, codeCommit, report) {
     schema: 1,
     measuredAt: new Date().toISOString(),
     commit,
-    /* The short hash of the last commit to touch js/, css/ or studio.html —
+    /* The short hash of the last commit to touch index.html, js/, css/ or studio.html —
        the code the frame budget actually describes. js/proof.js compares this
        to data/release.json's codeCommit before it will show the section, so a
        stale measurement can never be presented as current. */
@@ -666,7 +666,7 @@ async function main() {
     try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch {}
 
     let codeCommit = 'unknown';
-    try { codeCommit = execSync('git log -1 --format=%h -- js css studio.html', { encoding: 'utf8' }).trim() || 'unknown'; } catch {}
+    try { codeCommit = execSync('git log -1 --first-parent --format=%h -- index.html js css studio.html', { encoding: 'utf8' }).trim() || 'unknown'; } catch {}
 
     const artifact = toArtifact(url, budget, rows, commit, codeCommit, results.report);
     mkdirSync(new URL('../data/', import.meta.url), { recursive: true });

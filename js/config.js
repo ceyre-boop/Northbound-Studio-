@@ -7,4 +7,4 @@
  * asserts that this file, the server's copy and every href on the pages are
  * the same string, so the four cannot drift apart unnoticed.
  */
-export const GOOGLE_REVIEW_URL = 'https://www.google.com/maps/search/?api=1&query=NorthBound+website+designer+Swartz+Creek+MI';
+export const GOOGLE_REVIEW_URL = 'https://www.google.com/maps/search/?api=1&query=Northbound+Studio+470-573-8908';

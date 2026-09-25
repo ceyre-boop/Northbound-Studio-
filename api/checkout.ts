@@ -80,7 +80,7 @@ const FALLBACK_FROM = 'Northbound Studio <quotes@northbound-dev.com>';
    the pages carry it as a plain href so the link works with JavaScript off,
    and the emails carry it from here. api/quote.ts imports this one.
    tests/checkout.unit.test.ts asserts the copies agree. */
-export const GOOGLE_REVIEW_URL = 'https://www.google.com/maps/search/?api=1&query=NorthBound+website+designer+Swartz+Creek+MI';
+export const GOOGLE_REVIEW_URL = 'https://www.google.com/maps/search/?api=1&query=Northbound+Studio+470-573-8908';
 
 /* Generous, but bounded: nothing on this form needs more, and an unbounded
    field is an invitation to paste a novel into someone's inbox. */

@@ -108,7 +108,7 @@ describe('GOOGLE_REVIEW_URL', () => {
   const ROOT = join(import.meta.dir, '..');
   test('the server and the browser hold the same string', () => {
     expect(GOOGLE_REVIEW_URL).toBe(BROWSER_REVIEW_URL);
-    expect(GOOGLE_REVIEW_URL).toBe('https://www.google.com/maps/search/?api=1&query=NorthBound+website+designer+Swartz+Creek+MI');
+    expect(GOOGLE_REVIEW_URL).toBe('https://www.google.com/maps/search/?api=1&query=Northbound+Studio+470-573-8908');
   });
 
   for (const page of ['index.html', 'checkout.html', 'build.html']) {

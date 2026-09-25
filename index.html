@@ -787,6 +787,16 @@
     }
     start(document.querySelector('.buddy video'));
 
+    // The machine behind the hero runs on CSS alone; this only pauses its
+    // animations while the hero is scrolled out of view, so an idle tab
+    // further down the page is not compositing a scene nobody can see.
+    var hero = document.querySelector('.hero');
+    if (hero && 'IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        hero.classList.toggle('is-off', !entries.some(function (e) { return e.isIntersecting; }));
+      }).observe(hero);
+    }
+
     // The Buddy at the prices is below the fold. Nothing for him — not even
     // the poster — moves over the wire until the block is within a screen
     // of the viewport, and the shrug and the clip wait until it is actually

@@ -155,6 +155,166 @@
   .btn-primary:hover { background: var(--accent-dark); }
   .btn-secondary { background: #fff; color: var(--ink); border: 1px solid var(--ink); }
 
+  /* THE MACHINE.
+     The scene behind the hero: the site's own pitch drawn as the parts of the
+     machine — an editor, a website, bookings, payments, a dashboard, the
+     customers — wired together and running. DOM, CSS and hand-written SVG;
+     no image, no script (the observer at the foot only pauses it off screen).
+
+     It is absolutely positioned behind the copy (the hero isolates a stacking
+     context, the scene sits at z-index -1 inside it), so it reserves nothing
+     in flow, moves nothing, and never sits in front of the headline. Every
+     coordinate is on a fixed 1280-wide stage centred under the wrap, so at
+     1280 the picture is exact and wider screens get the same picture with
+     more air; the floor and the glow are the two things anchored to Buddy
+     himself, so they stay under his feet at every width. Every motion is
+     transform, opacity or stroke-dashoffset, on unequal prime-ish periods —
+     17, 19, 23, 29, 31s — so the composition never visibly comes round again.
+     Under reduced motion it is a still. */
+  .hero { position: relative; isolation: isolate; }
+  .hero .wrap { position: relative; }
+  .hero-scene { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; color: #17A08A; font-family: var(--mono);
+    background: radial-gradient(70% 60% at 28% 22%, rgba(150,228,214,.36), rgba(150,228,214,0) 70%), radial-gradient(60% 50% at 82% 30%, rgba(160,232,222,.28), rgba(160,232,222,0) 70%), radial-gradient(110% 85% at 50% 40%, rgba(255,255,255,0) 55%, rgba(60,120,108,.14) 100%), linear-gradient(180deg, rgba(190,236,228,0) 66%, rgba(205,242,236,.7) 100%); }
+  .hs { position: absolute; top: 0; bottom: 0; left: calc(50% - 640px); width: 1280px; }
+  .hs > * { position: absolute; }
+  .hs-p { border-radius: 12px; background: linear-gradient(165deg, rgba(255,255,255,.88), rgba(238,250,246,.66)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.9), 0 0 0 1px rgba(23,160,138,.18), 0 24px 40px -24px rgba(23,120,110,.35); }
+  .hs-p::before { content: ""; position: absolute; top: 9px; left: 10px; width: 6px; height: 6px; border-radius: 50%; background: #A9E8DC; box-shadow: 10px 0 #A9E8DC, 20px 0 #A9E8DC; }
+  .hs-b { display: block; height: 6px; border-radius: 3px; background: rgba(60,100,92,.2); }
+  .hs-lb { font-size: 11px; line-height: 14px; letter-spacing: .12em; text-transform: uppercase; color: #2F4B45; }
+  .hs-lb em { display: block; font-style: normal; color: #17A08A; }
+  /* 001 — the website. */
+  .hs-web { left: 352px; top: 18px; width: 228px; height: 190px; padding: 30px 14px 0; display: grid; grid-template-columns: 92px 1fr; gap: 10px 12px; align-content: start; animation: hs-da 23s ease-in-out infinite; }
+  .hs-web::after { content: ""; position: absolute; top: 9px; right: 12px; width: 110px; height: 6px; border-radius: 3px; background: rgba(60,100,92,.12); }
+  .hs-img { grid-row: span 2; height: 82px; border-radius: 8px; background: linear-gradient(160deg, rgba(120,190,178,.24), rgba(120,190,178,.1)); display: grid; place-items: center; }
+  .hs-img svg { width: 44px; height: 32px; }
+  .hs-web .hs-b { width: 100%; margin-bottom: 8px; }
+  .hs-web .hs-b:nth-child(3) { width: 74%; }
+  .hs-web .hs-b:nth-child(4) { width: 90%; }
+  .hs-btn { display: block; width: 58px; height: 16px; border-radius: 4px; background: var(--accent); align-self: end; }
+  .hs-web .hs-b:nth-child(6) { grid-column: 1 / -1; margin: 6px 0 0; width: 80%; }
+  .hs-web .hs-b:nth-child(7) { grid-column: 1 / -1; width: 56%; }
+  /* The editor: the pitch in one screen. */
+  .hs-ed { left: 72px; top: 96px; width: 264px; height: 200px; border-radius: 12px; background: rgba(30,48,48,.92); box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 30px 50px -20px rgba(20,60,55,.5); animation: hs-db 29s ease-in-out infinite; }
+  .hs-ed::before { content: ""; position: absolute; top: 10px; left: 12px; width: 6px; height: 6px; border-radius: 50%; background: #FF6B5F; box-shadow: 10px 0 #FFBD2E, 20px 0 #2DD48A; }
+  .hs-ed pre { margin: 28px 0 0; padding: 0 12px; font: 400 10.5px/18px var(--mono); color: #E6F4F0; }
+  .hs-ed i { font-style: normal; color: rgba(230,244,240,.38); margin-right: 12px; }
+  .hs-ed b { font-weight: 400; color: #8FE0CF; }
+  .hs-ed u { text-decoration: none; color: #C9F2E7; }
+  /* 002 and 003, the small cards in the band above the eyebrow. */
+  .hs-bk { left: 735px; top: 12px; width: 160px; height: 66px; padding: 20px 14px; display: flex; align-items: center; gap: 12px; animation: hs-dc 19s ease-in-out infinite; }
+  .hs-bk::before { display: none; }
+  .hs-bk .hs-b { width: 62px; }
+  .hs-bk .hs-b + .hs-b { width: 40px; margin-top: 8px; }
+  .hs-chk { position: relative; width: 30px; height: 30px; margin-left: auto; flex: none; }
+  .hs-chk svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: hs-pulse 5s ease-in-out infinite; }
+  .hs-chk::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #1E8B6B; opacity: 0; animation: hs-ring 5s ease-out infinite; }
+  .hs-pay { left: 992px; top: 12px; width: 110px; height: 66px; padding: 18px 14px; display: flex; align-items: center; gap: 10px; animation: hs-da 31s ease-in-out infinite; }
+  .hs-pay::before { display: none; }
+  .hs-cc { display: block; width: 40px; height: 26px; border-radius: 4px; background: linear-gradient(145deg, #CFF3EA, #8FE0CF); position: relative; flex: none; }
+  .hs-cc::after { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 5px; background: rgba(14,111,92,.55); }
+  .hs-pay .hs-b { width: 36px; }
+  /* 004 — the dashboard, at the right of the headline. */
+  .hs-db { left: 1060px; top: 128px; width: 200px; height: 150px; padding: 28px 12px 12px; display: grid; grid-template-columns: 52px 1fr; gap: 10px; animation: hs-db 37s ease-in-out infinite; }
+  .hs-db .hs-b { margin-bottom: 9px; }
+  .hs-db .hs-b:nth-child(odd) { width: 70%; }
+  .hs-chart { grid-column: 2; grid-row: 1 / span 4; width: 100%; height: 100%; overflow: visible; }
+  .hs-line { fill: none; stroke: #17A08A; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; animation: hs-draw 13s ease-in-out infinite; }
+  .hs-area { fill: rgba(23,160,138,.14); animation: hs-fade 13s ease-in-out infinite; }
+  .hs-bar { fill: #A9E8DC; transform-box: fill-box; transform-origin: 50% 100%; animation: hs-bar 9s ease-in-out infinite; }
+  .hs-bar:nth-of-type(2) { animation-duration: 11s; animation-delay: -3s; }
+  .hs-bar:nth-of-type(3) { animation-duration: 7s; animation-delay: -5s; }
+  .hs-bar:nth-of-type(4) { animation-duration: 13s; animation-delay: -2s; }
+  /* 005 — the customers, lower left. */
+  .hs-cu { left: 24px; top: 420px; width: 176px; height: 140px; padding: 28px 14px 12px; display: grid; gap: 8px; animation: hs-dc 27s ease-in-out infinite; }
+  .hs-row { display: flex; align-items: center; gap: 8px; height: 26px; }
+  .hs-row svg { width: 22px; height: 22px; flex: none; }
+  .hs-row .hs-b { width: 54px; }
+  .hs-row .hs-b + .hs-b { width: 34px; }
+  .hs-row::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #1E8B6B; margin-left: auto; }
+  /* The tiles: database and cloud. */
+  .hs-t { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; }
+  .hs-t::before { display: none; }
+  .hs-t svg { width: 26px; height: 26px; fill: none; stroke: #17A08A; stroke-width: 1.5; stroke-linejoin: round; }
+  .hs-t1 { left: 20px; top: 232px; animation: hs-db 21s ease-in-out infinite; }
+  .hs-t2 { left: 44px; top: 320px; animation: hs-da 17s ease-in-out infinite; }
+  .hs-t3 { left: 1180px; top: 330px; animation: hs-dc 25s ease-in-out infinite; }
+  .hs-sq { width: 36px; height: 36px; border-radius: 8px; background: rgba(169,232,220,.7); box-shadow: inset 0 0 0 1px rgba(255,255,255,.8); top: 440px; animation: hs-da 19s ease-in-out infinite; }
+  .hs-sq + .hs-sq { left: 1232px; animation-duration: 23s; }
+  .hs-sq1 { left: 1168px; }
+  .hs-dp { left: 1040px; top: 636px; margin: 0; font: 400 11px/17px var(--mono); color: #17A08A; }
+  /* Labels. */
+  .hs-l1 { left: 88px; top: 40px; }
+  .hs-l2 { left: 640px; top: 24px; }
+  .hs-l3 { left: 908px; top: 24px; }
+  .hs-l4 { left: 1064px; top: 92px; }
+  .hs-l5 { left: 44px; top: 384px; }
+  /* The wiring. Nodes blink in a staggered sequence; on top of each line a
+     second copy carries a short dash whose offset travels — the light. */
+  .hs-net { left: 0; top: 0; overflow: visible; }
+  .hs-w { fill: none; stroke: #17A08A; stroke-width: 1; opacity: .45; }
+  .hs-w.d { stroke-dasharray: 3 4; }
+  .hs-f { fill: none; stroke: #6FE3CE; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 5 95; animation: hs-flow 11s linear infinite; }
+  .hs-f:nth-child(2n) { animation-duration: 15s; animation-delay: -4s; }
+  .hs-f:nth-child(3n) { animation-duration: 8s; animation-delay: -6s; stroke: #A9E8DC; }
+  .hs-f:nth-child(4n+1) { animation-duration: 19s; animation-delay: -9s; }
+  .hs-n { fill: #CDEFE7; stroke: #17A08A; stroke-width: .8; animation: hs-blink 3.1s ease-in-out infinite; }
+  .hs-n:nth-child(2n) { animation-duration: 4.3s; animation-delay: -1.7s; }
+  .hs-n:nth-child(3n) { animation-duration: 5.3s; animation-delay: -2.9s; }
+  .hs-n:nth-child(5n) { animation-duration: 3.7s; animation-delay: -.8s; }
+  .hs-n:nth-child(7n) { animation-duration: 6.1s; animation-delay: -4.1s; }
+  /* The floor and the glow, both anchored to Buddy's centre line: the wrap
+     is centred, so his column starts at max(0, (100% - 1080px) / 2) plus the
+     gutter, and he is --buddy-w wide. */
+  .hs-fl, .hs-gl { left: calc(max(0px, (100% - 1080px) / 2) + var(--gutter) + var(--buddy-w) / 2); }
+  .hs-fl { position: absolute; bottom: -20px; width: 900px; height: 200px; margin-left: -450px; overflow: visible; }
+  .hs-gl { position: absolute; bottom: 30px; width: 520px; height: 440px; margin-left: -260px; border-radius: 50%; background: radial-gradient(ellipse at 50% 68%, rgba(110,225,215,.7), rgba(110,225,215,0) 62%); animation: hs-breath 9s ease-in-out infinite; }
+  .hs-r { fill: none; stroke: #17A08A; stroke-width: 1.2; transform-box: fill-box; transform-origin: 50% 50%; animation: hs-breath 13s ease-in-out infinite; }
+  .hs-r:nth-child(2) { animation-duration: 17s; animation-delay: -5s; }
+  .hs-r:nth-child(3) { animation-duration: 23s; animation-delay: -9s; }
+  .hs-r:nth-child(4) { animation-duration: 29s; animation-delay: -13s; }
+  .hs-s { fill: #fff; animation: hs-blink 2.3s ease-in-out infinite; }
+  .hs-s:nth-child(2n) { animation-duration: 3.7s; animation-delay: -1.3s; }
+  .hs-s:nth-child(3n) { animation-duration: 5.1s; animation-delay: -2.2s; }
+  .hs-s:nth-child(4n+1) { animation-duration: 2.9s; animation-delay: -.7s; }
+  @keyframes hs-da { 0%, 100% { transform: translate3d(0,0,0); } 31% { transform: translate3d(5px,-7px,0); } 67% { transform: translate3d(-4px,4px,0); } }
+  @keyframes hs-db { 0%, 100% { transform: translate3d(0,0,0); } 37% { transform: translate3d(-6px,-4px,0); } 71% { transform: translate3d(3px,6px,0); } }
+  @keyframes hs-dc { 0%, 100% { transform: translate3d(0,0,0); } 29% { transform: translate3d(4px,5px,0); } 63% { transform: translate3d(-5px,-6px,0); } }
+  @keyframes hs-blink { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+  @keyframes hs-flow { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+  @keyframes hs-pulse { 0%, 100% { transform: scale(1); } 8% { transform: scale(1.12); } 16% { transform: scale(1); } }
+  @keyframes hs-ring { 0% { transform: scale(1); opacity: .7; } 40%, 100% { transform: scale(1.9); opacity: 0; } }
+  @keyframes hs-draw { 0% { stroke-dashoffset: 100; opacity: 0; } 4% { opacity: 1; } 45%, 88% { stroke-dashoffset: 0; opacity: 1; } 96% { stroke-dashoffset: 0; opacity: 0; } 100% { stroke-dashoffset: 100; opacity: 0; } }
+  @keyframes hs-fade { 0%, 8% { opacity: 0; } 50%, 88% { opacity: 1; } 96%, 100% { opacity: 0; } }
+  @keyframes hs-bar { 0%, 100% { transform: scaleY(1); } 40% { transform: scaleY(.55); } 70% { transform: scaleY(1.2); } }
+  @keyframes hs-breath { 0%, 100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.05); opacity: 1; } }
+  /* The phone's scene: the wash, a glow under the salute, and one card —
+     bookings — in the free corner above him. The card is an absolutely
+     positioned grid child, placed in his area, so it adds nothing to any
+     track and moves nothing. */
+  .hs-m { display: none; }
+  @media (max-width: 1159.98px) {
+    /* Between a phone and the full stage the copy column starts further
+       left, so the right-hand cluster would land on the headline. It goes;
+       the left cluster scales down and keeps to the left edge. */
+    .hs { left: 0; transform: scale(.66); transform-origin: 0 0; }
+    .hs-r1 { display: none; }
+  }
+  @media (max-width: 959.98px) { .hs-web, .hs-l1, .hs-r2 { display: none; } }
+  @media (max-width: 639.98px) {
+    .hs, .hs-fl, .hs-gl { display: none; }
+    .hs-m { display: block; position: absolute; grid-area: buddy; top: 0; right: 0; width: 112px; pointer-events: none; }
+    .hs-m .hs-bk { position: static; width: 112px; height: 50px; padding: 12px; margin-top: 2px; animation: none; }
+    .hs-m .hs-bk .hs-b { width: 40px; }
+    .hs-m .hs-bk .hs-b + .hs-b { width: 26px; }
+    .hs-m .hs-chk { width: 24px; height: 24px; }
+    .hs-m .hs-lb { font-size: 10px; line-height: 13px; }
+    .buddy::after { content: ""; position: absolute; left: -24%; right: -24%; bottom: -8px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(150,235,225,.85) 0 18%, rgba(150,235,225,.15) 19% 44%, rgba(23,160,138,.35) 45% 47%, rgba(23,160,138,0) 48% 70%, rgba(23,160,138,.22) 71% 73%, rgba(23,160,138,0) 74%); animation: hs-breath 11s ease-in-out infinite; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero .hero-scene *, .hero .hs-m *, .hero .hs-chk::after, .hero .buddy::after { animation: none; }
+  }
+  .hero.is-off .hero-scene *, .hero.is-off .hs-m *, .hero.is-off .hs-chk::after, .hero.is-off .buddy::after { animation-play-state: paused; }
+
   section { padding: clamp(48px, 7vw, 84px) 0; }
   h2 { font-family: var(--display); font-size: clamp(24px, 3.2vw, 34px); letter-spacing: -0.02em; margin: 0 0 10px; }
   .section-lede { color: var(--ink-soft); max-width: 58ch; margin: 0 0 32px; }
@@ -346,6 +506,49 @@
         </video>
       </div>
     </figure>
+    <div class="hs-m" aria-hidden="true"><span class="hs-lb">Bookings<em>002</em></span><div class="hs-p hs-bk"><span><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-chk"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#1E8B6B"/><path d="M9 15.5l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div></div>
+  </div>
+  <!--
+    The machine. See the CSS block of the same name: decoration, behind
+    everything, and the page reads exactly the same with it gone. The code in
+    the editor is the studio's pitch in one screen and is kept verbatim.
+  -->
+  <div class="hero-scene" aria-hidden="true">
+    <div class="hs-gl"></div>
+    <svg class="hs-fl" viewBox="0 0 900 200"><defs><radialGradient id="hsg"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#C9F2EA" stop-opacity=".8"/><stop offset="1" stop-color="#C9F2EA" stop-opacity="0"/></radialGradient></defs><ellipse cx="450" cy="150" rx="330" ry="58" fill="url(#hsg)"/><g><ellipse class="hs-r" cx="450" cy="150" rx="110" ry="22" stroke-opacity=".55"/><ellipse class="hs-r" cx="450" cy="150" rx="200" ry="40" stroke-opacity=".42"/><ellipse class="hs-r" cx="450" cy="150" rx="300" ry="60" stroke-opacity=".3"/><ellipse class="hs-r" cx="450" cy="150" rx="420" ry="84" stroke-opacity=".18"/></g><g><circle class="hs-s" cx="120" cy="120" r="2"/><circle class="hs-s" cx="230" cy="176" r="1.5"/><circle class="hs-s" cx="330" cy="104" r="2.2"/><circle class="hs-s" cx="560" cy="182" r="1.8"/><circle class="hs-s" cx="660" cy="118" r="2"/><circle class="hs-s" cx="760" cy="160" r="1.4"/><circle class="hs-s" cx="850" cy="128" r="2.4"/><circle class="hs-s" cx="40" cy="170" r="1.6"/></g></svg>
+    <div class="hs">
+      <svg class="hs-net" width="1280" height="701">
+        <g><path class="hs-w hs-r2" d="M180 54H352"/><path class="hs-w d" d="M60 44V232"/><path class="hs-w" d="M96 348H160V420"/><path class="hs-w d" d="M336 240H392V350"/><path class="hs-w hs-r2" d="M466 208V262H540V330"/><path class="hs-w hs-r1" d="M580 60H735"/><path class="hs-w d hs-r1" d="M895 45H992"/><path class="hs-w hs-r1" d="M1102 45H1160V128"/><path class="hs-w d hs-r1" d="M1160 278V330"/><path class="hs-w hs-r1" d="M1208 386V440"/><path class="hs-w d hs-r1" d="M1186 476V560"/><path class="hs-w hs-r1" d="M1250 476V600"/></g>
+        <g><path class="hs-f hs-r2" pathLength="100" d="M180 54H352"/><path class="hs-f" pathLength="100" d="M96 348H160V420"/><path class="hs-f" pathLength="100" d="M336 240H392V350"/><path class="hs-f hs-r2" pathLength="100" d="M466 208V262H540V330"/><path class="hs-f hs-r1" pathLength="100" d="M580 60H735"/><path class="hs-f hs-r1" pathLength="100" d="M1102 45H1160V128"/><path class="hs-f hs-r1" pathLength="100" d="M1250 476V600"/><path class="hs-f" pathLength="100" d="M60 44V232"/></g>
+        <g><rect class="hs-n hs-r2" x="256" y="50" width="7" height="7"/><rect class="hs-n" x="56" y="116" width="7" height="7"/><rect class="hs-n" x="56" y="192" width="7" height="7"/><rect class="hs-n" x="156" y="344" width="7" height="7"/><rect class="hs-n" x="156" y="388" width="7" height="7"/><rect class="hs-n" x="388" y="268" width="7" height="7"/><rect class="hs-n hs-r2" x="462" y="258" width="7" height="7"/><rect class="hs-n hs-r2" x="536" y="296" width="7" height="7"/><rect class="hs-n hs-r1" x="608" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="696" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="940" y="41" width="7" height="7"/><rect class="hs-n hs-r1" x="1128" y="41" width="7" height="7"/><rect class="hs-n hs-r1" x="1156" y="86" width="7" height="7"/><rect class="hs-n hs-r1" x="1156" y="300" width="7" height="7"/><rect class="hs-n hs-r1" x="1204" y="408" width="7" height="7"/><rect class="hs-n hs-r1" x="1182" y="516" width="7" height="7"/><rect class="hs-n hs-r1" x="1246" y="536" width="7" height="7"/><path class="hs-n" d="M60 40l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1250 600l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1186 560l4 4-4 4-4-4z"/><path class="hs-n" d="M392 350l4 4-4 4-4-4z"/><path class="hs-n hs-r2" d="M540 330l4 4-4 4-4-4z"/></g>
+      </svg>
+      <span class="hs-lb hs-l1">Website<em>001</em></span>
+      <div class="hs-p hs-web"><span class="hs-img"><svg viewBox="0 0 44 32"><path d="M2 30L15 10l9 13 5-6 13 13z" fill="#5FB8A7"/><circle cx="33" cy="8" r="4" fill="#5FB8A7"/></svg></span><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><i class="hs-btn"></i><i class="hs-b"></i><i class="hs-b"></i></div>
+      <div class="hs-ed"><pre><i>01</i><b>import</b> { Site } <b>from</b> <u>'northbound'</u>
+<i>02</i><b>export default function</b> Home() {
+<i>03</i>  <b>return</b> (
+<i>04</i>    <b>&lt;Website</b>
+<i>05</i>      analytics={<b>true</b>}
+<i>06</i>      bookings={<b>true</b>}
+<i>07</i>      payments={<b>true</b>}
+<i>08</i>    <b>/&gt;</b>
+<i>09</i>  )}</pre></div>
+      <span class="hs-lb hs-l2 hs-r1">Bookings<em>002</em></span>
+      <div class="hs-p hs-bk hs-r1"><span><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-chk"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#1E8B6B"/><path d="M9 15.5l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+      <span class="hs-lb hs-l3 hs-r1">Payments<em>003</em></span>
+      <div class="hs-p hs-pay hs-r1"><i class="hs-cc"></i><i class="hs-b"></i></div>
+      <span class="hs-lb hs-l4 hs-r1">Dashboard<em>004</em></span>
+      <div class="hs-p hs-db hs-r1"><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><svg class="hs-chart" viewBox="0 0 118 96"><path class="hs-area" d="M0 70L20 58 40 62 60 40 80 44 100 22 118 26V96H0z"/><path class="hs-line" pathLength="100" d="M0 70L20 58 40 62 60 40 80 44 100 22 118 26"/><rect class="hs-bar" x="70" y="72" width="8" height="24"/><rect class="hs-bar" x="84" y="64" width="8" height="32"/><rect class="hs-bar" x="98" y="76" width="8" height="20"/><rect class="hs-bar" x="112" y="56" width="6" height="40"/></svg></div>
+      <span class="hs-lb hs-l5">Customers<em>005</em></span>
+      <div class="hs-p hs-cu"><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span></div>
+      <div class="hs-p hs-t hs-t1"><svg viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.5"/><path d="M4 6v14c0 2 4 3.5 9 3.5s9-1.5 9-3.5V6M4 13c0 2 4 3.5 9 3.5s9-1.5 9-3.5"/></svg></div>
+      <div class="hs-p hs-t hs-t2"><svg viewBox="0 0 26 26"><path d="M8 20h11a4.5 4.5 0 0 0 .5-9 6 6 0 0 0-11.5-1.5A5.3 5.3 0 0 0 8 20z"/></svg></div>
+      <div class="hs-p hs-t hs-t3 hs-r1"><svg viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.5"/><path d="M4 6v14c0 2 4 3.5 9 3.5s9-1.5 9-3.5V6M4 13c0 2 4 3.5 9 3.5s9-1.5 9-3.5"/></svg></div>
+      <i class="hs-sq hs-sq1 hs-r1"></i><i class="hs-sq hs-r1"></i>
+      <pre class="hs-dp hs-r1">deploy(
+  better_customers()
+);</pre>
+    </div>
   </div>
 </section>
 
@@ -583,6 +786,16 @@
       v.play().catch(function () {});
     }
     start(document.querySelector('.buddy video'));
+
+    // The machine behind the hero runs on CSS alone; this only pauses its
+    // animations while the hero is scrolled out of view, so an idle tab
+    // further down the page is not compositing a scene nobody can see.
+    var hero = document.querySelector('.hero');
+    if (hero && 'IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        hero.classList.toggle('is-off', !entries.some(function (e) { return e.isIntersecting; }));
+      }).observe(hero);
+    }
 
     // The Buddy at the prices is below the fold. Nothing for him — not even
     // the poster — moves over the wire until the block is within a screen

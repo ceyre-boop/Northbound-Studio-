@@ -106,24 +106,65 @@ describe('founding Beacon and Engine amounts', () => {
    for JavaScript-off), and this is what stops them drifting apart. */
 describe('GOOGLE_REVIEW_URL', () => {
   const ROOT = join(import.meta.dir, '..');
+  const PAGES = ['index.html', 'checkout.html', 'build.html'];
+  const live = GOOGLE_REVIEW_URL !== '';
+
   test('the server and the browser hold the same string', () => {
     expect(GOOGLE_REVIEW_URL).toBe(BROWSER_REVIEW_URL);
-    expect(GOOGLE_REVIEW_URL).toBe('https://www.google.com/maps/search/?api=1&query=Northbound+Studio+470-573-8908');
   });
 
-  for (const page of ['index.html', 'checkout.html', 'build.html']) {
-    test(`${page}'s "Leave your Google review" link is that URL, in a new tab`, () => {
-      const html = readFileSync(join(ROOT, page), 'utf8');
-      const links = Array.from(html.matchAll(/<a\s+([^>]*)>Leave your Google review<\/a>/g)).map((m) => m[1]);
-      expect(links.length).toBe(1);
-      const href = links[0].match(/href="([^"]+)"/)![1].replace(/&amp;/g, '&');
-      expect(href).toBe(GOOGLE_REVIEW_URL);
-      expect(links[0]).toContain('target="_blank"');
-      expect(links[0]).toContain('rel="noopener"');
-      expect(html).toContain('name="review_name"');
-      expect(html).not.toMatch(/isn't live yet|nothing to review today/);
+  /* Empty means there is no Google Business Profile yet. The whole founding
+     review flow is off in that state, and the thing being guarded against is
+     the site asking for a review it has nowhere to receive — which is not
+     hypothetical: a search for our own name returns a different Northbound
+     Studio, a marketing agency in Grandville. */
+  describe.skipIf(live)('while there is no profile to review', () => {
+    for (const page of PAGES) {
+      test(`${page} asks for no review and links nowhere`, () => {
+        const raw = readFileSync(join(ROOT, page), 'utf8');
+        expect(raw).toContain('data-review-pending');
+        /* Comments stripped first: each of these pages carries the markup to
+           restore, commented out, so the day the profile exists it is a
+           paste rather than a rewrite. A comment ships nothing. */
+        const html = raw.replace(/<!--[\s\S]*?-->/g, '');
+        expect(Array.from(html.matchAll(/<a\s+([^>]*)>Leave your Google review<\/a>/g)).length).toBe(0);
+        expect(html).not.toContain('name="review_name"');
+      });
+    }
+
+    test('no page links to a Google place or search', () => {
+      for (const page of PAGES) {
+        const html = readFileSync(join(ROOT, page), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
+        expect(html).not.toMatch(/maps\/search|maps\/place|g\.page/);
+      }
     });
-  }
+
+    test('a founding order goes through without one', async () => {
+      const res = await post({ ...baseFields(), buy: 'beacon' });
+      expect(res.status).toBe(200);
+      expect(sentEmails[0].text as string).toContain('no Google profile to leave one on yet');
+    });
+  });
+
+  describe.skipIf(!live)('once the profile is live', () => {
+    for (const page of PAGES) {
+      test(`${page}'s "Leave your Google review" link is that URL, in a new tab`, () => {
+        const html = readFileSync(join(ROOT, page), 'utf8');
+        const links = Array.from(html.matchAll(/<a\s+([^>]*)>Leave your Google review<\/a>/g)).map((m) => m[1]);
+        expect(links.length).toBe(1);
+        const href = links[0].match(/href="([^"]+)"/)![1].replace(/&amp;/g, '&');
+        expect(href).toBe(GOOGLE_REVIEW_URL);
+        expect(links[0]).toContain('target="_blank"');
+        expect(links[0]).toContain('rel="noopener"');
+        expect(html).toContain('name="review_name"');
+      });
+    }
+
+    test('founding pricing is refused without the name the review is posted under', async () => {
+      const res = await post({ ...baseFields(), buy: 'beacon' });
+      expect(res.status).toBe(422);
+    });
+  });
 });
 
 describe('Bearing — both founding term variants', () => {
@@ -171,7 +212,7 @@ describe('Bearing — both founding term variants', () => {
 });
 
 describe('refusals', () => {
-  test('refuses founding pricing without the review name — Beacon', async () => {
+  test.skipIf(GOOGLE_REVIEW_URL === '')('refuses founding pricing without the review name — Beacon', async () => {
     const res = await post({ ...baseFields(), buy: 'beacon' });
     expect(res.status).toBe(422);
     const body = await res.json();
@@ -180,7 +221,7 @@ describe('refusals', () => {
     expect(sentEmails.length).toBe(0);
   });
 
-  test('refuses founding pricing without the review name — Bearing', async () => {
+  test.skipIf(GOOGLE_REVIEW_URL === '')('refuses founding pricing without the review name — Bearing', async () => {
     const res = await post({
       ...baseFields(),
       buy: 'clean',
@@ -194,7 +235,7 @@ describe('refusals', () => {
     expect(sentEmails.length).toBe(0);
   });
 
-  test('a review name that is only whitespace is absent, and the old checkbox no longer counts', async () => {
+  test.skipIf(GOOGLE_REVIEW_URL === '')('a review name that is only whitespace is absent, and the old checkbox no longer counts', async () => {
     const blank = await post({ ...baseFields(), buy: 'engine', review_name: '   ' });
     expect(blank.status).toBe(422);
     const checkbox = await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes' });
@@ -375,25 +416,38 @@ describe('an invisible review name is not a review name', () => {
   const ZWSP = '\u200B';
   const BIDI = '\u200E\u202A\u2060\uFEFF';
 
-  test('checkout: a zero-width space alone is refused', async () => {
+  /* These two are about read() stripping, which has to hold whether or not a
+     review is currently being asked for — the day the profile goes live the
+     gate above starts using it. */
+  test('checkout: a zero-width space never becomes a review name', async () => {
     const res = await post({ ...baseFields(), buy: 'beacon', review_name: ZWSP });
-    expect(res.status).toBe(422);
-    expect(sentEmails.length).toBe(0);
+    if (GOOGLE_REVIEW_URL === '') {
+      expect(res.status).toBe(200);
+      expect(sentEmails[0].text as string).not.toContain('posted under');
+    } else {
+      expect(res.status).toBe(422);
+      expect(sentEmails.length).toBe(0);
+    }
   });
 
-  test('checkout: bidi and joiner marks alone are refused', async () => {
+  test('checkout: bidi and joiner marks never become a review name', async () => {
     const res = await post({ ...baseFields(), buy: 'engine', review_name: BIDI });
-    expect(res.status).toBe(422);
-    expect(sentEmails.length).toBe(0);
+    if (GOOGLE_REVIEW_URL === '') {
+      expect(res.status).toBe(200);
+      expect(sentEmails[0].text as string).not.toContain('posted under');
+    } else {
+      expect(res.status).toBe(422);
+      expect(sentEmails.length).toBe(0);
+    }
   });
 
-  test('quote: a zero-width space alone is refused', async () => {
+  test.skipIf(GOOGLE_REVIEW_URL === '')('quote: a zero-width space alone is refused', async () => {
     const res = await quote({ package: 'engine', review_name: ZWSP });
     expect(res.status).toBe(422);
     expect(sentEmails.length).toBe(0);
   });
 
-  test('a real name still passes, and the marks around it are stripped', async () => {
+  test.skipIf(GOOGLE_REVIEW_URL === '')('a real name still passes, and the marks around it are stripped', async () => {
     const res = await post({ ...baseFields(), buy: 'beacon', review_name: `${ZWSP}Jamie R.${ZWSP}` });
     expect(res.status).toBe(200);
     expect(sentEmails[0].text as string).toContain('posted under "Jamie R."');
@@ -431,7 +485,7 @@ describe('inherited object keys are not packages', () => {
     expect(sentEmails[0].text as string).not.toContain('native code');
   });
 
-  test('a real founding package still demands the review name', async () => {
+  test.skipIf(GOOGLE_REVIEW_URL === '')('a real founding package still demands the review name', async () => {
     const res = await quote({ package: 'engine' });
     expect(res.status).toBe(422);
   });

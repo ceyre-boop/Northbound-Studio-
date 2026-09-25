@@ -76,11 +76,11 @@ const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
 const FALLBACK_FROM = 'Northbound Studio <quotes@northbound-dev.com>';
 
-/* Where "Leave your Google review" goes. The same string as js/config.js —
-   the pages carry it as a plain href so the link works with JavaScript off,
-   and the emails carry it from here. api/quote.ts imports this one.
-   tests/checkout.unit.test.ts asserts the copies agree. */
-export const GOOGLE_REVIEW_URL = 'https://www.google.com/maps/search/?api=1&query=Northbound+Studio+470-573-8908';
+/* Where "Leave your Google review" goes: the profile's own review link, not
+   a search — a search for our name finds a different Northbound Studio.
+   Empty turns the flow off entirely (no link, no field, no requirement).
+   The same string as js/config.js; tests assert the copies agree. */
+export const GOOGLE_REVIEW_URL = 'https://g.page/r/CRFQRq5WLg6HECE/review';
 
 /* Generous, but bounded: nothing on this form needs more, and an unbounded
    field is an invitation to paste a novel into someone's inbox. */
@@ -160,7 +160,8 @@ function problem(
   if (!EMAIL_RE.test(o.email)) return 'Please check your email address.';
   if (bearingChecked && !bearingKey) return "Please choose a Bearing term — 12-month commitment or month-to-month.";
   const takingFounding = isFounding(buy) || bearingKey !== null;
-  if (takingFounding && !o.review_name) {
+  /* Only demanded once there is somewhere to leave the review. */
+  if (GOOGLE_REVIEW_URL && takingFounding && !o.review_name) {
     return "Founding pricing needs the name your Google review is posted under — leave the review first, then tell us the name it shows. We check it ourselves before finalising.";
   }
   return null;
@@ -236,7 +237,9 @@ function notification(o: Order, summary: Summary, foundingTaken: boolean, page: 
   if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month`);
   if (spec) lines.push('', ...specLines(spec, buy));
   if (foundingTaken) {
-    lines.push('', `Founding review: posted under "${o.review_name}" — look it up on Google before finalising; nothing has checked it.`);
+    lines.push('', o.review_name
+      ? `Founding review: posted under "${o.review_name}" — look it up on Google before finalising; nothing has checked it.`
+      : 'Founding client — one of the first 15. No review asked for: there is no Google profile to leave one on yet.');
   }
   lines.push('', `Sent from: ${page || 'unknown'}`);
   return lines.join('\n');
@@ -260,7 +263,9 @@ function confirmation(o: Order, summary: Summary, foundingTaken: boolean, spec: 
   if (foundingTaken) {
     lines.push(
       '',
-      `You're taking founding pricing, and you told us your Google review is posted under "${o.review_name}". Founding pricing is confirmed once we can see that review — we check it ourselves before finalising, there's nothing automatic about it. If it isn't up yet, this is the place to leave it: ${GOOGLE_REVIEW_URL}`,
+      o.review_name
+        ? `You're taking founding pricing, and you told us your Google review is posted under "${o.review_name}". Founding pricing is confirmed once we can see that review — we check it ourselves before finalising, there's nothing automatic about it. If it isn't up yet, this is the place to leave it: ${GOOGLE_REVIEW_URL}`
+        : "You're taking founding pricing as one of our first 15 clients. Part of that is a Google review — our profile isn't live yet, so there is nothing for you to do today. We'll ask you once it is.",
     );
   }
   lines.push(

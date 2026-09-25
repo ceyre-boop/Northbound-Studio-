@@ -18,6 +18,7 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { POST as checkoutPOST } from '../api/checkout.ts';
 import { POST as webhookPOST } from '../api/stripe-webhook.ts';
+import { GOOGLE_REVIEW_URL } from '../api/checkout.ts';
 
 const SECRET = 'whsec_test_secret';
 const STRIPE_URL = 'https://stripe.example/session';
@@ -163,12 +164,17 @@ describe('checkout routes to Stripe only when it can be honoured end to end', ()
     expect(sent.success_url).toContain('/order-paid.html');
   });
 
-  test('a founding order with no review name never reaches Stripe', async () => {
+  test('a founding order is gated on the review only while there is a profile to review', async () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_x';
     process.env.STRIPE_WEBHOOK_SECRET = SECRET;
     const res = await order({ buy: 'beacon' }); // no review_name
-    expect(res.status).toBe(422);
-    expect(calls.length).toBe(0);
+    if (GOOGLE_REVIEW_URL === '') {
+      expect(res.status).toBe(200);           // nothing to ask for, so nothing is withheld
+      expect(stripeCall()['metadata[nb_founding]']).toBe('1');
+    } else {
+      expect(res.status).toBe(422);
+      expect(calls.length).toBe(0);
+    }
   });
 });
 

@@ -26,10 +26,11 @@
  *   3. Poll https://northbound-dev.com/data/release.json until it serves
  *      the codeCommit just deployed.
  *   4. Re-measure production: `bun scripts/perf.mjs --emit
- *      https://northbound-dev.com/`. This writes a fresh
+ *      https://northbound-dev.com/studio.html` — studio.html, because that
+ *      is the page the proof block is on and the numbers describe. This writes a fresh
  *      data/perf-budget.json stamped with the same codeCommit. Skipped when
  *      the published artifact's codeCommit already equals this ship's
- *      codeCommit — nothing under index.html, js/, css/ or studio.html changed since the
+ *      codeCommit — nothing under js/, css/ or studio.html changed since the
  *      last measurement, so it still describes this deploy. `--remeasure`
  *      forces it anyway.
  *   5. Commit ONLY data/perf-budget.json ("Re-measure from production") and
@@ -131,10 +132,9 @@ function preflight() {
 function codeCommit(): string {
   /* --first-parent, because a plain path-limited log skips merge commits:
      the hero scene arrived on a merge and the stamp stayed on the commit
-     before it. And index.html, because that is the page this script
-     actually measures — leaving it out meant a homepage rendering change
-     could publish numbers taken before it. */
-  return git('log -1 --first-parent --format=%h -- index.html js css studio.html');
+     before it, so the published numbers kept the name of a commit that
+     predated the code they were measuring. */
+  return git('log -1 --first-parent --format=%h -- js css studio.html');
 }
 
 function writeRelease(commit: string) {

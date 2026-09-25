@@ -89,7 +89,7 @@ function notification(md: Meta, sessionId: string): string {
       '',
       md.nb_review
         ? `Founding client — review posted under "${md.nb_review}". Look it up on Google before finalising; nothing has checked it.`
-        : 'Founding client — but no review name came through. Check this one by hand before finalising.',
+        : 'Founding client — one of the first 15. No review name: there is no Google profile to leave one on yet.',
     );
   }
   lines.push('', `Stripe session: ${sessionId}`);
@@ -115,7 +115,7 @@ function confirmation(md: Meta): string {
       '',
       md.nb_review
         ? `You're taking founding pricing, and you told us your Google review is posted under "${md.nb_review}". We look that up ourselves before finalising — there's nothing automatic about it.`
-        : "You're taking founding pricing as one of our early clients. We'll be in touch about your Google review before finalising.",
+        : "You're taking founding pricing as one of our first 15 clients. Part of that is a Google review — our profile isn't live yet, so there is nothing for you to do today. We'll ask you once it is.",
     );
   }
   lines.push(

@@ -217,6 +217,11 @@
   .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
   .field input, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; }
   .field input:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field textarea { resize: vertical; }
+
+  .pause { margin: 0 0 22px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+  .pause h2 { font-family: var(--display); font-size: 20px; margin: 0 0 6px; }
+  .pause-lede { color: var(--ink-soft); font-size: 15px; margin: 0 0 16px; }
   .pay { width: 100%; min-height: 54px; border: none; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer; }
   .pay:hover { background: var(--accent-dark); }
   .reassure { font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
@@ -258,6 +263,15 @@
     <form class="card" method="post" action="/api/checkout" id="order" data-today="600" data-balance="0">
       <input type="hidden" name="buy" value="clean">
       <input type="hidden" name="spec" value="" id="spec">
+
+      <div class="pause">
+        <h2>Before you pay, pause.</h2>
+        <p class="pause-lede">Think about this purchase for a minute. We'd rather build the machine you actually need than the biggest one. All three are optional.</p>
+        <p class="field"><label for="f-why-not">Every reason you don't need us to build this</label><textarea id="f-why-not" name="why_not" rows="3" maxlength="500"></textarea></p>
+        <p class="field"><label for="f-benefit">What will it actually bring you and your business?</label><textarea id="f-benefit" name="benefit" rows="3" maxlength="500"></textarea></p>
+        <p class="field"><label for="f-why-us">Why are you coming to Northbound?</label><textarea id="f-why-us" name="why_us" rows="2" maxlength="500"></textarea></p>
+        <p class="reassure pause-note">We read every word of this before we start your build, and it shapes what we make. The more honest it is, the closer the machine gets to what you want.</p>
+      </div>
 
       <div class="line">
         <h2>Cheap and Clean</h2>

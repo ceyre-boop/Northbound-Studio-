@@ -92,6 +92,12 @@ const LIMITS = {
   email: 200,
   spec: 120,
   review_name: 120,
+  /* 500 each, the same as Stripe's metadata cap, so what the buyer can type
+     is exactly what reaches the studio on either path: the page promises
+     "we read every word", and the textareas carry maxlength="500" to match. */
+  why_not: 500,
+  benefit: 500,
+  why_us: 500,
 } as const;
 
 type Field = keyof typeof LIMITS;
@@ -133,9 +139,18 @@ function money(cents: number): string {
    arrived in the order email as an empty pair of quotes. */
 const INVISIBLE = /[\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2064\uFEFF]/gu;
 
+/* Cut by code point, never inside one. String.slice counts UTF-16 units,
+   so a cut through an emoji left half a surrogate pair, encodeURIComponent
+   threw on it building the Stripe request, and the order fell back to email
+   capture: the buyer never reached payment. */
+function clip(v: string, n: number): string {
+  const cps = Array.from(v);
+  return cps.length <= n ? v : cps.slice(0, n).join('');
+}
+
 function read(form: FormData, key: Field): string {
   const v = form.get(key);
-  return typeof v === 'string' ? v.replace(INVISIBLE, '').trim().slice(0, LIMITS[key]) : '';
+  return typeof v === 'string' ? clip(v.replace(INVISIBLE, '').trim(), LIMITS[key]) : '';
 }
 
 function checked(form: FormData, key: string): boolean {
@@ -219,6 +234,27 @@ function monthlyLine(l: LineItem): string {
   return `  ${l.label} — ${money(l.cents)}/mo${l.note ? ` (${l.note})` : ''}`;
 }
 
+/* "Before you pay, pause." — one last, optional word from the buyer before
+   they commit. Nothing here is required; three empty fields produce no
+   section at all. Multi-line answers keep their line breaks, indented four
+   spaces so they read as a continuation rather than a new field. */
+function pauseLines(o: Order): string[] {
+  const items: [string, string][] = [
+    ['Reasons they might not need us', o.why_not],
+    ['What it should bring them', o.benefit],
+    ['Why Northbound', o.why_us],
+  ];
+  const present = items.filter(([, v]) => v);
+  if (!present.length) return [];
+  const lines = ['In their words:'];
+  for (const [label, value] of present) {
+    const [first, ...rest] = value.split('\n');
+    lines.push(`  ${label}: ${first}`);
+    for (const cont of rest) lines.push(`    ${cont}`);
+  }
+  return lines;
+}
+
 function notification(o: Order, summary: Summary, foundingTaken: boolean, page: string, spec: Spec | null, buy: keyof typeof PRICES): string {
   const lines = [
     `Name:      ${o.name}`,
@@ -241,6 +277,8 @@ function notification(o: Order, summary: Summary, foundingTaken: boolean, page: 
       ? `Founding review: posted under "${o.review_name}" — look it up on Google before finalising; nothing has checked it.`
       : 'Founding client — one of the first 15. No review asked for: there is no Google profile to leave one on yet.');
   }
+  const pause = pauseLines(o);
+  if (pause.length) lines.push('', ...pause);
   lines.push('', `Sent from: ${page || 'unknown'}`);
   return lines.join('\n');
 }
@@ -506,6 +544,11 @@ async function createCheckoutSession(
     'metadata[nb_review]': o.review_name,
     'metadata[nb_spec]': specText.slice(0, 500),
   };
+  /* Optional, so omitted entirely when empty rather than shipping a blank
+     Stripe metadata value. */
+  if (o.why_not) params['metadata[nb_why_not]'] = clip(o.why_not, 500);
+  if (o.benefit) params['metadata[nb_benefit]'] = clip(o.benefit, 500);
+  if (o.why_us) params['metadata[nb_why_us]'] = clip(o.why_us, 500);
   try {
     const res = await fetch(STRIPE_SESSIONS_URL, {
       method: 'POST',

@@ -57,7 +57,7 @@ if (pkg && pkg.key !== 'clean') {
   const note = document.getElementById('founding-note');
   if (note) note.textContent = `Needed for ${pkg.name} at the founding price, and for Bearing. Founding pricing is confirmed once we can see the review — we check it ourselves before finalising, there's no automatic check.`;
 
-  const reassure = form.querySelector('.reassure');
+  const reassure = form.querySelector('.reassure:not(.pause-note)');
   if (reassure) reassure.textContent = `No card details are entered on this site. We'll email a secure payment link for the ${money(pkg.deposit)} deposit within one business hour — nothing is charged until you pay it. The remaining ${money(pkg.price - pkg.deposit)} is due on delivery.`;
 }
 

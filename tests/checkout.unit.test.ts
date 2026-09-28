@@ -277,6 +277,69 @@ describe('refusals', () => {
   });
 });
 
+/* "Before you pay, pause." — optional last word from the buyer, on the
+   email-capture fallback path (api/checkout.ts's notification()). */
+describe('"Before you pay, pause." answers', () => {
+  test('all three answers appear under "In their words:" in the studio notification', async () => {
+    const res = await post({
+      ...baseFields(),
+      buy: 'clean',
+      why_not: "I could probably do this myself",
+      benefit: 'More booked jobs every week',
+      why_us: 'You built my cousin\'s site',
+    });
+    expect(res.status).toBe(200);
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('In their words:');
+    expect(notif).toContain('Reasons they might not need us: I could probably do this myself');
+    expect(notif).toContain('What it should bring them: More booked jobs every week');
+    expect(notif).toContain("Why Northbound: You built my cousin's site");
+  });
+
+  test('empty answers produce no "In their words:" section, on either email', async () => {
+    const res = await post({ ...baseFields(), buy: 'clean' });
+    expect(res.status).toBe(200);
+    for (const email of sentEmails) {
+      expect(email.text as string).not.toContain('In their words:');
+    }
+  });
+
+  test('the confirmation email never carries these answers', async () => {
+    await post({
+      ...baseFields(),
+      buy: 'clean',
+      why_not: 'reason',
+      benefit: 'benefit',
+      why_us: 'why us',
+    });
+    const conf = sentEmails[1].text as string;
+    expect(conf).not.toContain('In their words:');
+    expect(conf).not.toContain('reason');
+  });
+
+  test('each answer is capped at 500, the same on both delivery paths', async () => {
+    const res = await post({
+      ...baseFields(),
+      buy: 'clean',
+      why_not: 'A'.repeat(2000),
+      benefit: 'B'.repeat(2000),
+      why_us: 'C'.repeat(2000),
+    });
+    expect(res.status).toBe(200);
+    const notif = sentEmails[0].text as string;
+    for (const [label, ch] of [['Reasons they might not need us', 'A'], ['What it should bring them', 'B'], ['Why Northbound', 'C']]) {
+      expect(notif).toContain(`${label}: ${ch.repeat(500)}`);
+      expect(notif).not.toContain(ch.repeat(501));
+    }
+  });
+
+  test('multi-line answers indent their continuation lines by four spaces', async () => {
+    await post({ ...baseFields(), buy: 'clean', why_not: 'line one\nline two' });
+    const notif = sentEmails[0].text as string;
+    expect(notif).toContain('Reasons they might not need us: line one\n    line two');
+  });
+});
+
 describe('honeypot', () => {
   test('a filled honeypot is answered like a success and nothing is sent', async () => {
     const res = await post({ ...baseFields(), buy: 'clean', nb_hp_7: 'I am a bot' });

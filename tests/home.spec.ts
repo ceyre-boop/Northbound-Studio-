@@ -22,9 +22,9 @@ test.describe('homepage — pricing', () => {
     expect(cardTitles).toEqual(['Cheap and Clean', 'Beacon', 'Engine']);
     expect(cardTitles).not.toContain('Bearing');
 
-    // The "Keeping it running" block still names it and links to an account.
+    // The one-line Bearing note still names it and links to an account.
     const keeping = page.locator('#bearing');
-    await expect(keeping).toContainText('Keeping it running');
+    await expect(keeping).toContainText('keeps it running');
     await expect(keeping).toContainText('Bearing');
     await expect(keeping.locator('a[href="account.html"]')).toHaveCount(1);
   });

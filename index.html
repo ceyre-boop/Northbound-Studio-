@@ -81,6 +81,11 @@
   @media (prefers-reduced-motion: reduce) { .nb-veil { display: none; } html.nb-arriving::before, html.nb-arriving::after, html.nb-arriving body { animation: none; } }
 </style>
 <script>
+  /* Motion allowed (or forced with ?motion=full): the margin notes may write
+     themselves in. Set before first paint so they never flash in, then out. */
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=full\b/.test(location.search)) document.documentElement.classList.add('nb-motion');
+</script>
+<script>
   (function () {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var root = document.documentElement;
@@ -208,13 +213,13 @@
      children can take grid areas without moving in the source. */
   @media (max-width: 639.98px) {
     .hero { --buddy-h: clamp(120px, 33vw, 150px); }
-    .hero .wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow eyebrow" "h1 h1" "sub buddy" "q q" "reply reply" "actions actions"; }
+    .hero .wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow eyebrow" "h1 h1" "n1 n1" "sub buddy" "actions actions" "n2 n2"; }
     .hero-copy { display: contents; }
     .hero .eyebrow { grid-area: eyebrow; }
     .hero h1 { grid-area: h1; }
     .hero .sub { grid-area: sub; }
-    .hero .q-answers { grid-area: q; }
-    .hero .q-reply { grid-area: reply; }
+    .hero .mnote-h1 { grid-area: n1; }
+    .hero .mnote-motion { grid-area: n2; }
     .hero .actions { grid-area: actions; }
     .buddy { display: block; grid-area: buddy; align-self: end; width: auto; margin: 0 0 30px 14px; }
     .buddy::before { display: none; }
@@ -246,66 +251,34 @@
   .btn-primary:hover { background: var(--accent-dark); }
   .btn-secondary { background: #fff; color: var(--ink); border: 1px solid var(--ink); }
 
-  /* THE QUESTION.
-     The hero asks, and the visitor answers. Everything here is a scene
-     change with a job: the answer stays lit and the other two step back
-     (you chose), the reply rises out of a mask line by line (we heard you),
-     and the machine behind the hero lights up one part at a time, as far as
-     the answer goes (you get out what you put in).
+  /* The headline breaks where we say: one <br>, and each half is unbreakable. */
+  .hero h1 > span { white-space: nowrap; }
 
-     Transform, opacity and grid rows only. The reply opens by expanding its
-     grid row, which moves the buttons down. That is a layout shift, but
-     it happens only on the visitor's own click, and CLS does not count
-     input-driven shifts. Nothing moves at first paint: the chips are in
-     the HTML as plain links. Under reduced motion every state is still
-     reached, just with no motion between states. */
-  .hero h1 { max-width: 13ch; }
-  .q-answers { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 22px; }
-  .q-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(14,21,18,.22); background: rgba(255,255,255,.72); font-weight: 600; font-size: 16px; text-decoration: none; color: var(--ink); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .35s ease, color .35s ease, border-color .35s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
-  .q-chip:hover { border-color: var(--accent); }
-  .q-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .q-chip[aria-checked="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .hero[data-level] .q-chip[aria-checked="false"] { color: var(--ink-soft); border-color: rgba(14,21,18,.12); background: rgba(255,255,255,.5); transform: scale(.96); }
-  .hero[data-level] .q-chip[aria-checked="false"]:hover { color: var(--ink); border-color: var(--accent); }
+  /* MARGIN NOTES.
+     The page never says it sweats the details. It leaves notes in its own
+     margins, the way a designer redlines a proof, and each one points at a
+     decision that is actually in this file. That is the rule: a note that
+     is not true of the page it sits on does not ship. Two only hold while
+     things move, so under reduced motion they are gone rather than wrong.
 
-  .q-reply { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .7s cubic-bezier(.2,.8,.2,1); }
-  .hero[data-level] .q-reply { grid-template-rows: 1fr; }
-  .q-reply-in { min-height: 0; overflow: hidden; }
-  .q-reply-head { font-family: var(--display); font-weight: 700; font-size: clamp(20px, 2.4vw, 26px); letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 14px; }
-  .q-spec { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin: 0 0 16px; max-width: 560px; }
-  .q-spec dt { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
-  .q-spec dd { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
-  .q-close { font-size: 15px; font-weight: 600; margin: 0 0 24px; }
-  @media (max-width: 479.98px) { .q-spec { grid-template-columns: 1fr; gap: 12px; } }
-  /* Each line of the reply is its own mask, and the text rises out of it. */
-  .q-line { display: block; overflow: hidden; }
-  .q-line > span { display: block; transform: translateY(0); transition: transform .8s cubic-bezier(.16,1,.3,1); transition-delay: calc(var(--i, 0) * 90ms + 180ms); }
-  .q-reply-in.is-out .q-line > span { transform: translateY(105%); transition-duration: .22s; transition-delay: 0s; transition-timing-function: cubic-bezier(.7,0,.84,0); }
-  .q-reply-in.is-pre .q-line > span { transform: translateY(105%); transition: none; }
+     They number themselves with a CSS counter, which skips hidden notes, so
+     the sequence reads N°01, N°02... on every device. With motion, each one
+     writes itself in, left to right, as it reaches the screen. */
+  body { counter-reset: nbnote; }
+  .mnote { counter-increment: nbnote; display: flex; gap: 12px; max-width: 46ch; margin: 0 0 22px; font-family: var(--mono); font-size: 12px; line-height: 1.6; letter-spacing: .01em; color: var(--ink-soft); }
+  .mnote::before { content: "N\00B0" counter(nbnote, decimal-leading-zero); flex: none; color: var(--accent); padding-right: 12px; border-right: 1px solid rgba(14,111,92,.35); }
+  .hero .mnote-motion { margin: 22px 0 0; }
+  .section-lede + .mnote, .founding-caption + .mnote { margin-top: 12px; }
+  /* Under the pointing robot, it takes a row of its own: in his auto-width
+     phone column it widened the track and pushed the caption off-screen. */
+  .founding-buddy > .mnote { grid-column: 1 / -1; margin-bottom: 0; }
+  @media (min-width: 640px) { .founding-buddy > .mnote { grid-column: 1; } }
+  @media (prefers-reduced-motion: reduce) { .mnote-motion { display: none; } }
+  html.nb-motion .mnote { clip-path: inset(0 100% 0 0); transition: clip-path 1.4s cubic-bezier(.65,0,.35,1); transition-delay: var(--note-delay, .2s); }
+  html.nb-motion .mnote.is-in { clip-path: inset(0 0 0 0); }
+  html.nb-motion .hero .mnote-h1 { --note-delay: .9s; }
+  html.nb-motion .hero .mnote-motion { --note-delay: 1.5s; }
 
-  /* The machine answers too. Unanswered, every part waits at a third. Each
-     level lights its own group, and they arrive in order, website first.
-     HTML parts dim with opacity (their animations only move them). SVG
-     parts dim with stroke- and fill-opacity, because the nodes already
-     animate opacity and the two must not fight. */
-  .hero .hs > :not(svg) { transition: opacity .9s ease; }
-  .hero .hs-net path, .hero .hs-net rect { transition: stroke-opacity .9s ease, fill-opacity .9s ease; }
-  .hero .hs > :not(svg), .hero .hs-m { opacity: .3; }
-  .hero .hs-net path, .hero .hs-net rect { stroke-opacity: .25; fill-opacity: .25; }
-  /* Level 1: the website and the editor that writes it. */
-  .hero[data-level] .hs-web, .hero[data-level] .hs-l1, .hero[data-level] .hs-ed { opacity: 1; }
-  .hero[data-level] .hs-net .hs-r2 { stroke-opacity: 1; fill-opacity: 1; }
-  /* Level 2: the customers it brings, and the wiring on the left. */
-  .hero[data-level="2"] .hs-cu, .hero[data-level="2"] .hs-l5, .hero[data-level="2"] .hs-t1, .hero[data-level="2"] .hs-t2,
-  .hero[data-level="3"] .hs-cu, .hero[data-level="3"] .hs-l5, .hero[data-level="3"] .hs-t1, .hero[data-level="3"] .hs-t2 { opacity: 1; transition-delay: .25s; }
-  .hero[data-level="2"] .hs-net :is(path, rect):not(.hs-r1):not(.hs-r2),
-  .hero[data-level="3"] .hs-net :is(path, rect):not(.hs-r1):not(.hs-r2) { stroke-opacity: 1; fill-opacity: 1; transition-delay: .25s; }
-  /* Level 3: the whole machine. Bookings, payments, dashboard. */
-  .hero[data-level="3"] .hs > .hs-r1, .hero[data-level="3"] .hs-m { opacity: 1; transition-delay: .5s; }
-  .hero[data-level="3"] .hs-net .hs-r1 { stroke-opacity: 1; fill-opacity: 1; transition-delay: .5s; }
-  @media (prefers-reduced-motion: reduce) {
-    .q-chip, .q-reply, .q-line > span, .hero .hs > :not(svg), .hero .hs-net path, .hero .hs-net rect { transition: none !important; }
-  }
 
   /* THE MACHINE.
      The scene behind the hero: the site's own pitch drawn as the parts of the
@@ -467,10 +440,9 @@
     .hs-m .hs-lb { font-size: 10px; line-height: 13px; }
     .buddy::after { content: ""; position: absolute; left: -24%; right: -24%; bottom: -8px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(150,235,225,.85) 0 18%, rgba(150,235,225,.15) 19% 44%, rgba(23,160,138,.35) 45% 47%, rgba(23,160,138,0) 48% 70%, rgba(23,160,138,.22) 71% 73%, rgba(23,160,138,0) 74%); animation: hs-breath 11s ease-in-out infinite; }
   }
-  /* From 400px up the lede wraps into fewer lines than Buddy is tall, so
-     he rises into the corner the Bookings card holds. The card is the
-     decoration and it steps aside; measured overlap was 28-91px at 420-639. */
-  @media (min-width: 400px) and (max-width: 639.98px) { .hs-m { display: none; } }
+  /* The lede is two lines now, shorter than Buddy is tall, so he rises into
+     the corner the Bookings card held. The card is decoration; it goes. */
+  @media (max-width: 639.98px) { .hs-m { display: none; } }
   @media (prefers-reduced-motion: reduce) {
     .hero .hero-scene *, .hero .hs-m *, .hero .hs-chk::after, .hero .buddy::after { animation: none; }
   }
@@ -624,27 +596,14 @@
   <div class="wrap">
     <div class="hero-copy">
       <p class="eyebrow">Grand Ledge, Michigan</p>
-      <h1>How important is this to you?</h1>
-      <p class="sub">The customers you haven't met yet. The customer who books someone else at 11pm. Where the business is in five years. What you get out of a build is exactly what you put into it, so we start here.</p>
-      <!--
-        THE QUESTION. Three honest answers, and each one maps to a package.
-        They are links first: with no JavaScript, the small answer goes to the
-        prices and the other two go to the guided build. The script at the
-        foot of the page turns them into toggles. It writes the reply below,
-        swaps the primary button, and lights the machine behind the hero one
-        part at a time, in proportion to the answer. You get out what you
-        put in, drawn.
-      -->
-      <div class="q-answers" aria-label="How important is it">
-        <a class="q-chip" href="#packages" data-level="1">Worth a look</a>
-        <a class="q-chip" href="build.html" data-level="2">It matters</a>
-        <a class="q-chip" href="build.html" data-level="3">It's everything</a>
-      </div>
-      <div class="q-reply" aria-live="polite"><div class="q-reply-in"></div></div>
+      <h1><span>We build</span><br><span>the machine.</span></h1>
+      <p class="mnote mnote-h1">That line break was set by hand. The browser doesn't get a vote.</p>
+      <p class="sub">The site out front. The booking, the follow-up and the payments behind it.</p>
       <div class="actions">
         <a class="btn btn-primary" href="build.html">Build your machine</a>
         <a class="btn btn-secondary" href="tel:+14705738908">Call 470-573-8908</a>
       </div>
+      <p class="mnote mnote-motion">Everything behind this text drifts on its own clock, so you'll never catch it looping.</p>
     </div>
     <!--
       Buddy's wave. Fifteen seconds: a second and a half still, the arm comes
@@ -727,106 +686,12 @@
   </div>
 </section>
 
-<script>
-  /* The question, answered. Each reply says what we build AND what we need
-     from them: the spec has blanks only the client can fill, and the hero
-     says so before any price does. Every sentence below is a promise the
-     packages already make. No number here that is not a price we set. */
-  (function () {
-    var hero = document.querySelector('.hero');
-    var chips = hero && hero.querySelectorAll('.q-chip');
-    var box = hero && hero.querySelector('.q-reply-in');
-    var cta = hero && hero.querySelector('.actions .btn-primary');
-    if (!chips || !chips.length || !box || !cta) return;
-    var REPLIES = {
-      1: { head: 'Then start small, and start now.',
-           build: 'One page, your brand, live. That is Cheap and Clean, $600.',
-           need: 'Your logo, a few real photos, and the phone number you actually answer.',
-           cta: 'See Cheap and Clean', href: '#packages' },
-      2: { head: 'Then it should look like you mean it.',
-           build: 'A custom site up to five pages, a brand, and local search. That is Beacon.',
-           need: 'Your services in your own words, your best photos, and what makes you different.',
-           cta: 'Get a quote for Beacon', href: 'build.html' },
-      3: { head: 'Then we build the whole machine.',
-           build: 'The site, plus the booking, quotes, payments and follow-up behind it. That is Engine.',
-           need: 'How you quote a job, your hours, and an honest answer to what one new customer is worth.',
-           cta: 'Build your machine', href: 'build.html' }
-    };
-    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches && !/[?&]motion=full\b/.test(location.search);
-    var level = 0, swap = 0;
-
-    function line(text, i) {
-      var l = document.createElement('span'); l.className = 'q-line';
-      var t = document.createElement('span'); t.textContent = text; t.style.setProperty('--i', i);
-      l.appendChild(t); return l;
-    }
-    function render(r) {
-      box.textContent = '';
-      var h = document.createElement('p'); h.className = 'q-reply-head'; h.appendChild(line(r.head, 0));
-      var dl = document.createElement('dl'); dl.className = 'q-spec';
-      [['What we build', r.build], ['What we need from you', r.need]].forEach(function (pair, k) {
-        var d = document.createElement('div');
-        var dt = document.createElement('dt'); dt.appendChild(line(pair[0], 1 + k));
-        var dd = document.createElement('dd'); dd.appendChild(line(pair[1], 2 + k));
-        d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
-      });
-      var c = document.createElement('p'); c.className = 'q-close'; c.appendChild(line('You bring that. We bring the rest.', 4));
-      box.appendChild(h); box.appendChild(dl); box.appendChild(c);
-    }
-    function show(r) {
-      render(r);
-      if (reduce) return;
-      box.classList.add('is-pre');
-      void box.offsetHeight;             // commit the masked start before releasing it
-      box.classList.remove('is-pre');
-    }
-    function answer(n) {
-      if (n === level) return;
-      var r = REPLIES[n], first = !level;
-      level = n;
-      hero.setAttribute('data-level', n);
-      for (var i = 0; i < chips.length; i++) {
-        var on = +chips[i].getAttribute('data-level') === n;
-        chips[i].setAttribute('aria-checked', String(on));
-        chips[i].tabIndex = on ? 0 : -1;
-      }
-      cta.textContent = r.cta; cta.setAttribute('href', r.href);
-      clearTimeout(swap);
-      if (first || reduce) { show(r); return; }
-      box.classList.add('is-out');       // the old reply drops out of its masks first
-      swap = setTimeout(function () { box.classList.remove('is-out'); show(r); }, 240);
-    }
-    /* One answer at a time, and it cannot be taken back to none: a radio
-       group, with the roving tabindex and arrow keys that implies. A
-       modified click still opens the link's own page in a new tab. */
-    chips[0].parentNode.setAttribute('role', 'radiogroup');
-    for (var i = 0; i < chips.length; i++) {
-      chips[i].setAttribute('role', 'radio');
-      chips[i].setAttribute('aria-checked', 'false');
-      chips[i].tabIndex = i ? -1 : 0;
-      chips[i].addEventListener('click', function (e) {
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        e.preventDefault();
-        answer(+this.getAttribute('data-level'));
-      });
-      chips[i].addEventListener('keydown', function (e) {
-        var k = e.key, n = +this.getAttribute('data-level');
-        if (k === ' ') { e.preventDefault(); this.click(); return; }
-        var d = (k === 'ArrowRight' || k === 'ArrowDown') ? 1 : (k === 'ArrowLeft' || k === 'ArrowUp') ? -1 : 0;
-        if (!d) return;
-        e.preventDefault();
-        var next = chips[(n - 1 + d + chips.length) % chips.length];
-        next.focus();
-        answer(+next.getAttribute('data-level'));
-      });
-    }
-  })();
-</script>
 
 <section id="offerings">
   <div class="wrap">
     <h2>Twelve things, and what each one does for you.</h2>
     <p class="section-lede">The website is the front of it. These are the parts behind it — the ones that answer, quote, book, take the deposit and remember to ask for the review.</p>
+    <p class="mnote mnote-motion">Head to checkout and this page folds shut in twelve strips. One for each part.</p>
     <!--
       Twelve toggle buttons. Picking any of them raises a Continue button
       (fixed, bottom-left) whose href is the existing checkout — the package
@@ -944,6 +809,7 @@
         </div>
       </figure>
       <p class="founding-caption">Yes, half. Beacon and Engine at the founding price for the first 15 founding clients; the standard price is the one struck through.</p>
+      <p class="mnote">The robot doesn't load until you're nearly here. Your data plan never paid for him on the way down.</p>
     </div>
     <!--
       Bearing is not a fourth card any more. It is offered at checkout, where
@@ -1093,6 +959,19 @@
     }, { rootMargin: '0px 0px 120px 0px' });
     seen.observe(fig);
   });
+</script>
+<script>
+  // The margin notes write in as they reach the screen. Without the
+  // observer, or without motion, they are simply there.
+  (function () {
+    var root = document.documentElement, notes = document.querySelectorAll('.mnote');
+    function all() { for (var i = 0; i < notes.length; i++) notes[i].classList.add('is-in'); }
+    if (!root.classList.contains('nb-motion') || !('IntersectionObserver' in window)) return all();
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -12% 0px' });
+    for (var i = 0; i < notes.length; i++) io.observe(notes[i]);
+  })();
 </script>
 <!-- The twelve panels as an order. A module, so it is deferred and never
      in the way of the first paint; with it missing the panels are inert. -->

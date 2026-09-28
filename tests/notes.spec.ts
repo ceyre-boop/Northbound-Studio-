@@ -74,7 +74,7 @@ test.describe('the margin notes', () => {
     const page = await ctx.newPage();
     await page.goto('http://localhost:' + (process.env.NB_PORT ?? 8099) + '/');
     await expect(page.locator('.mnote-h1')).toHaveClass(/is-in/);
-    const below = page.locator('.founding-caption + .mnote');
+    const below = page.locator('#packages .mnote');
     await expect(below).not.toHaveClass(/is-in/);
     await below.scrollIntoViewIfNeeded();
     await expect(below).toHaveClass(/is-in/);

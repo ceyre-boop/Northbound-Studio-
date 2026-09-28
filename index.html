@@ -261,12 +261,12 @@
      reached, just with no motion between states. */
   .hero h1 { max-width: 13ch; }
   .q-answers { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 22px; }
-  .q-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(14,21,18,.22); background: rgba(255,255,255,.72); font-weight: 600; font-size: 16px; text-decoration: none; color: var(--ink); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .35s ease, color .35s ease, border-color .35s ease, opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
+  .q-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(14,21,18,.22); background: rgba(255,255,255,.72); font-weight: 600; font-size: 16px; text-decoration: none; color: var(--ink); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .35s ease, color .35s ease, border-color .35s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
   .q-chip:hover { border-color: var(--accent); }
   .q-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .q-chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .hero[data-level] .q-chip[aria-pressed="false"] { opacity: .5; transform: scale(.96); }
-  .hero[data-level] .q-chip[aria-pressed="false"]:hover { opacity: 1; }
+  .q-chip[aria-checked="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .hero[data-level] .q-chip[aria-checked="false"] { color: var(--ink-soft); border-color: rgba(14,21,18,.12); background: rgba(255,255,255,.5); transform: scale(.96); }
+  .hero[data-level] .q-chip[aria-checked="false"]:hover { color: var(--ink); border-color: var(--accent); }
 
   .q-reply { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .7s cubic-bezier(.2,.8,.2,1); }
   .hero[data-level] .q-reply { grid-template-rows: 1fr; }
@@ -398,7 +398,7 @@
   .hs-l1 { left: 88px; top: 40px; }
   .hs-l2 { left: 640px; top: 24px; }
   .hs-l3 { left: 908px; top: 24px; }
-  .hs-l4 { left: 1154px; top: 92px; }  /* +90px: lit, the card sat over "important" at 1512 wide */
+  .hs-l4 { left: 1154px; top: 92px; }  /* +90px from 1064: lit, the card sat over the headline at 1512 wide */
   .hs-l5 { left: 44px; top: 384px; }
   /* The wiring. Nodes blink in a staggered sequence; on top of each line a
      second copy carries a short dash whose offset travels — the light. */
@@ -444,14 +444,11 @@
      positioned grid child, placed in his area, so it adds nothing to any
      track and moves nothing. */
   .hs-m { display: none; }
-  /* Under 1440 the stage is narrower than the copy column's reach, so the
-     dashboard pulls in and slims down to keep clear of the headline and
-     stay inside the screen. */
-  @media (max-width: 1439.98px) {
-    .hs-db { left: 1104px; width: 156px; }
-    .hs-l4 { left: 1108px; }
-  }
-  @media (max-width: 1239.98px) { .hs-db, .hs-l4 { display: none; } }  /* below this it would clip the screen edge */
+  /* The dashboard sits at x=1150, clear of the headline, and only from 1440
+     up. Narrower than that, the headline's first line reaches into it at
+     every position that still fits on screen (measured 1240-1439), so it
+     leaves with its wires rather than covering "important". */
+  @media (max-width: 1439.98px) { .hs-db, .hs-l4, .hs-dbw { display: none; } }
   @media (max-width: 1159.98px) {
     /* Between a phone and the full stage the copy column starts further
        left, so the right-hand cluster would land on the headline. It goes;
@@ -470,6 +467,10 @@
     .hs-m .hs-lb { font-size: 10px; line-height: 13px; }
     .buddy::after { content: ""; position: absolute; left: -24%; right: -24%; bottom: -8px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(150,235,225,.85) 0 18%, rgba(150,235,225,.15) 19% 44%, rgba(23,160,138,.35) 45% 47%, rgba(23,160,138,0) 48% 70%, rgba(23,160,138,.22) 71% 73%, rgba(23,160,138,0) 74%); animation: hs-breath 11s ease-in-out infinite; }
   }
+  /* From 400px up the lede wraps into fewer lines than Buddy is tall, so
+     he rises into the corner the Bookings card holds. The card is the
+     decoration and it steps aside; measured overlap was 28-91px at 420-639. */
+  @media (min-width: 400px) and (max-width: 639.98px) { .hs-m { display: none; } }
   @media (prefers-reduced-motion: reduce) {
     .hero .hero-scene *, .hero .hs-m *, .hero .hs-chk::after, .hero .buddy::after { animation: none; }
   }
@@ -624,7 +625,7 @@
     <div class="hero-copy">
       <p class="eyebrow">Grand Ledge, Michigan</p>
       <h1>How important is this to you?</h1>
-      <p class="sub">The customers you haven't met yet. The call that goes to voicemail tonight. Where the business is in five years. What you get out of a build is exactly what you put into it, so we start here.</p>
+      <p class="sub">The customers you haven't met yet. The customer who books someone else at 11pm. Where the business is in five years. What you get out of a build is exactly what you put into it, so we start here.</p>
       <!--
         THE QUESTION. Three honest answers, and each one maps to a package.
         They are links first: with no JavaScript, the small answer goes to the
@@ -634,7 +635,7 @@
         part at a time, in proportion to the answer. You get out what you
         put in, drawn.
       -->
-      <div class="q-answers" role="group" aria-label="How important is it">
+      <div class="q-answers" aria-label="How important is it">
         <a class="q-chip" href="#packages" data-level="1">Worth a look</a>
         <a class="q-chip" href="build.html" data-level="2">It matters</a>
         <a class="q-chip" href="build.html" data-level="3">It's everything</a>
@@ -692,9 +693,9 @@
     <svg class="hs-fl" viewBox="0 0 900 200"><defs><radialGradient id="hsg"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#C9F2EA" stop-opacity=".8"/><stop offset="1" stop-color="#C9F2EA" stop-opacity="0"/></radialGradient></defs><ellipse cx="450" cy="150" rx="330" ry="58" fill="url(#hsg)"/><g><ellipse class="hs-r" cx="450" cy="150" rx="110" ry="22" stroke-opacity=".55"/><ellipse class="hs-r" cx="450" cy="150" rx="200" ry="40" stroke-opacity=".42"/><ellipse class="hs-r" cx="450" cy="150" rx="300" ry="60" stroke-opacity=".3"/><ellipse class="hs-r" cx="450" cy="150" rx="420" ry="84" stroke-opacity=".18"/></g><g><circle class="hs-s" cx="120" cy="120" r="2"/><circle class="hs-s" cx="230" cy="176" r="1.5"/><circle class="hs-s" cx="330" cy="104" r="2.2"/><circle class="hs-s" cx="560" cy="182" r="1.8"/><circle class="hs-s" cx="660" cy="118" r="2"/><circle class="hs-s" cx="760" cy="160" r="1.4"/><circle class="hs-s" cx="850" cy="128" r="2.4"/><circle class="hs-s" cx="40" cy="170" r="1.6"/></g></svg>
     <div class="hs">
       <svg class="hs-net" width="1280" height="701">
-        <g><path class="hs-w hs-r2" d="M180 54H352"/><path class="hs-w d" d="M60 44V232"/><path class="hs-w" d="M96 348H160V420"/><path class="hs-w d" d="M336 240H392V350"/><path class="hs-w hs-r2" d="M466 208V262H540V330"/><path class="hs-w hs-r1" d="M580 60H735"/><path class="hs-w d hs-r1" d="M895 45H992"/><path class="hs-w hs-r1" d="M1102 45H1160V128"/><path class="hs-w d hs-r1" d="M1160 278V330"/><path class="hs-w hs-r1" d="M1208 386V440"/><path class="hs-w d hs-r1" d="M1186 476V560"/><path class="hs-w hs-r1" d="M1250 476V600"/></g>
-        <g><path class="hs-f hs-r2" pathLength="100" d="M180 54H352"/><path class="hs-f" pathLength="100" d="M96 348H160V420"/><path class="hs-f" pathLength="100" d="M336 240H392V350"/><path class="hs-f hs-r2" pathLength="100" d="M466 208V262H540V330"/><path class="hs-f hs-r1" pathLength="100" d="M580 60H735"/><path class="hs-f hs-r1" pathLength="100" d="M1102 45H1160V128"/><path class="hs-f hs-r1" pathLength="100" d="M1250 476V600"/><path class="hs-f" pathLength="100" d="M60 44V232"/></g>
-        <g><rect class="hs-n hs-r2" x="256" y="50" width="7" height="7"/><rect class="hs-n" x="56" y="116" width="7" height="7"/><rect class="hs-n" x="56" y="192" width="7" height="7"/><rect class="hs-n" x="156" y="344" width="7" height="7"/><rect class="hs-n" x="156" y="388" width="7" height="7"/><rect class="hs-n" x="388" y="268" width="7" height="7"/><rect class="hs-n hs-r2" x="462" y="258" width="7" height="7"/><rect class="hs-n hs-r2" x="536" y="296" width="7" height="7"/><rect class="hs-n hs-r1" x="608" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="696" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="940" y="41" width="7" height="7"/><rect class="hs-n hs-r1" x="1128" y="41" width="7" height="7"/><rect class="hs-n hs-r1" x="1156" y="86" width="7" height="7"/><rect class="hs-n hs-r1" x="1156" y="300" width="7" height="7"/><rect class="hs-n hs-r1" x="1204" y="408" width="7" height="7"/><rect class="hs-n hs-r1" x="1182" y="516" width="7" height="7"/><rect class="hs-n hs-r1" x="1246" y="536" width="7" height="7"/><path class="hs-n" d="M60 40l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1250 600l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1186 560l4 4-4 4-4-4z"/><path class="hs-n" d="M392 350l4 4-4 4-4-4z"/><path class="hs-n hs-r2" d="M540 330l4 4-4 4-4-4z"/></g>
+        <g><path class="hs-w hs-r2" d="M180 54H352"/><path class="hs-w d" d="M60 44V232"/><path class="hs-w" d="M96 348H160V420"/><path class="hs-w d" d="M336 240H392V350"/><path class="hs-w hs-r2" d="M466 208V262H540V330"/><path class="hs-w hs-r1" d="M580 60H735"/><path class="hs-w d hs-r1" d="M895 45H992"/><path class="hs-w hs-r1 hs-dbw" d="M1102 45H1250V128"/><path class="hs-w d hs-r1 hs-dbw" d="M1250 278V304H1208V330"/><path class="hs-w hs-r1" d="M1208 386V440"/><path class="hs-w d hs-r1" d="M1186 476V560"/><path class="hs-w hs-r1" d="M1250 476V600"/></g>
+        <g><path class="hs-f hs-r2" pathLength="100" d="M180 54H352"/><path class="hs-f" pathLength="100" d="M96 348H160V420"/><path class="hs-f" pathLength="100" d="M336 240H392V350"/><path class="hs-f hs-r2" pathLength="100" d="M466 208V262H540V330"/><path class="hs-f hs-r1" pathLength="100" d="M580 60H735"/><path class="hs-f hs-r1 hs-dbw" pathLength="100" d="M1102 45H1250V128"/><path class="hs-f hs-r1" pathLength="100" d="M1250 476V600"/><path class="hs-f" pathLength="100" d="M60 44V232"/></g>
+        <g><rect class="hs-n hs-r2" x="256" y="50" width="7" height="7"/><rect class="hs-n" x="56" y="116" width="7" height="7"/><rect class="hs-n" x="56" y="192" width="7" height="7"/><rect class="hs-n" x="156" y="344" width="7" height="7"/><rect class="hs-n" x="156" y="388" width="7" height="7"/><rect class="hs-n" x="388" y="268" width="7" height="7"/><rect class="hs-n hs-r2" x="462" y="258" width="7" height="7"/><rect class="hs-n hs-r2" x="536" y="296" width="7" height="7"/><rect class="hs-n hs-r1" x="608" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="696" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="940" y="41" width="7" height="7"/><rect class="hs-n hs-r1" x="1128" y="41" width="7" height="7"/><rect class="hs-n hs-r1 hs-dbw" x="1246" y="86" width="7" height="7"/><rect class="hs-n hs-r1 hs-dbw" x="1246" y="287" width="7" height="7"/><rect class="hs-n hs-r1" x="1204" y="408" width="7" height="7"/><rect class="hs-n hs-r1" x="1182" y="516" width="7" height="7"/><rect class="hs-n hs-r1" x="1246" y="536" width="7" height="7"/><path class="hs-n" d="M60 40l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1250 600l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1186 560l4 4-4 4-4-4z"/><path class="hs-n" d="M392 350l4 4-4 4-4-4z"/><path class="hs-n hs-r2" d="M540 330l4 4-4 4-4-4z"/></g>
       </svg>
       <span class="hs-lb hs-l1">Website<em>001</em></span>
       <div class="hs-p hs-web"><span class="hs-img"><svg viewBox="0 0 44 32"><path d="M2 30L15 10l9 13 5-6 13 13z" fill="#5FB8A7"/><circle cx="33" cy="8" r="4" fill="#5FB8A7"/></svg></span><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><i class="hs-btn"></i><i class="hs-b"></i><i class="hs-b"></i></div>
@@ -784,22 +785,39 @@
       var r = REPLIES[n], first = !level;
       level = n;
       hero.setAttribute('data-level', n);
-      for (var i = 0; i < chips.length; i++) chips[i].setAttribute('aria-pressed', String(+chips[i].getAttribute('data-level') === n));
+      for (var i = 0; i < chips.length; i++) {
+        var on = +chips[i].getAttribute('data-level') === n;
+        chips[i].setAttribute('aria-checked', String(on));
+        chips[i].tabIndex = on ? 0 : -1;
+      }
       cta.textContent = r.cta; cta.setAttribute('href', r.href);
       clearTimeout(swap);
       if (first || reduce) { show(r); return; }
       box.classList.add('is-out');       // the old reply drops out of its masks first
       swap = setTimeout(function () { box.classList.remove('is-out'); show(r); }, 240);
     }
+    /* One answer at a time, and it cannot be taken back to none: a radio
+       group, with the roving tabindex and arrow keys that implies. A
+       modified click still opens the link's own page in a new tab. */
+    chips[0].parentNode.setAttribute('role', 'radiogroup');
     for (var i = 0; i < chips.length; i++) {
-      chips[i].setAttribute('role', 'button');
-      chips[i].setAttribute('aria-pressed', 'false');
+      chips[i].setAttribute('role', 'radio');
+      chips[i].setAttribute('aria-checked', 'false');
+      chips[i].tabIndex = i ? -1 : 0;
       chips[i].addEventListener('click', function (e) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();
         answer(+this.getAttribute('data-level'));
       });
       chips[i].addEventListener('keydown', function (e) {
-        if (e.key === ' ') { e.preventDefault(); this.click(); }
+        var k = e.key, n = +this.getAttribute('data-level');
+        if (k === ' ') { e.preventDefault(); this.click(); return; }
+        var d = (k === 'ArrowRight' || k === 'ArrowDown') ? 1 : (k === 'ArrowLeft' || k === 'ArrowUp') ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = chips[(n - 1 + d + chips.length) % chips.length];
+        next.focus();
+        answer(+next.getAttribute('data-level'));
       });
     }
   })();

@@ -32,7 +32,7 @@ test.describe('the question in the hero', () => {
       await page.locator(`.q-chip[data-level="${a.level}"]`).click();
       await expect(page).toHaveURL(/\/\?motion=full$/);          // intercepted, not followed
       await expect(page.locator('.hero')).toHaveAttribute('data-level', String(a.level));
-      await expect(page.locator(`.q-chip[data-level="${a.level}"]`)).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.locator(`.q-chip[data-level="${a.level}"]`)).toHaveAttribute('aria-checked', 'true');
       await expect(page.locator('.q-reply-head')).toHaveText(a.head);
       await expect(page.locator('.q-spec dt')).toHaveText(['What we build', 'What we need from you']);
       await expect(page.locator('.q-close')).toHaveText('You bring that. We bring the rest.');
@@ -49,20 +49,38 @@ test.describe('the question in the hero', () => {
     await page.locator('.q-chip[data-level="1"]').click();
     await expect(page.locator('.q-reply-head')).toHaveText(ANSWERS[0].head);
     await expect(page.locator('.q-reply-head')).toHaveCount(1);
-    await expect(page.locator('.q-chip[aria-pressed="true"]')).toHaveCount(1);
+    await expect(page.locator('.q-chip[aria-checked="true"]')).toHaveCount(1);
   });
 
-  test('the lit machine never sits on the headline at 1512 wide', async ({ page }) => {
-    await page.setViewportSize({ width: 1512, height: 800 });
+  test('the lit machine never sits on the headline, at any desktop width', async ({ page }) => {
+    for (const width of [1160, 1240, 1280, 1380, 1439, 1440, 1512, 1920]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto('/?motion=full');
+      await page.locator('.q-chip[data-level="3"]').click();
+      const r = await page.evaluate(() => {
+        const range = document.createRange();
+        range.selectNodeContents(document.querySelector('.hero h1')!);
+        const lines = Array.from(range.getClientRects());
+        const db = document.querySelector('.hs-db')!;
+        const b = db.getBoundingClientRect();
+        if (getComputedStyle(db).display === 'none') return { hidden: true, hit: false, clip: 0 };
+        const hit = lines.some((l) => l.right > b.left && l.left < b.right && l.bottom > b.top && l.top < b.bottom);
+        return { hidden: false, hit, clip: b.right - innerWidth };
+      });
+      expect(r.hit, `the Dashboard card covers the headline at ${width}px`).toBe(false);
+      expect(r.clip, `the Dashboard card runs off the screen at ${width}px`).toBeLessThanOrEqual(0);
+    }
+  });
+
+  test('the answers are a radio group: arrows move and choose, one tab stop', async ({ page }) => {
     await page.goto('/?motion=full');
-    await page.locator('.q-chip[data-level="3"]').click();
-    const gap = await page.evaluate(() => {
-      const r = document.createRange();
-      r.selectNodeContents(document.querySelector('.hero h1')!);
-      const right = Math.max(...Array.from(r.getClientRects(), (x) => x.right));
-      return document.querySelector('.hs-db')!.getBoundingClientRect().left - right;
-    });
-    expect(gap, 'the Dashboard card overlaps the headline').toBeGreaterThan(0);
+    await expect(page.locator('.q-answers')).toHaveAttribute('role', 'radiogroup');
+    await expect(page.locator('.q-chip[tabindex="0"]')).toHaveCount(1);
+    await page.locator('.q-chip[data-level="1"]').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('.q-chip[data-level="2"]')).toBeFocused();
+    await expect(page.locator('.hero')).toHaveAttribute('data-level', '2');
+    await expect(page.locator('.q-chip[tabindex="0"]')).toHaveAttribute('data-level', '2');
   });
 
   test('with JavaScript off the answers are links that go somewhere real', async ({ browser }) => {

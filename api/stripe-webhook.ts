@@ -67,6 +67,25 @@ async function validSignature(secret: string, header: string, payload: string): 
   return diff === 0;
 }
 
+/* Mirrors api/checkout.ts's pauseLines: the same "In their words" section,
+   built from the metadata the Stripe path carried instead of an Order. */
+function pauseLines(md: Meta): string[] {
+  const items: [string, string | undefined][] = [
+    ['Reasons they might not need us', md.nb_why_not],
+    ['What it should bring them', md.nb_benefit],
+    ['Why Northbound', md.nb_why_us],
+  ];
+  const present = items.filter((pair): pair is [string, string] => !!pair[1]);
+  if (!present.length) return [];
+  const lines = ['In their words:'];
+  for (const [label, value] of present) {
+    const [first, ...rest] = value.split('\n');
+    lines.push(`  ${label}: ${first}`);
+    for (const cont of rest) lines.push(`    ${cont}`);
+  }
+  return lines;
+}
+
 function notification(md: Meta, sessionId: string): string {
   const lines = [
     `Name:      ${md.nb_name ?? ''}`,
@@ -92,6 +111,8 @@ function notification(md: Meta, sessionId: string): string {
         : 'Founding client — one of the first 15. No review name: there is no Google profile to leave one on yet.',
     );
   }
+  const pause = pauseLines(md);
+  if (pause.length) lines.push('', ...pause);
   lines.push('', `Stripe session: ${sessionId}`);
   return lines.join('\n');
 }

@@ -164,6 +164,42 @@ describe('checkout routes to Stripe only when it can be honoured end to end', ()
     expect(sent.success_url).toContain('/order-paid.html');
   });
 
+  test('"Before you pay, pause." answers ride in metadata, truncated to 500', async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
+    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+    await order({
+      buy: 'clean',
+      why_not: 'A'.repeat(600),
+      benefit: 'shorter reason',
+      why_us: 'C'.repeat(600),
+    });
+    const sent = stripeCall();
+    expect(sent['metadata[nb_why_not]']).toBe('A'.repeat(500));
+    expect(sent['metadata[nb_benefit]']).toBe('shorter reason');
+    expect(sent['metadata[nb_why_us]']).toBe('C'.repeat(500));
+  });
+
+  test('an emoji on the 500 boundary is cut whole, and the buyer still reaches Stripe', async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
+    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+    const res = await order({ buy: 'clean', why_not: 'a'.repeat(499) + '\u{1F600} thanks', why_us: 'b'.repeat(499) + '\u{1F600}' });
+    const sent = stripeCall();
+    expect(sent, 'the Stripe session was never requested').toBeTruthy();
+    expect(sent['metadata[nb_why_not]']).toBe('a'.repeat(499) + '\u{1F600}');
+    expect(sent['metadata[nb_why_us]']).toBe('b'.repeat(499) + '\u{1F600}');
+    expect(res.status).toBeLessThan(400);
+  });
+
+  test('empty "pause" answers are omitted from metadata entirely', async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
+    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+    await order({ buy: 'clean' });
+    const sent = stripeCall();
+    expect('metadata[nb_why_not]' in sent).toBe(false);
+    expect('metadata[nb_benefit]' in sent).toBe(false);
+    expect('metadata[nb_why_us]' in sent).toBe(false);
+  });
+
   test('a founding order is gated on the review only while there is a profile to review', async () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_x';
     process.env.STRIPE_WEBHOOK_SECRET = SECRET;
@@ -350,6 +386,45 @@ describe('the webhook believes only Stripe', () => {
     const payload = completed();
     const res = await hook(payload, await sign(payload));
     expect(res.status).toBe(502);
+  });
+
+  test('"Before you pay, pause." answers reach the studio notification when Stripe reports them paid', async () => {
+    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+    const payload = completed({
+      metadata: {
+        nb_name: 'Jamie Rivera',
+        nb_business: 'Rivera Roofing',
+        nb_phone: '5551234567',
+        nb_email: 'jamie@example.com',
+        nb_item: 'Beacon — 50% deposit (founding price $1,750, standard $3,500) — $875.00',
+        nb_due: '87500',
+        nb_balance: '87500',
+        nb_monthly: '',
+        nb_founding: '1',
+        nb_review: 'Jamie R.',
+        nb_spec: '',
+        nb_why_not: 'reason',
+        nb_benefit: 'benefit',
+        nb_why_us: 'why us',
+      },
+    });
+    const res = await hook(payload, await sign(payload));
+    expect(res.status).toBe(200);
+    const notif = emails[0].text as string;
+    expect(notif).toContain('In their words:');
+    expect(notif).toContain('Reasons they might not need us: reason');
+    expect(notif).toContain('What it should bring them: benefit');
+    expect(notif).toContain('Why Northbound: why us');
+    const conf = emails[1].text as string;
+    expect(conf).not.toContain('In their words:');
+  });
+
+  test('no "pause" metadata produces no section in the webhook notification', async () => {
+    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+    const payload = completed();
+    const res = await hook(payload, await sign(payload));
+    expect(res.status).toBe(200);
+    expect(emails[0].text as string).not.toContain('In their words:');
   });
 
   test('the guided-build spec reaches the studio with the paid order', async () => {

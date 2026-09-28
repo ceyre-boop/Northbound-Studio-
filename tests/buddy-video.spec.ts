@@ -48,7 +48,7 @@ test.describe('Buddy in the hero', () => {
     const fb = (await fig.boundingBox())!;
     expect(fb.width).toBeLessThanOrEqual(160);
     expect(fb.height).toBeLessThanOrEqual(170);
-    for (const sel of ['h1', '.sub', '.mnote-h1', '.actions']) {
+    for (const sel of ['h1', '.sub', '.q-answers', '.actions']) {
       expect(await overlaps(fig, page.locator(sel)), `${sel} sits under Buddy`).toBe(false);
     }
     // No <source> matched either video, so neither chose one, and nothing was fetched.
@@ -68,7 +68,7 @@ test.describe('Buddy in the hero', () => {
     await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused && v.readyState >= 2), { timeout: 10_000 }).toBe(true);
     // Once he is showing frames the still underneath has been handed off.
     await expect(page.locator('.buddy .buddy-art')).toHaveClass(/is-playing/);
-    for (const sel of ['h1', '.sub', '.mnote-h1', '.actions']) {
+    for (const sel of ['h1', '.sub', '.q-answers', '.actions']) {
       expect(await overlaps(fig, page.locator(sel)), `${sel} sits under Buddy`).toBe(false);
     }
     await ctx.close();

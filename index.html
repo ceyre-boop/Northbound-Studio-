@@ -37,6 +37,13 @@
   act canvas build this page used to sit behind, noindexed — lives at
   studio.html and keeps working exactly as it did.
 -->
+<script>
+  /* Outside THE WAY OUT block on purpose: tests/checkout.unit.test.ts
+     compares that block across three pages character for character.
+     Motion allowed (or forced with ?motion=full): the margin notes may write
+     themselves in. Set before first paint so they never flash in, then out. */
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=full\b/.test(location.search)) document.documentElement.classList.add('nb-motion');
+</script>
 <!--
   THE WAY OUT. Twelve bands close over the page, left to right, and the next
   page opens from behind them. Twelve because that is how many things are on
@@ -80,11 +87,6 @@
   @keyframes nb-up { from { transform: translateY(24px); opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .nb-veil { display: none; } html.nb-arriving::before, html.nb-arriving::after, html.nb-arriving body { animation: none; } }
 </style>
-<script>
-  /* Motion allowed (or forced with ?motion=full): the margin notes may write
-     themselves in. Set before first paint so they never flash in, then out. */
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=full\b/.test(location.search)) document.documentElement.classList.add('nb-motion');
-</script>
 <script>
   (function () {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -213,12 +215,13 @@
      children can take grid areas without moving in the source. */
   @media (max-width: 639.98px) {
     .hero { --buddy-h: clamp(120px, 33vw, 150px); }
-    .hero .wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow eyebrow" "h1 h1" "n1 n1" "sub buddy" "actions actions" "n2 n2"; }
+    .hero .wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow eyebrow" "h1 h1" "sub buddy" "ask ask" "q q" "actions actions" "n2 n2"; }
     .hero-copy { display: contents; }
     .hero .eyebrow { grid-area: eyebrow; }
     .hero h1 { grid-area: h1; }
     .hero .sub { grid-area: sub; }
-    .hero .mnote-h1 { grid-area: n1; }
+    .hero .q-ask { grid-area: ask; }
+    .hero .q-answers { grid-area: q; }
     .hero .mnote-motion { grid-area: n2; }
     .hero .actions { grid-area: actions; }
     .buddy { display: block; grid-area: buddy; align-self: end; width: auto; margin: 0 0 30px 14px; }
@@ -267,6 +270,47 @@
   .keeping-line strong { color: var(--ink); }
   .claim-on-demand .founding-claim:not(.is-required) { display: none; }
   .hero { background: linear-gradient(180deg, var(--panel) 0%, #E3F4EE 100%); }
+  /* THE QUESTION.
+     "How important is it to you?" under the headline, three answers, and
+     the answer is felt rather than read: the chosen chip fills, the other
+     two step back, the button beneath re-points to the package that answer
+     implies, and the machine behind the hero lights up one part at a time,
+     only as far as the answer goes. Nothing moves at first paint; the chips
+     are in the HTML as links. Under reduced motion every state is reached,
+     with no motion between them. */
+  .q-ask { font-family: var(--display); font-weight: 700; font-size: clamp(20px, 2.1vw, 25px); letter-spacing: -0.02em; line-height: 1.2; margin: 26px 0 12px; }
+  .q-answers { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 26px; }
+  .q-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(14,21,18,.22); background: rgba(255,255,255,.72); font-weight: 600; font-size: 16px; text-decoration: none; color: var(--ink); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .35s ease, color .35s ease, border-color .35s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
+  .q-chip:hover { border-color: var(--accent); }
+  .q-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .q-chip[aria-checked="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .hero[data-level] .q-chip[aria-checked="false"] { color: var(--ink-soft); border-color: rgba(14,21,18,.12); background: rgba(255,255,255,.5); transform: scale(.96); }
+  .hero[data-level] .q-chip[aria-checked="false"]:hover { color: var(--ink); border-color: var(--accent); }
+  .hero .actions .btn-primary { transition: background-color .3s ease; }
+
+  /* The machine answers. Unanswered, every part waits at a third; each level
+     lights its own group, website first. HTML parts dim with opacity (their
+     animations only move them); SVG parts dim with stroke- and fill-opacity,
+     because the nodes already animate opacity and the two must not fight. */
+  .hero .hs > :not(svg) { transition: opacity .9s ease; }
+  .hero .hs-net path, .hero .hs-net rect { transition: stroke-opacity .9s ease, fill-opacity .9s ease; }
+  .hero .hs > :not(svg) { opacity: .3; }
+  .hero .hs-net path, .hero .hs-net rect { stroke-opacity: .25; fill-opacity: .25; }
+  /* Level 1: the website and the editor that writes it. */
+  .hero[data-level] .hs-web, .hero[data-level] .hs-l1, .hero[data-level] .hs-ed { opacity: 1; }
+  .hero[data-level] .hs-net .hs-r2 { stroke-opacity: 1; fill-opacity: 1; }
+  /* Level 2: the customers it brings, and the wiring on the left. */
+  .hero[data-level="2"] .hs-cu, .hero[data-level="2"] .hs-l5, .hero[data-level="2"] .hs-t1, .hero[data-level="2"] .hs-t2,
+  .hero[data-level="3"] .hs-cu, .hero[data-level="3"] .hs-l5, .hero[data-level="3"] .hs-t1, .hero[data-level="3"] .hs-t2 { opacity: 1; transition-delay: .25s; }
+  .hero[data-level="2"] .hs-net :is(path, rect):not(.hs-r1):not(.hs-r2),
+  .hero[data-level="3"] .hs-net :is(path, rect):not(.hs-r1):not(.hs-r2) { stroke-opacity: 1; fill-opacity: 1; transition-delay: .25s; }
+  /* Level 3: the whole machine. Bookings, payments, dashboard. */
+  .hero[data-level="3"] .hs > .hs-r1 { opacity: 1; transition-delay: .5s; }
+  .hero[data-level="3"] .hs-net .hs-r1 { stroke-opacity: 1; fill-opacity: 1; transition-delay: .5s; }
+  @media (prefers-reduced-motion: reduce) {
+    .q-chip, .hero .hs > :not(svg), .hero .hs-net path, .hero .hs-net rect { transition: none !important; }
+  }
+
   /* MARGIN NOTES.
      The page never says it sweats the details. It leaves notes in its own
      margins, the way a designer redlines a proof, and each one points at a
@@ -285,7 +329,6 @@
   @media (prefers-reduced-motion: reduce) { .mnote-motion { display: none; } }
   html.nb-motion .mnote { clip-path: inset(0 100% 0 0); transition: clip-path 1.4s cubic-bezier(.65,0,.35,1); transition-delay: var(--note-delay, .2s); }
   html.nb-motion .mnote.is-in { clip-path: inset(0 0 0 0); }
-  html.nb-motion .hero .mnote-h1 { --note-delay: .9s; }
   html.nb-motion .hero .mnote-motion { --note-delay: 1.5s; }
 
 
@@ -604,8 +647,21 @@
     <div class="hero-copy">
       <p class="eyebrow">Grand Ledge, Michigan</p>
       <h1><span>We build</span><br><span>the machine.</span></h1>
-      <p class="mnote mnote-h1">That line break was set by hand. The browser doesn't get a vote.</p>
       <p class="sub">The site out front. The booking, the follow-up and the payments behind it.</p>
+      <!--
+        THE QUESTION, asked quietly. No reply paragraph and no price in it:
+        the answer only re-points the button and lights the machine behind
+        the hero as far as the answer goes. How much it matters is how much
+        gets built. The chips are plain links first (the small answer goes to
+        the prices, the other two to the guided build); the script after the
+        hero makes them a radio group.
+      -->
+      <p class="q-ask" id="q-ask">How important is it to you?</p>
+      <div class="q-answers">
+        <a class="q-chip" href="#packages" data-level="1">Worth a look</a>
+        <a class="q-chip" href="build.html" data-level="2">It matters</a>
+        <a class="q-chip" href="build.html" data-level="3">It's everything</a>
+      </div>
       <div class="actions">
         <a class="btn btn-primary" href="build.html">Build your machine</a>
         <a class="btn btn-secondary" href="tel:+14705738908">Call 470-573-8908</a>
@@ -693,6 +749,55 @@
   </div>
 </section>
 
+<script>
+  /* The question, answered. One answer at a time and it cannot go back to
+     none, so it is a radio group: roving tabindex, arrow keys. The answer
+     re-points the primary button and sets data-level, which lights the
+     machine. A modified click still opens the link in a new tab. */
+  (function () {
+    var hero = document.querySelector('.hero');
+    var chips = hero && hero.querySelectorAll('.q-chip');
+    var cta = hero && hero.querySelector('.actions .btn-primary');
+    if (!chips || !chips.length || !cta) return;
+    var CTA = {
+      1: ['Start with Cheap and Clean', '#packages'],
+      2: ['Get a quote for Beacon', 'build.html'],
+      3: ['Build the whole machine', 'build.html']
+    };
+    function answer(n) {
+      hero.setAttribute('data-level', n);
+      for (var i = 0; i < chips.length; i++) {
+        var on = +chips[i].getAttribute('data-level') === n;
+        chips[i].setAttribute('aria-checked', String(on));
+        chips[i].tabIndex = on ? 0 : -1;
+      }
+      cta.textContent = CTA[n][0];
+      cta.setAttribute('href', CTA[n][1]);
+    }
+    chips[0].parentNode.setAttribute('role', 'radiogroup');
+    chips[0].parentNode.setAttribute('aria-labelledby', 'q-ask');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].setAttribute('role', 'radio');
+      chips[i].setAttribute('aria-checked', 'false');
+      chips[i].tabIndex = i ? -1 : 0;
+      chips[i].addEventListener('click', function (e) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        answer(+this.getAttribute('data-level'));
+      });
+      chips[i].addEventListener('keydown', function (e) {
+        var k = e.key, n = +this.getAttribute('data-level');
+        if (k === ' ') { e.preventDefault(); this.click(); return; }
+        var d = (k === 'ArrowRight' || k === 'ArrowDown') ? 1 : (k === 'ArrowLeft' || k === 'ArrowUp') ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = chips[(n - 1 + d + chips.length) % chips.length];
+        next.focus();
+        answer(+next.getAttribute('data-level'));
+      });
+    }
+  })();
+</script>
 
 <section id="offerings">
   <div class="wrap">

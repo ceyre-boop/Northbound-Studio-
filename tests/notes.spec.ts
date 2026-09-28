@@ -16,7 +16,7 @@ test.describe('the headline', () => {
       r.selectNodeContents(document.querySelector('.hero h1')!);
       return new Set(Array.from(r.getClientRects(), (x) => Math.round(x.top))).size;
     });
-    expect(lines, 'N°01 says the break is set by hand: exactly two lines').toBe(2);
+    expect(lines, 'the break is set by hand: exactly two lines').toBe(2);
   });
 
   test('the lit Dashboard card never sits on the headline, at any desktop width', async ({ page }) => {
@@ -65,7 +65,7 @@ test.describe('the margin notes', () => {
     const page = await ctx.newPage();
     await page.goto('http://localhost:' + (process.env.NB_PORT ?? 8099) + '/');
     for (const n of await page.locator('.mnote-motion').all()) await expect(n).toBeHidden();
-    await expect(page.locator('.mnote-h1')).toBeVisible();
+    await expect(page.locator('#packages .mnote')).toBeVisible();
     await ctx.close();
   });
 
@@ -73,7 +73,7 @@ test.describe('the margin notes', () => {
     const ctx = await browser.newContext({ reducedMotion: 'no-preference', viewport: { width: 1280, height: 800 } });
     const page = await ctx.newPage();
     await page.goto('http://localhost:' + (process.env.NB_PORT ?? 8099) + '/');
-    await expect(page.locator('.mnote-h1')).toHaveClass(/is-in/);
+    await expect(page.locator('.hero .mnote-motion')).toHaveClass(/is-in/);
     const below = page.locator('#packages .mnote');
     await expect(below).not.toHaveClass(/is-in/);
     await below.scrollIntoViewIfNeeded();

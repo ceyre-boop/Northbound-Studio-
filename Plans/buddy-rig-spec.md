@@ -31,14 +31,13 @@ Scroll position drives all of it: scroll back up and it plays backwards exactly.
 
 ## Clips, named exactly
 
-| Clip | Length | Notes |
-|---|---|---|
-| `type_loop` | 2–4 s | Seated typing. The first and last frames match exactly (seamless loop). Small head movements are welcome. |
-| `stand_up` | 1.5–2 s | Seated typing to standing rest pose, including stepping back clear of the desk. |
-| `walk_off` | one cycle, 0.9–1.2 s | **An in-place** walk cycle (no forward travel in the file). We move him in code and tie the steps to the distance, so his feet don't slide at any screen size. **Please write down his stride length:** meters per full cycle. |
-| (optional) `turn` | 0.6–1 s | Standing rest pose facing the desk → facing screen left. Otherwise we rotate his root. |
+**The full list, with beats, frame counts, start and end poses and what triggers each clip, is in [`buddy-performance-brief.md`](buddy-performance-brief.md).** That's about 45 clips across the loader, the four floors and the ribbon, in build order. **Set A** (`boot_power_on`, `type_loop`, `stand_up`, `walk_hold`) is enough to make the hero on the preview real.
 
-Bake the animation to the skeleton at 30 fps. No IK or constraints left live in the file.
+The rules that apply to every clip:
+- Bake to the skeleton at 30 fps. No live IK or constraints.
+- **All walks in place.** Note the stride (meters per cycle) next to each one; we move him in code so his feet never slide.
+- Every clip starts and ends on one of the named poses in the brief's Pose Library, so any order of events blends cleanly.
+- Clip names exactly as written. The code looks them up by name.
 
 ## Props (in the same file, or a second GLB)
 

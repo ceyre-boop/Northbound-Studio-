@@ -43,13 +43,6 @@
      Motion allowed (or forced with ?motion=full): the margin notes may write
      themselves in. Set before first paint so they never flash in, then out. */
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=full\b/.test(location.search)) document.documentElement.classList.add('nb-motion');
-  /* The floor transitions: one choice per seam, movie or ad (commercial) or
-     off. The defaults are the recommendation; ?t1= ?t2= ?t3= override them,
-     which is how the preview switcher and a shared link carry a choice. */
-  (function (root) {
-    var q = new URLSearchParams(location.search), d = { t1: 'movie', t2: 'ad', t3: 'movie' };
-    for (var k in d) root.setAttribute('data-' + k, /^(movie|ad|off)$/.test(q.get(k) || '') ? q.get(k) : d[k]);
-  })(document.documentElement);
 </script>
 <!--
   THE WAY OUT. Twelve bands close over the page, left to right, and the next
@@ -317,159 +310,6 @@
   @media (prefers-reduced-motion: reduce) {
     .q-chip, .hero .hs > :not(svg), .hero .hs-net path, .hero .hs-net rect { transition: none !important; }
   }
-
-  /* FLOOR TRANSITIONS.
-     Three seams, and each has two ways to cross it: a movie (Buddy carries
-     the story) and a commercial (the interface shows what it does). Which
-     one runs is data-t1/t2/t3 on <html>, set in the head. Every motion is
-     scroll-driven on the floors' own view timelines, so scrolling back up
-     plays it backwards, and nothing runs on a clock. Only transform-family
-     properties, opacity, clip-path, colour: no layout moves, CLS stays 0.
-     Motion needs html.nb-motion (motion allowed, or ?motion=full) and a
-     browser with view timelines; without either the floors just scroll.
-     What each option adds that is not motion (Buddy's poses, the coverage
-     strip) is there under reduced motion too, standing still. */
-  body { timeline-scope: --hero, --twelve, --prices, --job; }
-  .hero { view-timeline-name: --hero; }
-  #offerings { view-timeline-name: --twelve; }
-  #packages { view-timeline-name: --prices; }
-  #quote { view-timeline-name: --job; }
-  #packages .wrap { position: relative; }
-  .hero-iris, .guide { display: none; }
-  .guide { margin: 0; pointer-events: none; }
-  .guide img { display: block; width: 100%; height: auto; }
-  #offerings .offerings > li:nth-child(1) { --i: 0; --col: 0; } #offerings .offerings > li:nth-child(2) { --i: 1; --col: 1; }
-  #offerings .offerings > li:nth-child(3) { --i: 2; --col: 2; } #offerings .offerings > li:nth-child(4) { --i: 3; --col: 3; }
-  #offerings .offerings > li:nth-child(5) { --i: 4; --col: 0; } #offerings .offerings > li:nth-child(6) { --i: 5; --col: 1; }
-  #offerings .offerings > li:nth-child(7) { --i: 6; --col: 2; } #offerings .offerings > li:nth-child(8) { --i: 7; --col: 3; }
-  #offerings .offerings > li:nth-child(9) { --i: 8; --col: 0; } #offerings .offerings > li:nth-child(10) { --i: 9; --col: 1; }
-  #offerings .offerings > li:nth-child(11) { --i: 10; --col: 2; } #offerings .offerings > li:nth-child(12) { --i: 11; --col: 3; }
-  #packages .pkg-grid > li:nth-child(1) { --p: 0; } #packages .pkg-grid > li:nth-child(2) { --p: 1; } #packages .pkg-grid > li:nth-child(3) { --p: 2; }
-  #quote .quote-form > :nth-child(1) { --f: 0; } #quote .quote-form > :nth-child(2) { --f: 1; } #quote .quote-form > :nth-child(3) { --f: 2; }
-  #quote .quote-form > :nth-child(4) { --f: 3; } #quote .quote-form > :nth-child(5) { --f: 4; } #quote .quote-form > :nth-child(6) { --f: 5; }
-  #quote .quote-form > :nth-child(7) { --f: 6; } #quote .quote-form > :nth-child(8) { --f: 7; } #quote .quote-form > :nth-child(9) { --f: 8; }
-  #quote .quote-form > :nth-child(10) { --f: 9; }
-
-  /* 02 -> 03, commercial: the coverage strip (built by the script after the
-     prices). Hidden unless that option is chosen. */
-  /* margin-top: auto (and the button's taken back) stands every strip
-     directly above its button, so the three line up across the row. */
-  .covers { display: none; margin: auto 0 16px; }
-  html[data-t2="ad"] .covers { display: block; }
-  html[data-t2="ad"] #packages .pkg .btn { margin-top: 0; }
-  .covers ol { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; list-style: none; margin: 0; padding: 0; }
-  .covers li { display: grid; place-items: center; height: 22px; border: 1px solid var(--line); border-radius: 4px; font: 500 10px/1 var(--mono); color: var(--ink-soft); background: #fff; }
-  .covers li.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .covers li.addon { border-style: dashed; border-color: var(--accent); color: var(--accent); }
-  .covers li.picked { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--ink); }
-  .covers-note { margin: 8px 0 0; font: 500 12px/1.4 var(--mono); color: var(--ink-soft); }
-  .covers-note:empty { display: none; }
-  .covers.covers-all .covers-note { color: var(--accent); }
-
-  /* With the strip in, the prices floor would run 40px past one screen, so
-     the cards give that back: tighter padding, list and tag spacing. */
-  @media (min-width: 960px) and (min-height: 640px) {
-    html[data-t2="ad"] #packages .pkg { padding: 16px 20px; }
-    html[data-t2="ad"] #packages .pkg .tag { margin-bottom: 4px; }
-    html[data-t2="ad"] #packages .pkg ul { margin: 6px 0 12px; font-size: 14px; line-height: 1.45; }
-    html[data-t2="ad"] #packages .pkg li { margin-bottom: 1px; }
-    html[data-t2="ad"] #packages .covers { margin: auto 0 12px; }
-  }
-
-  /* Buddy's two floor poses, for the movie options. Desktop floors only:
-     on a phone there is no spare corner to stand him in. */
-  @media (min-width: 960px) and (min-height: 640px) {
-    html[data-t2="movie"] .guide-think { display: block; position: absolute; top: -6px; right: var(--gutter); width: 104px; }
-    html[data-t3="movie"] .guide-ready { display: block; grid-area: n; width: min(250px, 70%); margin-top: 10px; }
-  }
-
-  /* The iris opens from Buddy's visor, so it is placed on his head wherever
-     the layout puts him: the same arithmetic the floor glow uses for his
-     centre, plus where the visor sits in the render. */
-  .hero { --iris-x: calc(max(0px, (100% - 1080px) / 2) + var(--gutter) + var(--buddy-w, 300px) * .46); --iris-y: calc(100% - var(--buddy-w, 300px) * .83); }
-  @media (max-width: 639.98px) { .hero { --iris-x: 82%; --iris-y: 40%; } }
-
-  @supports (animation-timeline: view()) {
-    /* 01 -> 02, movie: into the machine. The copy lets go first, the camera
-       pushes in on Buddy's visor, its light opens over the whole floor, and
-       the twelve come on inside it, lit, while the room brightens around
-       them. */
-    html.nb-motion[data-t1="movie"] .hero-iris { display: block; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(circle at var(--iris-x) var(--iris-y), #d6ccff 0, #8a7cf0 36px, #3d3e7a 150px, #1c1d36 460px); -webkit-mask-image: radial-gradient(circle at var(--iris-x) var(--iris-y), #000 calc(var(--iris-r) - 160px), transparent var(--iris-r)); mask-image: radial-gradient(circle at var(--iris-x) var(--iris-y), #000 calc(var(--iris-r) - 160px), transparent var(--iris-r)); animation: nb-iris linear both; animation-timeline: --hero; animation-range: exit 8% exit 52%; }
-    html.nb-motion[data-t1="movie"] .hero .buddy-art { transform-origin: 46% 14%; animation: nb-push linear both; animation-timeline: --hero; animation-range: exit 0% exit 50%; }
-    html.nb-motion[data-t1="movie"] .hero-copy { animation: nb-letgo linear both; animation-timeline: --hero; animation-range: exit 0% exit 30%; }
-    html.nb-motion[data-t1="movie"] #offerings { animation: nb-room linear both; animation-timeline: --twelve; animation-range: entry 0% entry 100%; }
-    html.nb-motion[data-t1="movie"] #offerings h2 { animation: nb-room-ink linear both; animation-timeline: --twelve; animation-range: entry 0% entry 100%; }
-    html.nb-motion[data-t1="movie"] #offerings .offer { animation: nb-lit linear both; animation-timeline: --twelve; animation-range: entry calc(44% + var(--i) * 2%) entry calc(60% + var(--i) * 2%); }
-
-    /* 01 -> 02, commercial: the exploded view. The machine's stage scales
-       out from its centre, so every part travels away from the middle the
-       way a product shot pulls a device apart, and the twelve fly in from
-       where the machine was, landing in number order. */
-    html.nb-motion[data-t1="ad"] .hs { animation: nb-explode linear both; animation-timeline: --hero; animation-range: exit 0% exit 80%; }
-    html.nb-motion[data-t1="ad"] .hero-copy { animation: nb-letgo linear both; animation-timeline: --hero; animation-range: exit 10% exit 50%; }
-    html.nb-motion[data-t1="ad"] #offerings .offer { animation: nb-assemble linear both; animation-timeline: --twelve; animation-range: entry calc(24% + var(--i) * 3%) entry calc(54% + var(--i) * 3%); }
-
-    /* 02 -> 03, movie: Buddy weighs it up. The twelve step back, the three
-       prices rise one after another with Engine last and its border drawn
-       on only once it lands, and Buddy leans in from the corner. */
-    html.nb-motion[data-t2="movie"] #offerings .offerings { animation: nb-stepback linear both; animation-timeline: --twelve; animation-range: exit 0% exit 90%; }
-    html.nb-motion[data-t2="movie"] #packages .pkg { animation: nb-rise linear both; animation-timeline: --prices; animation-range: entry calc(28% + var(--p) * 14%) entry calc(62% + var(--p) * 14%); }
-    html.nb-motion[data-t2="movie"] #packages .pkg--lead { animation-name: nb-rise-lead; }
-    html.nb-motion[data-t2="movie"] .guide-think { animation: nb-lean linear both; animation-timeline: --prices; animation-range: entry 35% entry 95%; }
-
-    /* 02 -> 03, commercial: the prices arrive together, then each strip
-       lights its parts in number order, so the difference between the three
-       is the last thing to happen on the way in. */
-    html.nb-motion[data-t2="ad"] #packages .pkg { animation: nb-rise linear both; animation-timeline: --prices; animation-range: entry 20% entry 60%; }
-    html.nb-motion[data-t2="ad"] .covers li.on, html.nb-motion[data-t2="ad"] .covers li.addon { animation: nb-tick linear both; animation-timeline: --prices; animation-range: entry calc(52% + var(--k) * 3%) entry calc(58% + var(--k) * 3%); }
-
-    /* 03 -> 04, movie: Buddy stands ready. The prices step back, and he
-       rises into the corner under the question, hands on hips. */
-    html.nb-motion[data-t3="movie"] #packages .wrap { animation: nb-stepback-soft linear both; animation-timeline: --prices; animation-range: exit 0% exit 90%; }
-    html.nb-motion[data-t3="movie"] .guide-ready { animation: nb-ready linear both; animation-timeline: --job; animation-range: entry 30% entry 95%; }
-
-    /* 03 -> 04, commercial: the blanks rule themselves in, top to bottom,
-       left to right, and the button is the last line drawn. The clip is
-       inset by -6px at rest so focus rings are never cut. */
-    html.nb-motion[data-t3="ad"] #quote .quote-form > :not(.hp) { animation: nb-rule linear both; animation-timeline: --job; animation-range: entry calc(30% + var(--f, 0) * 5%) entry calc(52% + var(--f, 0) * 5%); }
-  }
-  /* The iris is a mask with a 160px feathered edge, so the light blooms out
-     of the visor rather than cutting in as a hard circle. Its radius is a
-     registered length so the scroll timeline can interpolate it. */
-  @property --iris-r { syntax: '<length>'; inherits: false; initial-value: 0px; }
-  @keyframes nb-iris { from { --iris-r: 0px; } to { --iris-r: 2800px; } }
-  @keyframes nb-push { to { transform: scale(2.4); } }
-  @keyframes nb-letgo { to { opacity: 0; translate: 0 -5vh; } }
-  /* The room below goes dark only as the light reaches it, holds while the
-     twelve come on, then the lights come up. */
-  @keyframes nb-room { 0%, 26% { background-color: #fff; } 42%, 70% { background-color: #1c1d36; } 96%, 100% { background-color: #fff; } }
-  @keyframes nb-room-ink { 0%, 26% { color: var(--ink); } 42%, 70% { color: #fff; } 96%, 100% { color: var(--ink); } }
-  @keyframes nb-lit { from { opacity: 0; scale: .92; } }
-  @keyframes nb-explode { to { scale: 1.7; opacity: 0; } }
-  @keyframes nb-assemble { from { opacity: 0; scale: .82; translate: calc((1.5 - var(--col, 1.5)) * 16%) -5vh; } }
-  @keyframes nb-stepback { to { scale: .94; opacity: .3; } }
-  @keyframes nb-stepback-soft { to { scale: .97; opacity: .35; } }
-  @keyframes nb-rise { from { opacity: 0; translate: 0 12vh; } }
-  @keyframes nb-rise-lead { from { opacity: 0; translate: 0 20vh; border-color: var(--line); } 75% { border-color: var(--line); } }
-  @keyframes nb-lean { from { opacity: 0; translate: 36px 8px; rotate: 8deg; } }
-  @keyframes nb-tick { from { background-color: #fff; border-color: var(--line); color: var(--ink-soft); } }
-  @keyframes nb-ready { from { opacity: 0; translate: 0 12vh; } }
-  @keyframes nb-rule { from { clip-path: inset(-6px 100% -6px -6px); } to { clip-path: inset(-6px -6px -6px -6px); } }
-
-  /* The switcher itself (preview deployments only). */
-  .tx-lab { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 30; width: min(340px, calc(100vw - 32px)); background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 40px -18px rgba(14,21,18,.35); font-size: 14px; }
-  .tx-head { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; padding: 10px 16px; border: 0; background: none; font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink); cursor: pointer; }
-  .tx-head::after { content: "+"; font-size: 16px; }
-  .tx-head[aria-expanded="true"]::after { content: "\2212"; }
-  .tx-body { padding: 0 16px 14px; border-top: 1px solid var(--line); }
-  .tx-row { padding: 12px 0; border-bottom: 1px solid var(--line); }
-  .tx-title { margin: 0 0 8px; font-size: 13px; }
-  .tx-title b { font-family: var(--mono); font-weight: 600; color: var(--accent); margin-right: 6px; }
-  .tx-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 3px; border-radius: 9px; background: var(--panel); }
-  .tx-seg button { min-height: 34px; border: 0; border-radius: 7px; background: none; font: 600 13px/1 var(--body); color: var(--ink-soft); cursor: pointer; }
-  .tx-seg button[aria-checked="true"] { background: var(--ink); color: #fff; }
-  .tx-desc { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-soft); }
-  .tx-foot { margin: 10px 0 0; font: 11px/1.4 var(--mono); color: var(--ink-soft); }
 
   /* MARGIN NOTES.
      The page never says it sweats the details. It leaves notes in its own
@@ -907,7 +747,6 @@
 );</pre>
     </div>
   </div>
-  <div class="hero-iris" aria-hidden="true"></div>
 </section>
 
 <script>
@@ -992,7 +831,6 @@
 
 <section class="packages" id="packages">
   <div class="wrap">
-    <figure class="guide guide-think" aria-hidden="true"><img src="buddy-thinking-sm.webp" width="181" height="228" alt="" loading="lazy" decoding="async"></figure>
     <h2>Three ways in.</h2>
     <p class="section-lede">Published prices are a floor, not a ceiling. Beacon and Engine are half price for our first 15 founding clients, in return for a Google review. 50% is due up front on any build.</p>
     <p class="mnote">The struck-through prices are real. They're what the build costs once the fifteen founding spots are gone.</p>
@@ -1047,79 +885,9 @@
   </div>
 </section>
 
-<script>
-  /* 02 -> 03, commercial: what each package covers. Each price card gets the
-     twelve as a strip of numbers, lit where the package includes the part.
-     The mapping is js/spec.js's PACKAGES.includes, written out here so the
-     strip is in place before first paint (a module would add it late and
-     shift the Bearing line). tests/transitions.spec.ts keeps the two equal.
-     AI intake is an add-on to Engine, quoted per job, so it is drawn dashed
-     there rather than lit. Picks from the twelve above are ringed, and the
-     line under the strip says how many of them each package covers. */
-  (function () {
-    var PARTS = ['A custom site', 'Brand identity', 'Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automated follow-up', 'Reminders', 'Review requests', 'Owner dashboard', 'Local SEO', 'AI intake'];
-    var HAS = {
-      clean: ['A custom site'],
-      beacon: ['A custom site', 'Brand identity', 'Local SEO'],
-      engine: ['A custom site', 'Brand identity', 'Local SEO', 'Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automated follow-up', 'Reminders', 'Review requests', 'Owner dashboard']
-    };
-    var ADDON = { engine: ['AI intake'] };
-    var cards = document.querySelectorAll('#packages .pkg');
-    var KEYS = ['clean', 'beacon', 'engine'];
-    var two = function (n) { return (n < 10 ? '0' : '') + n; };
-    var strips = [];
-    for (var c = 0; c < cards.length && c < KEYS.length; c++) {
-      var key = KEYS[c], box = document.createElement('div');
-      box.className = 'covers';
-      box.setAttribute('data-pkg', key);
-      var ol = document.createElement('ol'), names = [];
-      ol.setAttribute('aria-hidden', 'true');
-      for (var i = 0; i < PARTS.length; i++) {
-        var li = document.createElement('li'), on = HAS[key].indexOf(PARTS[i]) !== -1;
-        li.textContent = two(i + 1);
-        li.style.setProperty('--k', String(i));
-        if (on) { li.className = 'on'; names.push(two(i + 1)); }
-        else if ((ADDON[key] || []).indexOf(PARTS[i]) !== -1) li.className = 'addon';
-        li.setAttribute('data-part', PARTS[i]);
-        ol.appendChild(li);
-      }
-      var note = document.createElement('p');
-      note.className = 'covers-note';
-      box.appendChild(ol);
-      box.appendChild(note);
-      var label = 'Includes ' + (names.length === 1 ? 'part ' : 'parts ') + names.join(', ') + ' of the twelve';
-      box.setAttribute('role', 'img');
-      box.setAttribute('aria-label', label + (ADDON[key] ? '; AI intake is an add-on' : ''));
-      var btn = cards[c].querySelector('.btn');
-      cards[c].insertBefore(box, btn);
-      strips.push({ key: key, box: box, note: note, lis: ol.children });
-    }
-    var list = document.getElementById('offerings-list');
-    if (!list || !strips.length) return;
-    function sync() {
-      var picked = [].map.call(list.querySelectorAll('.offer[aria-pressed="true"]'), function (b) { return b.getAttribute('data-part'); });
-      strips.forEach(function (st) {
-        var got = 0;
-        for (var i = 0; i < st.lis.length; i++) {
-          var part = st.lis[i].getAttribute('data-part'), mine = picked.indexOf(part) !== -1;
-          st.lis[i].classList.toggle('picked', mine);
-          if (mine && HAS[st.key].indexOf(part) !== -1) got++;
-        }
-        st.note.textContent = !picked.length ? '' : got === picked.length
-          ? (picked.length === 1 ? 'Covers the part you picked.' : 'Covers all ' + picked.length + ' parts you picked.')
-          : 'Covers ' + got + ' of the ' + picked.length + ' parts you picked.';
-        st.box.classList.toggle('covers-all', !!picked.length && got === picked.length);
-      });
-    }
-    new MutationObserver(sync).observe(list, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
-    sync();
-  })();
-</script>
-
 <section id="quote">
   <div class="wrap">
     <h2>Tell us what the job is.</h2>
-    <figure class="guide guide-ready" aria-hidden="true"><img src="buddy-awesome-720w.webp" width="720" height="725" alt="" loading="lazy" decoding="async"></figure>
     <p class="section-lede">The useful first question is what one new customer is worth to you, and how many more you want a month. The answer decides the build. If you'd rather be walked through it, <a href="build.html">build your machine</a> — eight questions and you end with a priced build.</p>
     <form class="quote-form" method="post" action="/api/quote">
       <p class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required></p>
@@ -1242,91 +1010,6 @@
 </script>
 <!-- The twelve panels as an order. A module, so it is deferred and never
      in the way of the first paint; with it missing the panels are inert. -->
-<script>
-  /* The floor-transition switcher. Preview deployments only (a *.vercel.app
-     host), or any host with ?lab=1; never on northbound-dev.com, and ?lab=0
-     hides it anywhere. It changes the data-t attributes set in the head and
-     writes the choice into the URL, so a link carries it. */
-  (function () {
-    var q = new URLSearchParams(location.search), host = location.hostname;
-    var on = q.get('lab') === '1' || (q.get('lab') !== '0' && /\.vercel\.app$/.test(host));
-    if (!on) return;
-    var root = document.documentElement;
-    var SEAMS = [
-      { k: 't1', title: '01 → 02', sub: 'The machine → the twelve',
-        movie: 'The camera pushes into Buddy. His visor light opens over the page and the twelve come on lit, inside the machine.',
-        ad: 'An exploded view. The machine flies apart like a product shot and the twelve land in their slots, 01 to 12.' },
-      { k: 't2', title: '02 → 03', sub: 'The twelve → the prices',
-        movie: 'Buddy weighs it up. The twelve step back and the three prices rise one at a time, Engine last.',
-        ad: 'Each price card fills in which of the twelve it includes, and rings the ones you picked above.' },
-      { k: 't3', title: '03 → 04', sub: 'The prices → the job',
-        movie: 'Buddy stands ready beside the form while the prices step back.',
-        ad: 'The form rules its blanks one at a time, like a spec sheet being drawn.' }
-    ];
-    var LABEL = { movie: 'Movie', ad: 'Commercial', off: 'Off' };
-    var panel = document.createElement('aside');
-    panel.className = 'tx-lab';
-    panel.setAttribute('aria-label', 'Floor transitions (preview only)');
-    var head = document.createElement('button');
-    head.type = 'button';
-    head.className = 'tx-head';
-    head.setAttribute('aria-expanded', 'false');
-    head.textContent = 'Floor transitions';
-    var body = document.createElement('div');
-    body.className = 'tx-body';
-    body.hidden = true;
-    head.addEventListener('click', function () {
-      var open = head.getAttribute('aria-expanded') !== 'true';
-      head.setAttribute('aria-expanded', String(open));
-      body.hidden = !open;
-    });
-    SEAMS.forEach(function (seam) {
-      var row = document.createElement('div');
-      row.className = 'tx-row';
-      var t = document.createElement('p');
-      t.className = 'tx-title';
-      t.innerHTML = '<b></b> <span></span>';
-      t.firstChild.textContent = seam.title;
-      t.lastChild.textContent = seam.sub;
-      var seg = document.createElement('div');
-      seg.className = 'tx-seg';
-      seg.setAttribute('role', 'radiogroup');
-      seg.setAttribute('aria-label', seam.title + ' ' + seam.sub);
-      var desc = document.createElement('p');
-      desc.className = 'tx-desc';
-      function paint() {
-        var v = root.getAttribute('data-' + seam.k);
-        [].forEach.call(seg.children, function (b) { b.setAttribute('aria-checked', String(b.value === v)); });
-        desc.textContent = v === 'off' ? 'Off. The floors simply scroll.' : LABEL[v] + '. ' + seam[v];
-      }
-      ['movie', 'ad', 'off'].forEach(function (v) {
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.value = v;
-        b.setAttribute('role', 'radio');
-        b.textContent = LABEL[v];
-        b.addEventListener('click', function () {
-          root.setAttribute('data-' + seam.k, v);
-          var u = new URL(location.href);
-          u.searchParams.set(seam.k, v);
-          history.replaceState(null, '', u);
-          paint();
-        });
-        seg.appendChild(b);
-      });
-      row.appendChild(t); row.appendChild(seg); row.appendChild(desc);
-      body.appendChild(row);
-      paint();
-    });
-    var foot = document.createElement('p');
-    foot.className = 'tx-foot';
-    foot.textContent = 'Preview only. The link carries your picks.';
-    body.appendChild(foot);
-    panel.appendChild(head);
-    panel.appendChild(body);
-    document.body.appendChild(panel);
-  })();
-</script>
 <script type="module" src="js/pick.js"></script>
 
 </body>

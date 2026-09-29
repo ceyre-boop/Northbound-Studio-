@@ -57,10 +57,34 @@
     var n = navigator, c = n.connection || {};
     var light = !!c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || '') || (n.deviceMemory && n.deviceMemory < 4);
     if (!motion || !big || light || /[?&]gl=off\b/.test(q)) return;
-    var gl = false;
-    try { gl = !!document.createElement('canvas').getContext('webgl2'); } catch (e) {}
-    if (!gl) return;
+    /* The WebGL2 probe is cached for the session so returning pages don't pay
+       for it before first paint. failIfMajorPerformanceCaveat keeps machines
+       stuck on software rendering on the still; the probe's context is
+       released at once. */
+    var gl = null;
+    try { gl = sessionStorage.getItem('nb-gl2'); } catch (e) {}
+    if (gl === null) {
+      gl = '0';
+      try {
+        var ctx = document.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+        if (ctx) { gl = '1'; var lose = ctx.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext(); }
+      } catch (e) {}
+      try { sessionStorage.setItem('nb-gl2', gl); } catch (e) {}
+    }
+    if (gl !== '1') return;
     root.classList.add('home3d-ok');
+    /* The one way out. Whatever fails after this point (the scene's files, its
+       first frame, the frame governor, a lost GPU context), this puts the
+       still hero back and takes the pin away, keeping the visitor where they
+       were: inside the pin they return to the top of the page, past it they
+       stay on the same content. Idempotent. */
+    root.__nb3dGiveUp = function () {
+      if (!root.classList.contains('home3d-ok')) return;
+      var pin = document.querySelector('.hero-pin'), stick = document.querySelector('.hero-stick');
+      var travel = pin && stick ? pin.offsetHeight - stick.offsetHeight : 0, y = window.scrollY;
+      root.classList.remove('home3d-ok', 'home3d-live');
+      if (travel > 0 && y > 0) window.scrollTo(0, y > travel ? y - travel : 0);
+    };
     var seen = /(?:^|;\s*)nb_boot=seen/.test(document.cookie);
     if (/[?&]boot=1\b/.test(q) || (!seen && !/[?&]boot=0\b/.test(q))) root.classList.add('nb-boot');
   })(document.documentElement);
@@ -704,6 +728,13 @@
     el.innerHTML = '<div class="nbb-panel"><p class="nbb-line"><span class="nbb-typed"></span><i class="nbb-caret"></i></p>' +
       '<p class="nbb-count"><span class="nbb-kb">0</span><span class="nbb-of">/ &hellip; KB</span></p></div>';
     document.body.insertBefore(el, document.body.firstChild);
+    /* The page underneath can't be tabbed into or clicked while it is covered. */
+    var covered = [];
+    [].forEach.call(document.body.children, function (c) { if (c !== el && c.tagName !== 'SCRIPT') { c.inert = true; covered.push(c); } });
+    new MutationObserver(function (list, mo) {
+      if (!document.getElementById('nb-boot')) return mo.disconnect();
+      list.forEach(function (m) { [].forEach.call(m.addedNodes, function (c) { if (c.nodeType === 1 && c !== el && c.tagName !== 'SCRIPT') { c.inert = true; covered.push(c); } }); });
+    }).observe(document.body, { childList: true });
     var typed = el.querySelector('.nbb-typed'), kbEl = el.querySelector('.nbb-kb'), ofEl = el.querySelector('.nbb-of');
     var LINE = 'deploy(better_customers());', t0 = performance.now();
     var chars = 0, typer = setInterval(function () {
@@ -715,6 +746,7 @@
     function paint() { kbEl.textContent = String(Math.round(got / 1024)); }
     function pull(url) {
       return fetch(url).then(function (r) {
+        if (!r.ok) throw new Error(url + ' ' + r.status);
         if (!r.body || !r.body.getReader) return r.arrayBuffer().then(function (b) { got += b.byteLength; paint(); });
         var reader = r.body.getReader();
         return (function next() {
@@ -723,30 +755,41 @@
       });
     }
     var cap = new Promise(function (res) { setTimeout(res, 3500); });
-    var loaded = fetch('/data/boot-manifest.json').then(function (r) { return r.json(); }).then(function (m) {
+    var failed = false;
+    var loaded = fetch('/data/boot-manifest.json').then(function (r) { if (!r.ok) throw new Error('manifest ' + r.status); return r.json(); }).then(function (m) {
       total = m.files.reduce(function (n, f) { return n + f.bytes; }, 0);
       ofEl.textContent = '/ ' + Math.round(total / 1024).toLocaleString('en-US') + ' KB';
       return Promise.all(m.files.map(function (f) { return pull(f.path); }));
     }).then(function () {
       return import('/js/home/hero3d.js').then(function () { return window.NB_HOME3D && window.NB_HOME3D.ready; });
-    }).catch(function () {});
+    }).catch(function () { failed = true; if (left) root.__nb3dGiveUp(); });
     var least = new Promise(function (res) { setTimeout(res, 1100); });
     Promise.race([Promise.all([loaded, least]), cap]).then(leave);
+    var left = false;
     function leave() {
+      left = true;
       clearInterval(typer);
       typed.textContent = LINE;
-      if (total) { got = Math.max(got, total); paint(); }
+      /* Nothing is rounded up here: if the cap fired first, the count says
+         how much really arrived. If the scene failed, or hasn't started a few
+         seconds after the loader has gone, the page goes back to the still. */
+      var h = window.NB_HOME3D;
+      if (failed) root.__nb3dGiveUp();
+      else if (!h) setTimeout(function () { if (!window.NB_HOME3D) root.__nb3dGiveUp(); }, 4000);
       var ed = document.querySelector('.hero .hs-ed');
       var r = ed && ed.getBoundingClientRect();
       var panel = el.querySelector('.nbb-panel');
-      if (!r || !r.width || window.scrollY > 0) { el.classList.add('is-gone'); setTimeout(done, 450); return; }
+      if (!r || !r.width || window.scrollY > 0 || !root.classList.contains('home3d-ok')) { el.classList.add('is-gone'); el.style.pointerEvents = 'none'; uncover(); setTimeout(done, 450); return; }
       var op = getComputedStyle(ed).opacity;
       el.classList.add('is-folding');
+      el.style.pointerEvents = 'none';
+      uncover();
       panel.style.clipPath = 'inset(' + r.top + 'px ' + (innerWidth - r.right) + 'px ' + (innerHeight - r.bottom) + 'px ' + r.left + 'px round 12px)';
       panel.style.opacity = op;
       setTimeout(done, 950);
     }
-    function done() { if (el.parentNode) el.parentNode.removeChild(el); root.classList.remove('nb-boot'); }
+    function uncover() { covered.forEach(function (c) { c.inert = false; }); covered = []; }
+    function done() { uncover(); if (el.parentNode) el.parentNode.removeChild(el); root.classList.remove('nb-boot'); }
     root.__nbBootStarted = t0;
   })();
 </script>
@@ -1102,7 +1145,8 @@
       v.addEventListener('playing', function () { v.parentNode.classList.add('is-playing'); }, { once: true });
       v.play().catch(function () {});
     }
-    start(document.querySelector('.buddy video'));
+    // Behind a live 3D Buddy the wave video is hidden; don't pay to play it.
+    if (!document.documentElement.classList.contains('home3d-ok')) start(document.querySelector('.buddy video'));
 
     // The machine behind the hero runs on CSS alone; this only pauses its
     // animations while the hero is scrolled out of view, so an idle tab
@@ -1134,7 +1178,7 @@
   // Buddy at work, when the head allowed it and the loader isn't already
   // bringing him in.
   const root = document.documentElement;
-  if (root.classList.contains('home3d-ok') && !root.classList.contains('nb-boot')) import('/js/home/hero3d.js').catch(() => {});
+  if (root.classList.contains('home3d-ok') && !root.classList.contains('nb-boot')) import('/js/home/hero3d.js').catch(() => root.__nb3dGiveUp && root.__nb3dGiveUp());
 </script>
 <script type="module" src="js/pick.js"></script>
 

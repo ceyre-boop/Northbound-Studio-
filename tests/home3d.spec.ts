@@ -26,7 +26,7 @@ test.describe('who gets the scene', () => {
   test('desktop with motion: the scene runs and the still steps aside', async ({ page }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
     await page.setViewportSize(DESK);
-    await page.goto('/?clock=0');
+    await page.goto('/?clock=0&gov=off');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     await expect(page.locator('html')).toHaveClass(/home3d-live/);
     await expect(page.locator('.hero canvas.hero-3d')).toHaveCount(1);
@@ -80,6 +80,33 @@ test.describe('the loader', () => {
     await expect(page.locator('#nb-boot')).toHaveCount(0, { timeout: 6_000 });
     expect(Date.now() - t0).toBeLessThan(5_500);
     await expect(page.locator('.hero h1')).toBeVisible();
+    // And the scene that never came doesn't leave a dead pin behind.
+    await expect(page.locator('html')).not.toHaveClass(/home3d-ok/, { timeout: 6_000 });
+    const pinned = await page.evaluate(() => (document.querySelector('.hero-pin') as HTMLElement).offsetHeight - (document.querySelector('.hero-stick') as HTMLElement).offsetHeight);
+    expect(pinned).toBe(0);
+    await ctx.close();
+  });
+
+  test('the page under the loader is inert: no tabbing into it, nothing clickable', async ({ browser }, info) => {
+    test.skip(desktopOnly(info.project.name), 'desktop only');
+    const { ctx, page } = await firstVisit(browser);
+    await page.route('**/js/vendor/three/three-home.min.js', () => { /* hold the loader up */ });
+    await page.goto(BASE + '/');
+    await expect(page.locator('#nb-boot')).toHaveCount(1);
+    for (let i = 0; i < 4; i++) await page.keyboard.press('Tab');
+    const inPage = await page.evaluate(() => { const a = document.activeElement; return !!a && a !== document.body && !a.closest('#nb-boot'); });
+    expect(inPage, 'focus reached a control hidden under the loader').toBe(false);
+    await ctx.close();
+  });
+
+  test('a scene file that fails gives the page back its still hero, unpinned', async ({ browser }, info) => {
+    test.skip(desktopOnly(info.project.name), 'desktop only');
+    const { ctx, page } = await firstVisit(browser);
+    await page.route('**/js/home/buddy-rig.js', (r) => r.fulfill({ status: 404, body: 'nope' }));
+    await page.goto(BASE + '/');
+    await expect(page.locator('#nb-boot')).toHaveCount(0, { timeout: 8_000 });
+    await expect(page.locator('html')).not.toHaveClass(/home3d-ok/, { timeout: 6_000 });
+    await expect(page.locator('.hero .buddy')).toBeVisible();
     await ctx.close();
   });
 
@@ -93,10 +120,23 @@ test.describe('the loader', () => {
 });
 
 test.describe('the walk-off', () => {
+  test('when the scene gives up mid-pin, the pin goes and the visitor lands at the top', async ({ page }, info) => {
+    test.skip(desktopOnly(info.project.name), 'desktop only');
+    await page.setViewportSize(DESK);
+    await page.goto('/?clock=0&gov=off');
+    await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
+    await page.evaluate(() => window.scrollTo(0, 300));
+    await page.evaluate(() => { const c = document.querySelector('canvas.hero-3d') as HTMLCanvasElement; c.dispatchEvent(new Event('webglcontextlost', { cancelable: true })); });
+    await expect(page.locator('html')).not.toHaveClass(/home3d-ok/);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(page.locator('canvas.hero-3d')).toHaveCount(0);
+    await expect(page.locator('.hero .buddy')).toBeVisible();
+  });
+
   test('scroll drives it: seated at the top, gone at the end of the pin, then the pin lets go', async ({ page }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
     await page.setViewportSize(DESK);
-    await page.goto('/?clock=0');
+    await page.goto('/?clock=0&gov=off');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     const travel = await page.evaluate(() => (document.querySelector('.hero-pin') as HTMLElement).offsetHeight - (document.querySelector('.hero-stick') as HTMLElement).offsetHeight);
     expect(travel).toBeGreaterThan(500);
@@ -114,7 +154,7 @@ test.describe('the walk-off', () => {
   test('the page underneath is the page: floors one screen, the copy above the canvas', async ({ page }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
     await page.setViewportSize(DESK);
-    await page.goto('/?clock=0');
+    await page.goto('/?clock=0&gov=off');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     const r = await page.evaluate(() => ['.hero', '#offerings', '#packages', '#quote'].map((s) => Math.round(document.querySelector(s)!.getBoundingClientRect().height)));
     for (const h of r) expect(h).toBe(716);
@@ -140,7 +180,7 @@ test.describe('the walk-off', () => {
         }
       }).observe({ type: 'layout-shift', buffered: true });
     });
-    await page.goto('/?clock=0');
+    await page.goto('/?clock=0&gov=off');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 5, null, { timeout: 20_000 });
     expect(await page.evaluate(() => (window as any).__cls)).toBe(0);
   });

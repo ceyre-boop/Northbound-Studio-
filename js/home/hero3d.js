@@ -15,7 +15,8 @@
  * Choreography is a function of one number, progress p in 0..1 across the
  * pin, smoothed by a critically damped spring so wheel steps don't read as
  * steps. Test hooks: ?scrub=0..1 freezes p, ?clock=0 freezes the typing
- * clock. window.NB_HOME3D exposes { ready, progress, stats }.
+ * clock, ?gov=off turns the frame governor off (tests: headless Chromium
+ * renders WebGL in software). window.NB_HOME3D exposes { ready, progress, stats }.
  */
 import * as T from '/js/vendor/three/three-home.min.js';
 import { makeGrayboxBuddy, makeStation } from './buddy-rig.js';
@@ -23,6 +24,7 @@ import { makeGrayboxBuddy, makeStation } from './buddy-rig.js';
 const q = new URLSearchParams(location.search);
 const SCRUB = q.has('scrub') ? Math.min(1, Math.max(0, parseFloat(q.get('scrub')) || 0)) : null;
 const FROZEN_CLOCK = q.get('clock') === '0';
+const NO_GOVERNOR = q.get('gov') === 'off';
 
 const hero = document.querySelector('.hero');
 const pin = document.querySelector('.hero-pin');
@@ -38,7 +40,9 @@ canvas.className = 'hero-3d';
 canvas.setAttribute('aria-hidden', 'true');
 hero.insertBefore(canvas, hero.firstChild);
 
-const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+// The default GPU, not 'high-performance': on a dual-GPU laptop a hero
+// animation isn't worth waking the discrete card.
+const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.toneMapping = T.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 renderer.setClearColor(0x000000, 0);
@@ -101,7 +105,7 @@ function layout() {
   const r = hero.getBoundingClientRect();
   if (Math.round(r.width) === W && Math.round(r.height) === H) return;
   W = Math.round(r.width); H = Math.round(r.height);
-  const dpr = Math.min(window.devicePixelRatio || 1, W > 1600 ? 1.5 : 2);
+  const dpr = lowered ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
   api.stats.dpr = dpr;
   renderer.setPixelRatio(dpr);
   renderer.setSize(W, H, false);
@@ -196,7 +200,7 @@ function stage(dt) {
 }
 
 // --- loop, visibility, governor ---------------------------------------------
-let visible = true, running = false, last = 0;
+let visible = false, running = false, last = 0, dead = false;
 const frameMs = [];
 function frame(now) {
   const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
@@ -208,28 +212,52 @@ function frame(now) {
   api.stats.frames++;
   govern();
 }
-function start() { if (running) return; running = true; last = 0; renderer.setAnimationLoop(frame); }
+function start() { if (running || dead || !visible) return; running = true; last = 0; renderer.setAnimationLoop(frame); }
 function stop() { if (!running) return; running = false; renderer.setAnimationLoop(null); }
-new IntersectionObserver((e) => {
+const io = new IntersectionObserver((e) => {
   visible = e.some((x) => x.isIntersecting);
   visible ? start() : stop();
-}).observe(hero);
+});
+io.observe(hero);
 
-// If this device can't hold frame rate, first drop resolution, then hand the
-// hero back to the still poster rather than stutter.
+/* The one way out from here: stop drawing for good, release the GPU context,
+   and hand the page back to the still (the head script's __nb3dGiveUp also
+   removes the pin and keeps the visitor's place). */
+function fail(why) {
+  if (dead) return;
+  dead = true;
+  console.warn('[hero3d] handing the hero back to the still:', why);
+  stop();
+  io.disconnect();
+  api.stats.fallback = true;
+  try { renderer.forceContextLoss(); renderer.dispose(); } catch (e) {}
+  canvas.remove();
+  if (root.__nb3dGiveUp) root.__nb3dGiveUp();
+  else root.classList.remove('home3d-ok', 'home3d-live');
+  resolveReady();
+}
+canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); fail('context lost'); });
+// The conditions the head checked can change under a running page.
+const floors = matchMedia('(min-width: 960px) and (min-height: 640px)');
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
+floors.addEventListener('change', () => { if (!floors.matches) fail('left the desktop floors'); });
+if (!/[?&]motion=full\b/.test(location.search)) calm.addEventListener('change', () => { if (calm.matches) fail('reduced motion switched on'); });
+
+// Judged against this device's own frame interval, not a fixed number: a
+// laptop in Energy Saver or Low Power Mode runs a steady 30fps, and that is
+// fine. What isn't fine is a slow median (under ~22fps) or frames that keep
+// dropping (the 90th percentile far past the median). First drop resolution;
+// if it still can't keep up, hand the hero back to the still.
 let lowered = false;
 function govern() {
-  if (SCRUB !== null || frameMs.length < 90) return;
+  if (NO_GOVERNOR || SCRUB !== null || frameMs.length < 90) return;
   const sorted = [...frameMs].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
   const p90 = sorted[Math.floor(sorted.length * 0.9)];
-  if (p90 <= 22) return;
+  if (median <= 45 && p90 <= median * 2.2) return;
   frameMs.length = 0;
   if (!lowered) { lowered = true; renderer.setPixelRatio(1); api.stats.dpr = 1; return; }
-  stop();
-  api.stats.fallback = true;
-  root.classList.remove('home3d-live');
-  canvas.remove();
-  renderer.dispose();
+  fail('frame rate');
 }
 
 // --- go ----------------------------------------------------------------------
@@ -238,14 +266,9 @@ async function boot() {
   stage(1 / 60);
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
   renderer.render(scene, camera);
+  if (dead) return;
   root.classList.add('home3d-live');
   start();
   resolveReady();
 }
-boot().catch((err) => {
-  console.warn('[hero3d] falling back to the still:', err);
-  api.stats.fallback = true;
-  root.classList.remove('home3d-live', 'home3d-ok');
-  canvas.remove();
-  resolveReady();
-});
+boot().catch((err) => fail(err));

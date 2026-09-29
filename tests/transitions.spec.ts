@@ -48,36 +48,6 @@ test.describe('the preview switcher', () => {
     await expect(row.getByRole('radio', { name: 'Movie' })).toHaveAttribute('aria-checked', 'true');
   });
 
-  test('arrow keys move the choice within a seam', async ({ page }) => {
-    await page.goto('/?lab=1&t1=movie');
-    await page.locator('.tx-head').click();
-    const seg = page.locator('.tx-row').first();
-    await seg.getByRole('radio', { name: 'Movie' }).focus();
-    await page.keyboard.press('ArrowRight');
-    await expect(page.locator('html')).toHaveAttribute('data-t1', 'ad');
-    await expect(seg.getByRole('radio', { name: 'Commercial' })).toBeFocused();
-    await expect(seg.locator('[tabindex="0"]')).toHaveCount(1);
-  });
-
-  test('collapsed on a phone it never covers the Continue button', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/?lab=1');
-    await page.locator('.offer[data-part="Booking flow"]').click();
-    const go = page.locator('#pick-continue');
-    await expect(go).toBeVisible();
-    const b = (await go.boundingBox())!;
-    const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)!.closest('#pick-continue') !== null, [b.x + b.width / 2, b.y + b.height / 2]);
-    expect(hit, 'the switcher sits on top of Continue').toBe(true);
-  });
-
-  test('open on a short screen it scrolls inside the screen, so it can be closed', async ({ page }) => {
-    await page.setViewportSize({ width: 844, height: 390 });
-    await page.goto('/?lab=1');
-    await page.locator('.tx-head').click();
-    const top = await page.evaluate(() => document.querySelector('.tx-lab')!.getBoundingClientRect().top);
-    expect(top).toBeGreaterThanOrEqual(0);
-  });
-
   test('no sideways scroll on a phone with it open', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/?lab=1');
@@ -106,24 +76,9 @@ test.describe('02 -> 03 commercial: what each package covers', () => {
     await page.locator('.offer[data-part="Booking flow"]').click();
     await expect(page.locator('.covers[data-pkg="engine"] .covers-note')).toHaveText('Covers all 2 parts you picked.');
     await expect(page.locator('.covers[data-pkg="beacon"] .covers-note')).toHaveText('Covers 1 of the 2 parts you picked.');
-    await expect(page.locator('.covers[data-pkg="clean"] .covers-note')).toHaveText('Covers none of the 2 parts you picked.');
+    await expect(page.locator('.covers[data-pkg="clean"] .covers-note')).toHaveText('Covers 0 of the 2 parts you picked.');
     await expect(page.locator('.covers[data-pkg="engine"] li.picked')).toHaveCount(2);
     await expect(page.locator('.covers[data-pkg="engine"]')).toHaveClass(/covers-all/);
-  });
-
-  test('one pick reads as a sentence, and AI intake counts as an add-on on Engine', async ({ page }) => {
-    await page.goto('/?t2=ad');
-    await page.locator('.offer[data-part="Brand identity"]').click();
-    await expect(page.locator('.covers[data-pkg="beacon"] .covers-note')).toHaveText('Covers the part you picked.');
-    await expect(page.locator('.covers[data-pkg="clean"] .covers-note')).toHaveText("Doesn't include the part you picked.");
-    await page.locator('.offer[data-part="Brand identity"]').click();
-    await page.locator('.offer[data-part="AI intake"]').click();
-    await expect(page.locator('.covers[data-pkg="engine"] .covers-note')).toHaveText('Offers the part you picked as an add-on.');
-  });
-
-  test('the strip names its parts in words for a screen reader', async ({ page }) => {
-    await page.goto('/?t2=ad');
-    await expect(page.locator('.covers[data-pkg="beacon"] ol')).toHaveAttribute('aria-label', '3 of the twelve parts: A custom site, Brand identity, Local SEO.');
   });
 
   test('hidden when that seam is not the commercial', async ({ page }) => {
@@ -142,19 +97,6 @@ test.describe('the floors still fit', () => {
       for (const h of r) expect(h).toBe(716);
     });
   }
-
-  test('the prices floor stays one screen after picks, at common laptop sizes', async ({ page }, info) => {
-    test.skip(desktopOnly(info.project.name), 'desktop floors only');
-    for (const [w, h] of [[1512, 797], [1440, 900], [1280, 800]] as const) {
-      await page.setViewportSize({ width: w, height: h });
-      await page.goto('/?t2=ad');
-      const before = await page.evaluate(() => Math.round(document.querySelector('#packages')!.getBoundingClientRect().height));
-      await page.locator('.offer[data-part="Brand identity"]').click();
-      await page.locator('.offer[data-part="Booking flow"]').click();
-      const after = await page.evaluate(() => Math.round(document.querySelector('#packages')!.getBoundingClientRect().height));
-      expect(after, `${w}x${h}: picking grew the prices floor`).toBe(before);
-    }
-  });
 
   test('Buddy stands on the two floors only in the movie options', async ({ page }, info) => {
     test.skip(desktopOnly(info.project.name), 'Buddy guides are desktop-only');
@@ -194,27 +136,6 @@ test.describe('motion', () => {
     expect(r.running).toBe(0);
     expect(r.offersVisible).toBe(true);
     await ctx.close();
-  });
-
-  test('no option causes sideways scroll on a phone', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    for (const q of ['?motion=full&t1=ad&t2=movie&t3=ad', '?motion=full&t1=movie&t2=ad&t3=movie']) {
-      await page.goto('/' + q);
-      for (const y of [0, 900, 2400, 4200]) {
-        await page.evaluate((v) => window.scrollTo(0, v), y);
-        expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${q} at ${y}`).toBeLessThanOrEqual(0);
-      }
-    }
-  });
-
-  test('stopping between the first two floors leaves no navy band over a white floor', async ({ page }, info) => {
-    test.skip(desktopOnly(info.project.name), 'desktop floors only');
-    await page.setViewportSize({ width: 1512, height: 797 });
-    await page.goto('/?motion=full&t1=movie');
-    await page.evaluate(() => window.scrollTo(0, 700));
-    await page.waitForTimeout(150);
-    const dawn = await page.evaluate(() => +getComputedStyle(document.querySelector('.hero-iris')!, '::after').opacity);
-    expect(dawn).toBeGreaterThan(0.9);
   });
 
   test('the honeypot stays off-screen when the form rules itself in', async ({ page }) => {

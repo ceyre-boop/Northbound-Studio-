@@ -362,24 +362,33 @@
   .covers li.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .covers li.addon { border-style: dashed; border-color: var(--accent); color: var(--accent); }
   .covers li.picked { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--ink); }
-  .covers-note { margin: 8px 0 0; font: 500 12px/1.4 var(--mono); color: var(--ink-soft); }
-  .covers-note:empty { display: none; }
+  /* The note's line is always reserved (a no-break space when empty), so the
+     first pick fills it in rather than growing the card and pushing the
+     prices floor past one screen. */
+  .covers-note { margin: 5px 0 0; font: 500 11px/1.35 var(--mono); color: var(--ink-soft); }
   .covers.covers-all .covers-note { color: var(--accent); }
 
   /* With the strip in, the prices floor would run 40px past one screen, so
      the cards give that back: tighter padding, list and tag spacing. */
   @media (min-width: 960px) and (min-height: 640px) {
-    html[data-t2="ad"] #packages .pkg { padding: 16px 20px; }
+    html[data-t2="ad"] #packages .pkg { padding: 14px 20px; }
+    html[data-t2="ad"] #packages .covers li { height: 20px; }
     html[data-t2="ad"] #packages .pkg .tag { margin-bottom: 4px; }
     html[data-t2="ad"] #packages .pkg ul { margin: 6px 0 12px; font-size: 14px; line-height: 1.45; }
     html[data-t2="ad"] #packages .pkg li { margin-bottom: 1px; }
-    html[data-t2="ad"] #packages .covers { margin: auto 0 12px; }
+    html[data-t2="ad"] #packages .covers { margin: auto 0 10px; }
   }
 
   /* Buddy's two floor poses, for the movie options. Desktop floors only:
      on a phone there is no spare corner to stand him in. */
-  @media (min-width: 960px) and (min-height: 640px) {
+  /* Narrower than 1180 the prices lede reaches his corner, so he waits. */
+  @media (min-width: 1180px) and (min-height: 640px) {
     html[data-t2="movie"] .guide-think { display: block; position: absolute; top: -6px; right: var(--gutter); width: 104px; }
+  }
+  /* The twelve fly in toward their own column only on the four-column
+     desktop grid; in a single phone column that sideways pull overflowed. */
+  @media (min-width: 960px) and (min-height: 640px) {
+    #offerings .offerings > li { --ax: calc((1.5 - var(--col)) * 16%); }
     html[data-t3="movie"] .guide-ready { display: block; grid-area: n; width: min(250px, 70%); margin-top: 10px; }
   }
 
@@ -395,6 +404,10 @@
        the twelve come on inside it, lit, while the room brightens around
        them. */
     html.nb-motion[data-t1="movie"] .hero-iris { display: block; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(circle at var(--iris-x) var(--iris-y), #d6ccff 0, #8a7cf0 36px, #3d3e7a 150px, #1c1d36 460px); -webkit-mask-image: radial-gradient(circle at var(--iris-x) var(--iris-y), #000 calc(var(--iris-r) - 160px), transparent var(--iris-r)); mask-image: radial-gradient(circle at var(--iris-x) var(--iris-y), #000 calc(var(--iris-r) - 160px), transparent var(--iris-r)); animation: nb-iris linear both; animation-timeline: --hero; animation-range: exit 8% exit 52%; }
+    /* The lights come up on both sides of the seam at once: the part of the
+       hero still on screen turns white in step with the room below, so a
+       visitor who stops mid-scroll never sees a navy band over a white floor. */
+    html.nb-motion[data-t1="movie"] .hero-iris::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; animation: nb-dawn linear both; animation-timeline: --hero; animation-range: exit 59% exit 85%; }
     html.nb-motion[data-t1="movie"] .hero .buddy-art { transform-origin: 46% 14%; animation: nb-push linear both; animation-timeline: --hero; animation-range: exit 0% exit 50%; }
     html.nb-motion[data-t1="movie"] .hero-copy { animation: nb-letgo linear both; animation-timeline: --hero; animation-range: exit 0% exit 30%; }
     html.nb-motion[data-t1="movie"] #offerings { animation: nb-room linear both; animation-timeline: --twelve; animation-range: entry 0% entry 100%; }
@@ -438,6 +451,7 @@
      registered length so the scroll timeline can interpolate it. */
   @property --iris-r { syntax: '<length>'; inherits: false; initial-value: 0px; }
   @keyframes nb-iris { from { --iris-r: 0px; } to { --iris-r: 2800px; } }
+  @keyframes nb-dawn { to { opacity: 1; } }
   @keyframes nb-push { to { transform: scale(2.4); } }
   @keyframes nb-letgo { to { opacity: 0; translate: 0 -5vh; } }
   /* The room below goes dark only as the light reaches it, holds while the
@@ -446,7 +460,7 @@
   @keyframes nb-room-ink { 0%, 26% { color: var(--ink); } 42%, 70% { color: #fff; } 96%, 100% { color: var(--ink); } }
   @keyframes nb-lit { from { opacity: 0; scale: .92; } }
   @keyframes nb-explode { to { scale: 1.7; opacity: 0; } }
-  @keyframes nb-assemble { from { opacity: 0; scale: .82; translate: calc((1.5 - var(--col, 1.5)) * 16%) -5vh; } }
+  @keyframes nb-assemble { from { opacity: 0; scale: .82; translate: var(--ax, 0px) -5vh; } }
   @keyframes nb-stepback { to { scale: .94; opacity: .3; } }
   @keyframes nb-stepback-soft { to { scale: .97; opacity: .35; } }
   @keyframes nb-rise { from { opacity: 0; translate: 0 12vh; } }
@@ -457,8 +471,11 @@
   @keyframes nb-rule { from { clip-path: inset(-6px 100% -6px -6px); } to { clip-path: inset(-6px -6px -6px -6px); } }
 
   /* The switcher itself (preview deployments only). */
-  .tx-lab { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 30; width: min(340px, calc(100vw - 32px)); background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 40px -18px rgba(14,21,18,.35); font-size: 14px; }
-  .tx-head { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; padding: 10px 16px; border: 0; background: none; font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink); cursor: pointer; }
+  /* Collapsed it is a small pill in the bottom-right corner, clear of the
+     Continue button on the left; open, it scrolls inside the screen. */
+  .tx-lab { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 30; width: auto; max-height: calc(100vh - 32px); overflow: auto; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 40px -18px rgba(14,21,18,.35); font-size: 14px; }
+  .tx-lab.is-open { width: min(340px, calc(100vw - 32px)); }
+  .tx-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 10px 16px; border: 0; background: none; font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink); cursor: pointer; }
   .tx-head::after { content: "+"; font-size: 16px; }
   .tx-head[aria-expanded="true"]::after { content: "\2212"; }
   .tx-body { padding: 0 16px 14px; border-top: 1px solid var(--line); }
@@ -1073,23 +1090,24 @@
       box.className = 'covers';
       box.setAttribute('data-pkg', key);
       var ol = document.createElement('ol'), names = [];
-      ol.setAttribute('aria-hidden', 'true');
       for (var i = 0; i < PARTS.length; i++) {
         var li = document.createElement('li'), on = HAS[key].indexOf(PARTS[i]) !== -1;
         li.textContent = two(i + 1);
         li.style.setProperty('--k', String(i));
-        if (on) { li.className = 'on'; names.push(two(i + 1)); }
+        if (on) { li.className = 'on'; names.push(PARTS[i]); }
         else if ((ADDON[key] || []).indexOf(PARTS[i]) !== -1) li.className = 'addon';
         li.setAttribute('data-part', PARTS[i]);
         ol.appendChild(li);
       }
       var note = document.createElement('p');
       note.className = 'covers-note';
+      note.textContent = ' ';
       box.appendChild(ol);
       box.appendChild(note);
-      var label = 'Includes ' + (names.length === 1 ? 'part ' : 'parts ') + names.join(', ') + ' of the twelve';
-      box.setAttribute('role', 'img');
-      box.setAttribute('aria-label', label + (ADDON[key] ? '; AI intake is an add-on' : ''));
+      /* The strip is one picture to a screen reader, named by the parts in
+         words; the note stays outside it as ordinary text so it is read. */
+      ol.setAttribute('role', 'img');
+      ol.setAttribute('aria-label', names.length + ' of the twelve parts: ' + names.join(', ') + (ADDON[key] ? '. AI intake is an add-on.' : '.'));
       var btn = cards[c].querySelector('.btn');
       cards[c].insertBefore(box, btn);
       strips.push({ key: key, box: box, note: note, lis: ol.children });
@@ -1099,16 +1117,21 @@
     function sync() {
       var picked = [].map.call(list.querySelectorAll('.offer[aria-pressed="true"]'), function (b) { return b.getAttribute('data-part'); });
       strips.forEach(function (st) {
-        var got = 0;
+        var got = 0, extra = 0, n = picked.length;
         for (var i = 0; i < st.lis.length; i++) {
           var part = st.lis[i].getAttribute('data-part'), mine = picked.indexOf(part) !== -1;
           st.lis[i].classList.toggle('picked', mine);
           if (mine && HAS[st.key].indexOf(part) !== -1) got++;
+          else if (mine && (ADDON[st.key] || []).indexOf(part) !== -1) extra++;
         }
-        st.note.textContent = !picked.length ? '' : got === picked.length
-          ? (picked.length === 1 ? 'Covers the part you picked.' : 'Covers all ' + picked.length + ' parts you picked.')
-          : 'Covers ' + got + ' of the ' + picked.length + ' parts you picked.';
-        st.box.classList.toggle('covers-all', !!picked.length && got === picked.length);
+        var all = n && got + extra === n, text;
+        if (!n) text = ' ';
+        else if (n === 1) text = got ? 'Covers the part you picked.' : extra ? 'Offers the part you picked as an add-on.' : "Doesn't include the part you picked.";
+        else if (all) text = 'Covers all ' + n + ' parts you picked' + (extra ? ', AI intake as an add-on.' : '.');
+        else if (!got) text = 'Covers none of the ' + n + ' parts you picked.';
+        else text = 'Covers ' + got + ' of the ' + n + ' parts you picked' + (extra ? ', plus AI intake as an add-on.' : '.');
+        st.note.textContent = text;
+        st.box.classList.toggle('covers-all', !!all);
       });
     }
     new MutationObserver(sync).observe(list, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
@@ -1279,6 +1302,7 @@
       var open = head.getAttribute('aria-expanded') !== 'true';
       head.setAttribute('aria-expanded', String(open));
       body.hidden = !open;
+      panel.classList.toggle('is-open', open);
     });
     SEAMS.forEach(function (seam) {
       var row = document.createElement('div');
@@ -1296,7 +1320,7 @@
       desc.className = 'tx-desc';
       function paint() {
         var v = root.getAttribute('data-' + seam.k);
-        [].forEach.call(seg.children, function (b) { b.setAttribute('aria-checked', String(b.value === v)); });
+        [].forEach.call(seg.children, function (b) { b.setAttribute('aria-checked', String(b.value === v)); b.tabIndex = b.value === v ? 0 : -1; });
         desc.textContent = v === 'off' ? 'Off. The floors simply scroll.' : LABEL[v] + '. ' + seam[v];
       }
       ['movie', 'ad', 'off'].forEach(function (v) {
@@ -1311,6 +1335,15 @@
           u.searchParams.set(seam.k, v);
           history.replaceState(null, '', u);
           paint();
+        });
+        // A radio group moves with the arrow keys, one tab stop per seam.
+        b.addEventListener('keydown', function (e) {
+          var d = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 0;
+          if (!d) return;
+          e.preventDefault();
+          var all = seg.children, i = [].indexOf.call(all, b), next = all[(i + d + all.length) % all.length];
+          next.focus();
+          next.click();
         });
         seg.appendChild(b);
       });

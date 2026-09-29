@@ -21,7 +21,14 @@ export default defineConfig({
   fullyParallel: process.env.NB_WORKERS ? true : false,
   workers: Number(process.env.NB_WORKERS ?? 1),
   reporter: [['list']],
-  use: { baseURL: `http://localhost:${PORT}` },
+  /* Every spec arrives as a returning visitor: the homepage loader is a
+     first-visit-per-session thing (the nb_boot session cookie), and a
+     full-screen panel over the page would sit on every click and screenshot.
+     tests/home3d.spec.ts opens fresh contexts without it to test the loader. */
+  use: {
+    baseURL: `http://localhost:${PORT}`,
+    storageState: { cookies: [{ name: 'nb_boot', value: 'seen', domain: 'localhost', path: '/', expires: -1, httpOnly: false, secure: false, sameSite: 'Lax' }], origins: [] },
+  },
   webServer: {
     // Threaded AND gzipping — see the module docstring in scripts/serve.py.
     // The stdlib one-liner this replaces served text assets raw, so every

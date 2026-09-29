@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "/js/vendor/three/three-home.min.js",
+      "bytes": 663775
+    },
+    {
+      "path": "/js/home/hero3d.js",
+      "bytes": 10730
+    },
+    {
+      "path": "/js/home/buddy-rig.js",
+      "bytes": 8578
+    }
+  ]
+}

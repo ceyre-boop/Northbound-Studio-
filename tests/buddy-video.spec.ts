@@ -60,7 +60,9 @@ test.describe('Buddy in the hero', () => {
   test('desktop: present and playing above 640px, beside the copy, not over it', async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: DESKTOP, reducedMotion: 'no-preference' });
     const page = await ctx.newPage();
-    await page.goto('/', { waitUntil: 'networkidle' });
+    // The video is the hero wherever the 3D Buddy doesn't run (tests/home3d.spec.ts
+    // covers that path); ?gl=off is how this spec asks for it on a desktop.
+    await page.goto('/?gl=off', { waitUntil: 'networkidle' });
     const fig = page.locator('.buddy');
     await expect(fig).toBeVisible();
     const video = page.locator('.buddy video');

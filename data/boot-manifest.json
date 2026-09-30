@@ -2,15 +2,19 @@
   "files": [
     {
       "path": "/js/vendor/three/three-home.min.js",
-      "bytes": 663775
+      "bytes": 663804
     },
     {
       "path": "/js/home/world.js",
-      "bytes": 21589
+      "bytes": 23874
     },
     {
-      "path": "/js/home/buddy-rig.js",
-      "bytes": 8578
+      "path": "/js/home/buddy-model.js",
+      "bytes": 9774
+    },
+    {
+      "path": "/brand/3d/buddy.glb",
+      "bytes": 538124
     }
   ]
 }

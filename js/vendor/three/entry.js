@@ -9,7 +9,7 @@ export {
   MeshStandardMaterial, MeshBasicMaterial, ShaderMaterial,
   HemisphereLight, DirectionalLight, AmbientLight, PointLight,
   AnimationMixer, LoopOnce, LoopRepeat, Clock,
-  Color, Vector2, Vector3, Box3, MathUtils,
+  Color, Vector2, Vector3, Box3, MathUtils, Quaternion, Euler,
   CanvasTexture, TextureLoader, SRGBColorSpace, ACESFilmicToneMapping,
   DoubleSide, Fog, LinearFilter,
 } from 'three';

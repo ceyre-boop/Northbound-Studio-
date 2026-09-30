@@ -17,7 +17,8 @@ import { statSync } from 'node:fs';
 export const FILES = [
   '/js/vendor/three/three-home.min.js',
   '/js/home/world.js',
-  '/js/home/buddy-rig.js',
+  '/js/home/buddy-model.js',
+  '/brand/3d/buddy.glb',
 ];
 
 const ROOT = join(import.meta.dir, '..');

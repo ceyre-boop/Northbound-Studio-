@@ -374,6 +374,14 @@
      it is live the floors lose their own backgrounds so the rooms show. */
   #nb-world { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; }
   html.home3d-live .hero { background: transparent; }
+  /* The hero's CSS machine is a stacking context above the building (the
+     hero isolates), so while the 3D studio is live its glow, rings, wiring
+     and cards would paint over Buddy. Only the code editor stays: it is the
+     panel the loader folds into. The footer takes its own ground below the
+     building's last slab. */
+  html.home3d-live .hero .hero-scene { background: none; }
+  html.home3d-live .hero .hero-scene > :not(.hs), html.home3d-live .hero .hs > :not(.hs-ed) { visibility: hidden; }
+  html.home3d-live .site-footer { position: relative; background: #fff; }
   html.home3d-live .packages { background: transparent; border-color: transparent; }
   @media (min-width: 960px) and (min-height: 640px) {
     html.home3d-ok .hero-pin { height: 220svh; }

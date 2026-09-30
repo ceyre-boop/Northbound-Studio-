@@ -17,6 +17,11 @@ const desktopOnly = (name: string) => name !== 'desktop';
 // Software-rendered WebGL under parallel workers is slow; give each test room.
 test.describe.configure({ timeout: 60_000 });
 
+// Contexts opened by tests that don't close their own: a live software-WebGL
+// page left running would steal frames from the specs after this one.
+const ctxs: import('@playwright/test').BrowserContext[] = [];
+test.afterEach(async () => { while (ctxs.length) await ctxs.pop()!.close(); });
+
 /* A fresh first-time visitor: no nb_boot cookie, motion allowed. */
 async function firstVisit(browser: Browser, opts: Parameters<Browser['newContext']>[0] = {}) {
   // An explicit empty storage state: the project's shared one carries the
@@ -28,7 +33,8 @@ async function firstVisit(browser: Browser, opts: Parameters<Browser['newContext
 test.describe('who gets the scene', () => {
   test('desktop with motion: the scene runs and the still steps aside', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    const { page } = await firstVisit(browser);
+    const { ctx, page } = await firstVisit(browser);
+    ctxs.push(ctx);
     await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     await expect(page.locator('html')).toHaveClass(/home3d-live/);
@@ -110,7 +116,7 @@ test.describe('the loader', () => {
   test('a scene file that fails gives the page back its still hero, unpinned', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
     const { ctx, page } = await firstVisit(browser);
-    await page.route('**/js/home/buddy-rig.js', (r) => r.fulfill({ status: 404, body: 'nope' }));
+    await page.route('**/brand/3d/buddy.glb', (r) => r.fulfill({ status: 404, body: 'nope' }));
     await page.goto(BASE + '/');
     await expect(page.locator('#nb-boot')).toHaveCount(0, { timeout: 8_000 });
     await expect(page.locator('html')).not.toHaveClass(/home3d-ok/, { timeout: 6_000 });
@@ -130,7 +136,8 @@ test.describe('the loader', () => {
 test.describe('the walk-off', () => {
   test('when the scene gives up mid-pin, the pin goes and the visitor lands at the top', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    const { page } = await firstVisit(browser);
+    const { ctx, page } = await firstVisit(browser);
+    ctxs.push(ctx);
     await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     await page.evaluate(() => window.scrollTo(0, 300));
@@ -143,7 +150,8 @@ test.describe('the walk-off', () => {
 
   test('scroll drives it: seated at the top, gone at the end of the pin, then the pin lets go', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    const { page } = await firstVisit(browser);
+    const { ctx, page } = await firstVisit(browser);
+    ctxs.push(ctx);
     await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     const travel = await page.evaluate(() => (document.querySelector('.hero-pin') as HTMLElement).offsetHeight - (document.querySelector('.hero-stick') as HTMLElement).offsetHeight);
@@ -161,7 +169,8 @@ test.describe('the walk-off', () => {
 
   test('the page underneath is the page: floors one screen, the copy above the canvas', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    const { page } = await firstVisit(browser);
+    const { ctx, page } = await firstVisit(browser);
+    ctxs.push(ctx);
     await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     const r = await page.evaluate(() => ['.hero', '#offerings', '#packages', '#quote'].map((s) => Math.round(document.querySelector(s)!.getBoundingClientRect().height)));
@@ -170,12 +179,13 @@ test.describe('the walk-off', () => {
       const b = document.querySelector('.hero .btn-primary')!.getBoundingClientRect();
       return document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2)!.closest('.btn-primary') !== null;
     });
-    expect(onTop, 'the canvas sits over the primary button').toBe(true);
+    expect(onTop, 'the primary button is covered by something (it should be on top of the world)').toBe(true);
   });
 
   test('no layout shift while the scene arrives (outside the header)', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    const { page } = await firstVisit(browser);
+    const { ctx, page } = await firstVisit(browser);
+    ctxs.push(ctx);
     await page.addInitScript(() => {
       (window as any).__cls = 0;
       // The header's phone pill shifts a hair on font swap with or without the

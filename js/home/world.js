@@ -7,7 +7,9 @@
  * sections of the page, so the cut from floor to floor is physical: the slab
  * crosses the screen where one section ends and the next begins.
  *
- *   Floor 1  the studio      Buddy at his desk, typing (the hero's scene)
+ *   Floor 1  the studio      Buddy at his desk, typing (the hero's scene);
+ *                            the real Buddy, brand/3d/buddy.glb, rigged in
+ *                            js/home/buddy-model.js
  *   Floor 2  the workshop    a pegboard with twelve slots that light as parts
  *                            are picked; Buddy's workbench
  *   Floor 3  the showroom    three plinths under spotlights, behind the prices
@@ -25,7 +27,7 @@
  * window.NB_HOME3D = { ready, progress, stats }.
  */
 import * as T from '/js/vendor/three/three-home.min.js';
-import { makeGrayboxBuddy, makeStation } from './buddy-rig.js';
+import { loadBuddy } from './buddy-model.js';
 
 const q = new URLSearchParams(location.search);
 const SCRUB = q.has('scrub') ? Math.min(1, Math.max(0, parseFloat(q.get('scrub')) || 0)) : null;
@@ -39,6 +41,9 @@ const FLOORS = ['.hero', '#offerings', '#packages', '#quote'].map((s) => documen
 let resolveReady;
 const api = window.NB_HOME3D = { ready: new Promise((r) => (resolveReady = r)), progress: 0, stats: { frames: 0, dpr: 0, fallback: false } };
 if (!pin || !stick || FLOORS.some((f) => !f)) throw new Error('world: missing floors');
+// Render-on-demand state (see frame()); declared first because the page's
+// pick observer can mark the scene dirty before the loop starts.
+let dirty = true, lastY = -1;
 
 // --- renderer ---------------------------------------------------------------
 const canvas = document.createElement('canvas');
@@ -61,13 +66,18 @@ const key = new T.DirectionalLight(0xfffaf0, 1.6);
 key.position.set(4, 6, 8);
 scene.add(key);
 scene.add(key.target);
+// A soft fill from the camera's side: the back walls face the viewer, and
+// without it they read grey instead of white.
+const fill = new T.DirectionalLight(0xffffff, 1.3);
+scene.add(fill);
+scene.add(fill.target);
 
 // --- materials ----------------------------------------------------------------
 const std = (color, o = {}) => new T.MeshStandardMaterial({ color, roughness: 0.82, metalness: 0.02, ...o });
 const MAT = {
   // A white architectural model: light walls, light concrete, one thin mint
   // line where the building is cut.
-  wall: std(0xf4faf7),
+  wall: std(0xe6f6f0),
   wallWarm: std(0xf7f5f0),
   wallShow: std(0xf1f6f4),
   wallDraft: std(0xf2f5f7),
@@ -85,6 +95,9 @@ const MAT = {
   beam: new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, depthWrite: false, side: T.DoubleSide }),
   lampGlow: new T.MeshBasicMaterial({ color: 0xfff1d0, toneMapped: false }),
 };
+// Materials every rebuild reuses; everything else a room makes is its own and
+// is disposed with it.
+const SHARED = new Set(Object.values(MAT));
 const box = (w, h, d, m, x = 0, y = 0, z = 0, parent) => {
   const b = new T.Mesh(new T.BoxGeometry(w, h, d), m);
   b.position.set(x, y, z);
@@ -117,15 +130,28 @@ const pool = (w, d, color, opacity, parent) => {
 // Rebuilt on every layout change: each room's height is its section's height.
 const building = new T.Group();
 scene.add(building);
-const BACK = -3.4, FRONT = 1.4, SLAB = 0.34;
+const BACK = -3.4, SLAB = 0.34;
 let rooms = [];
 const slots = [];
 const plinths = [];
 
 function clearBuilding() {
-  building.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+  building.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material && !SHARED.has(o.material)) { if (o.material.map && o.material.map !== shadeTex) o.material.map.dispose(); o.material.dispose(); }
+  });
   building.clear();
   rooms = []; slots.length = 0; plinths.length = 0;
+}
+
+// World x, at depth z, of the middle of the page's left margin (beside the
+// 1000px content column), or null when the margin is too narrow to show
+// anything in it: set dressing that would only peek from behind a card is
+// better left out.
+function leftMarginX(z) {
+  const margin = (W - Math.min(W, 1000)) / 2;
+  if (margin < 150) return null;
+  return ((margin / 2 - W / 2) / ppu) * ((D - z) / D);
 }
 
 function makeRoom(i, top, bottom, width) {
@@ -135,10 +161,13 @@ function makeRoom(i, top, bottom, width) {
   const walls = [MAT.wall, MAT.wallWarm, MAT.wallShow, MAT.wallDraft][i];
   // Back wall, floor and the slab under this room (its front face is the seam).
   box(w, ceilY - floorY, 0.1, walls, cx, (floorY + ceilY) / 2, BACK - 0.05, g);
-  box(w, 0.02, FRONT - BACK, MAT.floor, cx, floorY, (FRONT + BACK) / 2, g);
-  box(w, SLAB, FRONT - BACK + 0.4, MAT.slab, cx, bottom, (FRONT + BACK) / 2 + 0.2, g);
-  box(w, SLAB * 0.9, 0.02, MAT.slabFace, cx, bottom, FRONT + 0.41, g);
-  box(w, 0.018, 0.02, MAT.edge, cx, bottom + SLAB / 2 - 0.012, FRONT + 0.42, g);   // the lit edge of the cut
+  box(w, 0.02, -BACK, MAT.floor, cx, floorY, BACK / 2, g);
+  // The slab runs from the back wall to the z=0 plane, the plane the camera
+  // is locked to the page at, so its cut face and the mint line on it sit
+  // on the seam between two sections exactly, at every scroll position.
+  box(w, SLAB, -BACK, MAT.slab, cx, bottom, BACK / 2, g);
+  box(w, SLAB, 0.002, MAT.slabFace, cx, bottom, 0.001, g);
+  box(w, 0.016, 0.002, MAT.edge, cx, bottom, 0.003, g);   // the lit edge of the cut, on the seam
   const shade = (y, flip) => {
     const m = new T.Mesh(new T.PlaneGeometry(w, 0.9), new T.MeshBasicMaterial({ map: shadeTex, transparent: true, depthWrite: false, opacity: 0.55 }));
     m.position.set(cx, y, BACK + 0.01);
@@ -161,7 +190,8 @@ function makeRoom(i, top, bottom, width) {
     // The workshop: a pegboard of twelve slots at the left margin, beside
     // the grid of twelve cards, and a workbench under it. A slot lights when
     // its part is picked on the page.
-    const px = -w * 0.41;
+    const px = leftMarginX(BACK + 0.4);
+    if (px !== null) {
     box(1.5, 2.1, 0.06, MAT.board, px, floorY + 1.9, BACK + 0.05, g);
     for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) {
       const s = box(0.3, 0.3, 0.05, MAT.slotOff, px - 0.42 + c * 0.42, floorY + 2.72 - r * 0.46, BACK + 0.11, g);
@@ -170,6 +200,7 @@ function makeRoom(i, top, bottom, width) {
     box(1.9, 0.08, 0.8, MAT.wood, px, floorY + 0.92, BACK + 0.55, g);
     for (const dx of [-0.85, 0.85]) box(0.06, 0.9, 0.7, MAT.metal, px + dx, floorY + 0.45, BACK + 0.55, g);
     pool(3, 2.4, 'rgba(255,214,160,0.35)', 1, g).position.set(px, floorY + 0.012, BACK + 1.2);
+    }
   }
   if (i === 2) {
     // The showroom: three plinths behind the three price cards, each under a
@@ -189,7 +220,8 @@ function makeRoom(i, top, bottom, width) {
   if (i === 3) {
     // The drafting room: a drafting table and a lamp at the left margin,
     // beside the form, in a pool of warm light.
-    const dx = -w * 0.38;
+    const dx = leftMarginX(BACK + 1.1);
+    if (dx === null) return room;
     const top3 = box(1.7, 0.05, 1.1, MAT.wood, dx, floorY + 1.05, BACK + 1.1, g);
     top3.rotation.x = -0.22;
     for (const ox of [-0.75, 0.75]) box(0.05, 1.0, 0.05, MAT.graphite, dx + ox, floorY + 0.5, BACK + 1.1, g);
@@ -202,16 +234,16 @@ function makeRoom(i, top, bottom, width) {
 }
 
 // --- Buddy and his desk, in the studio ----------------------------------------
-const buddy = makeGrayboxBuddy(T);
-const station = makeStation(T);
+// Loaded in boot() (brand/3d/buddy.glb); the building can draw without him.
+let buddy = null;
+const station = new T.Group();               // his desk, keyboard, monitor, mug and chair
 const actor = new T.Group();                 // desk + Buddy, placed in the studio each layout
-actor.add(station.object);
-actor.add(buddy.object);
+actor.add(station);
 scene.add(actor);
 const screenLight = new T.PointLight(0x7de8d4, 0, 2.2, 1.6);
 scene.add(screenLight);
 const SEAT_YAW = 1.2, WALK_YAW = -Math.PI / 2;
-station.object.rotation.y = SEAT_YAW;
+station.rotation.y = SEAT_YAW;
 
 // --- layout: lock the world to the page ------------------------------------------
 let W = 0, H = 0, ppu = 1, travel = 0, docTops = [], exitX = -6, actorScale = 1;
@@ -242,9 +274,10 @@ function layout(force) {
   const width = (W / ppu) * ((D - BACK) / D) + 2;   // wide enough to fill the frame at the back wall
   docTops.forEach((f, i) => rooms.push(makeRoom(i, -f.top / ppu, -f.bottom / ppu, width)));
   // A ceiling over the studio so the top of the building is closed.
-  box(width, SLAB, FRONT - BACK + 0.4, MAT.slab, 0, rooms[0].top, (FRONT + BACK) / 2 + 0.2, building);
+  box(width, SLAB, -BACK, MAT.slab, 0, rooms[0].top, BACK / 2, building);
   placeActor();
   syncSlots();
+  dirty = true;
 }
 
 // Buddy and his desk stand in the studio under the hero's left column, where
@@ -255,7 +288,7 @@ function placeActor() {
   const heroH = docTops[0].bottom - docTops[0].top;
   const z = 0.2;
   const k = (D - z) / D;                                    // world units per page unit at depth z, relative to z=0
-  actorScale = (heroH * 0.46 / ppu) * k / 1.85;
+  actorScale = (heroH * 0.5 / ppu) * k / (buddy ? buddy.HEIGHT : 2.26);
   actor.scale.setScalar(actorScale);
   const hero = FLOORS[0], cs = getComputedStyle(hero);
   const buddyW = parseFloat(cs.getPropertyValue('--buddy-w')) || W * 0.3;
@@ -275,9 +308,10 @@ const HAS = {
   1: ['A custom site', 'Brand identity', 'Local SEO'],
   2: ['A custom site', 'Brand identity', 'Local SEO', 'Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automated follow-up', 'Reminders', 'Review requests', 'Owner dashboard'],
 };
-let picked = [];
+let picked = [], pickObserver = null;
 function syncSlots() {
   slots.forEach((s, i) => { s.material = picked.includes(PARTS[i]) ? MAT.slotOn : MAT.slotOff; });
+  dirty = true;
   // The smallest package that covers every pick gets the light; none picked,
   // all three stand equal.
   let fit = -1;
@@ -292,7 +326,8 @@ function syncSlots() {
 const list = document.getElementById('offerings-list');
 if (list) {
   const read = () => { picked = [...list.querySelectorAll('.offer[aria-pressed="true"]')].map((b) => b.getAttribute('data-part')); syncSlots(); };
-  new MutationObserver(read).observe(list, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
+  pickObserver = new MutationObserver(read);
+  pickObserver.observe(list, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
   read();
 }
 
@@ -324,23 +359,17 @@ function stage(dt) {
   // The camera: glued to the page, holding still while the hero is pinned.
   const eff = window.scrollY - Math.min(window.scrollY, travel);
   const camY = -(eff + H / 2) / ppu;
-  // Crossing a slab, the camera dips its gaze a touch and comes back level:
-  // the one flourish, strongest exactly on the seam.
-  let dip = 0;
-  for (let i = 1; i < docTops.length; i++) {
-    const seamPx = docTops[i].top - eff;               // the seam's height on screen
-    const d = (seamPx - H / 2) / H;
-    dip += Math.max(0, 1 - Math.abs(d) * 2.2) * 0.035;
-  }
   camera.position.set(0, camY, D);
   // Each floor has its own light, and it changes as the camera passes the
   // slab: daylight in the studio, warm in the workshop, gallery-cool in the
   // showroom, lamplight in the drafting room.
   light(camY);
-  camera.rotation.set(-dip, 0, 0);
   key.position.set(4, camY + 6, 8);
   key.target.position.set(0, camY, 0);
+  fill.position.set(0, camY + 1, D);
+  fill.target.position.set(0, camY, BACK);
 
+  if (!buddy) return;
   // Buddy's walk-off, driven by the pin: typing, then he rises (.06-.34),
   // turns (.34-.48) and walks out of frame left (.46-1), feet locked.
   const rise = ease(seg(p, 0.06, 0.34));
@@ -352,13 +381,14 @@ function stage(dt) {
   buddy.object.rotation.y = T.MathUtils.lerp(SEAT_YAW, WALK_YAW, turn);
   const back = rise * 0.42;
   buddy.object.position.set(Math.sin(SEAT_YAW) * -back - distance, 0, Math.cos(SEAT_YAW) * -back);
-  station.chair.position.z = -rise * 0.62;
-  station.chair.position.x = rise * 0.28;
+  // The chair rolls back from the desk as he rises (props are turned -90°,
+  // so their local -X is "behind Buddy").
+  buddy.chair.position.set(-rise * 0.62, 0, rise * 0.22);
   const typing = 1 - rise;
   const flicker = 0.9 + Math.sin(clock * 7.3) * 0.05 + Math.sin(clock * 19.1) * 0.03;
   const lvl = (0.35 + 0.65 * typing) * flicker;
-  station.screenGlow.color.setRGB(0.62 * lvl, 0.94 * lvl, 0.88 * lvl);
-  screenLight.position.copy(station.screen.getWorldPosition(tmp));
+  if (buddy.screenGlow) buddy.screenGlow.emissive.setRGB(0.62 * lvl, 0.94 * lvl, 0.88 * lvl);
+  if (buddy.screen) screenLight.position.copy(buddy.screen.getWorldPosition(tmp));
   screenLight.intensity = 2.4 * typing * flicker * actorScale;
   screenLight.distance = 2.2 * actorScale;
 }
@@ -391,8 +421,17 @@ function frame(now) {
   last = now;
   layout(false);
   stage(dt);
-  renderer.render(scene, camera);
-  api.stats.frames++;
+  // Draw only when something on screen can have changed: the page moved, a
+  // pick or a layout changed, Buddy is still easing to the scroll, or the
+  // studio (where he types on his own clock) is in view. Reading a floor
+  // with nothing moving costs a rAF tick, not a full-screen frame.
+  const y = window.scrollY, studio = y < docTops[0].bottom + travel;
+  if (dirty || y !== lastY || Math.abs(v) > 1e-4 || studio || SCRUB !== null) {
+    renderer.render(scene, camera);
+    api.stats.frames++;
+    dirty = false;
+    lastY = y;
+  } else frameMs.length = 0;   // idle frames say nothing about the device
   govern();
 }
 function start() { if (running || dead || document.hidden) return; running = true; last = 0; renderer.setAnimationLoop(frame); }
@@ -416,6 +455,8 @@ function fail(why) {
   dead = true;
   console.warn('[world] handing the page back to its flat self:', why);
   stop();
+  bodyObserver.disconnect();
+  if (pickObserver) pickObserver.disconnect();
   api.stats.fallback = true;
   try { renderer.forceContextLoss(); renderer.dispose(); } catch (e) {}
   canvas.remove();
@@ -428,9 +469,15 @@ floorsMq.addEventListener('change', () => { if (!floorsMq.matches) fail('left th
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 if (!/[?&]motion=full\b/.test(location.search)) calm.addEventListener('change', () => { if (calm.matches) fail('reduced motion switched on'); });
 // Layout can change without a resize (fonts, the question's answer): re-lock.
-new ResizeObserver(() => layout(true)).observe(document.body);
+const bodyObserver = new ResizeObserver(() => { if (!dead) layout(true); });
+bodyObserver.observe(document.body);
 
 async function boot() {
+  const loader = new T.GLTFLoader();
+  loader.setMeshoptDecoder(T.MeshoptDecoder);
+  buddy = await loadBuddy(T, loader);
+  station.add(buddy.props);
+  actor.add(buddy.object);
   layout(true);
   stage(1 / 60);
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera);

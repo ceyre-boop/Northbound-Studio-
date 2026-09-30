@@ -17,28 +17,11 @@ export default defineConfig({
   // other's frame timing into false failures. Serial is honest, and stays the
   // default. The fast lane (NB_WORKERS, via `bun run test:fast`) is opt-in
   // and must never be pointed at the timing-sensitive specs — acts, stage,
-  // motion, offerings, perf, reveal, home3d — only ones that read markup/copy/links.
+  // motion, offerings, perf, reveal — only ones that read markup/copy/links.
   fullyParallel: process.env.NB_WORKERS ? true : false,
   workers: Number(process.env.NB_WORKERS ?? 1),
   reporter: [['list']],
-  /* Every spec arrives as a returning visitor with the 3D building off: the
-     loader is a first-visit-per-session thing (the nb_boot cookie) that
-     would sit over every click and screenshot. tests/home3d.spec.ts opens
-     fresh contexts without either cookie to test the loader and the world. */
-  use: {
-    baseURL: `http://localhost:${PORT}`,
-    storageState: {
-      cookies: [
-        { name: 'nb_boot', value: 'seen', domain: 'localhost', path: '/', expires: -1, httpOnly: false, secure: false, sameSite: 'Lax' },
-        /* The 3D building (js/home/world.js) is a whole-page WebGL canvas, and
-           headless Chromium renders it in software: every desktop page load
-           would pay for it. Specs about the page itself run it flat; the
-           building has its own spec (home3d.spec.ts) with clean contexts. */
-        { name: 'nb_gl', value: 'off', domain: 'localhost', path: '/', expires: -1, httpOnly: false, secure: false, sameSite: 'Lax' },
-      ],
-      origins: [],
-    },
-  },
+  use: { baseURL: `http://localhost:${PORT}` },
   webServer: {
     // Threaded AND gzipping — see the module docstring in scripts/serve.py.
     // The stdlib one-liner this replaces served text assets raw, so every

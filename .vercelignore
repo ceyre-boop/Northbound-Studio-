@@ -23,6 +23,3 @@ check-*.mjs
 .agents/
 .claude/
 skills-lock.json
-
-# Source art (the OBJ Buddy is converted from) is never served; only brand/3d/*.glb ships.
-brand-src/

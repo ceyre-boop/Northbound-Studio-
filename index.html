@@ -43,12 +43,12 @@
      Motion allowed (or forced with ?motion=full): the margin notes may write
      themselves in. Set before first paint so they never flash in, then out. */
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=full\b/.test(location.search)) document.documentElement.classList.add('nb-motion');
-  /* Buddy at work (js/home/hero3d.js). Decided here, before first paint, so
-     the pin's height is in the layout from the start and nothing shifts:
+  /* Buddy takes the job (js/home/job3d.js), on the last floor. Decided here,
+     before first paint, so his stage's space is in the layout from the start:
      motion allowed, the desktop floors, not a data-saver or slow link, not a
      small-memory device, WebGL2 on real hardware, and not ?gl=off or the
      nb_gl=off cookie (the test suite's default). Everyone else gets the
-     still poster, exactly as before. */
+     floor exactly as main has it. */
   (function (root) {
     var q = location.search, force = /[?&]motion=full\b/.test(q);
     var motion = force || !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -69,16 +69,8 @@
     }
     if (gl !== '1') return;
     root.classList.add('home3d-ok');
-    /* The one way out: whatever fails later (the model, the first frame, the
-       frame governor, a lost GPU context) puts the still hero back and takes
-       the pin away, keeping the visitor where they were. Idempotent. */
-    root.__nb3dGiveUp = function () {
-      if (!root.classList.contains('home3d-ok')) return;
-      var pin = document.querySelector('.hero-pin'), stick = document.querySelector('.hero-stick');
-      var travel = pin && stick ? pin.offsetHeight - stick.offsetHeight : 0, y = window.scrollY;
-      root.classList.remove('home3d-ok', 'home3d-live');
-      if (travel > 0 && y > 0) window.scrollTo(0, y > travel ? y - travel : 0);
-    };
+    // The one way out: any failure later takes the stage away. Idempotent.
+    root.__nb3dGiveUp = function () { root.classList.remove('home3d-ok', 'home3d-live'); };
   })(document.documentElement);
 </script>
 <!--
@@ -348,21 +340,18 @@
     .q-chip, .hero .hs > :not(svg), .hero .hs-net path, .hero .hs-net rect { transition: none !important; }
   }
 
-  /* BUDDY AT WORK.
-     The hero holds still while Buddy stands up and walks off (js/home/
-     hero3d.js). .hero-stick is the header plus the hero, exactly one screen,
-     so it pins whole; .hero-pin is that screen plus the scroll the walk-off
-     plays across. Only with html.home3d-ok (set in the head) and only on the
-     desktop floors; everywhere else these wrappers are plain blocks and the
-     page is the page. The canvas is transparent and sits behind the copy;
-     once the first frame is up the still poster steps out of the way, keeping
-     its space so nothing moves. */
-  .hero-3d { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  /* BUDDY TAKES THE JOB.
+     On the last floor, under the lede, Buddy walks in from the left edge of
+     the screen, sits at his desk and starts typing (js/home/job3d.js). The
+     stage only exists with html.home3d-ok (set in the head) on the desktop
+     floors, where #quote's left column has the room; its height is sized so
+     the floor stays one screen. The canvas bleeds left to the screen's edge
+     (set in JS) and never takes a click. */
+  .job-stage { display: none; }
   @media (min-width: 960px) and (min-height: 640px) {
-    html.home3d-ok .hero-pin { height: 220svh; }
-    html.home3d-ok .hero-stick { position: sticky; top: 0; }
+    html.home3d-ok #quote .job-stage { display: block; grid-area: n; position: relative; height: min(380px, calc(100svh - var(--head-h) - 340px)); margin-top: 8px; }
   }
-  html.home3d-live .hero .buddy { visibility: hidden; }
+  .job-3d { position: absolute; top: 0; display: block; pointer-events: none; }
 
   /* MARGIN NOTES.
      The page never says it sweats the details. It leaves notes in its own
@@ -688,8 +677,6 @@
 </head>
 <body>
 
-<div class="hero-pin">
-<div class="hero-stick">
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="/">Northbound Studio</a>
@@ -803,8 +790,6 @@
     </div>
   </div>
 </section>
-</div>
-</div>
 
 <script>
   /* The question, answered. One answer at a time and it cannot go back to
@@ -945,6 +930,7 @@
 <section id="quote">
   <div class="wrap">
     <h2>Tell us what the job is.</h2>
+    <div class="job-stage" aria-hidden="true"></div>
     <p class="section-lede">The useful first question is what one new customer is worth to you, and how many more you want a month. The answer decides the build. If you'd rather be walked through it, <a href="build.html">build your machine</a> — eight questions and you end with a priced build.</p>
     <form class="quote-form" method="post" action="/api/quote">
       <p class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required></p>
@@ -1039,8 +1025,7 @@
       v.addEventListener('playing', function () { v.parentNode.classList.add('is-playing'); }, { once: true });
       v.play().catch(function () {});
     }
-    // Behind a live 3D Buddy the wave video is hidden; don't pay to play it.
-    if (!document.documentElement.classList.contains('home3d-ok')) start(document.querySelector('.buddy video'));
+    start(document.querySelector('.buddy video'));
 
     // The machine behind the hero runs on CSS alone; this only pauses its
     // animations while the hero is scrolled out of view, so an idle tab
@@ -1069,9 +1054,17 @@
 <!-- The twelve panels as an order. A module, so it is deferred and never
      in the way of the first paint; with it missing the panels are inert. -->
 <script type="module">
-  // Buddy at work, when the head allowed it; any failure hands the hero back.
-  const root = document.documentElement;
-  if (root.classList.contains('home3d-ok')) import('/js/home/hero3d.js').catch(() => root.__nb3dGiveUp && root.__nb3dGiveUp());
+  // Buddy takes the job: loaded only once the last floor is within a screen
+  // and a half, so his model never competes with the first paint.
+  const root = document.documentElement, floor = document.getElementById('quote');
+  if (root.classList.contains('home3d-ok') && floor) {
+    const io = new IntersectionObserver((e) => {
+      if (!e.some((x) => x.isIntersecting)) return;
+      io.disconnect();
+      import('/js/home/job3d.js').catch(() => root.__nb3dGiveUp && root.__nb3dGiveUp());
+    }, { rootMargin: '150% 0px' });
+    io.observe(floor);
+  }
 </script>
 <script type="module" src="js/pick.js"></script>
 

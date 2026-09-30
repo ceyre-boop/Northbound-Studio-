@@ -14,6 +14,9 @@ const BASE = 'http://localhost:' + (process.env.NB_PORT ?? 8099);
 const DESK = { width: 1512, height: 797 };
 const desktopOnly = (name: string) => name !== 'desktop';
 
+// Software-rendered WebGL under parallel workers is slow; give each test room.
+test.describe.configure({ timeout: 60_000 });
+
 /* A fresh first-time visitor: no nb_boot cookie, motion allowed. */
 async function firstVisit(browser: Browser, opts: Parameters<Browser['newContext']>[0] = {}) {
   // An explicit empty storage state: the project's shared one carries the
@@ -23,13 +26,13 @@ async function firstVisit(browser: Browser, opts: Parameters<Browser['newContext
 }
 
 test.describe('who gets the scene', () => {
-  test('desktop with motion: the scene runs and the still steps aside', async ({ page }, info) => {
+  test('desktop with motion: the scene runs and the still steps aside', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    await page.setViewportSize(DESK);
-    await page.goto('/?clock=0&gov=off');
+    const { page } = await firstVisit(browser);
+    await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     await expect(page.locator('html')).toHaveClass(/home3d-live/);
-    await expect(page.locator('.hero canvas.hero-3d')).toHaveCount(1);
+    await expect(page.locator('canvas#nb-world')).toHaveCount(1);
     expect(await page.locator('.hero .buddy').evaluate((e) => getComputedStyle(e).visibility)).toBe('hidden');
   });
 
@@ -41,10 +44,10 @@ test.describe('who gets the scene', () => {
     test(`${why}: no scene, no loader, no three.js fetched, the still is the hero`, async ({ browser }) => {
       const { ctx, page } = await firstVisit(browser, opts as any);
       const fetched: string[] = [];
-      page.on('request', (r) => { if (/three-home|hero3d|boot-manifest/.test(r.url())) fetched.push(r.url()); });
+      page.on('request', (r) => { if (/three-home|world\.js|boot-manifest/.test(r.url())) fetched.push(r.url()); });
       await page.goto(BASE + url, { waitUntil: 'networkidle' });
       await expect(page.locator('#nb-boot')).toHaveCount(0);
-      await expect(page.locator('canvas.hero-3d')).toHaveCount(0);
+      await expect(page.locator('canvas#nb-world')).toHaveCount(0);
       expect(fetched).toEqual([]);
       await expect(page.locator('.hero .buddy')).toBeVisible();
       await ctx.close();
@@ -58,12 +61,17 @@ test.describe('the loader', () => {
     const { ctx, page } = await firstVisit(browser);
     const manifest = await (await fetch(BASE + '/data/boot-manifest.json')).json();
     const totalKb = Math.round(manifest.files.reduce((n: number, f: any) => n + f.bytes, 0) / 1024);
+    // Hold the big file back a moment so the counter is on screen long enough
+    // to read under a loaded test machine; it still arrives, and is counted.
+    await page.route('**/js/vendor/three/three-home.min.js', async (r) => { await new Promise((z) => setTimeout(z, 1500)); await r.continue(); });
     await page.goto(BASE + '/');
     await expect(page.locator('#nb-boot')).toHaveCount(1);
     await expect(page.locator('#nb-boot .nbb-of')).toHaveText(`/ ${totalKb.toLocaleString('en-US')} KB`);
     await expect(page.locator('#nb-boot .nbb-kb')).toHaveText(String(totalKb), { timeout: 10_000 });
     await expect(page.locator('#nb-boot .nbb-typed')).toHaveText('deploy(better_customers());', { timeout: 5_000 });
-    await expect(page.locator('#nb-boot')).toHaveCount(0, { timeout: 8_000 });
+    // Software WebGL compiling the building can hold the main thread (and the
+    // loader's timers) for seconds on a loaded test machine; real GPUs don't.
+    await expect(page.locator('#nb-boot')).toHaveCount(0, { timeout: 15_000 });
     await expect(page.locator('html')).not.toHaveClass(/nb-boot/);
     await page.reload();
     await expect(page.locator('#nb-boot')).toHaveCount(0);
@@ -120,23 +128,23 @@ test.describe('the loader', () => {
 });
 
 test.describe('the walk-off', () => {
-  test('when the scene gives up mid-pin, the pin goes and the visitor lands at the top', async ({ page }, info) => {
+  test('when the scene gives up mid-pin, the pin goes and the visitor lands at the top', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    await page.setViewportSize(DESK);
-    await page.goto('/?clock=0&gov=off');
+    const { page } = await firstVisit(browser);
+    await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     await page.evaluate(() => window.scrollTo(0, 300));
-    await page.evaluate(() => { const c = document.querySelector('canvas.hero-3d') as HTMLCanvasElement; c.dispatchEvent(new Event('webglcontextlost', { cancelable: true })); });
+    await page.evaluate(() => { const c = document.querySelector('canvas#nb-world') as HTMLCanvasElement; c.dispatchEvent(new Event('webglcontextlost', { cancelable: true })); });
     await expect(page.locator('html')).not.toHaveClass(/home3d-ok/);
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
-    await expect(page.locator('canvas.hero-3d')).toHaveCount(0);
+    await expect(page.locator('canvas#nb-world')).toHaveCount(0);
     await expect(page.locator('.hero .buddy')).toBeVisible();
   });
 
-  test('scroll drives it: seated at the top, gone at the end of the pin, then the pin lets go', async ({ page }, info) => {
+  test('scroll drives it: seated at the top, gone at the end of the pin, then the pin lets go', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    await page.setViewportSize(DESK);
-    await page.goto('/?clock=0&gov=off');
+    const { page } = await firstVisit(browser);
+    await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     const travel = await page.evaluate(() => (document.querySelector('.hero-pin') as HTMLElement).offsetHeight - (document.querySelector('.hero-stick') as HTMLElement).offsetHeight);
     expect(travel).toBeGreaterThan(500);
@@ -151,10 +159,10 @@ test.describe('the walk-off', () => {
     await expect.poll(() => page.evaluate(() => (window as any).NB_HOME3D.progress), { timeout: 5_000 }).toBeLessThan(0.02);
   });
 
-  test('the page underneath is the page: floors one screen, the copy above the canvas', async ({ page }, info) => {
+  test('the page underneath is the page: floors one screen, the copy above the canvas', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    await page.setViewportSize(DESK);
-    await page.goto('/?clock=0&gov=off');
+    const { page } = await firstVisit(browser);
+    await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 2, null, { timeout: 20_000 });
     const r = await page.evaluate(() => ['.hero', '#offerings', '#packages', '#quote'].map((s) => Math.round(document.querySelector(s)!.getBoundingClientRect().height)));
     for (const h of r) expect(h).toBe(716);
@@ -165,9 +173,9 @@ test.describe('the walk-off', () => {
     expect(onTop, 'the canvas sits over the primary button').toBe(true);
   });
 
-  test('no layout shift while the scene arrives (outside the header)', async ({ page }, info) => {
+  test('no layout shift while the scene arrives (outside the header)', async ({ browser }, info) => {
     test.skip(desktopOnly(info.project.name), 'desktop only');
-    await page.setViewportSize(DESK);
+    const { page } = await firstVisit(browser);
     await page.addInitScript(() => {
       (window as any).__cls = 0;
       // The header's phone pill shifts a hair on font swap with or without the
@@ -180,7 +188,7 @@ test.describe('the walk-off', () => {
         }
       }).observe({ type: 'layout-shift', buffered: true });
     });
-    await page.goto('/?clock=0&gov=off');
+    await page.goto(BASE + '/?clock=0&gov=off&boot=0');
     await page.waitForFunction(() => (window as any).NB_HOME3D?.stats?.frames > 5, null, { timeout: 20_000 });
     expect(await page.evaluate(() => (window as any).__cls)).toBe(0);
   });

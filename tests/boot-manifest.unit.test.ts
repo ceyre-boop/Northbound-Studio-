@@ -14,6 +14,6 @@ test('data/boot-manifest.json matches the files on disk, byte for byte', () => {
 });
 
 test('it lists the scene the loader imports', () => {
-  expect(FILES).toContain('/js/home/hero3d.js');
+  expect(FILES).toContain('/js/home/world.js');
   expect(FILES).toContain('/js/vendor/three/three-home.min.js');
 });

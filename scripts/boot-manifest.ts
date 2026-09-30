@@ -16,7 +16,7 @@ import { statSync } from 'node:fs';
 
 export const FILES = [
   '/js/vendor/three/three-home.min.js',
-  '/js/home/hero3d.js',
+  '/js/home/world.js',
   '/js/home/buddy-rig.js',
 ];
 

@@ -43,6 +43,43 @@
      Motion allowed (or forced with ?motion=full): the margin notes may write
      themselves in. Set before first paint so they never flash in, then out. */
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=full\b/.test(location.search)) document.documentElement.classList.add('nb-motion');
+  /* Buddy at work (js/home/hero3d.js). Decided here, before first paint, so
+     the pin's height is in the layout from the start and nothing shifts:
+     motion allowed, the desktop floors, not a data-saver or slow link, not a
+     small-memory device, WebGL2 on real hardware, and not ?gl=off or the
+     nb_gl=off cookie (the test suite's default). Everyone else gets the
+     still poster, exactly as before. */
+  (function (root) {
+    var q = location.search, force = /[?&]motion=full\b/.test(q);
+    var motion = force || !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var big = matchMedia('(min-width: 960px) and (min-height: 640px)').matches;
+    var n = navigator, c = n.connection || {};
+    var light = !!c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || '') || (n.deviceMemory && n.deviceMemory < 4);
+    if (!motion || !big || light || /[?&]gl=off\b/.test(q) || /(?:^|;\s*)nb_gl=off/.test(document.cookie)) return;
+    // Cached per session; refuses software rendering; releases its context.
+    var gl = null;
+    try { gl = sessionStorage.getItem('nb-gl2'); } catch (e) {}
+    if (gl === null) {
+      gl = '0';
+      try {
+        var ctx = document.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+        if (ctx) { gl = '1'; var lose = ctx.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext(); }
+      } catch (e) {}
+      try { sessionStorage.setItem('nb-gl2', gl); } catch (e) {}
+    }
+    if (gl !== '1') return;
+    root.classList.add('home3d-ok');
+    /* The one way out: whatever fails later (the model, the first frame, the
+       frame governor, a lost GPU context) puts the still hero back and takes
+       the pin away, keeping the visitor where they were. Idempotent. */
+    root.__nb3dGiveUp = function () {
+      if (!root.classList.contains('home3d-ok')) return;
+      var pin = document.querySelector('.hero-pin'), stick = document.querySelector('.hero-stick');
+      var travel = pin && stick ? pin.offsetHeight - stick.offsetHeight : 0, y = window.scrollY;
+      root.classList.remove('home3d-ok', 'home3d-live');
+      if (travel > 0 && y > 0) window.scrollTo(0, y > travel ? y - travel : 0);
+    };
+  })(document.documentElement);
 </script>
 <!--
   THE WAY OUT. Twelve bands close over the page, left to right, and the next
@@ -310,6 +347,22 @@
   @media (prefers-reduced-motion: reduce) {
     .q-chip, .hero .hs > :not(svg), .hero .hs-net path, .hero .hs-net rect { transition: none !important; }
   }
+
+  /* BUDDY AT WORK.
+     The hero holds still while Buddy stands up and walks off (js/home/
+     hero3d.js). .hero-stick is the header plus the hero, exactly one screen,
+     so it pins whole; .hero-pin is that screen plus the scroll the walk-off
+     plays across. Only with html.home3d-ok (set in the head) and only on the
+     desktop floors; everywhere else these wrappers are plain blocks and the
+     page is the page. The canvas is transparent and sits behind the copy;
+     once the first frame is up the still poster steps out of the way, keeping
+     its space so nothing moves. */
+  .hero-3d { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  @media (min-width: 960px) and (min-height: 640px) {
+    html.home3d-ok .hero-pin { height: 220svh; }
+    html.home3d-ok .hero-stick { position: sticky; top: 0; }
+  }
+  html.home3d-live .hero .buddy { visibility: hidden; }
 
   /* MARGIN NOTES.
      The page never says it sweats the details. It leaves notes in its own
@@ -635,6 +688,8 @@
 </head>
 <body>
 
+<div class="hero-pin">
+<div class="hero-stick">
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="/">Northbound Studio</a>
@@ -748,6 +803,8 @@
     </div>
   </div>
 </section>
+</div>
+</div>
 
 <script>
   /* The question, answered. One answer at a time and it cannot go back to
@@ -982,7 +1039,8 @@
       v.addEventListener('playing', function () { v.parentNode.classList.add('is-playing'); }, { once: true });
       v.play().catch(function () {});
     }
-    start(document.querySelector('.buddy video'));
+    // Behind a live 3D Buddy the wave video is hidden; don't pay to play it.
+    if (!document.documentElement.classList.contains('home3d-ok')) start(document.querySelector('.buddy video'));
 
     // The machine behind the hero runs on CSS alone; this only pauses its
     // animations while the hero is scrolled out of view, so an idle tab
@@ -1010,6 +1068,11 @@
 </script>
 <!-- The twelve panels as an order. A module, so it is deferred and never
      in the way of the first paint; with it missing the panels are inert. -->
+<script type="module">
+  // Buddy at work, when the head allowed it; any failure hands the hero back.
+  const root = document.documentElement;
+  if (root.classList.contains('home3d-ok')) import('/js/home/hero3d.js').catch(() => root.__nb3dGiveUp && root.__nb3dGiveUp());
+</script>
 <script type="module" src="js/pick.js"></script>
 
 </body>

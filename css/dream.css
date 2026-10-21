@@ -165,7 +165,7 @@ html.js [data-reveal].is-in {
   top: -6%; /* the 12% oversize is split top/bottom so drift never bares an edge */
   width: 100%;
   height: 112%;
-  object-fit: cover;
+  object-fit: contain; /* Buddy's video is square — contain keeps all of him in the wide frame; his own cream backdrop blends with the frame */
   will-change: transform;
 }
 
@@ -206,6 +206,7 @@ html.js [data-reveal].is-in {
 
 @media (max-width: 640px) {
   .hero-media { aspect-ratio: 4 / 3; border-radius: 20px 20px 0 0; }
+  .hero-video { object-fit: cover; }
   .hero-content { padding-top: 38px; }
 }
 

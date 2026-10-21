@@ -3,1070 +3,234 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Northbound Studio — we build the machine that brings customers in</title>
-<meta name="description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
+<title>Northbound Studio — Made to order</title>
+<meta name="description" content="A one-man web studio in Grand Ledge, Michigan. Websites made to order — a few builds a month, each designed and built by hand.">
 <link rel="canonical" href="https://northbound-dev.com/">
-<meta property="og:title" content="Northbound Studio">
-<meta property="og:description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
+<meta property="og:title" content="Northbound Studio — Made to order">
+<meta property="og:description" content="Websites made to order in Grand Ledge, Michigan. A few builds a month, each designed and built by hand.">
 <meta property="og:url" content="https://northbound-dev.com/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://northbound-dev.com/brand/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
-<meta property="og:image:alt" content="Northbound Studio — we build the machine that brings customers in">
+<meta property="og:image:alt" content="Northbound Studio — Made to order">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Northbound Studio">
-<meta name="twitter:description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
+<meta name="twitter:title" content="Northbound Studio — Made to order">
+<meta name="twitter:description" content="Websites made to order in Grand Ledge, Michigan. A few builds a month, each designed and built by hand.">
 <meta name="twitter:image" content="https://northbound-dev.com/brand/og.png">
+<meta name="theme-color" content="#F7F6F2">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
-<link rel="preload" as="image" href="brand/buddy-wave-poster.webp" media="(min-width: 640px)">
-<!--
-  THE BASE.
-
-  This is 01-clean from the spec kit, carrying Northbound's own content and
-  the studio's typefaces. It is deliberately plain: no WebGL, no smooth
-  scroll, and only the small scripts at the foot (Buddy's wave, the founding
-  claim's validity message, and js/pick.js for the twelve panels).
-  Everything that makes this page beautiful
-  gets added on top of this file, one decision at a time, and every addition
-  has to survive the same question — does the page still read, and still
-  work, without it?
-
-  This is now the homepage of northbound-dev.com. The WebGL site — the four-
-  act canvas build this page used to sit behind, noindexed — lives at
-  studio.html and keeps working exactly as it did.
--->
-<script>
-  /* Outside THE WAY OUT block on purpose: tests/checkout.unit.test.ts
-     compares that block across three pages character for character.
-     Motion allowed (or forced with ?motion=full): the margin notes may write
-     themselves in. Set before first paint so they never flash in, then out. */
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=full\b/.test(location.search)) document.documentElement.classList.add('nb-motion');
-  /* Buddy takes the job (js/home/job3d.js), on the last floor. Decided here,
-     before first paint, so his stage's space is in the layout from the start:
-     motion allowed, the desktop floors, not a data-saver or slow link, not a
-     small-memory device, WebGL2 on real hardware, and not ?gl=off or the
-     nb_gl=off cookie (the test suite's default). Everyone else gets the
-     floor exactly as main has it. */
-  (function (root) {
-    var q = location.search, force = /[?&]motion=full\b/.test(q);
-    var motion = force || !matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var big = matchMedia('(min-width: 960px) and (min-height: 640px)').matches;
-    var n = navigator, c = n.connection || {};
-    var light = !!c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || '') || (n.deviceMemory && n.deviceMemory < 4);
-    if (!motion || !big || light || /[?&]gl=off\b/.test(q) || /(?:^|;\s*)nb_gl=off/.test(document.cookie)) return;
-    // Cached per session; refuses software rendering; releases its context.
-    var gl = null;
-    try { gl = sessionStorage.getItem('nb-gl2'); } catch (e) {}
-    if (gl === null) {
-      gl = '0';
-      try {
-        var ctx = document.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
-        if (ctx) { gl = '1'; var lose = ctx.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext(); }
-      } catch (e) {}
-      try { sessionStorage.setItem('nb-gl2', gl); } catch (e) {}
-    }
-    if (gl !== '1') return;
-    root.classList.add('home3d-ok');
-    // The one way out: any failure later takes the stage away. Idempotent.
-    root.__nb3dGiveUp = function () { root.classList.remove('home3d-ok', 'home3d-live'); };
-  })(document.documentElement);
-</script>
-<!--
-  THE WAY OUT. Twelve bands close over the page, left to right, and the next
-  page opens from behind them. Twelve because that is how many things are on
-  the homepage: the transition is made of the site's own count, not a stock
-  wipe.
-
-  Inline and in the head on purpose. The arrival half has to be applied
-  before the first paint — loaded any later and you would see the page, then
-  the bands arrive, then they leave, which is worse than no transition at
-  all. It is about 1.2KB gzipped and costs no request.
-
-  It never delays the sale. The href is followed at 85% of the close, the
-  destination is prefetched the moment a pointer touches the link, and under
-  prefers-reduced-motion none of it runs and a link is just a link. The three
-  pages carry identical copies; tests/checkout.unit.test.ts asserts they stay
-  identical.
--->
-<style>
-  :root { --nb-leave-ms: 620; --nb-arrive-ms: 700; --nb-veil-cells: 12; }
-  .nb-veil { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; display: grid; grid-template-columns: repeat(12, 1fr); }
-  .nb-veil i { display: block; background: #0E1512; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
-  .nb-veil i:nth-child(1) { animation-delay: 0ms; }
-  .nb-veil i:nth-child(2) { animation-delay: 26ms; }
-  .nb-veil i:nth-child(3) { animation-delay: 52ms; }
-  .nb-veil i:nth-child(4) { animation-delay: 78ms; }
-  .nb-veil i:nth-child(5) { animation-delay: 104ms; }
-  .nb-veil i:nth-child(6) { animation-delay: 130ms; }
-  .nb-veil i:nth-child(7) { animation-delay: 156ms; }
-  .nb-veil i:nth-child(8) { animation-delay: 182ms; }
-  .nb-veil i:nth-child(9) { animation-delay: 208ms; }
-  .nb-veil i:nth-child(10) { animation-delay: 234ms; }
-  .nb-veil i:nth-child(11) { animation-delay: 260ms; }
-  .nb-veil i:nth-child(12) { animation-delay: 286ms; }
-  @keyframes nb-drop { to { transform: none; } }
-  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #0E1512; }
-  html.nb-arriving::before { animation: nb-open-l 700ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
-  html.nb-arriving::after { animation: nb-open-r 700ms 60ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
-  @keyframes nb-open-l { from { clip-path: inset(0 50% 0 0); } to { clip-path: inset(0 100% 0 0); } }
-  @keyframes nb-open-r { from { clip-path: inset(0 0 0 50%); } to { clip-path: inset(0 0 0 100%); } }
-  html.nb-arriving body { animation: nb-up 700ms 180ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-  @keyframes nb-up { from { transform: translateY(24px); opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .nb-veil { display: none; } html.nb-arriving::before, html.nb-arriving::after, html.nb-arriving body { animation: none; } }
-</style>
-<script>
-  (function () {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var root = document.documentElement;
-    var LINKS = 'a[href^="checkout.html"], a[href^="/checkout.html"]';
-    var ms = function (name, fallback) {
-      var n = parseFloat(getComputedStyle(root).getPropertyValue(name));
-      return isNaN(n) ? fallback : n;
-    };
-    try {
-      if (sessionStorage.getItem('nb-transit') === '1') {
-        sessionStorage.removeItem('nb-transit');
-        root.classList.add('nb-arriving');
-        setTimeout(function () { root.classList.remove('nb-arriving'); }, ms('--nb-arrive-ms', 700) + 160);
-      }
-    } catch (e) {}
-    var warmed = {};
-    document.addEventListener('pointerover', function (e) {
-      var a = e.target.closest && e.target.closest(LINKS);
-      if (!a || warmed[a.href]) return;
-      warmed[a.href] = 1;
-      var l = document.createElement('link');
-      l.rel = 'prefetch';
-      l.href = a.href;
-      document.head.appendChild(l);
-    }, true);
-    var going = false;
-    document.addEventListener('click', function (e) {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      var a = e.target.closest && e.target.closest(LINKS);
-      if (!a || going) return;
-      e.preventDefault();
-      going = true;
-      try { sessionStorage.setItem('nb-transit', '1'); } catch (err) {}
-      var veil = document.createElement('div');
-      veil.className = 'nb-veil';
-      veil.setAttribute('aria-hidden', 'true');
-      var cells = ms('--nb-veil-cells', 12);
-      for (var i = 0; i < cells; i++) veil.appendChild(document.createElement('i'));
-      /* On <html>: a transformed <body> would become the containing block for
-         a fixed child and the bands would size to the whole document. */
-      root.appendChild(veil);
-      var leave = ms('--nb-leave-ms', 620);
-      setTimeout(function () { location.href = a.href; }, leave * 0.85);
-      setTimeout(function () { location.href = a.href; }, leave + 700);
-    }, true);
-  })();
-</script>
-<style>
-  @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
-  @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
-  @font-face { font-family: 'JetBrains Mono'; src: url('fonts/jetbrains-mono.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
-
-  :root {
-    --ink: #0E1512;          /* near-black, a touch green so it sits with the accent */
-    --ink-soft: #55635C;
-    --line: #E4EAE6;
-    --bg: #FFFFFF;
-    --panel: #F4F8F6;
-    --accent: #0E6F5C;       /* the site's aurora, taken down to work on white */
-    --accent-dark: #0A5445;
-    --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
-    --body: 'Instrument Sans', system-ui, -apple-system, sans-serif;
-    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
-    --gutter: clamp(20px, 5vw, 40px);
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-  a { color: inherit; }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 var(--gutter); }
-
-  .site-header { border-bottom: 1px solid var(--line); }
-  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
-  .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
-  .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
-
-  .hero { --hero-pad-b: clamp(40px, 7vw, 72px); padding: clamp(48px, 9vw, 96px) 0 var(--hero-pad-b); background: linear-gradient(180deg, var(--panel), #fff); overflow: hidden; }
-  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; column-gap: clamp(16px, 3vw, 40px); }
-
-  /* BUDDY.
-     His own render — the keyed green-screen wave, in brand/ — not geometry.
-     He is decoration: aria-hidden, no JavaScript, and nothing on the page
-     depends on him. Phones never fetch a video byte: every <source> carries
-     a min-width media query, so under 640px the resource-selection algorithm
-     finds no candidate and downloads nothing — what phones get instead is
-     the 8KB salute still, sized and placed by the phone rules further down.
-     The same media query carries prefers-reduced-motion, so under "reduce"
-     there is no source to play and the poster still is all that shows.
-
-     The box is reserved by width/height attributes and aspect-ratio, so his
-     arrival moves nothing (CLS stays where it is). The bottom of the render
-     is the artist's crop at the shins, so the last fifth of him is masked out
-     into the page and a contact shadow sits on the page behind that fade —
-     he stands on the fold instead of ending in a straight line.
-
-     The still sits under the video and is faded out by the four-line script
-     at the foot of the page, on the video's first "playing" event. The
-     composed clip holds its first frame — the same pixels as the still — for
-     1.5s, so the hand-off is invisible on any connection. With JavaScript
-     off, or under reduced motion, nothing plays and the still is all there
-     is. */
-  .buddy { display: none; position: relative; margin: 0 0 calc(-1 * var(--hero-pad-b)); width: var(--buddy-w); pointer-events: none; }
-  .buddy::before { content: ""; position: absolute; left: 10%; right: 10%; bottom: 7%; height: 12%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(14,21,18,0.22) 0%, rgba(14,21,18,0.08) 45%, rgba(14,21,18,0) 72%); }
-  .buddy-art { position: relative; aspect-ratio: 522 / 506; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); }
-  .buddy-art img, .buddy-art video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
-  .buddy-art.is-playing img { opacity: 0; transition: opacity 0.3s ease-out; }
-  /* He stands on the left, the copy reads on his right — and he keeps his
-     place in the source after the headline, because he is decoration and the
-     h1 should still be the first thing in the document. Only the two
-     grid-column placements move him. He is NOT mirrored: the render points
-     up and to his left, which from the left-hand column is a gesture across
-     the hero towards the headline. Flipped, he would point off the page. */
-  @media (min-width: 640px) {
-    .hero { --buddy-w: clamp(220px, 32vw, 460px); }
-    .hero .wrap { grid-template-columns: var(--buddy-w) minmax(0, 1fr); }
-    .hero-copy { grid-column: 2; grid-row: 1; }
-    .buddy { display: block; grid-column: 1; grid-row: 1; }
-  }
-  /* PHONES. No video — nothing under 640px matches a <source>, so not one
-     video byte is fetched — but he is not absent either: the small salute
-     still (buddy-salute-sm.webp, 8KB) stands beside the lede, and
-     rocks a gentle hello. Sized by HEIGHT, as css/mascot.css explains every
-     -sm pose must be, and tucked into a second column that only the lede
-     shares, so the headline keeps the full width and nothing is
-     ever under him. The copy wrapper becomes display:contents here so its
-     children can take grid areas without moving in the source. */
-  @media (max-width: 639.98px) {
-    .hero { --buddy-h: clamp(120px, 33vw, 150px); }
-    .hero .wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow eyebrow" "h1 h1" "sub buddy" "ask ask" "q q" "actions actions" "n2 n2"; }
-    .hero-copy { display: contents; }
-    .hero .eyebrow { grid-area: eyebrow; }
-    .hero h1 { grid-area: h1; }
-    .hero .sub { grid-area: sub; }
-    .hero .q-ask { grid-area: ask; }
-    .hero .q-answers { grid-area: q; }
-    .hero .mnote-motion { grid-area: n2; }
-    .hero .actions { grid-area: actions; }
-    .buddy { display: block; grid-area: buddy; align-self: end; width: auto; margin: 0 0 30px 14px; }
-    .buddy::before { display: none; }
-    .buddy .buddy-art { aspect-ratio: auto; height: var(--buddy-h); width: calc(var(--buddy-h) * 212 / 228); -webkit-mask-image: none; mask-image: none; }
-    .buddy .buddy-art video { display: none; }
-    .buddy .buddy-art img { transform-origin: 50% 100%; animation: buddy-rock 7s ease-in-out infinite; }
-  }
-  /* Two rocks from the feet, then he stands still for the rest of the
-     seven seconds. Transform only, so it costs no layout. */
-  @keyframes buddy-rock {
-    0%, 16%, 100% { transform: rotate(0); }
-    3% { transform: rotate(-4deg); }
-    6% { transform: rotate(4deg); }
-    9% { transform: rotate(-4deg); }
-    12% { transform: rotate(3deg); }
-  }
-  /* Under "reduce" the salute does not rock. (The matching rule for the
-     Buddy at the prices sits after his own rules, further down, so that it
-     wins the cascade against the shrug.) */
-  @media (prefers-reduced-motion: reduce) {
-    .buddy .buddy-art img { animation: none; }
-  }
-  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
-  .hero h1 { font-family: var(--display); font-size: clamp(34px, 6vw, 62px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 20px; max-width: 16ch; }
-  .hero .sub { font-size: clamp(17px, 2vw, 20px); color: var(--ink-soft); max-width: 54ch; margin: 0 0 14px; }
-  .actions { display: flex; gap: 14px; flex-wrap: wrap; }
-  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 26px; border-radius: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 8px 20px rgba(14,111,92,0.18); }
-  .btn-primary:hover { background: var(--accent-dark); }
-  .btn-secondary { background: #fff; color: var(--ink); border: 1px solid var(--ink); }
-
-  /* The headline breaks where we say: one <br>, and each half is unbreakable. */
-  .hero h1 > span { white-space: nowrap; }
-
-  /* FLOORS.
-     Each section is one floor, and on a desktop screen each floor is one
-     screen: the hero fills it edge to edge in green, and every floor below
-     is cut down until it fits and then centred in it. What did not fit was
-     taken away, not shrunk: the founding box folded into one line, the
-     second robot, the long Bearing block. Every term that left this page is
-     still said at checkout, before anyone pays. One screen per floor is
-     also the shape the floor-to-floor transitions will need later.
-     Phones keep the natural flow: they get the trims, not the heights. */
-  .keeping-line { max-width: 78ch; margin: 22px 0 0; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
-  .keeping-line strong { color: var(--ink); }
-  .claim-on-demand .founding-claim:not(.is-required) { display: none; }
-  .hero { background: linear-gradient(180deg, var(--panel) 0%, #E3F4EE 100%); }
-  /* THE QUESTION.
-     "How important is it to you?" under the headline, three answers, and
-     the answer is felt rather than read: the chosen chip fills, the other
-     two step back, the button beneath re-points to the package that answer
-     implies, and the machine behind the hero lights up one part at a time,
-     only as far as the answer goes. Nothing moves at first paint; the chips
-     are in the HTML as links. Under reduced motion every state is reached,
-     with no motion between them. */
-  .q-ask { font-family: var(--display); font-weight: 700; font-size: clamp(20px, 2.1vw, 25px); letter-spacing: -0.02em; line-height: 1.2; margin: 26px 0 12px; }
-  .q-answers { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 26px; }
-  .q-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(14,21,18,.22); background: rgba(255,255,255,.72); font-weight: 600; font-size: 16px; text-decoration: none; color: var(--ink); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .35s ease, color .35s ease, border-color .35s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
-  .q-chip:hover { border-color: var(--accent); }
-  .q-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .q-chip[aria-checked="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .hero[data-level] .q-chip[aria-checked="false"] { color: var(--ink-soft); border-color: rgba(14,21,18,.12); background: rgba(255,255,255,.5); transform: scale(.96); }
-  .hero[data-level] .q-chip[aria-checked="false"]:hover { color: var(--ink); border-color: var(--accent); }
-  .hero .actions .btn-primary { transition: background-color .3s ease; }
-
-  /* The machine answers. Unanswered, every part waits at a third; each level
-     lights its own group, website first. HTML parts dim with opacity (their
-     animations only move them); SVG parts dim with stroke- and fill-opacity,
-     because the nodes already animate opacity and the two must not fight. */
-  .hero .hs > :not(svg) { transition: opacity .9s ease; }
-  .hero .hs-net path, .hero .hs-net rect { transition: stroke-opacity .9s ease, fill-opacity .9s ease; }
-  .hero .hs > :not(svg) { opacity: .3; }
-  .hero .hs-net path, .hero .hs-net rect { stroke-opacity: .25; fill-opacity: .25; }
-  /* Level 1: the website and the editor that writes it. */
-  .hero[data-level] .hs-web, .hero[data-level] .hs-l1, .hero[data-level] .hs-ed { opacity: 1; }
-  .hero[data-level] .hs-net .hs-r2 { stroke-opacity: 1; fill-opacity: 1; }
-  /* Level 2: the customers it brings, and the wiring on the left. */
-  .hero[data-level="2"] .hs-cu, .hero[data-level="2"] .hs-l5, .hero[data-level="2"] .hs-t1, .hero[data-level="2"] .hs-t2,
-  .hero[data-level="3"] .hs-cu, .hero[data-level="3"] .hs-l5, .hero[data-level="3"] .hs-t1, .hero[data-level="3"] .hs-t2 { opacity: 1; transition-delay: .25s; }
-  .hero[data-level="2"] .hs-net :is(path, rect):not(.hs-r1):not(.hs-r2),
-  .hero[data-level="3"] .hs-net :is(path, rect):not(.hs-r1):not(.hs-r2) { stroke-opacity: 1; fill-opacity: 1; transition-delay: .25s; }
-  /* Level 3: the whole machine. Bookings, payments, dashboard. */
-  .hero[data-level="3"] .hs > .hs-r1 { opacity: 1; transition-delay: .5s; }
-  .hero[data-level="3"] .hs-net .hs-r1 { stroke-opacity: 1; fill-opacity: 1; transition-delay: .5s; }
-  @media (prefers-reduced-motion: reduce) {
-    .q-chip, .hero .hs > :not(svg), .hero .hs-net path, .hero .hs-net rect { transition: none !important; }
-  }
-
-  /* BUDDY TAKES THE JOB.
-     On the last floor, under the lede, Buddy walks in from the left edge of
-     the screen, sits at his desk and starts typing (js/home/job3d.js). The
-     stage only exists with html.home3d-ok (set in the head) on the desktop
-     floors, where #quote's left column has the room; its height is sized so
-     the floor stays one screen. The canvas bleeds left to the screen's edge
-     (set in JS) and never takes a click. */
-  .job-stage { display: none; }
-  @media (min-width: 960px) and (min-height: 640px) {
-    html.home3d-ok #quote .job-stage { display: block; grid-area: n; position: relative; height: min(380px, calc(100svh - var(--head-h) - 340px)); margin-top: 8px; }
-  }
-  .job-3d { position: absolute; top: 0; display: block; pointer-events: none; }
-
-  /* MARGIN NOTES.
-     The page never says it sweats the details. It leaves notes in its own
-     margins, the way a designer redlines a proof, and each one points at a
-     decision that is actually in this file. That is the rule: a note that
-     is not true of the page it sits on does not ship. Two only hold while
-     things move, so under reduced motion they are gone rather than wrong.
-
-     They number themselves with a CSS counter, which skips hidden notes, so
-     the sequence reads N°01, N°02... on every device. With motion, each one
-     writes itself in, left to right, as it reaches the screen. */
-  body { counter-reset: nbnote; }
-  .mnote { counter-increment: nbnote; display: flex; gap: 12px; max-width: 46ch; margin: 0 0 22px; font-family: var(--mono); font-size: 12px; line-height: 1.6; letter-spacing: .01em; color: var(--ink-soft); }
-  .mnote::before { content: "N\00B0" counter(nbnote, decimal-leading-zero); flex: none; color: var(--accent); padding-right: 12px; border-right: 1px solid rgba(14,111,92,.35); }
-  .hero .mnote-motion { margin: 22px 0 0; }
-  .section-lede + .mnote { margin-top: 12px; }
-  @media (prefers-reduced-motion: reduce) { .mnote-motion { display: none; } }
-  html.nb-motion .mnote { clip-path: inset(0 100% 0 0); transition: clip-path 1.4s cubic-bezier(.65,0,.35,1); transition-delay: var(--note-delay, .2s); }
-  html.nb-motion .mnote.is-in { clip-path: inset(0 0 0 0); }
-  html.nb-motion .hero .mnote-motion { --note-delay: 1.5s; }
-
-
-  /* THE MACHINE.
-     The scene behind the hero: the site's own pitch drawn as the parts of the
-     machine — an editor, a website, bookings, payments, a dashboard, the
-     customers — wired together and running. DOM, CSS and hand-written SVG;
-     no image, no script (the observer at the foot only pauses it off screen).
-
-     It is absolutely positioned behind the copy (the hero isolates a stacking
-     context, the scene sits at z-index -1 inside it), so it reserves nothing
-     in flow, moves nothing, and never sits in front of the headline. Every
-     coordinate is on a fixed 1280-wide stage centred under the wrap, so at
-     1280 the picture is exact and wider screens get the same picture with
-     more air; the floor and the glow are the two things anchored to Buddy
-     himself, so they stay under his feet at every width. Every motion is
-     transform, opacity or stroke-dashoffset, on unequal prime-ish periods —
-     17, 19, 23, 29, 31s — so the composition never visibly comes round again.
-     Under reduced motion it is a still. */
-  .hero { position: relative; isolation: isolate; }
-  .hero .wrap { position: relative; }
-  .hero-scene { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; color: #17A08A; font-family: var(--mono);
-    background: radial-gradient(70% 60% at 28% 22%, rgba(150,228,214,.36), rgba(150,228,214,0) 70%), radial-gradient(60% 50% at 82% 30%, rgba(160,232,222,.28), rgba(160,232,222,0) 70%), radial-gradient(110% 85% at 50% 40%, rgba(255,255,255,0) 55%, rgba(60,120,108,.14) 100%), linear-gradient(180deg, rgba(190,236,228,0) 66%, rgba(205,242,236,.7) 100%); }
-  .hs { position: absolute; top: 0; bottom: 0; left: calc(50% - 640px); width: 1280px; }
-  .hs > * { position: absolute; }
-  .hs-p { border-radius: 12px; background: linear-gradient(165deg, rgba(255,255,255,.88), rgba(238,250,246,.66)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.9), 0 0 0 1px rgba(23,160,138,.18), 0 24px 40px -24px rgba(23,120,110,.35); }
-  .hs-p::before { content: ""; position: absolute; top: 9px; left: 10px; width: 6px; height: 6px; border-radius: 50%; background: #A9E8DC; box-shadow: 10px 0 #A9E8DC, 20px 0 #A9E8DC; }
-  .hs-b { display: block; height: 6px; border-radius: 3px; background: rgba(60,100,92,.2); }
-  .hs-lb { font-size: 11px; line-height: 14px; letter-spacing: .12em; text-transform: uppercase; color: #2F4B45; }
-  .hs-lb em { display: block; font-style: normal; color: #17A08A; }
-  /* 001 — the website. */
-  .hs-web { left: 352px; top: 18px; width: 228px; height: 190px; padding: 30px 14px 0; display: grid; grid-template-columns: 92px 1fr; gap: 10px 12px; align-content: start; animation: hs-da 23s ease-in-out infinite; }
-  .hs-web::after { content: ""; position: absolute; top: 9px; right: 12px; width: 110px; height: 6px; border-radius: 3px; background: rgba(60,100,92,.12); }
-  .hs-img { grid-row: span 2; height: 82px; border-radius: 8px; background: linear-gradient(160deg, rgba(120,190,178,.24), rgba(120,190,178,.1)); display: grid; place-items: center; }
-  .hs-img svg { width: 44px; height: 32px; }
-  .hs-web .hs-b { width: 100%; margin-bottom: 8px; }
-  .hs-web .hs-b:nth-child(3) { width: 74%; }
-  .hs-web .hs-b:nth-child(4) { width: 90%; }
-  .hs-btn { display: block; width: 58px; height: 16px; border-radius: 4px; background: var(--accent); align-self: end; }
-  .hs-web .hs-b:nth-child(6) { grid-column: 1 / -1; margin: 6px 0 0; width: 80%; }
-  .hs-web .hs-b:nth-child(7) { grid-column: 1 / -1; width: 56%; }
-  /* The editor: the pitch in one screen. */
-  .hs-ed { left: 72px; top: 96px; width: 264px; height: 200px; border-radius: 12px; background: rgba(30,48,48,.92); box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 30px 50px -20px rgba(20,60,55,.5); animation: hs-db 29s ease-in-out infinite; }
-  .hs-ed::before { content: ""; position: absolute; top: 10px; left: 12px; width: 6px; height: 6px; border-radius: 50%; background: #FF6B5F; box-shadow: 10px 0 #FFBD2E, 20px 0 #2DD48A; }
-  .hs-ed pre { margin: 28px 0 0; padding: 0 12px; font: 400 10.5px/18px var(--mono); color: #E6F4F0; }
-  .hs-ed i { font-style: normal; color: rgba(230,244,240,.38); margin-right: 12px; }
-  .hs-ed b { font-weight: 400; color: #8FE0CF; }
-  .hs-ed u { text-decoration: none; color: #C9F2E7; }
-  /* 002 and 003, the small cards in the band above the eyebrow. */
-  .hs-bk { left: 735px; top: 12px; width: 160px; height: 66px; padding: 20px 14px; display: flex; align-items: center; gap: 12px; animation: hs-dc 19s ease-in-out infinite; }
-  .hs-bk::before { display: none; }
-  .hs-bk .hs-b { width: 62px; }
-  .hs-bk .hs-b + .hs-b { width: 40px; margin-top: 8px; }
-  .hs-chk { position: relative; width: 30px; height: 30px; margin-left: auto; flex: none; }
-  .hs-chk svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: hs-pulse 5s ease-in-out infinite; }
-  .hs-chk::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #1E8B6B; opacity: 0; animation: hs-ring 5s ease-out infinite; }
-  .hs-pay { left: 992px; top: 12px; width: 110px; height: 66px; padding: 18px 14px; display: flex; align-items: center; gap: 10px; animation: hs-da 31s ease-in-out infinite; }
-  .hs-pay::before { display: none; }
-  .hs-cc { display: block; width: 40px; height: 26px; border-radius: 4px; background: linear-gradient(145deg, #CFF3EA, #8FE0CF); position: relative; flex: none; }
-  .hs-cc::after { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 5px; background: rgba(14,111,92,.55); }
-  .hs-pay .hs-b { width: 36px; }
-  /* 004 — the dashboard, at the right of the headline. */
-  .hs-db { left: 1150px; top: 128px; width: 200px; height: 150px; padding: 28px 12px 12px; display: grid; grid-template-columns: 52px 1fr; gap: 10px; animation: hs-db 37s ease-in-out infinite; }
-  .hs-db .hs-b { margin-bottom: 9px; }
-  .hs-db .hs-b:nth-child(odd) { width: 70%; }
-  .hs-chart { grid-column: 2; grid-row: 1 / span 4; width: 100%; height: 100%; overflow: visible; }
-  .hs-line { fill: none; stroke: #17A08A; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; animation: hs-draw 13s ease-in-out infinite; }
-  .hs-area { fill: rgba(23,160,138,.14); animation: hs-fade 13s ease-in-out infinite; }
-  .hs-bar { fill: #A9E8DC; transform-box: fill-box; transform-origin: 50% 100%; animation: hs-bar 9s ease-in-out infinite; }
-  .hs-bar:nth-of-type(2) { animation-duration: 11s; animation-delay: -3s; }
-  .hs-bar:nth-of-type(3) { animation-duration: 7s; animation-delay: -5s; }
-  .hs-bar:nth-of-type(4) { animation-duration: 13s; animation-delay: -2s; }
-  /* 005 — the customers, lower left. */
-  .hs-cu { left: 24px; top: 420px; width: 176px; height: 140px; padding: 28px 14px 12px; display: grid; gap: 8px; animation: hs-dc 27s ease-in-out infinite; }
-  .hs-row { display: flex; align-items: center; gap: 8px; height: 26px; }
-  .hs-row svg { width: 22px; height: 22px; flex: none; }
-  .hs-row .hs-b { width: 54px; }
-  .hs-row .hs-b + .hs-b { width: 34px; }
-  .hs-row::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #1E8B6B; margin-left: auto; }
-  /* The tiles: database and cloud. */
-  .hs-t { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; }
-  .hs-t::before { display: none; }
-  .hs-t svg { width: 26px; height: 26px; fill: none; stroke: #17A08A; stroke-width: 1.5; stroke-linejoin: round; }
-  .hs-t1 { left: 20px; top: 232px; animation: hs-db 21s ease-in-out infinite; }
-  .hs-t2 { left: 44px; top: 320px; animation: hs-da 17s ease-in-out infinite; }
-  .hs-t3 { left: 1180px; top: 330px; animation: hs-dc 25s ease-in-out infinite; }
-  .hs-sq { width: 36px; height: 36px; border-radius: 8px; background: rgba(169,232,220,.7); box-shadow: inset 0 0 0 1px rgba(255,255,255,.8); top: 440px; animation: hs-da 19s ease-in-out infinite; }
-  .hs-sq + .hs-sq { left: 1232px; animation-duration: 23s; }
-  .hs-sq1 { left: 1168px; }
-  .hs-dp { left: 1040px; top: 636px; margin: 0; font: 400 11px/17px var(--mono); color: #17A08A; }
-  /* Labels. */
-  .hs-l1 { left: 88px; top: 40px; }
-  .hs-l2 { left: 640px; top: 24px; }
-  .hs-l3 { left: 908px; top: 24px; }
-  .hs-l4 { left: 1154px; top: 92px; }  /* +90px from 1064: lit, the card sat over the headline at 1512 wide */
-  .hs-l5 { left: 44px; top: 384px; }
-  /* The wiring. Nodes blink in a staggered sequence; on top of each line a
-     second copy carries a short dash whose offset travels — the light. */
-  .hs-net { left: 0; top: 0; overflow: visible; }
-  .hs-w { fill: none; stroke: #17A08A; stroke-width: 1; opacity: .45; }
-  .hs-w.d { stroke-dasharray: 3 4; }
-  .hs-f { fill: none; stroke: #6FE3CE; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 5 95; animation: hs-flow 11s linear infinite; }
-  .hs-f:nth-child(2n) { animation-duration: 15s; animation-delay: -4s; }
-  .hs-f:nth-child(3n) { animation-duration: 8s; animation-delay: -6s; stroke: #A9E8DC; }
-  .hs-f:nth-child(4n+1) { animation-duration: 19s; animation-delay: -9s; }
-  .hs-n { fill: #CDEFE7; stroke: #17A08A; stroke-width: .8; animation: hs-blink 3.1s ease-in-out infinite; }
-  .hs-n:nth-child(2n) { animation-duration: 4.3s; animation-delay: -1.7s; }
-  .hs-n:nth-child(3n) { animation-duration: 5.3s; animation-delay: -2.9s; }
-  .hs-n:nth-child(5n) { animation-duration: 3.7s; animation-delay: -.8s; }
-  .hs-n:nth-child(7n) { animation-duration: 6.1s; animation-delay: -4.1s; }
-  /* The floor and the glow, both anchored to Buddy's centre line: the wrap
-     is centred, so his column starts at max(0, (100% - 1080px) / 2) plus the
-     gutter, and he is --buddy-w wide. */
-  .hs-fl, .hs-gl { left: calc(max(0px, (100% - 1080px) / 2) + var(--gutter) + var(--buddy-w) / 2); }
-  .hs-fl { position: absolute; bottom: -20px; width: 900px; height: 200px; margin-left: -450px; overflow: visible; }
-  .hs-gl { position: absolute; bottom: 30px; width: 520px; height: 440px; margin-left: -260px; border-radius: 50%; background: radial-gradient(ellipse at 50% 68%, rgba(110,225,215,.7), rgba(110,225,215,0) 62%); animation: hs-breath 9s ease-in-out infinite; }
-  .hs-r { fill: none; stroke: #17A08A; stroke-width: 1.2; transform-box: fill-box; transform-origin: 50% 50%; animation: hs-breath 13s ease-in-out infinite; }
-  .hs-r:nth-child(2) { animation-duration: 17s; animation-delay: -5s; }
-  .hs-r:nth-child(3) { animation-duration: 23s; animation-delay: -9s; }
-  .hs-r:nth-child(4) { animation-duration: 29s; animation-delay: -13s; }
-  .hs-s { fill: #fff; animation: hs-blink 2.3s ease-in-out infinite; }
-  .hs-s:nth-child(2n) { animation-duration: 3.7s; animation-delay: -1.3s; }
-  .hs-s:nth-child(3n) { animation-duration: 5.1s; animation-delay: -2.2s; }
-  .hs-s:nth-child(4n+1) { animation-duration: 2.9s; animation-delay: -.7s; }
-  @keyframes hs-da { 0%, 100% { transform: translate3d(0,0,0); } 31% { transform: translate3d(5px,-7px,0); } 67% { transform: translate3d(-4px,4px,0); } }
-  @keyframes hs-db { 0%, 100% { transform: translate3d(0,0,0); } 37% { transform: translate3d(-6px,-4px,0); } 71% { transform: translate3d(3px,6px,0); } }
-  @keyframes hs-dc { 0%, 100% { transform: translate3d(0,0,0); } 29% { transform: translate3d(4px,5px,0); } 63% { transform: translate3d(-5px,-6px,0); } }
-  @keyframes hs-blink { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
-  @keyframes hs-flow { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
-  @keyframes hs-pulse { 0%, 100% { transform: scale(1); } 8% { transform: scale(1.12); } 16% { transform: scale(1); } }
-  @keyframes hs-ring { 0% { transform: scale(1); opacity: .7; } 40%, 100% { transform: scale(1.9); opacity: 0; } }
-  @keyframes hs-draw { 0% { stroke-dashoffset: 100; opacity: 0; } 4% { opacity: 1; } 45%, 88% { stroke-dashoffset: 0; opacity: 1; } 96% { stroke-dashoffset: 0; opacity: 0; } 100% { stroke-dashoffset: 100; opacity: 0; } }
-  @keyframes hs-fade { 0%, 8% { opacity: 0; } 50%, 88% { opacity: 1; } 96%, 100% { opacity: 0; } }
-  @keyframes hs-bar { 0%, 100% { transform: scaleY(1); } 40% { transform: scaleY(.55); } 70% { transform: scaleY(1.2); } }
-  @keyframes hs-breath { 0%, 100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.05); opacity: 1; } }
-  /* The phone's scene: the wash, a glow under the salute, and one card —
-     bookings — in the free corner above him. The card is an absolutely
-     positioned grid child, placed in his area, so it adds nothing to any
-     track and moves nothing. */
-  .hs-m { display: none; }
-  /* The dashboard sits at x=1150, clear of the headline, and only from 1440
-     up. Narrower than that, the headline's first line reaches into it at
-     every position that still fits on screen (measured 1240-1439), so it
-     leaves with its wires rather than covering "important". */
-  @media (max-width: 1439.98px) { .hs-db, .hs-l4, .hs-dbw { display: none; } }
-  @media (max-width: 1159.98px) {
-    /* Between a phone and the full stage the copy column starts further
-       left, so the right-hand cluster would land on the headline. It goes;
-       the left cluster scales down and keeps to the left edge. */
-    .hs { left: 0; transform: scale(.66); transform-origin: 0 0; }
-    .hs-r1 { display: none; }
-  }
-  @media (max-width: 959.98px) { .hs-web, .hs-l1, .hs-r2 { display: none; } }
-  @media (max-width: 639.98px) {
-    .hs, .hs-fl, .hs-gl { display: none; }
-    .hs-m { display: block; position: absolute; grid-area: buddy; top: 0; right: 0; width: 112px; pointer-events: none; }
-    .hs-m .hs-bk { position: static; width: 112px; height: 50px; padding: 12px; margin-top: 2px; animation: none; }
-    .hs-m .hs-bk .hs-b { width: 40px; }
-    .hs-m .hs-bk .hs-b + .hs-b { width: 26px; }
-    .hs-m .hs-chk { width: 24px; height: 24px; }
-    .hs-m .hs-lb { font-size: 10px; line-height: 13px; }
-    .buddy::after { content: ""; position: absolute; left: -24%; right: -24%; bottom: -8px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(150,235,225,.85) 0 18%, rgba(150,235,225,.15) 19% 44%, rgba(23,160,138,.35) 45% 47%, rgba(23,160,138,0) 48% 70%, rgba(23,160,138,.22) 71% 73%, rgba(23,160,138,0) 74%); animation: hs-breath 11s ease-in-out infinite; }
-  }
-  /* The lede is two lines now, shorter than Buddy is tall, so he rises into
-     the corner the Bookings card held. The card is decoration; it goes. */
-  @media (max-width: 639.98px) { .hs-m { display: none; } }
-  @media (prefers-reduced-motion: reduce) {
-    .hero .hero-scene *, .hero .hs-m *, .hero .hs-chk::after, .hero .buddy::after { animation: none; }
-  }
-  .hero.is-off .hero-scene *, .hero.is-off .hs-m *, .hero.is-off .hs-chk::after, .hero.is-off .buddy::after { animation-play-state: paused; }
-
-  section { padding: clamp(48px, 7vw, 84px) 0; }
-  h2 { font-family: var(--display); font-size: clamp(24px, 3.2vw, 34px); letter-spacing: -0.02em; margin: 0 0 10px; }
-  .section-lede { color: var(--ink-soft); max-width: 58ch; margin: 0 0 32px; }
-
-  .offerings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; list-style: none; margin: 0; padding: 0; counter-reset: offering; }
-  /* Each of the twelve is a real toggle button (aria-pressed), styled as the
-     panel it always was, so the list reads the same with JavaScript off. The
-     check circle at the top right only appears once js/pick.js has taken
-     the list over (.is-live) — a control that does nothing should not look
-     like one. It is absolutely positioned, so its arrival moves nothing. */
-  .offerings li { display: grid; }
-  .offer { position: relative; display: grid; align-content: start; width: 100%; min-height: 44px;  /* grid, not block: a <button> centres its contents vertically, which put a short panel's number lower than its neighbours' in the same row */ margin: 0; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; color: inherit; font: inherit; line-height: inherit; text-align: left; -webkit-appearance: none; appearance: none; cursor: default; }
-  .offerings.is-live .offer { cursor: pointer; }
-  .offerings.is-live .offer:not([aria-pressed="true"]):hover { border-color: var(--ink-soft); }
-  .offer:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .offer[aria-pressed="true"] { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 1px var(--accent), 0 8px 20px rgba(14,111,92,0.10); }
-  .offerings.is-live .offer::before { content: ""; position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); background: #fff; }
-  .offerings.is-live .offer[aria-pressed="true"]::before { border-color: var(--accent); background: var(--accent); }
-  /* The check: two edges of a box, turned 45°, white on the accent circle. */
-  .offer[aria-pressed="true"]::after { content: ""; position: absolute; top: 21px; right: 24px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
-  .offerings .n { font-family: var(--mono); font-size: 11px; color: var(--accent); display: block; margin-bottom: 6px; }
-  .offerings .t { font-weight: 700; display: block; margin-bottom: 4px; }
-  .offerings .d { font-size: 14px; color: var(--ink-soft); display: block; }
-
-  /* Continue: fixed bottom-left, up only while something is picked. It is
-     an <a> whose href is the checkout the picks add up to. The page reserves
-     its height underneath (body.has-pick) so it never sits on the footer or
-     on the last thing a phone is trying to read. Enters with a short rise;
-     under "reduce" it simply appears. */
-  .pick-continue { position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 20; min-height: 54px; padding: 12px 22px; font-size: 17px; gap: 10px; box-shadow: 0 12px 32px rgba(14,21,18,0.28); }
-  .pick-continue .count { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; background: #fff; color: var(--accent); font-family: var(--mono); font-size: 13px; }
-  .pick-continue[hidden] { display: none; }
-  body.has-pick { padding-bottom: 96px; }
-  @media (prefers-reduced-motion: no-preference) {
-    @keyframes pick-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-    .pick-continue { animation: pick-rise 220ms ease-out; }
-  }
-
-  .packages { background: var(--panel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .pkg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; list-style: none; margin: 0; padding: 0; }
-  .pkg { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px; display: flex; flex-direction: column; }
-  .pkg--lead { border-color: var(--accent); box-shadow: 0 10px 30px rgba(14,111,92,0.10); }
-  .pkg .badge { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
-  .pkg h3 { font-family: var(--display); font-size: 22px; margin: 0 0 4px; }
-  .pkg .price { font-family: var(--display); font-size: 30px; letter-spacing: -0.02em; margin: 0 0 4px; }
-  .pkg .price span { font-size: 14px; font-family: var(--body); color: var(--ink-soft); }
-  .pkg .price .was { display: inline-block; font-family: var(--body); font-size: 16px; font-weight: 400; text-decoration: line-through; color: var(--ink-soft); margin-left: 8px; }
-  .pkg .founding-tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
-  .pkg .tag { color: var(--ink-soft); margin: 0 0 16px; }
-  .pkg ul { margin: 0 0 20px; padding-left: 1.1em; color: var(--ink-soft); font-size: 15px; }
-  .pkg li { margin-bottom: 6px; }
-  .pkg .btn { margin-top: auto; width: 100%; min-height: 54px; font-size: 17px; }  /* the way into checkout was an inline pill lost under the bullets; it is the card's one action, so it takes the card's width */
-  .note { color: var(--ink-soft); font-size: 14px; max-width: 58ch; margin: 24px 0 0; }
-
-  .quote-form { display: grid; gap: 14px; max-width: 520px; }
-  .field { display: grid; gap: 6px; margin: 0; }
-  .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
-  /* The founding claim: the review link, the name it is posted under, and
-     the honest line. One bordered block so it reads as one thing; the border
-     turns accent while a founding package is selected and the name is empty. */
-  .founding-claim { display: grid; gap: 10px; margin: 4px 0 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
-  .founding-claim.is-required.is-empty { border-color: var(--accent); background: #fff; }
-  .founding-claim p { margin: 0; }
-  .founding-claim .claim-lede { font-size: 15px; }
-  .founding-claim .claim-link .btn { min-height: 44px; padding: 10px 20px; }
-  .founding-claim .hint { font-size: 13px; color: var(--ink-soft); }
-  .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: #fff; color: inherit; width: 100%; min-width: 0; }  /* min-width:0 — a <select> with a long founding-price option otherwise sets the grid item's intrinsic minimum from that text and overflows at 390px */
-  .field textarea { min-height: 110px; resize: vertical; }
-  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .quote-form button { min-height: 48px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
-  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-
-  .site-footer { padding: 28px 0 48px; color: var(--ink-soft); font-size: 14px; border-top: 1px solid var(--line); }
-  .site-footer a { text-decoration: underline; }
-
-  @media (max-width: 480px) {
-    .actions { flex-direction: column; align-items: stretch; }
-    .actions .btn { width: 100%; }
-    /* Syne at weight 800 runs wide: "Northbound Studio" (266px) plus the
-       phone pill (148px) never fit in the ~350px available at 390px, which
-       is a pre-existing overflow (confirmed by measuring both elements'
-       rendered widths, not a test-measurement artifact). Wrapping the header
-       row — not the brand text itself, which stays nowrap per the existing
-       comment on .brand — puts the pill on its own line instead of forcing
-       horizontal scroll. */
-    .site-header .wrap { flex-wrap: wrap; row-gap: 10px; }
-    /* ...and the brand takes the whole first row whether Syne has loaded or
-       not. Allowing the wrap was only half a fix: the fallback face is narrow
-       enough to fit beside the pill, so the header rendered one row tall,
-       then grew to two the moment Syne swapped in — a 39px push of everything
-       below it, measured as 0.22 CLS at 390px. Reserving the row up front
-       makes the before and after identical. The finished header looks exactly
-       as it did; only the half-second before the font arrives changes. */
-    .site-header .brand { flex: 1 0 100%; }
-  }
-  /* FLOORS, desktop heights: see the FLOORS note above. Last in the sheet
-     on purpose, so every base rule they adjust is already declared. */
-  @media (min-width: 960px) and (min-height: 640px) {
-    :root { --head-h: 81px; }
-    .hero, #offerings, #packages, #quote { min-height: calc(100svh - var(--head-h)); box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; }
-    .hero { --hero-pad-b: 0px; padding: 32px 0 0; justify-content: flex-end; }
-    .hero .wrap { width: 100%; min-height: calc(100svh - var(--head-h) - 32px); align-items: stretch; }
-    .hero-copy { align-self: center; padding-bottom: 24px; }
-    .buddy { align-self: end; }
-    #offerings, #packages, #quote { padding: 24px 0; }
-    #offerings .wrap, #packages .wrap, #quote .wrap { width: 100%; }
-    #offerings .offerings { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-    #offerings .offer { padding: 16px 18px; }
-    #offerings .offerings .d { font-size: 13.5px; line-height: 1.45; }
-    #packages .pkg { padding: 20px 22px; }
-    .pkg ul { margin-block: 10px 16px; }
-    #packages .pkg li { margin-bottom: 2px; }
-    #packages .pkg .btn { min-height: 48px; }
-    #packages .pkg .price { font-size: 27px; }
-    #packages .keeping-line { margin-top: 16px; max-width: none; }
-    #packages .mnote { max-width: none; }
-    .pkg .tag { margin-bottom: 8px; }
-    #offerings h2, #packages h2 { margin-bottom: 8px; }
-    #offerings .section-lede, #packages .section-lede { margin-bottom: 12px; }
-    #offerings .mnote, #packages .mnote { margin: 0 0 20px; max-width: 80ch; }
-    #packages .section-lede { max-width: 84ch; }
-    #offerings .offerings { margin-top: 8px; }
-    #quote .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-areas: "h form" "lede form" "n form"; column-gap: clamp(32px, 5vw, 72px); align-content: center; align-items: start; }
-    #quote h2 { grid-area: h; align-self: end; }
-    #quote .section-lede { grid-area: lede; }
-    #quote .quote-form { grid-area: form; grid-template-columns: 1fr 1fr; max-width: none; column-gap: 16px; }
-    #quote .quote-form > :is(.founding-claim, .hp, p:last-child), #quote .quote-form > .field:has(textarea, select) { grid-column: 1 / -1; }
-    #quote .field textarea { min-height: 76px; }
-    #quote .quote-form button { width: 100%; min-height: 52px; }
-  }
-
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/dream.css">
+<script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="wrap">
-    <a class="brand" href="/">Northbound Studio</a>
-    <a class="phone-link" href="tel:+14705738908">470-573-8908</a>
-  </div>
+<header class="site-head">
+  <a class="brand" href="/" aria-label="Northbound Studio — home">
+    <img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24">
+  </a>
+  <nav class="site-nav" aria-label="Sections">
+    <a href="#builds">The builds</a>
+    <a href="#how">How it works</a>
+    <a href="#packages">Packages</a>
+    <a href="#founder">Who's behind this</a>
+  </nav>
+  <a class="btn btn-small" href="checkout.html">Book a call</a>
 </header>
 
-<section class="hero">
-  <div class="wrap">
-    <div class="hero-copy">
-      <p class="eyebrow">Grand Ledge, Michigan</p>
-      <h1><span>We build</span><br><span>the machine.</span></h1>
-      <p class="sub">The site out front. The booking, the follow-up and the payments behind it.</p>
-      <!--
-        THE QUESTION, asked quietly. No reply paragraph and no price in it:
-        the answer only re-points the button and lights the machine behind
-        the hero as far as the answer goes. How much it matters is how much
-        gets built. The chips are plain links first (the small answer goes to
-        the prices, the other two to the guided build); the script after the
-        hero makes them a radio group.
-      -->
-      <p class="q-ask" id="q-ask">How important is it to you?</p>
-      <div class="q-answers">
-        <a class="q-chip" href="#packages" data-level="1">Worth a look</a>
-        <a class="q-chip" href="build.html" data-level="2">It matters</a>
-        <a class="q-chip" href="build.html" data-level="3">It's everything</a>
-      </div>
-      <div class="actions">
-        <a class="btn btn-primary" href="build.html">Build your machine</a>
-        <a class="btn btn-secondary" href="tel:+14705738908">Call 470-573-8908</a>
-      </div>
-      <p class="mnote mnote-motion">Everything behind this text drifts on its own clock, so you'll never catch it looping.</p>
+<main>
+
+  <!-- 1 · HERO -->
+  <section class="hero">
+    <div class="hero-media" data-drift-wrap>
+      <video class="hero-video" data-drift autoplay muted loop playsinline preload="metadata"
+             poster="brand/buddy-wave-poster.webp" aria-label="Buddy, the Northbound mascot, waving hello">
+        <source src="brand/buddy-wave.webm" type="video/webm">
+        <source src="brand/buddy-wave.mp4" type="video/mp4">
+      </video>
     </div>
-    <!--
-      Buddy's wave. Fifteen seconds: a second and a half still, the arm comes
-      up, he waves three times, the raise is played back so the arm comes down
-      (the source clip ends with it raised), then eight and a half seconds
-      still. One wave every fifteen seconds reads as a person; the raw
-      two-second loop reads as a GIF. HEVC-with-alpha is listed first because
-      Safari answers "probably" to VP9 too but cannot show its alpha; Chrome
-      answers "" to hvc1 and falls through to the WebM.
-
-      No autoplay attribute, on purpose. autoplay overrides preload="none"
-      and starts the 190KB fetch at parse time, next to the fonts and the
-      still; on slow 4G that moved LCP from 244ms to 976ms. The script at
-      the foot of the page calls play() on window load instead, once
-      everything the first paint needs has arrived.
-    -->
-    <figure class="buddy" aria-hidden="true">
-      <div class="buddy-art">
-        <!--
-          The still is a <picture>, not the video's poster attribute: Chrome
-          fetches a poster even for a display:none video, and phones must
-          make no request for him at all. A media-scoped <source> plus an
-          inline data-URI fallback is the one still-image pattern that
-          genuinely downloads nothing when the query does not match.
-        -->
-        <picture class="buddy-still">
-          <source media="(max-width: 639.98px)" srcset="buddy-salute-sm.webp" type="image/webp">
-          <source media="(min-width: 640px)" srcset="brand/buddy-wave-poster.webp" type="image/webp">
-          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Buddy waving hello" width="522" height="506" decoding="async">
-        </picture>
-        <video width="522" height="506" muted loop playsinline preload="none" disablepictureinpicture>
-          <source src="brand/buddy-wave.mp4" type='video/mp4; codecs="hvc1"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
-          <source src="brand/buddy-wave.webm" type='video/webm; codecs="vp9"' media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
-        </video>
-      </div>
-    </figure>
-    <div class="hs-m" aria-hidden="true"><span class="hs-lb">Bookings<em>002</em></span><div class="hs-p hs-bk"><span><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-chk"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#1E8B6B"/><path d="M9 15.5l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div></div>
-  </div>
-  <!--
-    The machine. See the CSS block of the same name: decoration, behind
-    everything, and the page reads exactly the same with it gone. The code in
-    the editor is the studio's pitch in one screen and is kept verbatim.
-  -->
-  <div class="hero-scene" aria-hidden="true">
-    <div class="hs-gl"></div>
-    <svg class="hs-fl" viewBox="0 0 900 200"><defs><radialGradient id="hsg"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#C9F2EA" stop-opacity=".8"/><stop offset="1" stop-color="#C9F2EA" stop-opacity="0"/></radialGradient></defs><ellipse cx="450" cy="150" rx="330" ry="58" fill="url(#hsg)"/><g><ellipse class="hs-r" cx="450" cy="150" rx="110" ry="22" stroke-opacity=".55"/><ellipse class="hs-r" cx="450" cy="150" rx="200" ry="40" stroke-opacity=".42"/><ellipse class="hs-r" cx="450" cy="150" rx="300" ry="60" stroke-opacity=".3"/><ellipse class="hs-r" cx="450" cy="150" rx="420" ry="84" stroke-opacity=".18"/></g><g><circle class="hs-s" cx="120" cy="120" r="2"/><circle class="hs-s" cx="230" cy="176" r="1.5"/><circle class="hs-s" cx="330" cy="104" r="2.2"/><circle class="hs-s" cx="560" cy="182" r="1.8"/><circle class="hs-s" cx="660" cy="118" r="2"/><circle class="hs-s" cx="760" cy="160" r="1.4"/><circle class="hs-s" cx="850" cy="128" r="2.4"/><circle class="hs-s" cx="40" cy="170" r="1.6"/></g></svg>
-    <div class="hs">
-      <svg class="hs-net" width="1280" height="701">
-        <g><path class="hs-w hs-r2" d="M180 54H352"/><path class="hs-w d" d="M60 44V232"/><path class="hs-w" d="M96 348H160V420"/><path class="hs-w d" d="M336 240H392V350"/><path class="hs-w hs-r2" d="M466 208V262H540V330"/><path class="hs-w hs-r1" d="M580 60H735"/><path class="hs-w d hs-r1" d="M895 45H992"/><path class="hs-w hs-r1 hs-dbw" d="M1102 45H1250V128"/><path class="hs-w d hs-r1 hs-dbw" d="M1250 278V304H1208V330"/><path class="hs-w hs-r1" d="M1208 386V440"/><path class="hs-w d hs-r1" d="M1186 476V560"/><path class="hs-w hs-r1" d="M1250 476V600"/></g>
-        <g><path class="hs-f hs-r2" pathLength="100" d="M180 54H352"/><path class="hs-f" pathLength="100" d="M96 348H160V420"/><path class="hs-f" pathLength="100" d="M336 240H392V350"/><path class="hs-f hs-r2" pathLength="100" d="M466 208V262H540V330"/><path class="hs-f hs-r1" pathLength="100" d="M580 60H735"/><path class="hs-f hs-r1 hs-dbw" pathLength="100" d="M1102 45H1250V128"/><path class="hs-f hs-r1" pathLength="100" d="M1250 476V600"/><path class="hs-f" pathLength="100" d="M60 44V232"/></g>
-        <g><rect class="hs-n hs-r2" x="256" y="50" width="7" height="7"/><rect class="hs-n" x="56" y="116" width="7" height="7"/><rect class="hs-n" x="56" y="192" width="7" height="7"/><rect class="hs-n" x="156" y="344" width="7" height="7"/><rect class="hs-n" x="156" y="388" width="7" height="7"/><rect class="hs-n" x="388" y="268" width="7" height="7"/><rect class="hs-n hs-r2" x="462" y="258" width="7" height="7"/><rect class="hs-n hs-r2" x="536" y="296" width="7" height="7"/><rect class="hs-n hs-r1" x="608" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="696" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="940" y="41" width="7" height="7"/><rect class="hs-n hs-r1" x="1128" y="41" width="7" height="7"/><rect class="hs-n hs-r1 hs-dbw" x="1246" y="86" width="7" height="7"/><rect class="hs-n hs-r1 hs-dbw" x="1246" y="287" width="7" height="7"/><rect class="hs-n hs-r1" x="1204" y="408" width="7" height="7"/><rect class="hs-n hs-r1" x="1182" y="516" width="7" height="7"/><rect class="hs-n hs-r1" x="1246" y="536" width="7" height="7"/><path class="hs-n" d="M60 40l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1250 600l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1186 560l4 4-4 4-4-4z"/><path class="hs-n" d="M392 350l4 4-4 4-4-4z"/><path class="hs-n hs-r2" d="M540 330l4 4-4 4-4-4z"/></g>
-      </svg>
-      <span class="hs-lb hs-l1">Website<em>001</em></span>
-      <div class="hs-p hs-web"><span class="hs-img"><svg viewBox="0 0 44 32"><path d="M2 30L15 10l9 13 5-6 13 13z" fill="#5FB8A7"/><circle cx="33" cy="8" r="4" fill="#5FB8A7"/></svg></span><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><i class="hs-btn"></i><i class="hs-b"></i><i class="hs-b"></i></div>
-      <div class="hs-ed"><pre><i>01</i><b>import</b> { Site } <b>from</b> <u>'northbound'</u>
-<i>02</i><b>export default function</b> Home() {
-<i>03</i>  <b>return</b> (
-<i>04</i>    <b>&lt;Website</b>
-<i>05</i>      analytics={<b>true</b>}
-<i>06</i>      bookings={<b>true</b>}
-<i>07</i>      payments={<b>true</b>}
-<i>08</i>    <b>/&gt;</b>
-<i>09</i>  )}</pre></div>
-      <span class="hs-lb hs-l2 hs-r1">Bookings<em>002</em></span>
-      <div class="hs-p hs-bk hs-r1"><span><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-chk"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#1E8B6B"/><path d="M9 15.5l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-      <span class="hs-lb hs-l3 hs-r1">Payments<em>003</em></span>
-      <div class="hs-p hs-pay hs-r1"><i class="hs-cc"></i><i class="hs-b"></i></div>
-      <span class="hs-lb hs-l4 hs-r1">Dashboard<em>004</em></span>
-      <div class="hs-p hs-db hs-r1"><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><svg class="hs-chart" viewBox="0 0 118 96"><path class="hs-area" d="M0 70L20 58 40 62 60 40 80 44 100 22 118 26V96H0z"/><path class="hs-line" pathLength="100" d="M0 70L20 58 40 62 60 40 80 44 100 22 118 26"/><rect class="hs-bar" x="70" y="72" width="8" height="24"/><rect class="hs-bar" x="84" y="64" width="8" height="32"/><rect class="hs-bar" x="98" y="76" width="8" height="20"/><rect class="hs-bar" x="112" y="56" width="6" height="40"/></svg></div>
-      <span class="hs-lb hs-l5">Customers<em>005</em></span>
-      <div class="hs-p hs-cu"><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span></div>
-      <div class="hs-p hs-t hs-t1"><svg viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.5"/><path d="M4 6v14c0 2 4 3.5 9 3.5s9-1.5 9-3.5V6M4 13c0 2 4 3.5 9 3.5s9-1.5 9-3.5"/></svg></div>
-      <div class="hs-p hs-t hs-t2"><svg viewBox="0 0 26 26"><path d="M8 20h11a4.5 4.5 0 0 0 .5-9 6 6 0 0 0-11.5-1.5A5.3 5.3 0 0 0 8 20z"/></svg></div>
-      <div class="hs-p hs-t hs-t3 hs-r1"><svg viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.5"/><path d="M4 6v14c0 2 4 3.5 9 3.5s9-1.5 9-3.5V6M4 13c0 2 4 3.5 9 3.5s9-1.5 9-3.5"/></svg></div>
-      <i class="hs-sq hs-sq1 hs-r1"></i><i class="hs-sq hs-r1"></i>
-      <pre class="hs-dp hs-r1">deploy(
-  better_customers()
-);</pre>
+    <div class="hero-content">
+      <p class="eyebrow">Northbound Studio · Grand Ledge, Michigan</p>
+      <h1 class="hero-title">
+        <span class="line"><span class="line-in">Made to order.</span></span>
+        <span class="line"><span class="line-in">A few builds</span></span>
+        <span class="line"><span class="line-in">a month.</span></span>
+      </h1>
+      <p class="lede">Northbound is a one-man studio. Every site is designed and built by hand — a few a month, never more — so yours gets a builder, not a queue.</p>
+      <p class="hero-cta"><a class="btn" href="checkout.html">Book the 15-minute call</a></p>
+      <p class="hero-note">Fifteen minutes. If it's not a fit, you'll hear that on the call.</p>
     </div>
-  </div>
-</section>
+  </section>
 
-<script>
-  /* The question, answered. One answer at a time and it cannot go back to
-     none, so it is a radio group: roving tabindex, arrow keys. The answer
-     re-points the primary button and sets data-level, which lights the
-     machine. A modified click still opens the link in a new tab. */
-  (function () {
-    var hero = document.querySelector('.hero');
-    var chips = hero && hero.querySelectorAll('.q-chip');
-    var cta = hero && hero.querySelector('.actions .btn-primary');
-    if (!chips || !chips.length || !cta) return;
-    var CTA = {
-      1: ['Start with Cheap and Clean', '#packages'],
-      2: ['Get a quote for Beacon', 'build.html'],
-      3: ['Build the whole machine', 'build.html']
-    };
-    function answer(n) {
-      hero.setAttribute('data-level', n);
-      for (var i = 0; i < chips.length; i++) {
-        var on = +chips[i].getAttribute('data-level') === n;
-        chips[i].setAttribute('aria-checked', String(on));
-        chips[i].tabIndex = on ? 0 : -1;
-      }
-      cta.textContent = CTA[n][0];
-      cta.setAttribute('href', CTA[n][1]);
-    }
-    chips[0].parentNode.setAttribute('role', 'radiogroup');
-    chips[0].parentNode.setAttribute('aria-labelledby', 'q-ask');
-    for (var i = 0; i < chips.length; i++) {
-      chips[i].setAttribute('role', 'radio');
-      chips[i].setAttribute('aria-checked', 'false');
-      chips[i].tabIndex = i ? -1 : 0;
-      chips[i].addEventListener('click', function (e) {
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        e.preventDefault();
-        answer(+this.getAttribute('data-level'));
-      });
-      chips[i].addEventListener('keydown', function (e) {
-        var k = e.key, n = +this.getAttribute('data-level');
-        if (k === ' ') { e.preventDefault(); this.click(); return; }
-        var d = (k === 'ArrowRight' || k === 'ArrowDown') ? 1 : (k === 'ArrowLeft' || k === 'ArrowUp') ? -1 : 0;
-        if (!d) return;
-        e.preventDefault();
-        var next = chips[(n - 1 + d + chips.length) % chips.length];
-        next.focus();
-        answer(+next.getAttribute('data-level'));
-      });
-    }
-  })();
-</script>
+  <!-- 2 · THE BUILDS -->
+  <section class="section" id="builds" data-reveal>
+    <p class="eyebrow">The builds</p>
+    <h2 class="section-title">A numbered program.</h2>
+    <p class="section-lede">Every commission gets a build number. It goes on the site, in the owner's manual, and here — in the order the work was delivered.</p>
 
-<section id="offerings">
-  <div class="wrap">
-    <h2>Twelve things, and what each one does for you.</h2>
-    <p class="mnote mnote-motion">Head to checkout and this page folds shut in twelve strips. One for each part.</p>
-    <!--
-      Twelve toggle buttons. Picking any of them raises a Continue button
-      (fixed, bottom-left) whose href is the existing checkout — the package
-      the picks add up to in ?buy=, and the picks themselves in ?s= as the
-      version-2 code from js/spec.js — so checkout and the order emails list
-      exactly what was clicked. js/pick.js does that; without it the buttons
-      are inert and the list reads as it always did.
-    -->
-    <ol class="offerings" id="offerings-list" aria-label="The twelve parts — pick the ones you want">
-      <li><button type="button" class="offer" data-part="A custom site" tabindex="-1" aria-labelledby="o1-t" aria-describedby="o1-d"><span class="n">01</span><span class="t" id="o1-t">A custom site</span><span class="d" id="o1-d">Built for your business rather than adapted from someone else's, so it says what you do in the first five seconds.</span></button></li>
-      <li><button type="button" class="offer" data-part="Brand identity" tabindex="-1" aria-labelledby="o2-t" aria-describedby="o2-d"><span class="n">02</span><span class="t" id="o2-t">Brand identity</span><span class="d" id="o2-d">A logo, a typeface and a colour that work on a van, a business card and a phone screen without being redrawn each time.</span></button></li>
-      <li><button type="button" class="offer" data-part="Booking flow" tabindex="-1" aria-labelledby="o3-t" aria-describedby="o3-d"><span class="n">03</span><span class="t" id="o3-t">Booking flow</span><span class="d" id="o3-d">Customers pick a time themselves, at eleven at night, without anyone answering a phone.</span></button></li>
-      <li><button type="button" class="offer" data-part="Quote flow" tabindex="-1" aria-labelledby="o4-t" aria-describedby="o4-d"><span class="n">04</span><span class="t" id="o4-t">Quote flow</span><span class="d" id="o4-d">People tell you what the job is before you drive out to look at it, so you quote the ones worth quoting.</span></button></li>
-      <li><button type="button" class="offer" data-part="Payments" tabindex="-1" aria-labelledby="o5-t" aria-describedby="o5-d"><span class="n">05</span><span class="t" id="o5-t">Payments</span><span class="d" id="o5-d">Deposits land before the work starts, which is the rule that prevents most of the ways small projects go wrong.</span></button></li>
-      <li><button type="button" class="offer" data-part="Lead capture" tabindex="-1" aria-labelledby="o6-t" aria-describedby="o6-d"><span class="n">06</span><span class="t" id="o6-t">Lead capture</span><span class="d" id="o6-d">The people who almost called you leave a name instead of leaving.</span></button></li>
-      <li><button type="button" class="offer" data-part="Automated follow-up" tabindex="-1" aria-labelledby="o7-t" aria-describedby="o7-d"><span class="n">07</span><span class="t" id="o7-t">Automated follow-up</span><span class="d" id="o7-d">Every enquiry gets an answer within a minute, including the ones that arrive while you are on a roof.</span></button></li>
-      <li><button type="button" class="offer" data-part="Reminders" tabindex="-1" aria-labelledby="o8-t" aria-describedby="o8-d"><span class="n">08</span><span class="t" id="o8-t">Reminders</span><span class="d" id="o8-d">Fewer no-shows, because the appointment reminds them and not you.</span></button></li>
-      <li><button type="button" class="offer" data-part="Review requests" tabindex="-1" aria-labelledby="o9-t" aria-describedby="o9-d"><span class="n">09</span><span class="t" id="o9-t">Review requests</span><span class="d" id="o9-d">The review gets asked for at the one moment the customer is happiest, every time, without you remembering.</span></button></li>
-      <li><button type="button" class="offer" data-part="Owner dashboard" tabindex="-1" aria-labelledby="o10-t" aria-describedby="o10-d"><span class="n">10</span><span class="t" id="o10-t">Owner dashboard</span><span class="d" id="o10-d">One screen that says where the calls came from and what they were worth, so you stop guessing which advert works.</span></button></li>
-      <li><button type="button" class="offer" data-part="Local SEO" tabindex="-1" aria-labelledby="o11-t" aria-describedby="o11-d"><span class="n">11</span><span class="t" id="o11-t">Local SEO</span><span class="d" id="o11-d">You turn up when someone two towns over searches for what you do.</span></button></li>
-      <li><button type="button" class="offer" data-part="AI intake" tabindex="-1" aria-labelledby="o12-t" aria-describedby="o12-d"><span class="n">12</span><span class="t" id="o12-t">AI intake</span><span class="d" id="o12-d">Enquiries get read, sorted and answered in your voice before you have opened the laptop.</span></button></li>
-    </ol>
-    <a class="btn btn-primary pick-continue" id="pick-continue" href="checkout.html" hidden>Continue <span class="count" id="pick-count" aria-hidden="true">0</span></a>
-  </div>
-</section>
-
-<section class="packages" id="packages">
-  <div class="wrap">
-    <h2>Three ways in.</h2>
-    <p class="section-lede">Published prices are a floor, not a ceiling. Beacon and Engine are half price for our first 15 founding clients, in return for a Google review. 50% is due up front on any build.</p>
-    <p class="mnote">The struck-through prices are real. They're what the build costs once the fifteen founding spots are gone.</p>
-
-    <ol class="pkg-grid">
-      <li class="pkg">
-        <h3>Cheap and Clean</h3>
-        <p class="price">$600</p>
-        <p class="tag">One page, your brand, live. It puts you on the board.</p>
-        <ul>
-          <li>One of five designs, built around your business</li>
-          <li>Your logo, colours and photos</li>
-          <li>Your phone number, tappable, and a form that reaches you</li>
-          <li>Hosted free, forever</li>
-        </ul>
-        <a class="btn btn-primary" href="checkout.html?buy=clean">Buy it now</a>
+    <ol class="program">
+      <li class="program-row">
+        <span class="program-no">Build No. 001</span>
+        <div class="program-body">
+          <h3>Keystone South Construction</h3>
+          <p>The first commission. A contractor's website, designed and built end to end.</p>
+        </div>
+        <span class="program-status">Delivered</span>
       </li>
-      <li class="pkg">
-        <p class="founding-tag">Founding price</p>
-        <h3>Beacon</h3>
-        <p class="price">$1,750 <span class="was">$3,500</span></p>
-        <p class="tag">A site that makes you look real.</p>
-        <ul>
-          <li>A custom site, up to five pages</li>
-          <li>Brand identity</li>
-          <li>Local SEO</li>
-        </ul>
-        <a class="btn btn-secondary" href="build.html">Get a quote for Beacon</a>
-      </li>
-      <li class="pkg pkg--lead">
-        <p class="badge">Most pick this &middot; founding price</p>
-        <h3>Engine</h3>
-        <p class="price">$4,250 <span class="was">$8,500</span></p>
-        <p class="tag">The site plus the machine behind it.</p>
-        <ul>
-          <li>Everything in Beacon</li>
-          <li>Booking and quote flows, payments, lead capture</li>
-          <li>Automated follow-up, reminders, review requests</li>
-          <li>Owner dashboard</li>
-        </ul>
-        <a class="btn btn-primary" href="build.html">Get a quote for Engine</a>
+      <li class="program-row is-open">
+        <span class="program-no">Build No. 002</span>
+        <div class="program-body">
+          <h3>This one could be yours</h3>
+          <p>The next slot in the program. It starts with a 15-minute call.</p>
+        </div>
+        <span class="program-status"><a href="checkout.html">Start here →</a></span>
       </li>
     </ol>
-    <!--
-      Bearing is not a fourth card any more. It is offered at checkout, where
-      someone is already deciding, and it stays available afterwards from
-      Your account — because the person who says "I don't need that yet" in
-      week one is often the person who needs it in month three, and they
-      should not have to email anyone to find it.
-    -->
-    <p class="keeping-line" id="bearing"><strong>Bearing</strong> keeps it running: hosting, monitoring, backups, small edits and a monthly report on calls and bookings. $300/mo for founding clients, $600 standard; add it at checkout or later from <a href="account.html">your account</a>. Cheap and Clean stays hosted free, exactly as built; changes and a human reply are $49/mo.</p>
-  </div>
-</section>
+  </section>
 
-<section id="quote">
-  <div class="wrap">
-    <h2>Tell us what the job is.</h2>
-    <div class="job-stage" aria-hidden="true"></div>
-    <p class="section-lede">The useful first question is what one new customer is worth to you, and how many more you want a month. The answer decides the build. If you'd rather be walked through it, <a href="build.html">build your machine</a> — eight questions and you end with a priced build.</p>
-    <form class="quote-form" method="post" action="/api/quote">
-      <p class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required></p>
-      <p class="field"><label for="f-business">Business</label><input id="f-business" name="business" type="text" autocomplete="organization"></p>
-      <p class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
-      <p class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></p>
-      <p class="field">
-        <label for="f-package">Which package</label>
-        <select id="f-package" name="package">
-          <option value="">Not sure yet</option>
-          <option value="clean">Cheap and Clean — $600</option>
-          <option value="beacon">Beacon — founding price $1,750 (standard $3,500)</option>
-          <option value="engine">Engine — founding price $4,250 (standard $8,500)</option>
-          <option value="bearing">Bearing — founding price $300/mo</option>
-        </select>
-      </p>
-      <p class="field"><label for="f-need">What you need</label><textarea id="f-need" name="need" rows="2"></textarea></p>
-      <p class="field"><label for="f-message">Anything else</label><textarea id="f-message" name="message" rows="2"></textarea></p>
-      <!--
-        The founding claim. Founding pricing is an early client who leaves us
-        a Google review, so the claim is the review itself: the link opens
-        Google in a new tab, and the name the review is posted under is what
-        we need to find it. Nothing here verifies anything — Colin looks it up
-        himself before finalising the quote, and the line below says so. The
-        href is the same string as GOOGLE_REVIEW_URL in js/config.js and
-        api/checkout.ts (tests/checkout.unit.test.ts keeps them equal); it is
-        written out here so the link works with JavaScript off.
-      -->
-      <div class="founding-claim" id="founding-claim">
-        <p class="claim-lede">Taking founding pricing (Beacon, Engine or Bearing)? Leave your Google review, then tell us the name it's posted under.</p>
-        <p class="claim-link"><a class="btn btn-secondary" href="https://g.page/r/CRFQRq5WLg6HECE/review" target="_blank" rel="noopener">Leave your Google review</a></p>
-        <p class="field"><label for="f-review-name">The name your review is posted under</label><input id="f-review-name" name="review_name" type="text" maxlength="120" data-founding-agree></p>
-        <p class="hint">Founding pricing is confirmed once we can see the review. We check it ourselves before finalising the quote — there's no automatic check. Not needed for Cheap and Clean.</p>
+  <!-- 3 · HOW IT WORKS -->
+  <section class="section section-alt" id="how" data-reveal>
+    <p class="eyebrow">How it works</p>
+    <h2 class="section-title">Three steps. No mystery.</h2>
+
+    <ol class="steps">
+      <li class="step">
+        <span class="step-no">1</span>
+        <div>
+          <h3>A 15-minute call.</h3>
+          <p>Fifteen minutes, phone or video. Your business, your customers, and what the site has to do. Short on purpose: long enough to know, too short to waste.</p>
+        </div>
+      </li>
+      <li class="step">
+        <span class="step-no">2</span>
+        <div>
+          <h3>The test drive.</h3>
+          <p>Within 48 hours of the call, your homepage exists — designed, written, real. Not a mockup, not a tour. The actual first page of your site, on your screen.</p>
+        </div>
+      </li>
+      <li class="step">
+        <span class="step-no">3</span>
+        <div>
+          <h3>We build the rest.</h3>
+          <p>Love it, and the full build follows: every page, the booking, the follow-up. You approve each stage before it goes live. Don't love it, and we stop there — that's the deal.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- THE TEST DRIVE -->
+  <section class="testdrive" data-reveal>
+    <p class="eyebrow eyebrow-red">The test drive</p>
+    <h2 class="band-title">
+      <span class="line"><span class="line-in">We build your homepage</span></span>
+      <span class="line"><span class="line-in">in 48 hours.</span></span>
+      <span class="line"><span class="line-in">Love it or walk away.</span></span>
+    </h2>
+    <p class="band-lede">The call comes first — it's how the 48 hours go to buyers, not browsers. After it, the clock starts. What you get is a real homepage: your name, your words, your customers in mind. If it isn't right, you walk away and owe nothing.</p>
+    <p><a class="btn btn-light" href="checkout.html">Start with the call</a></p>
+  </section>
+
+  <!-- 4 · PACKAGES -->
+  <section class="section" id="packages" data-reveal>
+    <p class="eyebrow">Packages</p>
+    <h2 class="section-title">The price is on the window.</h2>
+    <p class="section-lede">Three ways to commission a build. Every one starts the same way: a 15-minute call.</p>
+
+    <ol class="program">
+      <li class="program-row">
+        <span class="program-no">01 · Beacon</span>
+        <div class="program-body">
+          <h3>The site and the brand.</h3>
+          <p>A complete website and a brand to match — the whole presence, designed and built properly.</p>
+        </div>
+        <span class="program-price">From $3,500</span>
+      </li>
+      <li class="program-row">
+        <span class="program-no">02 · Engine</span>
+        <div class="program-body">
+          <h3>The site, and the machine behind it.</h3>
+          <p>Everything in Beacon, plus booking, payments, automated follow-up, and a dashboard that shows it working.</p>
+        </div>
+        <span class="program-price">From $8,500</span>
+      </li>
+      <li class="program-row">
+        <span class="program-no">03 · Bearing</span>
+        <div class="program-body">
+          <h3>The service plan.</h3>
+          <p>Hosting, maintenance, and a monthly report. It follows every build, so the site stays fast and you stay hands-off.</p>
+        </div>
+        <span class="program-price">From $600/mo</span>
+      </li>
+    </ol>
+    <p class="section-cta"><a class="btn" href="checkout.html">Book the 15-minute call</a></p>
+  </section>
+
+  <!-- 5 · SPEC SHEET -->
+  <section class="section section-alt" id="specs" data-reveal>
+    <p class="eyebrow">The spec sheet</p>
+    <h2 class="section-title">Measured, not promised.</h2>
+    <p class="section-lede">No numbers appear on this page that we can't prove — including ours. So the spec sheet starts as a commitment: every build is measured, and the measurements ship with it.</p>
+
+    <dl class="specs">
+      <div class="spec">
+        <dt>Load time, measured</dt>
+        <dd>Your homepage's load time, measured on launch day and printed in the manual.</dd>
       </div>
-      <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
-      <p><button type="submit">Send it</button></p>
-    </form>
-  </div>
-</section>
+      <div class="spec">
+        <dt>Days to launch, counted</dt>
+        <dd>From the day we start to the day you're live — counted, and printed next to it.</dd>
+      </div>
+      <div class="spec">
+        <dt>Inquiries, tracked</dt>
+        <dd>Before and after, wherever they can honestly be measured.</dd>
+      </div>
+      <div class="spec">
+        <dt>An owner's manual</dt>
+        <dd>How everything on your site works, in plain language. Yours to keep.</dd>
+      </div>
+    </dl>
+  </section>
 
-<footer class="site-footer">
-  <div class="wrap">
-    <a href="tel:+14705738908">470-573-8908</a> &middot; Grand Ledge, Michigan &middot; &copy; 2026 Northbound Studio &middot; <a href="studio.html">See the version we built to show off</a>
-  </div>
+  <!-- 6 · WHO'S BEHIND THIS -->
+  <section class="section founder" id="founder" data-reveal>
+    <div class="founder-media">
+      <img src="buddy-awesome.webp" alt="Buddy, the Northbound Studio mascot" width="720" height="720" loading="lazy">
+    </div>
+    <div class="founder-body">
+      <p class="eyebrow">Who's behind this</p>
+      <h2 class="section-title">One builder.<br>That's the point.</h2>
+      <p class="founder-name">Colin — founder, Grand Ledge, Michigan</p>
+      <p>Colin designs and builds every Northbound site himself: the words, the layout, the code, the launch. No account managers, no handoffs, no queue of strangers. A few builds a month isn't a sales line — it's how each one gets his full attention. When you call, he answers. The robot is Buddy. He's the studio's whole art department, and he takes it very seriously.</p>
+    </div>
+  </section>
+
+  <!-- 7 · HANDOVER -->
+  <section class="section handover" data-reveal>
+    <p class="eyebrow">Handover</p>
+    <h2 class="section-title">Delivery is a handover.</h2>
+    <p class="section-lede">When your site is done, we sit down — in person or on a call — and walk through it together: how to update it, how the booking flows, where the numbers live. You leave with an owner's manual that explains all of it in plain language. After that, Bearing is your service plan: hosting, maintenance, and a monthly report, handled.</p>
+    <p class="section-cta"><a class="btn" href="checkout.html">Book the 15-minute call</a></p>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24">
+  <p class="foot-line">Made to order in Grand Ledge, Michigan.</p>
+  <p class="foot-links">
+    <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a>
+    <span aria-hidden="true">·</span>
+    <a href="tel:+14705738908">(470) 573-8908</a>
+    <span aria-hidden="true">·</span>
+    <a href="https://g.page/r/CRFQRq5WLg6HECE/review" target="_blank" rel="noopener">Leave a review</a>
+  </p>
+  <p class="foot-small">© 2026 Northbound Studio</p>
 </footer>
 
-<!--
-  The founding claim, enforced in the browser too. api/quote.ts refuses
-  founding pricing without the review name, and it is right to — but a
-  server refusal on a native POST throws away everything they typed, which
-  is what happened to a real order at checkout. So while Beacon, Engine or
-  Bearing is selected the name field is required, with a message that says
-  what to do. With this script gone the form still posts and the server
-  still refuses; nothing is lost but the typing.
--->
-<script>
-  (function () {
-    var form = document.querySelector('.quote-form');
-    var pkg = document.getElementById('f-package');
-    var name = form && form.querySelector('[data-founding-agree]');
-    if (!form || !pkg || !name) return;
-    var block = name.closest('.founding-claim');
-    form.classList.add('claim-on-demand');
-    var sync = function () {
-      var needed = pkg.value === 'beacon' || pkg.value === 'engine' || pkg.value === 'bearing';
-      var empty = name.value.trim() === '';
-      name.required = needed;
-      name.setCustomValidity(
-        needed && empty
-          ? 'To take the founding price, leave your Google review (the link above opens it), then type the name it’s posted under here. We check it ourselves before finalising.'
-          : ''
-      );
-      if (block) { block.classList.toggle('is-required', needed); block.classList.toggle('is-empty', empty); }
-    };
-    pkg.addEventListener('change', sync);
-    name.addEventListener('input', sync);
-    sync();
-  })();
-</script>
-
-<!--
-  Buddy's script. It waits for window load so his 190KB never competes with
-  the fonts and the headline, and it fades the still out on the first frame
-  he actually shows. Under 640px and under reduced motion no <source>
-  matched, currentSrc is empty, and this does nothing. Everything above
-  works exactly the same with it removed.
--->
-<script>
-  addEventListener('load', function () {
-    function start(v) {
-      if (!v || !v.currentSrc) return;
-      v.addEventListener('playing', function () { v.parentNode.classList.add('is-playing'); }, { once: true });
-      v.play().catch(function () {});
-    }
-    start(document.querySelector('.buddy video'));
-
-    // The machine behind the hero runs on CSS alone; this only pauses its
-    // animations while the hero is scrolled out of view, so an idle tab
-    // further down the page is not compositing a scene nobody can see.
-    var hero = document.querySelector('.hero');
-    if (hero && 'IntersectionObserver' in window) {
-      new IntersectionObserver(function (entries) {
-        hero.classList.toggle('is-off', !entries.some(function (e) { return e.isIntersecting; }));
-      }).observe(hero);
-    }
-  });
-</script>
-<script>
-  // The margin notes write in as they reach the screen. Without the
-  // observer, or without motion, they are simply there.
-  (function () {
-    var root = document.documentElement, notes = document.querySelectorAll('.mnote');
-    function all() { for (var i = 0; i < notes.length; i++) notes[i].classList.add('is-in'); }
-    if (!root.classList.contains('nb-motion') || !('IntersectionObserver' in window)) return all();
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } });
-    }, { rootMargin: '0px 0px -12% 0px' });
-    for (var i = 0; i < notes.length; i++) io.observe(notes[i]);
-  })();
-</script>
-<!-- The twelve panels as an order. A module, so it is deferred and never
-     in the way of the first paint; with it missing the panels are inert. -->
-<script type="module">
-  // Buddy takes the job: loaded only once the last floor is within a screen
-  // and a half, so his model never competes with the first paint.
-  const root = document.documentElement, floor = document.getElementById('quote');
-  if (root.classList.contains('home3d-ok') && floor) {
-    const io = new IntersectionObserver((e) => {
-      if (!e.some((x) => x.isIntersecting)) return;
-      io.disconnect();
-      import('/js/home/job3d.js').catch(() => root.__nb3dGiveUp && root.__nb3dGiveUp());
-    }, { rootMargin: '150% 0px' });
-    io.observe(floor);
-  }
-</script>
-<script type="module" src="js/pick.js"></script>
-
+<script src="js/dream.js" defer></script>
 </body>
 </html>

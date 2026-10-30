@@ -74,6 +74,31 @@ test.describe('homepage — the whole view on a desktop', () => {
   });
 });
 
+test.describe('homepage — Buddy, and the small things that move', () => {
+  test('Buddy waves on arrival, and the pause control stops and restarts him', async ({ page }) => {
+    await page.goto('/');
+    const video = page.locator('.hero-video');
+    await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
+    const pause = page.locator('[data-hero-pause]');
+    await expect(pause).toHaveAttribute('aria-pressed', 'false');
+    await pause.click();
+    await expect(pause).toHaveAttribute('aria-pressed', 'true');
+    expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+    await pause.click();
+    await expect(pause).toHaveAttribute('aria-pressed', 'false');
+    await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
+  });
+
+  test('the hairline reads 0 at the top and 1 at the bottom', async ({ page }) => {
+    await page.goto('/');
+    const progress = () => page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--progress')) || 0);
+    expect(await progress()).toBe(0);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect.poll(progress).toBeGreaterThan(0.99);
+    await expect(page.locator('.scroll-line')).toBeVisible();
+  });
+});
+
 test.describe('the questions and the counter wear the same clothes', () => {
   for (const path of ['/build.html', '/checkout.html']) {
     test(`${path}: dream tokens, espresso wordmark, email instead of a phone number`, async ({ page }) => {

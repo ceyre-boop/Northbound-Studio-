@@ -122,6 +122,8 @@
 </head>
 <body>
 
+<div class="scroll-line" aria-hidden="true"></div>
+
 <header class="site-head">
   <a class="brand" href="/" aria-label="Northbound Studio — home">
     <img src="brand/wordmark-espresso.svg" alt="Northbound Studio" width="148" height="24">
@@ -145,6 +147,12 @@
         <source src="brand/buddy-wave.webm" type="video/webm">
         <source src="brand/buddy-wave.mp4" type="video/mp4">
       </video>
+      <!-- Buddy waves on a loop, so there is a way to stop him: the one
+           control a moving picture owes a visitor who did not ask for it. -->
+      <button type="button" class="hero-pause" data-hero-pause aria-pressed="false" aria-label="Pause Buddy">
+        <svg class="ic-pause" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="3" height="9" rx="0.8" fill="currentColor"/><rect x="7" y="1.5" width="3" height="9" rx="0.8" fill="currentColor"/></svg>
+        <svg class="ic-play" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.8v8.4L10 6z" fill="currentColor"/></svg>
+      </button>
     </div>
     <div class="hero-content">
       <p class="eyebrow">Northbound Studio · Grand Ledge, Michigan</p>

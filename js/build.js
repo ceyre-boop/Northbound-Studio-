@@ -19,7 +19,7 @@ import { BIZ, NOW, WANT, WORTH, ANSWERS, RUN, LOOKS, PACKAGES, BEARING, blank, b
 
 const KEY = 'nb-build-v1';
 const TOTAL = 8;
-const PHONE = '470-573-8908';
+const EMAIL = 'hello@northbound-dev.com';
 
 /* What the preview phone says for each kind of business. Mock copy for a
    mock, and labelled as an example inside the frame. */
@@ -301,7 +301,7 @@ function sheetHtml() {
 
     <div class="actions">
       <a class="btn btn-primary reserve" id="reserve" href="${esc(checkoutHref)}">Reserve my build — ${money(p.deposit)} now</a>
-      <p class="reassure">No card details are entered on this site. Reserving sends us the order; a secure payment link follows within one business hour, and nothing is charged until you pay it. Or call <a href="tel:+14705738908">${PHONE}</a>.</p>
+      <p class="reassure">No card details are entered on this site. Reserving sends us the order; a secure payment link follows within one business hour, and nothing is charged until you pay it. Or email <a href="mailto:${EMAIL}">${EMAIL}</a>.</p>
     </div>
 
     <!-- Folded on a phone, open on a desktop where there is room. The
@@ -485,7 +485,7 @@ el.panel.addEventListener('submit', async (e) => {
     }
   } catch (err) {
     status.className = 'status err';
-    status.textContent = `${err.message || "That didn't send."} Copy the link instead, or call ${PHONE}.`;
+    status.textContent = `${err.message || "That didn't send."} Copy the link instead, or email ${EMAIL}.`;
     btn.disabled = false;
   }
 });

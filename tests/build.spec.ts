@@ -367,8 +367,11 @@ test.describe('guided build — the page itself', () => {
     await expect(form).toHaveAttribute('action', '/api/quote');
     await expect(form.locator('select[name="package"] option')).toHaveCount(5);
     await expect(form.locator('button[type="submit"]')).toBeVisible();
-    await expect(page.locator('header a[href="tel:+14705738908"]')).toBeVisible();
-    await expect(page.locator('footer a[href="tel:+14705738908"]')).toBeVisible();
+    // The phone number came off the site (email and review only); the
+    // header and footer carry the address instead.
+    await expect(page.locator('header a[href^="mailto:"]')).toBeVisible();
+    await expect(page.locator('footer a[href^="mailto:"]')).toBeVisible();
+    await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
     await ctx.close();
   });
 
@@ -454,11 +457,15 @@ test.describe('guided build — the page itself', () => {
     }
   });
 
-  test('the homepage sends every quote CTA here', async ({ page }) => {
+  test('the homepage sends every call-to-action here', async ({ page }) => {
+    // The dream homepage has no quote form of its own: every button and
+    // the open slot's "Start here" lead to the questions, none to checkout.
     await page.goto('/');
-    await expect(page.locator('.hero a.btn-primary')).toHaveAttribute('href', 'build.html');
-    await expect(page.locator('a', { hasText: 'Get a quote for Beacon' })).toHaveAttribute('href', 'build.html');
-    await expect(page.locator('a', { hasText: 'Get a quote for Engine' })).toHaveAttribute('href', 'build.html');
-    await expect(page.locator('#quote form')).toHaveCount(1);
+    await expect(page.locator('.hero a.btn')).toHaveAttribute('href', 'build.html');
+    const ctas = page.locator('header a.btn, main a.btn, .program-status a');
+    const n = await ctas.count();
+    expect(n).toBeGreaterThanOrEqual(6);
+    for (let i = 0; i < n; i++) await expect(ctas.nth(i)).toHaveAttribute('href', 'build.html');
+    await expect(page.locator('a[href*="checkout.html"]')).toHaveCount(0);
   });
 });

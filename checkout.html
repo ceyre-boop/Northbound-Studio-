@@ -6,6 +6,11 @@
 <title>Checkout — Northbound Studio</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<!-- The two faces are self-hosted and preloaded so the first paint is in
+     them: a swap from a fallback face is a layout shift, and the build page
+     holds itself to zero. -->
+<link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <!--
   THE COUNTER.
 
@@ -59,7 +64,7 @@
 <style>
   :root { --nb-leave-ms: 620; --nb-arrive-ms: 700; --nb-veil-cells: 12; }
   .nb-veil { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; display: grid; grid-template-columns: repeat(12, 1fr); }
-  .nb-veil i { display: block; background: #0E1512; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
+  .nb-veil i { display: block; background: #241B17; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
   .nb-veil i:nth-child(1) { animation-delay: 0ms; }
   .nb-veil i:nth-child(2) { animation-delay: 26ms; }
   .nb-veil i:nth-child(3) { animation-delay: 52ms; }
@@ -73,7 +78,7 @@
   .nb-veil i:nth-child(11) { animation-delay: 260ms; }
   .nb-veil i:nth-child(12) { animation-delay: 286ms; }
   @keyframes nb-drop { to { transform: none; } }
-  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #0E1512; }
+  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #241B17; }
   html.nb-arriving::before { animation: nb-open-l 700ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
   html.nb-arriving::after { animation: nb-open-r 700ms 60ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
   @keyframes nb-open-l { from { clip-path: inset(0 50% 0 0); } to { clip-path: inset(0 100% 0 0); } }
@@ -86,7 +91,7 @@
   (function () {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var root = document.documentElement;
-    var LINKS = 'a[href^="checkout.html"], a[href^="/checkout.html"]';
+    var LINKS = 'a[href^="checkout.html"], a[href^="/checkout.html"], a[href^="build.html"], a[href^="/build.html"]';
     var ms = function (name, fallback) {
       var n = parseFloat(getComputedStyle(root).getPropertyValue(name));
       return isNaN(n) ? fallback : n;
@@ -131,23 +136,32 @@
   })();
 </script>
 <style>
-  @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
-  @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
-  @font-face { font-family: 'JetBrains Mono'; src: url('fonts/jetbrains-mono.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Fraunces'; src: url('fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url('fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  /* The dream rebuild's tokens (css/dream.css): cream, espresso, taupe,
+     one dusty red. The old names are kept so the rules below read as
+     they always did; only the values changed. */
   :root {
-    --ink: #0E1512; --ink-soft: #55635C; --line: #E4EAE6; --bg: #FFFFFF;
-    --panel: #F4F8F6; --accent: #0E6F5C; --accent-dark: #0A5445;
-    --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
-    --body: 'Instrument Sans', system-ui, -apple-system, sans-serif;
-    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --ink: #241B17; --ink-soft: #57493F; --line: #C4B9AE; --bg: #F7F6F2;
+    --panel: #ECEAE0; --accent: #241B17; --accent-dark: #3A2C25; --red: #BF4B4B; --taupe: #A6968A;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
     --gutter: clamp(20px, 5vw, 40px);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--panel); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); }
-  .site-header { background: #fff; border-bottom: 1px solid var(--line); }
-  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; max-width: 1080px; }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 22px 10px; max-width: 1080px; }
+  .brand { display: inline-flex; }
+  .brand img { display: block; height: 22px; width: auto; }
+  .mail-link { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 18px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap; transition: transform .35s cubic-bezier(.22, 1, .36, 1), background .35s cubic-bezier(.22, 1, .36, 1); }
+  .mail-link:hover { transform: translateY(-2px); background: var(--accent-dark); }
+  .mail-short { display: none; }
+  /* The address does not fit beside the wordmark at 390px; the pill says
+     what it does instead, and the href still carries the address. */
+  @media (max-width: 560px) { .mail-long { display: none; } .mail-short { display: inline; } }
   /* Syne at weight 800 runs wide: "Northbound Studio" plus the phone pill
      overflow at 390px on one line (pre-existing, same fix as index.html). */
   @media (max-width: 480px) {
@@ -158,16 +172,14 @@
     .addon { padding: 14px; }
     .addon .p { display: none; }
   }
-  .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
-  .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
 
   main { padding: clamp(32px, 6vw, 64px) 0 80px; }
-  h1 { font-family: var(--display); font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -0.02em; margin: 0 0 6px; }
-  .step { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
+  h1 { font-family: var(--display); font-weight: 500; font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -0.01em; margin: 0 0 6px; }
+  .step { font-family: var(--mono); font-weight: 600; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
 
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 18px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 24px; margin-bottom: 18px; }
   .line { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
-  .line h2 { font-family: var(--display); font-size: 22px; margin: 0; }
+  .line h2 { font-family: var(--display); font-weight: 500; font-size: 22px; margin: 0; }
   .line .amt { font-family: var(--display); font-size: 22px; white-space: nowrap; }
   .line .amt span { font-family: var(--body); font-size: 13px; color: var(--ink-soft); }
   .desc { color: var(--ink-soft); margin: 6px 0 0; }
@@ -200,8 +212,8 @@
   .founding-claim .claim-lede { font-size: 15px; }
   .founding-claim .field { margin: 0; }
   .founding-claim .note { font-size: 13px; color: var(--ink-soft); }
-  .btn-review { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 20px; border-radius: 10px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font-weight: 700; text-decoration: none; white-space: nowrap; }
-  .btn-review:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-review { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .btn-review:hover { border-color: var(--red); color: var(--red); }
 
   .totals { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 16px; }
   .totals .row { display: flex; justify-content: space-between; color: var(--ink-soft); }
@@ -214,24 +226,24 @@
   .then { font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
 
   .field { display: grid; gap: 6px; margin: 0 0 14px; }
-  .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+  .field label { font-family: var(--mono); font-weight: 600; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
   .field input, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; }
   .field input:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .field textarea { resize: vertical; }
 
   .pause { margin: 0 0 22px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
-  .pause h2 { font-family: var(--display); font-size: 20px; margin: 0 0 6px; }
+  .pause h2 { font-family: var(--display); font-weight: 500; font-size: 20px; margin: 0 0 6px; }
   .pause-lede { color: var(--ink-soft); font-size: 15px; margin: 0 0 16px; }
-  .pay { width: 100%; min-height: 54px; border: none; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer; }
-  .pay:hover { background: var(--accent-dark); }
+  .pay { width: 100%; min-height: 54px; border: none; border-radius: 999px; background: var(--accent); color: var(--bg); font-family: inherit; font-weight: 500; font-size: 17px; cursor: pointer; transition: transform .35s cubic-bezier(.22, 1, .36, 1), background .35s cubic-bezier(.22, 1, .36, 1); }
+  .pay:hover { background: var(--accent-dark); transform: translateY(-2px); }
   .reassure { font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
   .reassure strong { color: var(--ink); }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .back { display: inline-block; margin-bottom: 18px; font-size: 14px; color: var(--ink-soft); }
   .build-card[hidden] { display: none; }
-  .build-card h2 { font-family: var(--display); font-size: 18px; margin: 0 0 8px; }
+  .build-card h2 { font-family: var(--display); font-weight: 500; font-size: 18px; margin: 0 0 8px; }
   .build-card .parts { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 15px; }
-  .build-card .parts li::before { content: '·'; color: var(--accent); margin-right: 8px; font-weight: 700; }
+  .build-card .parts li::before { content: '·'; color: var(--red); margin-right: 8px; font-weight: 700; }
   .build-card .answers { margin: 12px 0 0; font-size: 14px; color: var(--ink-soft); }
   .build-card .change { display: inline-block; margin-top: 12px; font-size: 14px; }
   .totals .row.balance { margin-top: 4px; }
@@ -241,8 +253,8 @@
 
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="/">Northbound Studio</a>
-    <a class="phone-link" href="tel:+14705738908">470-573-8908</a>
+    <a class="brand" href="/" aria-label="Northbound Studio — home"><img src="brand/wordmark-espresso.svg" alt="Northbound Studio" width="148" height="24"></a>
+    <a class="mail-link" href="mailto:hello@northbound-dev.com"><span class="mail-long">hello@northbound-dev.com</span><span class="mail-short" aria-hidden="true">Email us</span></a>
   </div>
 </header>
 

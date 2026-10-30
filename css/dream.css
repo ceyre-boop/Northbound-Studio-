@@ -4,6 +4,11 @@
  * no shadows doing design work, no boxes-in-boxes.
  */
 
+/* Self-hosted, latin subset, variable weight 400–600 (SIL Open Font License).
+   Preloaded from the page head so the first paint is in them. */
+@font-face { font-family: 'Fraunces'; src: url('../fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('../fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+
 :root {
   --cream: #F7F6F2;
   --cream-2: #ECEAE0;
@@ -451,4 +456,86 @@ html.js [data-reveal].is-in {
   }
   .btn { transition: none; }
   .btn:hover { transform: none; }
+}
+
+/* ---------- desktop: the whole view ----------
+ * On a phone the hero stacks: Buddy, then the words. On a desktop the same
+ * markup becomes one screen — the words on the left, Buddy square on the
+ * right, the pair filling the viewport — so the first thing a visitor sees
+ * is the whole pitch, not a wide frame with a robot in the middle of it.
+ * Nothing below 760px changes.
+ */
+@media (min-width: 761px) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+    min-height: calc(100svh - 84px);
+    margin-top: 8px;
+  }
+  .hero-content {
+    order: 1;
+    text-align: left;
+    margin: 0;
+    padding: 0 0 0 clamp(0px, 2vw, 24px);
+    max-width: none;
+  }
+  .hero-content .eyebrow { margin-bottom: 26px; }
+  .hero-title { font-size: clamp(52px, 5.8vw, 86px); margin-bottom: 28px; }
+  .lede { margin-left: 0; max-width: 520px; }
+  .hero-media {
+    order: 2;
+    aspect-ratio: 1 / 1;
+    max-height: calc(100svh - 124px);
+    border-radius: var(--radius);
+  }
+  .hero-video { object-fit: cover; }
+}
+
+/* The rows of a section arrive one after another, not all at once: the
+ * section's reveal (above) starts the cascade, and each row follows the one
+ * before by a tenth of a second. Same on a phone, where it reads as the
+ * list being written down. */
+html.js [data-reveal] .program-row,
+html.js [data-reveal] .step,
+html.js [data-reveal] .spec {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .8s var(--ease), transform .8s var(--ease);
+}
+html.js [data-reveal].is-in .program-row,
+html.js [data-reveal].is-in .step,
+html.js [data-reveal].is-in .spec {
+  opacity: 1;
+  transform: translateY(0);
+}
+html.js [data-reveal].is-in :is(.program-row, .step, .spec):nth-child(1) { transition-delay: .10s; }
+html.js [data-reveal].is-in :is(.program-row, .step, .spec):nth-child(2) { transition-delay: .22s; }
+html.js [data-reveal].is-in :is(.program-row, .step, .spec):nth-child(3) { transition-delay: .34s; }
+html.js [data-reveal].is-in :is(.program-row, .step, .spec):nth-child(4) { transition-delay: .46s; }
+
+/* A row you can point at answers: the title leans in, the price or the
+ * status takes the red, and the open slot's arrow moves toward the click.
+ * Only where there is a pointer to hover with. */
+@media (hover: hover) and (min-width: 761px) {
+  .program-body h3 { transition: transform .45s var(--ease); }
+  .program-status, .program-price { transition: color .35s var(--ease); }
+  .program-status a { display: inline-block; transition: transform .45s var(--ease); }
+  .program-row:hover .program-body h3 { transform: translateX(8px); }
+  .program-row:hover .program-price { color: var(--red); }
+  .program-row.is-open:hover .program-status a { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js [data-reveal] .program-row,
+  html.js [data-reveal] .step,
+  html.js [data-reveal] .spec {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .program-body h3, .program-status a { transition: none; }
+  .program-row:hover .program-body h3,
+  .program-row.is-open:hover .program-status a { transform: none; }
 }

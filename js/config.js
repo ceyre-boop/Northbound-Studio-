@@ -14,17 +14,3 @@
  * tests/checkout.unit.test.ts holds every copy to this one.
  */
 export const GOOGLE_REVIEW_URL = 'https://g.page/r/CRFQRq5WLg6HECE/review';
-
-/* THE TEMPLATES. The two concept builds under demos/ (Atlas, the trades site;
- * Vector, the small shop) sold as source. templates.html prints these prices
- * as plain text and tests/templates.spec.ts keeps the page and this table
- * equal. `url` is where "Buy" goes (a Gumroad product page, or a Stripe
- * Payment Link); while it is empty the page shows the honest alternative, a
- * "tell me when it's out" form that lands in the studio inbox through
- * api/quote.ts. Prices are the studio's to set; these are the launch prices.
- */
-export const TEMPLATES = {
-  atlas: { name: 'Atlas', price: 79, url: '' },
-  vector: { name: 'Vector', price: 79, url: '' },
-  both: { name: 'Both', price: 129, url: '' },
-};

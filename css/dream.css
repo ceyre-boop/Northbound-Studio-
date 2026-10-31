@@ -283,8 +283,7 @@ html.js [data-reveal].is-in {
 }
 .program-status { color: var(--taupe); font-style: italic; }
 .program-row.is-open .program-status { color: var(--red); font-style: normal; }
-.program-status a, .program-price a { text-decoration: none; }
-.program-price a:hover { color: var(--red); }
+.program-status a { text-decoration: none; }
 .program-status a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 @media (max-width: 700px) {

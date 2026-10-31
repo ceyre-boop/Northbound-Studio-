@@ -26,6 +26,3 @@ skills-lock.json
 
 # Source art (the OBJ Buddy is converted from) is never served; only brand/3d/*.glb ships.
 brand-src/
-
-# The buyer-facing README and license ship inside the template zips, not on the site.
-templates/

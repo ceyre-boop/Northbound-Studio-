@@ -30,6 +30,3 @@ lab/transitions/video/
 lab/scroll/video/
 lab/scroll/shots/
 brand-src/buddy/buddy.raw.glb
-
-# Packaged templates (scripts/templates.ts); uploaded to the shop, never committed.
-dist/

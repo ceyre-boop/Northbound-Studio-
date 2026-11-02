@@ -4,8 +4,8 @@
  * visitor went from "book a call" to a payment form with nothing asked in
  * between. The guided build at build.html is the discovery; these specs pin
  * the homepage to it, and pin the two things found while putting it back:
- * the wordmark drawn in a cream that vanished on the cream page, and the
- * desktop hero as one screen rather than a wide frame with a robot in it.
+ * the wordmark drawn in a cream that vanished on the cream page, and Buddy
+ * paused by the reduced-motion setting on the one machine he is built on.
  */
 import { test, expect } from '@playwright/test';
 
@@ -58,23 +58,7 @@ test.describe('homepage — every door leads to the questions', () => {
   });
 });
 
-test.describe('homepage — the whole view on a desktop', () => {
-  test.skip(({ viewport }) => !viewport || viewport.width < 761, 'desktop only');
-
-  test('the hero is one screen: words left, Buddy right, square', async ({ page }) => {
-    await page.goto('/');
-    const words = await page.locator('.hero-content').boundingBox();
-    const buddy = await page.locator('.hero-media').boundingBox();
-    expect(words && buddy).toBeTruthy();
-    expect(words!.x + words!.width).toBeLessThanOrEqual(buddy!.x + 1);
-    expect(Math.abs(buddy!.width - buddy!.height)).toBeLessThanOrEqual(2);
-    const hero = await page.locator('.hero').boundingBox();
-    const vh = page.viewportSize()!.height;
-    expect(hero!.height).toBeGreaterThanOrEqual(vh - 100);
-  });
-});
-
-test.describe('homepage — Buddy, and the small things that move', () => {
+test.describe('homepage — Buddy', () => {
   test('Buddy waves on arrival, and the pause control stops and restarts him', async ({ page }) => {
     await page.goto('/');
     const video = page.locator('.hero-video');
@@ -89,14 +73,6 @@ test.describe('homepage — Buddy, and the small things that move', () => {
     await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
   });
 
-  test('the hairline reads 0 at the top and 1 at the bottom', async ({ page }) => {
-    await page.goto('/');
-    const progress = () => page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--progress')) || 0);
-    expect(await progress()).toBe(0);
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect.poll(progress).toBeGreaterThan(0.99);
-    await expect(page.locator('.scroll-line')).toBeVisible();
-  });
 });
 
 test.describe('the questions and the counter wear the same clothes', () => {

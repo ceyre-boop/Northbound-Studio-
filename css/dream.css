@@ -170,9 +170,16 @@ html.js [data-reveal].is-in {
   top: -6%; /* the 12% oversize is split top/bottom so drift never bares an edge */
   width: 100%;
   height: 112%;
-  object-fit: contain; /* the clip is square with a transparent backdrop, so contain shows all of him over the frame's own cream */
+  object-fit: contain; /* Buddy's video is square — contain keeps all of him in the wide frame; his own cream backdrop blends with the frame */
   will-change: transform;
-  transform: translate3d(0, var(--drift, 0px), 0);
+  /* The clip is composed for the wave: standing, Buddy's body sits at 37% of
+     its width, and his raised arm reaches the right edge. In the wide frame
+     the clip is height-limited (about 0.506 of the frame's width), so the
+     13% of the clip that centres his body is 6.6% of this element, and the
+     wave still has the whole right half of the frame to itself. dream.js
+     writes --drift; the X stays here. */
+  --buddy-x: 6.6%;
+  transform: translate3d(var(--buddy-x), var(--drift, 0px), 0);
 }
 
 .hero-content {
@@ -212,9 +219,37 @@ html.js [data-reveal].is-in {
 
 @media (max-width: 640px) {
   .hero-media { aspect-ratio: 4 / 3; border-radius: 20px 20px 0 0; }
-  .hero-video { object-fit: cover; }
+  .hero-video { object-fit: cover; --buddy-x: 0px; }
   .hero-content { padding-top: 38px; }
 }
+
+/* ---------- the pause control ----------
+ * Buddy waves on a loop, so there is a way to stop him: the one control a
+ * moving picture owes a visitor who did not ask for it. */
+.hero-pause {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--taupe-2);
+  background: var(--cream);
+  color: var(--espresso);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  opacity: .85;
+  transition: opacity .3s var(--ease);
+}
+.hero-pause:hover { opacity: 1; }
+.hero-pause:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.hero-pause .ic-play { display: none; }
+.hero-pause[aria-pressed="true"] .ic-pause { display: none; }
+.hero-pause[aria-pressed="true"] .ic-play { display: block; }
+html:not(.js) .hero-pause { display: none; }
 
 /* ---------- sections ---------- */
 
@@ -457,199 +492,4 @@ html.js [data-reveal].is-in {
   }
   .btn { transition: none; }
   .btn:hover { transform: none; }
-}
-
-/* ---------- desktop: the whole view ----------
- * On a phone the hero stacks: Buddy, then the words. On a desktop the same
- * markup becomes one screen — the words on the left, Buddy square on the
- * right, the pair filling the viewport — so the first thing a visitor sees
- * is the whole pitch, not a wide frame with a robot in the middle of it.
- * Nothing below 760px changes.
- */
-@media (min-width: 761px) {
-  .hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    gap: clamp(32px, 5vw, 72px);
-    align-items: center;
-    min-height: calc(100svh - 84px);
-    margin-top: 8px;
-  }
-  .hero-content {
-    order: 1;
-    text-align: left;
-    margin: 0;
-    padding: 0 0 0 clamp(0px, 2vw, 24px);
-    max-width: none;
-  }
-  .hero-content .eyebrow { margin-bottom: 26px; }
-  .hero-title { font-size: clamp(52px, 5.8vw, 86px); margin-bottom: 28px; }
-  .lede { margin-left: 0; max-width: 520px; }
-  .hero-media {
-    order: 2;
-    aspect-ratio: 1 / 1;
-    max-height: calc(100svh - 124px);
-    border-radius: var(--radius);
-    transform: translate3d(0, var(--drift, 0px), 0) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    transition: transform .6s var(--ease);
-    will-change: transform;
-  }
-  /* The clip is composed for the wave, not the rest: standing, Buddy's
-     body sits at 37% of its width, and when he waves his arm reaches the
-     right edge, so the whole 522px is used over the loop. Centring the body
-     alone cuts the arm off. So the clip is set at 84% of the frame, stood on
-     the frame's floor and placed so the body sits near the middle (47%) and
-     the raised arm still clears the edge by a few px. The backdrop is
-     transparent, so nothing seams. Measured, not eyeballed: the alpha
-     channel over the loop spans x 10–516 of 522. */
-  .hero-video {
-    top: auto;
-    bottom: 0;
-    left: 15.7%;
-    right: auto;
-    width: 84%;
-    height: 84%;
-    object-fit: contain;
-    object-position: 50% 100%;
-    transform: translate3d(var(--look-x, 0px), var(--look-y, 0px), 0);
-    transition: transform .7s var(--ease);
-  }
-  .hero { perspective: 1400px; }
-}
-
-/* ---------- the pause control ---------- */
-.hero-pause {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--taupe-2);
-  background: var(--cream);
-  color: var(--espresso);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  opacity: .85;
-  transition: opacity .3s var(--ease), transform .3s var(--ease);
-}
-.hero-pause:hover { opacity: 1; transform: scale(1.06); }
-.hero-pause:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.hero-pause .ic-play { display: none; }
-.hero-pause[aria-pressed="true"] .ic-pause { display: none; }
-.hero-pause[aria-pressed="true"] .ic-play { display: block; }
-html:not(.js) .hero-pause { display: none; }
-
-/* ---------- the hairline ----------
- * Two pixels of the red along the top edge, as far across as you have read. */
-.scroll-line {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--red);
-  transform-origin: 0 50%;
-  transform: scaleX(var(--progress, 0));
-  z-index: 50;
-  pointer-events: none;
-}
-html:not(.js) .scroll-line { display: none; }
-
-/* ---------- the headline answers the pointer ----------
- * Fraunces is a variable face: a line you point at leans from 500 to 600 and
- * back. Weight interpolates only between two explicit settings, so the rest
- * state is written out rather than left to font-weight. */
-.hero-title .line-in { font-variation-settings: "wght" 500; }
-@media (hover: hover) {
-  html.js .hero-title .line-in { transition: transform 1s var(--ease), font-variation-settings .45s var(--ease); }
-  .hero-title .line-in:hover { font-variation-settings: "wght" 600; }
-}
-
-/* ---------- the eyebrow's rule ----------
- * A short red rule draws out ahead of each section's eyebrow as the section
- * arrives, the way a margin note is ruled in. */
-[data-reveal] .eyebrow, .hero .eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-[data-reveal] .eyebrow::before, .hero .eyebrow::before {
-  content: '';
-  display: block;
-  width: 28px;
-  height: 1px;
-  background: currentColor;
-  flex: none;
-}
-html.js [data-reveal] .eyebrow::before, html.js .hero .eyebrow::before {
-  width: 0;
-  transition: width .9s var(--ease) .25s;
-}
-html.js [data-reveal].is-in .eyebrow::before, html.js body.is-loaded .hero .eyebrow::before { width: 28px; }
-.testdrive .eyebrow { justify-content: center; }
-.hero .eyebrow { justify-content: center; }
-@media (min-width: 761px) { .hero .eyebrow { justify-content: flex-start; } }
-/* On a phone the hero eyebrow is one line exactly; the rule would wrap it. */
-@media (max-width: 760px) { .hero .eyebrow::before { display: none; } }
-
-/* ---------- magnetic buttons ----------
- * Within about a hundred pixels, a button leans a few pixels toward the
- * pointer; it eases back when the pointer goes. dream.js writes the offset. */
-@media (hover: hover) {
-  .btn { transform: translate3d(var(--mx, 0px), var(--my, 0px), 0); }
-  .btn:hover { transform: translate3d(var(--mx, 0px), calc(var(--my, 0px) - 2px), 0); }
-}
-
-/* The rows of a section arrive one after another, not all at once: the
- * section's reveal (above) starts the cascade, and each row follows the one
- * before by a tenth of a second. Same on a phone, where it reads as the
- * list being written down. */
-html.js [data-reveal] .program-row,
-html.js [data-reveal] .step,
-html.js [data-reveal] .spec {
-  opacity: 0;
-  transform: translateY(18px);
-  transition: opacity .8s var(--ease), transform .8s var(--ease);
-}
-html.js [data-reveal].is-in .program-row,
-html.js [data-reveal].is-in .step,
-html.js [data-reveal].is-in .spec {
-  opacity: 1;
-  transform: translateY(0);
-}
-html.js [data-reveal].is-in :is(.program-row, .step, .spec):nth-child(1) { transition-delay: .10s; }
-html.js [data-reveal].is-in :is(.program-row, .step, .spec):nth-child(2) { transition-delay: .22s; }
-html.js [data-reveal].is-in :is(.program-row, .step, .spec):nth-child(3) { transition-delay: .34s; }
-html.js [data-reveal].is-in :is(.program-row, .step, .spec):nth-child(4) { transition-delay: .46s; }
-
-/* A row you can point at answers: the title leans in, the price or the
- * status takes the red, and the open slot's arrow moves toward the click.
- * Only where there is a pointer to hover with. */
-@media (hover: hover) and (min-width: 761px) {
-  .program-body h3 { transition: transform .45s var(--ease); }
-  .program-status, .program-price { transition: color .35s var(--ease); }
-  .program-status a { display: inline-block; transition: transform .45s var(--ease); }
-  .program-row:hover .program-body h3 { transform: translateX(8px); }
-  .program-row:hover .program-price { color: var(--red); }
-  .program-row.is-open:hover .program-status a { transform: translateX(6px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html.js [data-reveal] .program-row,
-  html.js [data-reveal] .step,
-  html.js [data-reveal] .spec {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-  .program-body h3, .program-status a { transition: none; }
-  .program-row:hover .program-body h3,
-  .program-row.is-open:hover .program-status a { transform: none; }
-  .hero-media, .hero-video, .hero-title .line-in, .hero-pause { transition: none; }
-  html.js [data-reveal] .eyebrow::before, html.js .hero .eyebrow::before { width: 28px; transition: none; }
-  .btn, .btn:hover { transform: none; }
 }

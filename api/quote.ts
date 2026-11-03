@@ -67,6 +67,12 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
    in an email a person reads. Kept in one place so the notification, the
    auto-reply and the validation below can never say three different things
    about the same package. */
+const PRODUCTS: Record<string, string> = {
+  atlas: 'Atlas (website for a roofing company)',
+  vector: 'Vector (online shop)',
+  booking_kit: 'Booking kit (booking, follow-up, dashboard)',
+};
+
 const FOUNDING_PACKAGES: Record<string, string> = {
   beacon: 'Beacon — founding price $1,750 (standard $3,500)',
   engine: 'Engine — founding price $4,250 (standard $8,500)',
@@ -116,7 +122,7 @@ function notification(q: Quote, page: string): string {
     `Business:  ${q.business || '—'}`,
     `Phone:     ${q.phone}`,
     `Email:     ${q.email}`,
-    `Package:   ${foundingLabel ?? (q.package === 'clean' ? 'Cheap and Clean — $600' : 'Not sure yet')}`,
+    `Package:   ${foundingLabel ?? PRODUCTS[q.package] ?? (q.package === 'clean' ? 'Cheap and Clean — $600' : 'Not sure yet')}`,
     '',
     'What they need:',
     q.need || '—',

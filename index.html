@@ -3,21 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Northbound Studio — we build the machine that brings customers in</title>
-<meta name="description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
+<meta name="theme-color" content="#07090E">
+<title>Northbound Studio — ready-made websites and booking systems for local businesses</title>
+<meta name="description" content="Ready-made websites, shops and booking systems for local businesses, built in Grand Ledge, Michigan. Pick one and it is yours.">
 <link rel="canonical" href="https://northbound-dev.com/">
+<link rel="alternate" media="only screen and (min-width: 1024px)" href="https://northbound-dev.com/studio.html">
 <meta property="og:title" content="Northbound Studio">
-<meta property="og:description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
+<meta property="og:description" content="Ready-made websites, shops and booking systems for local businesses. Already built and working. Pick one and it is yours.">
 <meta property="og:url" content="https://northbound-dev.com/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://northbound-dev.com/brand/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
-<meta property="og:image:alt" content="Northbound Studio — we build the machine that brings customers in">
+<meta property="og:image:alt" content="Northbound Studio — ready-made websites and booking systems for local businesses">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Northbound Studio">
-<meta name="twitter:description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
+<meta name="twitter:description" content="Ready-made websites, shops and booking systems for local businesses. Already built and working.">
 <meta name="twitter:image" content="https://northbound-dev.com/brand/og.png">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
 <link rel="preload" as="image" href="brand/buddy-wave-poster.webp" media="(min-width: 640px)">
@@ -93,7 +95,7 @@
 <style>
   :root { --nb-leave-ms: 620; --nb-arrive-ms: 700; --nb-veil-cells: 12; }
   .nb-veil { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; display: grid; grid-template-columns: repeat(12, 1fr); }
-  .nb-veil i { display: block; background: #0E1512; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
+  .nb-veil i { display: block; background: #07090E; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
   .nb-veil i:nth-child(1) { animation-delay: 0ms; }
   .nb-veil i:nth-child(2) { animation-delay: 26ms; }
   .nb-veil i:nth-child(3) { animation-delay: 52ms; }
@@ -107,7 +109,7 @@
   .nb-veil i:nth-child(11) { animation-delay: 260ms; }
   .nb-veil i:nth-child(12) { animation-delay: 286ms; }
   @keyframes nb-drop { to { transform: none; } }
-  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #0E1512; }
+  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #07090E; }
   html.nb-arriving::before { animation: nb-open-l 700ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
   html.nb-arriving::after { animation: nb-open-r 700ms 60ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
   @keyframes nb-open-l { from { clip-path: inset(0 50% 0 0); } to { clip-path: inset(0 100% 0 0); } }
@@ -170,13 +172,14 @@
   @font-face { font-family: 'JetBrains Mono'; src: url('fonts/jetbrains-mono.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
 
   :root {
-    --ink: #0E1512;          /* near-black, a touch green so it sits with the accent */
-    --ink-soft: #55635C;
-    --line: #E4EAE6;
-    --bg: #FFFFFF;
-    --panel: #F4F8F6;
-    --accent: #0E6F5C;       /* the site's aurora, taken down to work on white */
-    --accent-dark: #0A5445;
+    --ink: #E6EAF2;          /* text on the dark ground */
+    --ink-soft: #A3ADBF;
+    --card: #101521;
+    --line: #1F2633;
+    --bg: #07090E;
+    --panel: #0E1219;
+    --accent: #5B7CFF;       /* the site's aurora, taken down to work on white */
+    --accent-dark: #4A68E6;
     --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
     --body: 'Instrument Sans', system-ui, -apple-system, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
@@ -192,7 +195,7 @@
   .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
   .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
 
-  .hero { --hero-pad-b: clamp(40px, 7vw, 72px); padding: clamp(48px, 9vw, 96px) 0 var(--hero-pad-b); background: linear-gradient(180deg, var(--panel), #fff); overflow: hidden; }
+  .hero { --hero-pad-b: clamp(40px, 7vw, 72px); padding: clamp(48px, 9vw, 96px) 0 var(--hero-pad-b); background: linear-gradient(180deg, var(--panel), var(--bg)); overflow: hidden; }
   .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; column-gap: clamp(16px, 3vw, 40px); }
 
   /* BUDDY.
@@ -218,7 +221,7 @@
      off, or under reduced motion, nothing plays and the still is all there
      is. */
   .buddy { display: none; position: relative; margin: 0 0 calc(-1 * var(--hero-pad-b)); width: var(--buddy-w); pointer-events: none; }
-  .buddy::before { content: ""; position: absolute; left: 10%; right: 10%; bottom: 7%; height: 12%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(14,21,18,0.22) 0%, rgba(14,21,18,0.08) 45%, rgba(14,21,18,0) 72%); }
+  .buddy::before { content: ""; position: absolute; left: 10%; right: 10%; bottom: 7%; height: 12%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.08) 45%, rgba(14,21,18,0) 72%); }
   .buddy-art { position: relative; aspect-ratio: 522 / 506; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%); }
   .buddy-art img, .buddy-art video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
   .buddy-art.is-playing img { opacity: 0; transition: opacity 0.3s ease-out; }
@@ -279,9 +282,9 @@
   .hero .sub { font-size: clamp(17px, 2vw, 20px); color: var(--ink-soft); max-width: 54ch; margin: 0 0 14px; }
   .actions { display: flex; gap: 14px; flex-wrap: wrap; }
   .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 26px; border-radius: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 8px 20px rgba(14,111,92,0.18); }
+  .btn-primary { background: #3F5FE0; color: #fff; box-shadow: 0 8px 20px rgba(91,124,255,0.18); }
   .btn-primary:hover { background: var(--accent-dark); }
-  .btn-secondary { background: #fff; color: var(--ink); border: 1px solid var(--ink); }
+  .btn-secondary { background: var(--card); color: var(--ink); border: 1px solid var(--ink); }
 
   /* The headline breaks where we say: one <br>, and each half is unbreakable. */
   .hero h1 > span { white-space: nowrap; }
@@ -298,7 +301,7 @@
   .keeping-line { max-width: 78ch; margin: 22px 0 0; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
   .keeping-line strong { color: var(--ink); }
   .claim-on-demand .founding-claim:not(.is-required) { display: none; }
-  .hero { background: linear-gradient(180deg, var(--panel) 0%, #E3F4EE 100%); }
+  .hero { background: linear-gradient(180deg, var(--panel) 0%, #0B1430 100%); }
   /* THE QUESTION.
      "How important is it to you?" under the headline, three answers, and
      the answer is felt rather than read: the chosen chip fills, the other
@@ -309,11 +312,11 @@
      with no motion between them. */
   .q-ask { font-family: var(--display); font-weight: 700; font-size: clamp(20px, 2.1vw, 25px); letter-spacing: -0.02em; line-height: 1.2; margin: 26px 0 12px; }
   .q-answers { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 26px; }
-  .q-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(14,21,18,.22); background: rgba(255,255,255,.72); font-weight: 600; font-size: 16px; text-decoration: none; color: var(--ink); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .35s ease, color .35s ease, border-color .35s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
+  .q-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(230,234,242,.22); background: rgba(20,26,42,.72); font-weight: 600; font-size: 16px; text-decoration: none; color: var(--ink); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .35s ease, color .35s ease, border-color .35s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
   .q-chip:hover { border-color: var(--accent); }
   .q-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .q-chip[aria-checked="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .hero[data-level] .q-chip[aria-checked="false"] { color: var(--ink-soft); border-color: rgba(14,21,18,.12); background: rgba(255,255,255,.5); transform: scale(.96); }
+  .q-chip[aria-checked="true"] { background: #3F5FE0; border-color: #3F5FE0; color: #fff; }
+  .hero[data-level] .q-chip[aria-checked="false"] { color: var(--ink-soft); border-color: rgba(230,234,242,.12); background: rgba(20,26,42,.5); transform: scale(.96); }
   .hero[data-level] .q-chip[aria-checked="false"]:hover { color: var(--ink); border-color: var(--accent); }
   .hero .actions .btn-primary { transition: background-color .3s ease; }
 
@@ -365,7 +368,7 @@
      writes itself in, left to right, as it reaches the screen. */
   body { counter-reset: nbnote; }
   .mnote { counter-increment: nbnote; display: flex; gap: 12px; max-width: 46ch; margin: 0 0 22px; font-family: var(--mono); font-size: 12px; line-height: 1.6; letter-spacing: .01em; color: var(--ink-soft); }
-  .mnote::before { content: "N\00B0" counter(nbnote, decimal-leading-zero); flex: none; color: var(--accent); padding-right: 12px; border-right: 1px solid rgba(14,111,92,.35); }
+  .mnote::before { content: "N\00B0" counter(nbnote, decimal-leading-zero); flex: none; color: var(--accent); padding-right: 12px; border-right: 1px solid rgba(91,124,255,.35); }
   .hero .mnote-motion { margin: 22px 0 0; }
   .section-lede + .mnote { margin-top: 12px; }
   @media (prefers-reduced-motion: reduce) { .mnote-motion { display: none; } }
@@ -392,19 +395,19 @@
      Under reduced motion it is a still. */
   .hero { position: relative; isolation: isolate; }
   .hero .wrap { position: relative; }
-  .hero-scene { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; color: #17A08A; font-family: var(--mono);
-    background: radial-gradient(70% 60% at 28% 22%, rgba(150,228,214,.36), rgba(150,228,214,0) 70%), radial-gradient(60% 50% at 82% 30%, rgba(160,232,222,.28), rgba(160,232,222,0) 70%), radial-gradient(110% 85% at 50% 40%, rgba(255,255,255,0) 55%, rgba(60,120,108,.14) 100%), linear-gradient(180deg, rgba(190,236,228,0) 66%, rgba(205,242,236,.7) 100%); }
+  .hero-scene { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; color: #5B7CFF; font-family: var(--mono);
+    background: radial-gradient(70% 60% at 28% 22%, rgba(91,124,255,.36), rgba(91,124,255,0) 70%), radial-gradient(60% 50% at 82% 30%, rgba(91,124,255,.28), rgba(91,124,255,0) 70%), radial-gradient(110% 85% at 50% 40%, rgba(255,255,255,0) 55%, rgba(60,120,108,.14) 100%), linear-gradient(180deg, rgba(190,236,228,0) 66%, rgba(205,242,236,.7) 100%); }
   .hs { position: absolute; top: 0; bottom: 0; left: calc(50% - 640px); width: 1280px; }
   .hs > * { position: absolute; }
-  .hs-p { border-radius: 12px; background: linear-gradient(165deg, rgba(255,255,255,.88), rgba(238,250,246,.66)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.9), 0 0 0 1px rgba(23,160,138,.18), 0 24px 40px -24px rgba(23,120,110,.35); }
-  .hs-p::before { content: ""; position: absolute; top: 9px; left: 10px; width: 6px; height: 6px; border-radius: 50%; background: #A9E8DC; box-shadow: 10px 0 #A9E8DC, 20px 0 #A9E8DC; }
-  .hs-b { display: block; height: 6px; border-radius: 3px; background: rgba(60,100,92,.2); }
-  .hs-lb { font-size: 11px; line-height: 14px; letter-spacing: .12em; text-transform: uppercase; color: #2F4B45; }
-  .hs-lb em { display: block; font-style: normal; color: #17A08A; }
+  .hs-p { border-radius: 12px; background: linear-gradient(165deg, rgba(20,26,42,.88), rgba(24,30,46,.66)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.9), 0 0 0 1px rgba(91,124,255,.18), 0 24px 40px -24px rgba(23,120,110,.35); }
+  .hs-p::before { content: ""; position: absolute; top: 9px; left: 10px; width: 6px; height: 6px; border-radius: 50%; background: #27336E; box-shadow: 10px 0 #27336E, 20px 0 #27336E; }
+  .hs-b { display: block; height: 6px; border-radius: 3px; background: rgba(150,170,255,.2); }
+  .hs-lb { font-size: 11px; line-height: 14px; letter-spacing: .12em; text-transform: uppercase; color: #A3ADBF; }
+  .hs-lb em { display: block; font-style: normal; color: #5B7CFF; }
   /* 001 — the website. */
   .hs-web { left: 352px; top: 18px; width: 228px; height: 190px; padding: 30px 14px 0; display: grid; grid-template-columns: 92px 1fr; gap: 10px 12px; align-content: start; animation: hs-da 23s ease-in-out infinite; }
-  .hs-web::after { content: ""; position: absolute; top: 9px; right: 12px; width: 110px; height: 6px; border-radius: 3px; background: rgba(60,100,92,.12); }
-  .hs-img { grid-row: span 2; height: 82px; border-radius: 8px; background: linear-gradient(160deg, rgba(120,190,178,.24), rgba(120,190,178,.1)); display: grid; place-items: center; }
+  .hs-web::after { content: ""; position: absolute; top: 9px; right: 12px; width: 110px; height: 6px; border-radius: 3px; background: rgba(150,170,255,.12); }
+  .hs-img { grid-row: span 2; height: 82px; border-radius: 8px; background: linear-gradient(160deg, rgba(91,124,255,.24), rgba(91,124,255,.1)); display: grid; place-items: center; }
   .hs-img svg { width: 44px; height: 32px; }
   .hs-web .hs-b { width: 100%; margin-bottom: 8px; }
   .hs-web .hs-b:nth-child(3) { width: 74%; }
@@ -413,12 +416,12 @@
   .hs-web .hs-b:nth-child(6) { grid-column: 1 / -1; margin: 6px 0 0; width: 80%; }
   .hs-web .hs-b:nth-child(7) { grid-column: 1 / -1; width: 56%; }
   /* The editor: the pitch in one screen. */
-  .hs-ed { left: 72px; top: 96px; width: 264px; height: 200px; border-radius: 12px; background: rgba(30,48,48,.92); box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 30px 50px -20px rgba(20,60,55,.5); animation: hs-db 29s ease-in-out infinite; }
+  .hs-ed { left: 72px; top: 96px; width: 264px; height: 200px; border-radius: 12px; background: rgba(16,20,34,.92); box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 30px 50px -20px rgba(0,0,0,.5); animation: hs-db 29s ease-in-out infinite; }
   .hs-ed::before { content: ""; position: absolute; top: 10px; left: 12px; width: 6px; height: 6px; border-radius: 50%; background: #FF6B5F; box-shadow: 10px 0 #FFBD2E, 20px 0 #2DD48A; }
-  .hs-ed pre { margin: 28px 0 0; padding: 0 12px; font: 400 10.5px/18px var(--mono); color: #E6F4F0; }
+  .hs-ed pre { margin: 28px 0 0; padding: 0 12px; font: 400 10.5px/18px var(--mono); color: #E6EAF2; }
   .hs-ed i { font-style: normal; color: rgba(230,244,240,.38); margin-right: 12px; }
-  .hs-ed b { font-weight: 400; color: #8FE0CF; }
-  .hs-ed u { text-decoration: none; color: #C9F2E7; }
+  .hs-ed b { font-weight: 400; color: #9DB0FF; }
+  .hs-ed u { text-decoration: none; color: #B7C4FF; }
   /* 002 and 003, the small cards in the band above the eyebrow. */
   .hs-bk { left: 735px; top: 12px; width: 160px; height: 66px; padding: 20px 14px; display: flex; align-items: center; gap: 12px; animation: hs-dc 19s ease-in-out infinite; }
   .hs-bk::before { display: none; }
@@ -426,20 +429,20 @@
   .hs-bk .hs-b + .hs-b { width: 40px; margin-top: 8px; }
   .hs-chk { position: relative; width: 30px; height: 30px; margin-left: auto; flex: none; }
   .hs-chk svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: hs-pulse 5s ease-in-out infinite; }
-  .hs-chk::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #1E8B6B; opacity: 0; animation: hs-ring 5s ease-out infinite; }
+  .hs-chk::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #4A68E6; opacity: 0; animation: hs-ring 5s ease-out infinite; }
   .hs-pay { left: 992px; top: 12px; width: 110px; height: 66px; padding: 18px 14px; display: flex; align-items: center; gap: 10px; animation: hs-da 31s ease-in-out infinite; }
   .hs-pay::before { display: none; }
-  .hs-cc { display: block; width: 40px; height: 26px; border-radius: 4px; background: linear-gradient(145deg, #CFF3EA, #8FE0CF); position: relative; flex: none; }
-  .hs-cc::after { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 5px; background: rgba(14,111,92,.55); }
+  .hs-cc { display: block; width: 40px; height: 26px; border-radius: 4px; background: linear-gradient(145deg, #2A3A8C, #9DB0FF); position: relative; flex: none; }
+  .hs-cc::after { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 5px; background: rgba(91,124,255,.55); }
   .hs-pay .hs-b { width: 36px; }
   /* 004 — the dashboard, at the right of the headline. */
   .hs-db { left: 1150px; top: 128px; width: 200px; height: 150px; padding: 28px 12px 12px; display: grid; grid-template-columns: 52px 1fr; gap: 10px; animation: hs-db 37s ease-in-out infinite; }
   .hs-db .hs-b { margin-bottom: 9px; }
   .hs-db .hs-b:nth-child(odd) { width: 70%; }
   .hs-chart { grid-column: 2; grid-row: 1 / span 4; width: 100%; height: 100%; overflow: visible; }
-  .hs-line { fill: none; stroke: #17A08A; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; animation: hs-draw 13s ease-in-out infinite; }
-  .hs-area { fill: rgba(23,160,138,.14); animation: hs-fade 13s ease-in-out infinite; }
-  .hs-bar { fill: #A9E8DC; transform-box: fill-box; transform-origin: 50% 100%; animation: hs-bar 9s ease-in-out infinite; }
+  .hs-line { fill: none; stroke: #5B7CFF; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; animation: hs-draw 13s ease-in-out infinite; }
+  .hs-area { fill: rgba(91,124,255,.14); animation: hs-fade 13s ease-in-out infinite; }
+  .hs-bar { fill: #27336E; transform-box: fill-box; transform-origin: 50% 100%; animation: hs-bar 9s ease-in-out infinite; }
   .hs-bar:nth-of-type(2) { animation-duration: 11s; animation-delay: -3s; }
   .hs-bar:nth-of-type(3) { animation-duration: 7s; animation-delay: -5s; }
   .hs-bar:nth-of-type(4) { animation-duration: 13s; animation-delay: -2s; }
@@ -449,18 +452,18 @@
   .hs-row svg { width: 22px; height: 22px; flex: none; }
   .hs-row .hs-b { width: 54px; }
   .hs-row .hs-b + .hs-b { width: 34px; }
-  .hs-row::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #1E8B6B; margin-left: auto; }
+  .hs-row::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #4A68E6; margin-left: auto; }
   /* The tiles: database and cloud. */
   .hs-t { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; }
   .hs-t::before { display: none; }
-  .hs-t svg { width: 26px; height: 26px; fill: none; stroke: #17A08A; stroke-width: 1.5; stroke-linejoin: round; }
+  .hs-t svg { width: 26px; height: 26px; fill: none; stroke: #5B7CFF; stroke-width: 1.5; stroke-linejoin: round; }
   .hs-t1 { left: 20px; top: 232px; animation: hs-db 21s ease-in-out infinite; }
   .hs-t2 { left: 44px; top: 320px; animation: hs-da 17s ease-in-out infinite; }
   .hs-t3 { left: 1180px; top: 330px; animation: hs-dc 25s ease-in-out infinite; }
-  .hs-sq { width: 36px; height: 36px; border-radius: 8px; background: rgba(169,232,220,.7); box-shadow: inset 0 0 0 1px rgba(255,255,255,.8); top: 440px; animation: hs-da 19s ease-in-out infinite; }
+  .hs-sq { width: 36px; height: 36px; border-radius: 8px; background: rgba(91,124,255,.7); box-shadow: inset 0 0 0 1px rgba(255,255,255,.8); top: 440px; animation: hs-da 19s ease-in-out infinite; }
   .hs-sq + .hs-sq { left: 1232px; animation-duration: 23s; }
   .hs-sq1 { left: 1168px; }
-  .hs-dp { left: 1040px; top: 636px; margin: 0; font: 400 11px/17px var(--mono); color: #17A08A; }
+  .hs-dp { left: 1040px; top: 636px; margin: 0; font: 400 11px/17px var(--mono); color: #5B7CFF; }
   /* Labels. */
   .hs-l1 { left: 88px; top: 40px; }
   .hs-l2 { left: 640px; top: 24px; }
@@ -470,13 +473,13 @@
   /* The wiring. Nodes blink in a staggered sequence; on top of each line a
      second copy carries a short dash whose offset travels — the light. */
   .hs-net { left: 0; top: 0; overflow: visible; }
-  .hs-w { fill: none; stroke: #17A08A; stroke-width: 1; opacity: .45; }
+  .hs-w { fill: none; stroke: #5B7CFF; stroke-width: 1; opacity: .45; }
   .hs-w.d { stroke-dasharray: 3 4; }
-  .hs-f { fill: none; stroke: #6FE3CE; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 5 95; animation: hs-flow 11s linear infinite; }
+  .hs-f { fill: none; stroke: #7F9BFF; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 5 95; animation: hs-flow 11s linear infinite; }
   .hs-f:nth-child(2n) { animation-duration: 15s; animation-delay: -4s; }
-  .hs-f:nth-child(3n) { animation-duration: 8s; animation-delay: -6s; stroke: #A9E8DC; }
+  .hs-f:nth-child(3n) { animation-duration: 8s; animation-delay: -6s; stroke: #27336E; }
   .hs-f:nth-child(4n+1) { animation-duration: 19s; animation-delay: -9s; }
-  .hs-n { fill: #CDEFE7; stroke: #17A08A; stroke-width: .8; animation: hs-blink 3.1s ease-in-out infinite; }
+  .hs-n { fill: #1B2550; stroke: #5B7CFF; stroke-width: .8; animation: hs-blink 3.1s ease-in-out infinite; }
   .hs-n:nth-child(2n) { animation-duration: 4.3s; animation-delay: -1.7s; }
   .hs-n:nth-child(3n) { animation-duration: 5.3s; animation-delay: -2.9s; }
   .hs-n:nth-child(5n) { animation-duration: 3.7s; animation-delay: -.8s; }
@@ -486,8 +489,8 @@
      gutter, and he is --buddy-w wide. */
   .hs-fl, .hs-gl { left: calc(max(0px, (100% - 1080px) / 2) + var(--gutter) + var(--buddy-w) / 2); }
   .hs-fl { position: absolute; bottom: -20px; width: 900px; height: 200px; margin-left: -450px; overflow: visible; }
-  .hs-gl { position: absolute; bottom: 30px; width: 520px; height: 440px; margin-left: -260px; border-radius: 50%; background: radial-gradient(ellipse at 50% 68%, rgba(110,225,215,.7), rgba(110,225,215,0) 62%); animation: hs-breath 9s ease-in-out infinite; }
-  .hs-r { fill: none; stroke: #17A08A; stroke-width: 1.2; transform-box: fill-box; transform-origin: 50% 50%; animation: hs-breath 13s ease-in-out infinite; }
+  .hs-gl { position: absolute; bottom: 30px; width: 520px; height: 440px; margin-left: -260px; border-radius: 50%; background: radial-gradient(ellipse at 50% 68%, rgba(91,124,255,.7), rgba(91,124,255,0) 62%); animation: hs-breath 9s ease-in-out infinite; }
+  .hs-r { fill: none; stroke: #5B7CFF; stroke-width: 1.2; transform-box: fill-box; transform-origin: 50% 50%; animation: hs-breath 13s ease-in-out infinite; }
   .hs-r:nth-child(2) { animation-duration: 17s; animation-delay: -5s; }
   .hs-r:nth-child(3) { animation-duration: 23s; animation-delay: -9s; }
   .hs-r:nth-child(4) { animation-duration: 29s; animation-delay: -13s; }
@@ -532,7 +535,7 @@
     .hs-m .hs-bk .hs-b + .hs-b { width: 26px; }
     .hs-m .hs-chk { width: 24px; height: 24px; }
     .hs-m .hs-lb { font-size: 10px; line-height: 13px; }
-    .buddy::after { content: ""; position: absolute; left: -24%; right: -24%; bottom: -8px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(150,235,225,.85) 0 18%, rgba(150,235,225,.15) 19% 44%, rgba(23,160,138,.35) 45% 47%, rgba(23,160,138,0) 48% 70%, rgba(23,160,138,.22) 71% 73%, rgba(23,160,138,0) 74%); animation: hs-breath 11s ease-in-out infinite; }
+    .buddy::after { content: ""; position: absolute; left: -24%; right: -24%; bottom: -8px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(91,124,255,.85) 0 18%, rgba(91,124,255,.15) 19% 44%, rgba(91,124,255,.35) 45% 47%, rgba(91,124,255,0) 48% 70%, rgba(91,124,255,.22) 71% 73%, rgba(91,124,255,0) 74%); animation: hs-breath 11s ease-in-out infinite; }
   }
   /* The lede is two lines now, shorter than Buddy is tall, so he rises into
      the corner the Bookings card held. The card is decoration; it goes. */
@@ -542,6 +545,7 @@
   }
   .hero.is-off .hero-scene *, .hero.is-off .hs-m *, .hero.is-off .hs-chk::after, .hero.is-off .buddy::after { animation-play-state: paused; }
 
+  .pkg .btn + .btn { margin-top: 10px; }
   section { padding: clamp(48px, 7vw, 84px) 0; }
   h2 { font-family: var(--display); font-size: clamp(24px, 3.2vw, 34px); letter-spacing: -0.02em; margin: 0 0 10px; }
   .section-lede { color: var(--ink-soft); max-width: 58ch; margin: 0 0 32px; }
@@ -557,8 +561,8 @@
   .offerings.is-live .offer { cursor: pointer; }
   .offerings.is-live .offer:not([aria-pressed="true"]):hover { border-color: var(--ink-soft); }
   .offer:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .offer[aria-pressed="true"] { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 1px var(--accent), 0 8px 20px rgba(14,111,92,0.10); }
-  .offerings.is-live .offer::before { content: ""; position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); background: #fff; }
+  .offer[aria-pressed="true"] { border-color: var(--accent); background: var(--card); box-shadow: 0 0 0 1px var(--accent), 0 8px 20px rgba(91,124,255,0.10); }
+  .offerings.is-live .offer::before { content: ""; position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); background: var(--card); }
   .offerings.is-live .offer[aria-pressed="true"]::before { border-color: var(--accent); background: var(--accent); }
   /* The check: two edges of a box, turned 45°, white on the accent circle. */
   .offer[aria-pressed="true"]::after { content: ""; position: absolute; top: 21px; right: 24px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
@@ -571,8 +575,8 @@
      its height underneath (body.has-pick) so it never sits on the footer or
      on the last thing a phone is trying to read. Enters with a short rise;
      under "reduce" it simply appears. */
-  .pick-continue { position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 20; min-height: 54px; padding: 12px 22px; font-size: 17px; gap: 10px; box-shadow: 0 12px 32px rgba(14,21,18,0.28); }
-  .pick-continue .count { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; background: #fff; color: var(--accent); font-family: var(--mono); font-size: 13px; }
+  .pick-continue { position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 20; min-height: 54px; padding: 12px 22px; font-size: 17px; gap: 10px; box-shadow: 0 12px 32px rgba(230,234,242,0.28); }
+  .pick-continue .count { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; background: var(--card); color: var(--accent); font-family: var(--mono); font-size: 13px; }
   .pick-continue[hidden] { display: none; }
   body.has-pick { padding-bottom: 96px; }
   @media (prefers-reduced-motion: no-preference) {
@@ -582,8 +586,8 @@
 
   .packages { background: var(--panel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .pkg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; list-style: none; margin: 0; padding: 0; }
-  .pkg { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px; display: flex; flex-direction: column; }
-  .pkg--lead { border-color: var(--accent); box-shadow: 0 10px 30px rgba(14,111,92,0.10); }
+  .pkg { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px; display: flex; flex-direction: column; }
+  .pkg--lead { border-color: var(--accent); box-shadow: 0 10px 30px rgba(91,124,255,0.10); }
   .pkg .badge { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
   .pkg h3 { font-family: var(--display); font-size: 22px; margin: 0 0 4px; }
   .pkg .price { font-family: var(--display); font-size: 30px; letter-spacing: -0.02em; margin: 0 0 4px; }
@@ -603,15 +607,15 @@
      the honest line. One bordered block so it reads as one thing; the border
      turns accent while a founding package is selected and the name is empty. */
   .founding-claim { display: grid; gap: 10px; margin: 4px 0 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
-  .founding-claim.is-required.is-empty { border-color: var(--accent); background: #fff; }
+  .founding-claim.is-required.is-empty { border-color: var(--accent); background: var(--card); }
   .founding-claim p { margin: 0; }
   .founding-claim .claim-lede { font-size: 15px; }
   .founding-claim .claim-link .btn { min-height: 44px; padding: 10px 20px; }
   .founding-claim .hint { font-size: 13px; color: var(--ink-soft); }
-  .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: #fff; color: inherit; width: 100%; min-width: 0; }  /* min-width:0 — a <select> with a long founding-price option otherwise sets the grid item's intrinsic minimum from that text and overflows at 390px */
+  .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: var(--card); color: inherit; width: 100%; min-width: 0; }  /* min-width:0 — a <select> with a long founding-price option otherwise sets the grid item's intrinsic minimum from that text and overflows at 390px */
   .field textarea { min-height: 110px; resize: vertical; }
   .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .quote-form button { min-height: 48px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
+  .quote-form button { min-height: 48px; border: none; border-radius: 10px; background: #3F5FE0; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
   .site-footer { padding: 28px 0 48px; color: var(--ink-soft); font-size: 14px; border-top: 1px solid var(--line); }
@@ -688,8 +692,8 @@
   <div class="wrap">
     <div class="hero-copy">
       <p class="eyebrow">Grand Ledge, Michigan</p>
-      <h1><span>We build</span><br><span>the machine.</span></h1>
-      <p class="sub">The site out front. The booking, the follow-up and the payments behind it.</p>
+      <h1><span>Finished products,</span><br><span>already built.</span></h1>
+      <p class="sub">A roofer's site, a shop, a booking system. Each one works before you buy it.</p>
       <!--
         THE QUESTION, asked quietly. No reply paragraph and no price in it:
         the answer only re-points the button and lights the machine behind
@@ -701,11 +705,11 @@
       <p class="q-ask" id="q-ask">How important is it to you?</p>
       <div class="q-answers">
         <a class="q-chip" href="#packages" data-level="1">Worth a look</a>
-        <a class="q-chip" href="build.html" data-level="2">It matters</a>
-        <a class="q-chip" href="build.html" data-level="3">It's everything</a>
+        <a class="q-chip" href="#quote" data-level="2">It matters</a>
+        <a class="q-chip" href="#quote" data-level="3">It's everything</a>
       </div>
       <div class="actions">
-        <a class="btn btn-primary" href="build.html">Build your machine</a>
+        <a class="btn btn-primary" href="#packages">See the products</a>
         <a class="btn btn-secondary" href="tel:+14705738908">Call 470-573-8908</a>
       </div>
       <p class="mnote mnote-motion">Everything behind this text drifts on its own clock, so you'll never catch it looping.</p>
@@ -745,7 +749,7 @@
         </video>
       </div>
     </figure>
-    <div class="hs-m" aria-hidden="true"><span class="hs-lb">Bookings<em>002</em></span><div class="hs-p hs-bk"><span><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-chk"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#1E8B6B"/><path d="M9 15.5l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div></div>
+    <div class="hs-m" aria-hidden="true"><span class="hs-lb">Bookings<em>002</em></span><div class="hs-p hs-bk"><span><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-chk"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#4A68E6"/><path d="M9 15.5l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div></div>
   </div>
   <!--
     The machine. See the CSS block of the same name: decoration, behind
@@ -754,7 +758,7 @@
   -->
   <div class="hero-scene" aria-hidden="true">
     <div class="hs-gl"></div>
-    <svg class="hs-fl" viewBox="0 0 900 200"><defs><radialGradient id="hsg"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#C9F2EA" stop-opacity=".8"/><stop offset="1" stop-color="#C9F2EA" stop-opacity="0"/></radialGradient></defs><ellipse cx="450" cy="150" rx="330" ry="58" fill="url(#hsg)"/><g><ellipse class="hs-r" cx="450" cy="150" rx="110" ry="22" stroke-opacity=".55"/><ellipse class="hs-r" cx="450" cy="150" rx="200" ry="40" stroke-opacity=".42"/><ellipse class="hs-r" cx="450" cy="150" rx="300" ry="60" stroke-opacity=".3"/><ellipse class="hs-r" cx="450" cy="150" rx="420" ry="84" stroke-opacity=".18"/></g><g><circle class="hs-s" cx="120" cy="120" r="2"/><circle class="hs-s" cx="230" cy="176" r="1.5"/><circle class="hs-s" cx="330" cy="104" r="2.2"/><circle class="hs-s" cx="560" cy="182" r="1.8"/><circle class="hs-s" cx="660" cy="118" r="2"/><circle class="hs-s" cx="760" cy="160" r="1.4"/><circle class="hs-s" cx="850" cy="128" r="2.4"/><circle class="hs-s" cx="40" cy="170" r="1.6"/></g></svg>
+    <svg class="hs-fl" viewBox="0 0 900 200"><defs><radialGradient id="hsg"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#27336E" stop-opacity=".8"/><stop offset="1" stop-color="#27336E" stop-opacity="0"/></radialGradient></defs><ellipse cx="450" cy="150" rx="330" ry="58" fill="url(#hsg)"/><g><ellipse class="hs-r" cx="450" cy="150" rx="110" ry="22" stroke-opacity=".55"/><ellipse class="hs-r" cx="450" cy="150" rx="200" ry="40" stroke-opacity=".42"/><ellipse class="hs-r" cx="450" cy="150" rx="300" ry="60" stroke-opacity=".3"/><ellipse class="hs-r" cx="450" cy="150" rx="420" ry="84" stroke-opacity=".18"/></g><g><circle class="hs-s" cx="120" cy="120" r="2"/><circle class="hs-s" cx="230" cy="176" r="1.5"/><circle class="hs-s" cx="330" cy="104" r="2.2"/><circle class="hs-s" cx="560" cy="182" r="1.8"/><circle class="hs-s" cx="660" cy="118" r="2"/><circle class="hs-s" cx="760" cy="160" r="1.4"/><circle class="hs-s" cx="850" cy="128" r="2.4"/><circle class="hs-s" cx="40" cy="170" r="1.6"/></g></svg>
     <div class="hs">
       <svg class="hs-net" width="1280" height="701">
         <g><path class="hs-w hs-r2" d="M180 54H352"/><path class="hs-w d" d="M60 44V232"/><path class="hs-w" d="M96 348H160V420"/><path class="hs-w d" d="M336 240H392V350"/><path class="hs-w hs-r2" d="M466 208V262H540V330"/><path class="hs-w hs-r1" d="M580 60H735"/><path class="hs-w d hs-r1" d="M895 45H992"/><path class="hs-w hs-r1 hs-dbw" d="M1102 45H1250V128"/><path class="hs-w d hs-r1 hs-dbw" d="M1250 278V304H1208V330"/><path class="hs-w hs-r1" d="M1208 386V440"/><path class="hs-w d hs-r1" d="M1186 476V560"/><path class="hs-w hs-r1" d="M1250 476V600"/></g>
@@ -762,7 +766,7 @@
         <g><rect class="hs-n hs-r2" x="256" y="50" width="7" height="7"/><rect class="hs-n" x="56" y="116" width="7" height="7"/><rect class="hs-n" x="56" y="192" width="7" height="7"/><rect class="hs-n" x="156" y="344" width="7" height="7"/><rect class="hs-n" x="156" y="388" width="7" height="7"/><rect class="hs-n" x="388" y="268" width="7" height="7"/><rect class="hs-n hs-r2" x="462" y="258" width="7" height="7"/><rect class="hs-n hs-r2" x="536" y="296" width="7" height="7"/><rect class="hs-n hs-r1" x="608" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="696" y="56" width="7" height="7"/><rect class="hs-n hs-r1" x="940" y="41" width="7" height="7"/><rect class="hs-n hs-r1" x="1128" y="41" width="7" height="7"/><rect class="hs-n hs-r1 hs-dbw" x="1246" y="86" width="7" height="7"/><rect class="hs-n hs-r1 hs-dbw" x="1246" y="287" width="7" height="7"/><rect class="hs-n hs-r1" x="1204" y="408" width="7" height="7"/><rect class="hs-n hs-r1" x="1182" y="516" width="7" height="7"/><rect class="hs-n hs-r1" x="1246" y="536" width="7" height="7"/><path class="hs-n" d="M60 40l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1250 600l4 4-4 4-4-4z"/><path class="hs-n hs-r1" d="M1186 560l4 4-4 4-4-4z"/><path class="hs-n" d="M392 350l4 4-4 4-4-4z"/><path class="hs-n hs-r2" d="M540 330l4 4-4 4-4-4z"/></g>
       </svg>
       <span class="hs-lb hs-l1">Website<em>001</em></span>
-      <div class="hs-p hs-web"><span class="hs-img"><svg viewBox="0 0 44 32"><path d="M2 30L15 10l9 13 5-6 13 13z" fill="#5FB8A7"/><circle cx="33" cy="8" r="4" fill="#5FB8A7"/></svg></span><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><i class="hs-btn"></i><i class="hs-b"></i><i class="hs-b"></i></div>
+      <div class="hs-p hs-web"><span class="hs-img"><svg viewBox="0 0 44 32"><path d="M2 30L15 10l9 13 5-6 13 13z" fill="#5B7CFF"/><circle cx="33" cy="8" r="4" fill="#5B7CFF"/></svg></span><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><i class="hs-btn"></i><i class="hs-b"></i><i class="hs-b"></i></div>
       <div class="hs-ed"><pre><i>01</i><b>import</b> { Site } <b>from</b> <u>'northbound'</u>
 <i>02</i><b>export default function</b> Home() {
 <i>03</i>  <b>return</b> (
@@ -773,13 +777,13 @@
 <i>08</i>    <b>/&gt;</b>
 <i>09</i>  )}</pre></div>
       <span class="hs-lb hs-l2 hs-r1">Bookings<em>002</em></span>
-      <div class="hs-p hs-bk hs-r1"><span><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-chk"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#1E8B6B"/><path d="M9 15.5l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+      <div class="hs-p hs-bk hs-r1"><span><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-chk"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#4A68E6"/><path d="M9 15.5l4 4 8-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
       <span class="hs-lb hs-l3 hs-r1">Payments<em>003</em></span>
       <div class="hs-p hs-pay hs-r1"><i class="hs-cc"></i><i class="hs-b"></i></div>
       <span class="hs-lb hs-l4 hs-r1">Dashboard<em>004</em></span>
       <div class="hs-p hs-db hs-r1"><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><i class="hs-b"></i><svg class="hs-chart" viewBox="0 0 118 96"><path class="hs-area" d="M0 70L20 58 40 62 60 40 80 44 100 22 118 26V96H0z"/><path class="hs-line" pathLength="100" d="M0 70L20 58 40 62 60 40 80 44 100 22 118 26"/><rect class="hs-bar" x="70" y="72" width="8" height="24"/><rect class="hs-bar" x="84" y="64" width="8" height="32"/><rect class="hs-bar" x="98" y="76" width="8" height="20"/><rect class="hs-bar" x="112" y="56" width="6" height="40"/></svg></div>
       <span class="hs-lb hs-l5">Customers<em>005</em></span>
-      <div class="hs-p hs-cu"><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#C9DDD8"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span></div>
+      <div class="hs-p hs-cu"><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#2A3140"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#2A3140"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span><span class="hs-row"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="11" fill="#2A3140"/><circle cx="11" cy="8.5" r="3.5" fill="#fff"/><path d="M4 19a7 7 0 0 1 14 0" fill="#fff"/></svg><i class="hs-b"></i><i class="hs-b"></i></span></div>
       <div class="hs-p hs-t hs-t1"><svg viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.5"/><path d="M4 6v14c0 2 4 3.5 9 3.5s9-1.5 9-3.5V6M4 13c0 2 4 3.5 9 3.5s9-1.5 9-3.5"/></svg></div>
       <div class="hs-p hs-t hs-t2"><svg viewBox="0 0 26 26"><path d="M8 20h11a4.5 4.5 0 0 0 .5-9 6 6 0 0 0-11.5-1.5A5.3 5.3 0 0 0 8 20z"/></svg></div>
       <div class="hs-p hs-t hs-t3 hs-r1"><svg viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.5"/><path d="M4 6v14c0 2 4 3.5 9 3.5s9-1.5 9-3.5V6M4 13c0 2 4 3.5 9 3.5s9-1.5 9-3.5"/></svg></div>
@@ -802,9 +806,9 @@
     var cta = hero && hero.querySelector('.actions .btn-primary');
     if (!chips || !chips.length || !cta) return;
     var CTA = {
-      1: ['Start with Cheap and Clean', '#packages'],
-      2: ['Get a quote for Beacon', 'build.html'],
-      3: ['Build the whole machine', 'build.html']
+      1: ['See the products', '#packages'],
+      2: ['Ask about the Booking kit', '#quote'],
+      3: ['Ask about all three', '#quote']
     };
     function answer(n) {
       hero.setAttribute('data-level', n);
@@ -841,110 +845,68 @@
   })();
 </script>
 
-<section id="offerings">
-  <div class="wrap">
-    <h2>Twelve things, and what each one does for you.</h2>
-    <p class="mnote mnote-motion">Head to checkout and this page folds shut in twelve strips. One for each part.</p>
-    <!--
-      Twelve toggle buttons. Picking any of them raises a Continue button
-      (fixed, bottom-left) whose href is the existing checkout — the package
-      the picks add up to in ?buy=, and the picks themselves in ?s= as the
-      version-2 code from js/spec.js — so checkout and the order emails list
-      exactly what was clicked. js/pick.js does that; without it the buttons
-      are inert and the list reads as it always did.
-    -->
-    <ol class="offerings" id="offerings-list" aria-label="The twelve parts — pick the ones you want">
-      <li><button type="button" class="offer" data-part="A custom site" tabindex="-1" aria-labelledby="o1-t" aria-describedby="o1-d"><span class="n">01</span><span class="t" id="o1-t">A custom site</span><span class="d" id="o1-d">Built for your business rather than adapted from someone else's, so it says what you do in the first five seconds.</span></button></li>
-      <li><button type="button" class="offer" data-part="Brand identity" tabindex="-1" aria-labelledby="o2-t" aria-describedby="o2-d"><span class="n">02</span><span class="t" id="o2-t">Brand identity</span><span class="d" id="o2-d">A logo, a typeface and a colour that work on a van, a business card and a phone screen without being redrawn each time.</span></button></li>
-      <li><button type="button" class="offer" data-part="Booking flow" tabindex="-1" aria-labelledby="o3-t" aria-describedby="o3-d"><span class="n">03</span><span class="t" id="o3-t">Booking flow</span><span class="d" id="o3-d">Customers pick a time themselves, at eleven at night, without anyone answering a phone.</span></button></li>
-      <li><button type="button" class="offer" data-part="Quote flow" tabindex="-1" aria-labelledby="o4-t" aria-describedby="o4-d"><span class="n">04</span><span class="t" id="o4-t">Quote flow</span><span class="d" id="o4-d">People tell you what the job is before you drive out to look at it, so you quote the ones worth quoting.</span></button></li>
-      <li><button type="button" class="offer" data-part="Payments" tabindex="-1" aria-labelledby="o5-t" aria-describedby="o5-d"><span class="n">05</span><span class="t" id="o5-t">Payments</span><span class="d" id="o5-d">Deposits land before the work starts, which is the rule that prevents most of the ways small projects go wrong.</span></button></li>
-      <li><button type="button" class="offer" data-part="Lead capture" tabindex="-1" aria-labelledby="o6-t" aria-describedby="o6-d"><span class="n">06</span><span class="t" id="o6-t">Lead capture</span><span class="d" id="o6-d">The people who almost called you leave a name instead of leaving.</span></button></li>
-      <li><button type="button" class="offer" data-part="Automated follow-up" tabindex="-1" aria-labelledby="o7-t" aria-describedby="o7-d"><span class="n">07</span><span class="t" id="o7-t">Automated follow-up</span><span class="d" id="o7-d">Every enquiry gets an answer within a minute, including the ones that arrive while you are on a roof.</span></button></li>
-      <li><button type="button" class="offer" data-part="Reminders" tabindex="-1" aria-labelledby="o8-t" aria-describedby="o8-d"><span class="n">08</span><span class="t" id="o8-t">Reminders</span><span class="d" id="o8-d">Fewer no-shows, because the appointment reminds them and not you.</span></button></li>
-      <li><button type="button" class="offer" data-part="Review requests" tabindex="-1" aria-labelledby="o9-t" aria-describedby="o9-d"><span class="n">09</span><span class="t" id="o9-t">Review requests</span><span class="d" id="o9-d">The review gets asked for at the one moment the customer is happiest, every time, without you remembering.</span></button></li>
-      <li><button type="button" class="offer" data-part="Owner dashboard" tabindex="-1" aria-labelledby="o10-t" aria-describedby="o10-d"><span class="n">10</span><span class="t" id="o10-t">Owner dashboard</span><span class="d" id="o10-d">One screen that says where the calls came from and what they were worth, so you stop guessing which advert works.</span></button></li>
-      <li><button type="button" class="offer" data-part="Local SEO" tabindex="-1" aria-labelledby="o11-t" aria-describedby="o11-d"><span class="n">11</span><span class="t" id="o11-t">Local SEO</span><span class="d" id="o11-d">You turn up when someone two towns over searches for what you do.</span></button></li>
-      <li><button type="button" class="offer" data-part="AI intake" tabindex="-1" aria-labelledby="o12-t" aria-describedby="o12-d"><span class="n">12</span><span class="t" id="o12-t">AI intake</span><span class="d" id="o12-d">Enquiries get read, sorted and answered in your voice before you have opened the laptop.</span></button></li>
-    </ol>
-    <a class="btn btn-primary pick-continue" id="pick-continue" href="checkout.html" hidden>Continue <span class="count" id="pick-count" aria-hidden="true">0</span></a>
-  </div>
-</section>
+
 
 <section class="packages" id="packages">
   <div class="wrap">
-    <h2>Three ways in.</h2>
-    <p class="section-lede">Published prices are a floor, not a ceiling. Beacon and Engine are half price for our first 15 founding clients, in return for a Google review. 50% is due up front on any build.</p>
-    <p class="mnote">The struck-through prices are real. They're what the build costs once the fifteen founding spots are gone.</p>
-
+    <h2>Pick one. It is yours.</h2>
+    <p class="section-lede">Three finished products. You see each one working first, then we set it up with your name, photos and prices.</p>
     <ol class="pkg-grid">
       <li class="pkg">
-        <h3>Cheap and Clean</h3>
-        <p class="price">$600</p>
-        <p class="tag">One page, your brand, live. It puts you on the board.</p>
+        <h3>Atlas</h3>
+        <p class="price">Price on request</p>
+        <p class="tag">A website for a roofing company.</p>
         <ul>
-          <li>One of five designs, built around your business</li>
-          <li>Your logo, colours and photos</li>
-          <li>Your phone number, tappable, and a form that reaches you</li>
-          <li>Hosted free, forever</li>
+          <li>Built and working: see it (labelled concept work)</li>
+          <li>Your name, photos and prices</li>
         </ul>
-        <a class="btn btn-primary" href="checkout.html?buy=clean">Buy it now</a>
-      </li>
-      <li class="pkg">
-        <p class="founding-tag">Founding price</p>
-        <h3>Beacon</h3>
-        <p class="price">$1,750 <span class="was">$3,500</span></p>
-        <p class="tag">A site that makes you look real.</p>
-        <ul>
-          <li>A custom site, up to five pages</li>
-          <li>Brand identity</li>
-          <li>Local SEO</li>
-        </ul>
-        <a class="btn btn-secondary" href="build.html">Get a quote for Beacon</a>
+        <a class="btn btn-secondary" href="/demos/atlas">See Atlas</a>
+        <a class="btn btn-primary" href="#quote" data-pick="atlas">Ask about Atlas</a>
       </li>
       <li class="pkg pkg--lead">
-        <p class="badge">Most pick this &middot; founding price</p>
-        <h3>Engine</h3>
-        <p class="price">$4,250 <span class="was">$8,500</span></p>
-        <p class="tag">The site plus the machine behind it.</p>
+        <h3>Vector</h3>
+        <p class="price">Price on request</p>
+        <p class="tag">An online shop for a small brand.</p>
         <ul>
-          <li>Everything in Beacon</li>
-          <li>Booking and quote flows, payments, lead capture</li>
+          <li>Built and working: see it (labelled concept work)</li>
+          <li>Your name, products and prices</li>
+        </ul>
+        <a class="btn btn-secondary" href="/demos/vector">See Vector</a>
+        <a class="btn btn-primary" href="#quote" data-pick="vector">Ask about Vector</a>
+      </li>
+      <li class="pkg">
+        <h3>Booking kit</h3>
+        <p class="price">Price on request</p>
+        <p class="tag">Booking, follow-up and a dashboard.</p>
+        <ul>
+          <li>Booking or quote flow, payments, lead capture</li>
           <li>Automated follow-up, reminders, review requests</li>
           <li>Owner dashboard</li>
         </ul>
-        <a class="btn btn-primary" href="build.html">Get a quote for Engine</a>
+        <a class="btn btn-primary" href="#quote" data-pick="booking_kit">Ask about the Booking kit</a>
       </li>
     </ol>
-    <!--
-      Bearing is not a fourth card any more. It is offered at checkout, where
-      someone is already deciding, and it stays available afterwards from
-      Your account — because the person who says "I don't need that yet" in
-      week one is often the person who needs it in month three, and they
-      should not have to email anyone to find it.
-    -->
-    <p class="keeping-line" id="bearing"><strong>Bearing</strong> keeps it running: hosting, monitoring, backups, small edits and a monthly report on calls and bookings. $300/mo for founding clients, $600 standard; add it at checkout or later from <a href="account.html">your account</a>. Cheap and Clean stays hosted free, exactly as built; changes and a human reply are $49/mo.</p>
+    <p class="keeping-line">Prices are stated before you pay. Ask and you get a number, not a sales call.</p>
   </div>
 </section>
 
 <section id="quote">
   <div class="wrap">
-    <h2>Tell us what the job is.</h2>
+    <h2>Ask about one.</h2>
     <div class="job-stage" aria-hidden="true"></div>
-    <p class="section-lede">The useful first question is what one new customer is worth to you, and how many more you want a month. The answer decides the build. If you'd rather be walked through it, <a href="build.html">build your machine</a> — eight questions and you end with a priced build.</p>
+    <p class="section-lede">Tell us which product, and what you want it to say. You get a price back within one business day.</p>
     <form class="quote-form" method="post" action="/api/quote">
       <p class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required></p>
       <p class="field"><label for="f-business">Business</label><input id="f-business" name="business" type="text" autocomplete="organization"></p>
       <p class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
       <p class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></p>
       <p class="field">
-        <label for="f-package">Which package</label>
+        <label for="f-package">Which product</label>
         <select id="f-package" name="package">
           <option value="">Not sure yet</option>
-          <option value="clean">Cheap and Clean — $600</option>
-          <option value="beacon">Beacon — founding price $1,750 (standard $3,500)</option>
-          <option value="engine">Engine — founding price $4,250 (standard $8,500)</option>
-          <option value="bearing">Bearing — founding price $300/mo</option>
+          <option value="atlas">Atlas: website for a roofing company</option>
+          <option value="vector">Vector: online shop</option>
+          <option value="booking_kit">Booking kit: booking, follow-up, dashboard</option>
         </select>
       </p>
       <p class="field"><label for="f-need">What you need</label><textarea id="f-need" name="need" rows="2"></textarea></p>
@@ -959,21 +921,29 @@
         api/checkout.ts (tests/checkout.unit.test.ts keeps them equal); it is
         written out here so the link works with JavaScript off.
       -->
-      <div class="founding-claim" id="founding-claim">
-        <p class="claim-lede">Taking founding pricing (Beacon, Engine or Bearing)? Leave your Google review, then tell us the name it's posted under.</p>
-        <p class="claim-link"><a class="btn btn-secondary" href="https://g.page/r/CRFQRq5WLg6HECE/review" target="_blank" rel="noopener">Leave your Google review</a></p>
-        <p class="field"><label for="f-review-name">The name your review is posted under</label><input id="f-review-name" name="review_name" type="text" maxlength="120" data-founding-agree></p>
-        <p class="hint">Founding pricing is confirmed once we can see the review. We check it ourselves before finalising the quote — there's no automatic check. Not needed for Cheap and Clean.</p>
-      </div>
+      
       <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
       <p><button type="submit">Send it</button></p>
     </form>
   </div>
 </section>
 
+<script>
+  /* "Ask about X" sets the product on the quote form. The links are plain
+     #quote anchors first, so with JavaScript off they still land on the form. */
+  (function () {
+    var sel = document.getElementById('f-package');
+    if (!sel) return;
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('[data-pick]');
+      if (a) sel.value = a.getAttribute('data-pick');
+    });
+  })();
+</script>
+
 <footer class="site-footer">
   <div class="wrap">
-    <a href="tel:+14705738908">470-573-8908</a> &middot; Grand Ledge, Michigan &middot; &copy; 2026 Northbound Studio &middot; <a href="studio.html">See the version we built to show off</a>
+    <a href="tel:+14705738908">470-573-8908</a> &middot; Grand Ledge, Michigan &middot; &copy; 2026 Northbound Studio &middot; <a href="/studio.html">Desktop version</a>
   </div>
 </footer>
 

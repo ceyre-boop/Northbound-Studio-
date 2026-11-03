@@ -26,7 +26,7 @@ export const OFFERINGS = [
     id: 'site',
     n: '01',
     name: 'A custom site',
-    package: 'Beacon',
+    package: 'Website',
     owner: 'A site built for your business rather than adapted from someone else’s, so it says what you do in the first five seconds.',
     loop: 'Scattered rule-lines drifting, then assembling into a grid that holds'
   },
@@ -34,7 +34,7 @@ export const OFFERINGS = [
     id: 'brand',
     n: '02',
     name: 'Brand identity',
-    package: 'Beacon',
+    package: 'Website',
     owner: 'A logo, a typeface and a colour that work on a van, a business card and a phone screen without being redrawn each time.',
     loop: 'Three marks resolving out of noise and settling into one lockup'
   },
@@ -42,7 +42,7 @@ export const OFFERINGS = [
     id: 'booking',
     n: '03',
     name: 'Booking flow',
-    package: 'Engine',
+    package: 'Booking kit',
     owner: 'Customers pick a time themselves, at eleven at night, without anyone answering a phone.',
     loop: 'Time slots locking into a grid, one of them turning solid'
   },
@@ -50,7 +50,7 @@ export const OFFERINGS = [
     id: 'quote',
     n: '04',
     name: 'Quote flow',
-    package: 'Engine',
+    package: 'Booking kit',
     owner: 'People tell you what the job is before you drive out to look at it, so you quote the ones worth quoting.',
     loop: 'A wide range converging inward until it resolves to one figure'
   },
@@ -58,7 +58,7 @@ export const OFFERINGS = [
     id: 'payments',
     n: '05',
     name: 'Payments',
-    package: 'Engine',
+    package: 'Booking kit',
     owner: 'Deposits land before the work starts, which is the rule that prevents most of the ways small projects go wrong.',
     loop: 'A value pulse travelling along a line and resolving at the end'
   },
@@ -66,7 +66,7 @@ export const OFFERINGS = [
     id: 'leads',
     n: '06',
     name: 'Lead capture',
-    package: 'Engine',
+    package: 'Booking kit',
     owner: 'The people who almost called you leave a name instead of leaving.',
     loop: 'Drifting motes caught and held by a soft field'
   },
@@ -74,8 +74,7 @@ export const OFFERINGS = [
     id: 'followup',
     n: '07',
     name: 'Automated follow-up',
-    package: 'Engine',
-    upkeep: 'Bearing',
+    package: 'Booking kit',
     owner: 'Every enquiry gets an answer within a minute, including the ones that arrive while you are on a roof.',
     loop: 'A signal chasing a thread until it catches and lands'
   },
@@ -83,8 +82,7 @@ export const OFFERINGS = [
     id: 'reminders',
     n: '08',
     name: 'Reminders',
-    package: 'Engine',
-    upkeep: 'Bearing',
+    package: 'Booking kit',
     owner: 'Fewer no-shows, because the appointment reminds them and not you.',
     loop: 'A slow orbit crossing a threshold and flaring as it passes'
   },
@@ -92,8 +90,7 @@ export const OFFERINGS = [
     id: 'reviews',
     n: '09',
     name: 'Review requests',
-    package: 'Engine',
-    upkeep: 'Bearing',
+    package: 'Booking kit',
     owner: 'The review gets asked for at the one moment the customer is happiest, every time, without you remembering.',
     loop: 'A star figure completing itself one stroke at a time'
   },
@@ -101,8 +98,7 @@ export const OFFERINGS = [
     id: 'dashboard',
     n: '10',
     name: 'Owner dashboard',
-    package: 'Engine',
-    upkeep: 'Bearing',
+    package: 'Booking kit',
     owner: 'One screen that says where the calls came from and what they were worth, so you stop guessing which advert works.',
     loop: 'Metrics settling into bars, then breathing'
   },
@@ -110,7 +106,7 @@ export const OFFERINGS = [
     id: 'seo',
     n: '11',
     name: 'Local SEO',
-    package: 'Beacon',
+    package: 'Website',
     owner: 'You turn up when someone two towns over searches for what you do.',
     loop: 'A pin pulling attention inward from the edges of the frame'
   },

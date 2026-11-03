@@ -24,32 +24,6 @@ async function boot(page: import('@playwright/test').Page, query = '?motion=full
   await page.waitForFunction(() => !!(window as any).__NB_WALL, { timeout: 20_000 });
 }
 
-test.describe('P0-2 — the separator between the package badge and the upkeep note', () => {
-  test('the readable list shows "Engine · kept running by Bearing"', async ({ page }) => {
-    await page.goto('/studio.html');
-    for (const n of [6, 7, 8, 9]) {
-      const meta = page.locator(`[data-offer="${n}"] .offer__meta`);
-      const sep = meta.locator('.offer__sep');
-      await expect(sep).toHaveCount(1);
-      const text = (await meta.textContent())!.replace(/\s+/g, ' ').trim();
-      expect(text).toContain('Engine · kept running by Bearing');
-    }
-  });
-
-  test('the overlay card shows the same separator', async ({ page }) => {
-    await boot(page);
-    await page.evaluate(() => {
-      const link = document.querySelector('[data-offer="6"] h3 a') as HTMLElement;
-      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
-    });
-    await page.waitForTimeout(500);
-    const meta = page.locator('.offer-overlay__meta');
-    await expect(meta).toBeVisible();
-    const text = (await meta.textContent())!.replace(/\s+/g, ' ').trim();
-    expect(text).toContain('Engine · kept running by Bearing');
-  });
-});
-
 test.describe('P0-3 — the social card', () => {
   test('brand/og.png is a 1200x630 PNG', () => {
     const path = join(ROOT, 'brand', 'og.png');
@@ -191,13 +165,13 @@ test.describe('P1-7 — the concept builds, in owner language', () => {
 });
 
 test.describe('P2-9 — how we work', () => {
-  test('the rules list has exactly three items and keeps deposit, Bearing, and the honesty rule', async ({ page }) => {
+  test('the rules list has exactly three items and keeps the see-it-first, price-first and honesty rules', async ({ page }) => {
     await page.goto('/studio.html');
     const items = page.locator('.rules li');
     await expect(items).toHaveCount(3);
     const text = (await items.allInnerTexts()).join(' | ');
-    expect(text).toContain('50% up front');
-    expect(text).toContain('Bearing');
+    expect(text).toContain('working before you buy it');
+    expect(text).toContain('price is stated before you pay');
     expect(text).toContain('labelled as concept work');
     expect(text).not.toContain('Two builds at a time');
     expect(text).not.toContain('rate only goes up');

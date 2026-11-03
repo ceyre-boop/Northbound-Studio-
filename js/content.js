@@ -43,11 +43,8 @@ window.NB = {
   /* Act I — the horizon. */
   arrival: {
     wordmark: 'Northbound',
-    line: 'We build the machine that brings customers in.',
-    /* Not "sites that sell while you sleep". That was a promise about the
-       visitor's revenue made by people who had never run their business. This
-       one is a description of what is actually sold. */
-    sub: 'The website is the front of it. The booking, the follow-up, the payments and the dashboard behind it are the part that pays for itself.'
+    line: 'Finished products, already built. Buy one.',
+    sub: "A roofer's site. A shop. A booking and follow-up system with a dashboard. Each one is built and working before you buy it, then set up with your name, your photos and your prices."
   },
 
   /* Act II — the market, honestly framed. No count, no desk — just what a
@@ -57,47 +54,40 @@ window.NB = {
     body: "They load slowly, can't take a booking, and forget the customer the moment they leave."
   },
 
-  /* Act III — the offer. Prices are floors, published so the conversation
-     starts above the tire-kickers rather than below them. */
+  /* Act III — the offer. Three finished products. Prices are "Price on
+     request" until Colin sets them: add `price: '$X'` here and in studio.html. */
   packages: [
     {
-      name: 'Beacon',
-      price: '$3,500',
-      tagline: 'For the business that just needs to look real.',
+      name: 'Atlas',
+      price: null,
+      tagline: 'A website for a roofing company.',
       items: [
-        'Custom-built site, up to five pages, no template',
-        'Brand identity: logo, type, colour',
-        'Copywriting, photography direction, local SEO',
-        'Two weeks, 50% up front'
+        'Built and working, labelled concept work: /demos/atlas',
+        'Set up with your name, photos and prices'
       ]
     },
     {
-      name: 'Engine',
-      price: '$8,500',
-      tagline: 'The site plus the machine behind it.',
+      name: 'Vector',
+      price: null,
+      tagline: 'An online shop for a small brand.',
       items: [
-        'Everything in Beacon',
+        'Built and working, labelled concept work: /demos/vector',
+        'Set up with your name, products and prices'
+      ]
+    },
+    {
+      name: 'Booking kit',
+      price: null,
+      tagline: 'Booking, follow-up and a dashboard.',
+      items: [
         'Booking or quote flow, payments, lead capture',
         'Automated follow-up, reminders, review requests',
-        'Owner dashboard: where the calls came from and what they were worth',
-        'Three to four weeks, 50% up front'
-      ]
-    },
-    {
-      name: 'Bearing',
-      price: '$600',
-      per: 'per month',
-      tagline: 'Attached to every project. Never optional in the pitch.',
-      items: [
-        'Hosting, monitoring, backups, unlimited small edits',
-        'Dashboard kept live, automations maintained and expanded',
-        'Monthly report on calls, bookings and revenue',
-        'Twelve-month term, billed monthly'
+        'Owner dashboard: where the calls came from, what they were worth'
       ]
     }
   ],
 
-  pricingNote: 'Published prices are a floor, not a ceiling. What a build is worth follows from what one new customer is worth to you, not from how many hours it takes us.',
+  pricingNote: 'Prices are stated before you pay. Ask and you get a number, not a sales call.',
 
   /* Act IV — the only two things that are real.
    *
@@ -144,8 +134,8 @@ window.NB = {
   /* How the studio works. These are rules it sets for itself, stated as rules
      and never as a track record. */
   rules: [
-    '50% up front, always. No deposit, no work.',
-    'Every proposal includes Bearing. It is part of the build, not an upsell.',
+    'You see the finished product working before you buy it.',
+    'The price is stated before you pay.',
     'Concept work is labelled as concept work. Every performance number is one we measured.'
   ],
 

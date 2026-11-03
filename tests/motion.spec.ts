@@ -225,10 +225,10 @@ test.describe('springs come only from named presets', () => {
 test.describe('the sticky CTA and package CTAs prefill the form', () => {
   test('a package button writes into the message field and focuses the name field', async ({ page }) => {
     await page.goto('/studio.html', { waitUntil: 'networkidle' });
-    const btn = page.locator('[data-package="Engine package"]');
+    const btn = page.locator('[data-package="Vector package"]');
     await btn.scrollIntoViewIfNeeded();
     await btn.click();
-    await expect(page.locator('#f-note')).toHaveValue(/On your project: Engine package/);
+    await expect(page.locator('#f-note')).toHaveValue(/On your project: Vector package/);
     await page.waitForFunction(() => document.activeElement?.id === 'f-name', { timeout: 10_000 });
   });
 

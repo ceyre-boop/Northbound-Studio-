@@ -30,16 +30,16 @@
 }
 
 :root {
-  --ink:        #05090C;
-  --ink-2:      #0A1218;
-  --paper:      #E8EFF2;
-  --paper-dim:  #9DB0B8;
-  --paper-faint:#63767F;
-  --line:       #16232B;
-  --line-2:     #22333D;
-  --aurora:     #4FD8C4;
-  --aurora-dim: #1E6F63;
-  --signal:     #E0A05C;
+  --ink:        #07090E;
+  --ink-2:      #0E1219;
+  --paper:      #E6EAF2;
+  --paper-dim:  #A3ADBF;
+  --paper-faint:#687285;
+  --line:       #1A202B;
+  --line-2:     #2A3140;
+  --aurora:     #5B7CFF;
+  --aurora-dim: #2434A9;
+  --signal:     #A18CFF;
 
   --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
   --body:    'Instrument Sans', system-ui, -apple-system, sans-serif;
@@ -303,7 +303,7 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   margin: 0 0 var(--rhythm);
   padding: clamp(18px, 2.2vw, 26px);
   border: 1px solid var(--aurora);
-  background: rgba(79, 216, 196, 0.06);
+  background: rgba(91, 124, 255, 0.06);
 }
 .founding-offer .eyebrow { margin-bottom: 8px; }
 .founding-offer p:last-child { margin: 0; color: var(--paper-dim); max-width: 66ch; }
@@ -316,7 +316,7 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
 }
 .work-card {
   border: 1px solid var(--line-2);
-  background: rgba(10, 18, 24, 0.72);
+  background: rgba(14, 18, 25, 0.72);
   padding: clamp(20px, 2.4vw, 30px);
   position: relative;
 }
@@ -376,14 +376,14 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   background: var(--ink-2); color: var(--paper);
   border: 1px solid var(--line-2); border-radius: 2px;
   font-family: var(--body); font-size: 1rem; line-height: 1.5;
-  box-shadow: 0 0 0 0 rgba(79, 216, 196, 0);
+  box-shadow: 0 0 0 0 rgba(91, 124, 255, 0);
   transition: border-color 240ms cubic-bezier(.22,.61,.36,1),
               box-shadow 240ms cubic-bezier(.22,.61,.36,1);
 }
 .field textarea { resize: vertical; }
 .field input:focus, .field select:focus, .field textarea:focus {
   border-color: var(--aurora); outline: none;
-  box-shadow: 0 0 0 3px rgba(79, 216, 196, 0.16);
+  box-shadow: 0 0 0 3px rgba(91, 124, 255, 0.16);
 }
 @media (prefers-reduced-motion: reduce) {
   .field input, .field select, .field textarea { transition: none; }
@@ -430,14 +430,14 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
    and no overflow. */
 [data-gl="off"] .act--arrival {
   background:
-    radial-gradient(120% 80% at 50% 0%, rgba(79, 216, 196, 0.10), transparent 62%),
-    linear-gradient(180deg, #071016 0%, var(--ink) 70%);
+    radial-gradient(120% 80% at 50% 0%, rgba(91, 124, 255, 0.10), transparent 62%),
+    linear-gradient(180deg, #0B0F18 0%, var(--ink) 70%);
 }
 [data-gl="off"] .act--drift {
-  background: radial-gradient(80% 60% at 20% 50%, rgba(30, 111, 99, 0.16), transparent 70%);
+  background: radial-gradient(80% 60% at 20% 50%, rgba(36, 52, 169, 0.16), transparent 70%);
 }
 [data-gl="off"] .act--offer {
-  background: linear-gradient(180deg, transparent, rgba(10, 18, 24, 0.8));
+  background: linear-gradient(180deg, transparent, rgba(14, 18, 25, 0.8));
 }
 
 @media (max-width: 640px) {
@@ -672,7 +672,7 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   transform: translateY(0);
   transition: transform var(--spring-lift-ms, 220ms) var(--spring-lift, ease-out),
               box-shadow var(--spring-lift-ms, 220ms) var(--spring-lift, ease-out);
-  box-shadow: inset 0 0 0 1px rgba(79, 216, 196, calc(var(--near, 0) * 0.35));
+  box-shadow: inset 0 0 0 1px rgba(91, 124, 255, calc(var(--near, 0) * 0.35));
 }
 .pkg::before {
   content: "";
@@ -681,7 +681,7 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   pointer-events: none;
   opacity: 0;
   background: radial-gradient(240px circle at calc(var(--mx, 0.5) * 100%) calc(var(--my, 0.5) * 100%),
-              rgba(79, 216, 196, 0.16), transparent 60%);
+              rgba(91, 124, 255, 0.16), transparent 60%);
   transition: opacity 200ms ease-out;
 }
 .pkg:hover, .pkg[data-pressed] {

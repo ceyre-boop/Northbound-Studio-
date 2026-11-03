@@ -21,9 +21,9 @@
  * another department and is never imported or edited here.
  *
  * Palette, shared with the aurora's family:
- *   ink   #05090C .. #0A1218   deep ground
- *   cyan  #4FD8C4              accent
- *   warm  #E0A05C              one warm signal, used sparingly
+ *   ink   #07090E .. #0E1219   deep ground
+ *   cyan  #5B7CFF              accent
+ *   warm  #A18CFF              one warm signal, used sparingly
  *
  * Budget: ~1.2KB of unique authored GLSL per loop body, ~16KB for all
  * twelve. The PRELUDE (hash/vnoise/palette/main wrapper) is shared text
@@ -58,10 +58,10 @@ var PRELUDE = [
   /* --- end verbatim block --- */
   '',
   'vec3 ink(float k) {',
-  '  return mix(vec3(0.0196, 0.0353, 0.0471), vec3(0.0392, 0.0706, 0.0941), k);',
+  '  return mix(vec3(0.0275, 0.0353, 0.0549), vec3(0.0549, 0.0706, 0.0980), k);',
   '}',
-  'vec3 CYAN = vec3(0.3098, 0.8471, 0.7686);',
-  'vec3 WARM = vec3(0.8784, 0.6275, 0.3608);',
+  'vec3 CYAN = vec3(0.3569, 0.4863, 1.0);',
+  'vec3 WARM = vec3(0.6314, 0.5490, 1.0);',
   '',
   /* The intensity ramp every loop drives its accent brightness through. Not
    * a straight lerp: the floor (0.12) keeps a far/idle panel legibly quiet
@@ -154,9 +154,9 @@ export var PRIME_FRAG = [
   'varying vec2 v_uv;',
   'uniform float u_seed;',
   'void main() {',
-  '  vec3 lo = vec3(0.0196, 0.0353, 0.0471);',
-  '  vec3 hi = vec3(0.0392, 0.0706, 0.0941);',
-  '  vec3 cyan = vec3(0.3098, 0.8471, 0.7686);',
+  '  vec3 lo = vec3(0.0275, 0.0353, 0.0549);',
+  '  vec3 hi = vec3(0.0549, 0.0706, 0.0980);',
+  '  vec3 cyan = vec3(0.3569, 0.4863, 1.0);',
   '  float k = fract(u_seed * 0.61803399);',
   '  vec3 base = mix(lo, hi, v_uv.y * 0.6 + 0.2);',
   '  base += cyan * 0.05 * (1.0 - v_uv.y) * k;',
@@ -354,7 +354,7 @@ var BODIES = [
     '  vec3 col = ink(0.0);',
     '  float run = 0.5 - 0.5 * cos(ang);',
     '  float wave = sin(p.x * 4.2) * 0.16;',
-    '  col += mix(vec3(0.05, 0.09, 0.10), CYAN, 0.30) * stroke(abs(p.y - wave), 0.013) * drive(I) * 0.8;',
+    '  col += mix(vec3(0.05, 0.07, 0.12), CYAN, 0.30) * stroke(abs(p.y - wave), 0.013) * drive(I) * 0.8;',
     '  for (int i = 0; i < 3; i++) {',
     '    float fi = float(i);',
     '    float nx = (fi / 2.0 - 0.5) * 0.72;',

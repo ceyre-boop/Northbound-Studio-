@@ -87,7 +87,7 @@
     radial-gradient(ellipse 50% 60% at center,
       rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.34) 46%, rgba(0,0,0,0) 74%),
     radial-gradient(ellipse 80% 100% at center,
-      rgba(79,216,196,0.16) 0%, rgba(79,216,196,0.05) 50%, rgba(79,216,196,0) 78%);
+      rgba(91, 124, 255,0.16) 0%, rgba(91, 124, 255,0.05) 50%, rgba(91, 124, 255,0) 78%);
   filter: blur(3px);
   transition: transform 420ms cubic-bezier(.22,.61,.36,1);
 }
@@ -103,7 +103,7 @@
   /* The cast shadow grounds him against the aurora; the faint cyan bloom ties a
      saturated blue character to a teal-lit room without repainting the art. */
   filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.5))
-          drop-shadow(0 0 22px rgba(79, 216, 196, 0.16));
+          drop-shadow(0 0 22px rgba(91, 124, 255, 0.16));
 
   /* Leaving. Weight leaves a pose faster than it arrives, so the outgoing curve
      is a plain ease-out and it drops slightly as it goes. */

@@ -119,7 +119,7 @@ var FRAG = [
     '       curtain\'s brightest mass in a band below and behind the headline,',
     '       so peak luminance is never coincident with peak text density. */',
     '    float env  = smoothstep(-0.70, 0.05, q.y) * (1.0 - smoothstep(0.22, 0.85, q.y));',
-    '    vec3  tint = mix(vec3(0.06, 0.10, 0.22), vec3(0.10, 0.86, 1.00),',
+    '    vec3  tint = mix(vec3(0.06, 0.10, 0.22), vec3(0.36, 0.49, 1.00),',
     '                     0.35 + 0.30 * fi);',
     '    col += tint * f * env * (0.42 / k);',
     '  }',

@@ -161,7 +161,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 [data-act="offerings"] .offer__addbtn.is-added {
   border-color: var(--aurora);
   color: var(--aurora);
-  background: rgba(79, 216, 196, 0.10);
+  background: rgba(91, 124, 255, 0.10);
 }
 @media (prefers-reduced-motion: reduce) {
   [data-act="offerings"] .offer__addbtn { transition: none; transform: none !important; }
@@ -171,7 +171,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
  * Set by js/acts/offerings.js's fallback(); a quiet static ground rather
  * than nothing, same idea as [data-act="work"][data-act-state="static"]. */
 [data-act="offerings"][data-act-state="static"] {
-  background: radial-gradient(ellipse 70% 55% at 50% 10%, rgba(79, 216, 196, 0.08), transparent 65%);
+  background: radial-gradient(ellipse 70% 55% at 50% 10%, rgba(91, 124, 255, 0.08), transparent 65%);
 }
 
 /* --- the overlay card -------------------------------------------------------
@@ -193,7 +193,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 [data-act="offerings"] .offer-overlay__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(5, 9, 12, 0.86);
+  background: rgba(7, 9, 14, 0.86);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   opacity: 0;
@@ -423,7 +423,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 #contact .basket__remove:hover,
 #contact .basket__remove:focus-visible {
   color: var(--aurora);
-  background: rgba(79, 216, 196, 0.12);
+  background: rgba(91, 124, 255, 0.12);
   transform: scale(1.12);
   transition: color 260ms cubic-bezier(.28,1.5,.5,1), background-color 260ms cubic-bezier(.28,1.5,.5,1),
               transform 300ms cubic-bezier(.28,1.5,.5,1);
@@ -566,7 +566,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 /* --- the screen ---------------------------------------------------------- */
 #contact .closing-proof .work-card__screen {
   position: relative;
-  background: #0a0f14;
+  background: #0E1219;
   border-bottom: 1px solid var(--line-2);
   min-width: 0;
 }
@@ -589,7 +589,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 }
 #contact .closing-proof .work-card__dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: rgba(232, 239, 242, 0.22);
+  background: rgba(230, 234, 242, 0.22);
   flex: none;
 }
 #contact .closing-proof .work-card__url {
@@ -612,7 +612,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   height: 44px;
-  background: linear-gradient(to bottom, rgba(7, 11, 15, 0), rgba(7, 11, 15, 0.92));
+  background: linear-gradient(to bottom, rgba(10, 13, 19, 0), rgba(10, 13, 19, 0.92));
   pointer-events: none;
 }
 
@@ -763,7 +763,7 @@ html[data-gl="on"] [data-act="offerings"] .offer-list {
 #contact .work-overlay__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(5, 9, 12, 0.86);
+  background: rgba(7, 9, 14, 0.86);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   opacity: 0;

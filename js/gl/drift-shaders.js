@@ -58,10 +58,10 @@
     '  if (r2 > 1.0) discard;',
     '  float falloffPow = mix(2.4, 0.85, v_soft); // near = crisp, far = hazy',
     '  float core = pow(clamp(1.0 - r2, 0.0, 1.0), falloffPow);',
-    '  vec3 dimCool = vec3(0.09, 0.15, 0.21);',
-    '  vec3 litCool = vec3(0.33, 0.86, 0.80);', // aurora-adjacent, not pure cyan
-    '  vec3 dimWarm = vec3(0.20, 0.13, 0.07);',
-    '  vec3 litWarm = vec3(0.88, 0.63, 0.36);', // signal
+    '  vec3 dimCool = vec3(0.10, 0.13, 0.23);',
+    '  vec3 litCool = vec3(0.36, 0.49, 1.0);', // aurora-adjacent, not pure cyan
+    '  vec3 dimWarm = vec3(0.17, 0.14, 0.26);',
+    '  vec3 litWarm = vec3(0.63, 0.55, 1.0);', // signal
     '  vec3 dim = mix(dimCool, dimWarm, v_warm);',
     '  vec3 lit = mix(litCool, litWarm, v_warm);',
     '  vec3 col = mix(dim, lit, v_lit) * core;',

@@ -42,7 +42,7 @@ var DYE_RES = { 3: 512, 2: 256, 1: 0 };
 var ATLAS = { 3: [2048, 512], 2: [1024, 256], 1: [1024, 256] };
 var JACOBI_K = { 3: 20, 2: 10, 1: 0 };
 
-var AURORA = [0.3098, 0.8471, 0.7686]; // #4FD8C4, the same accent northlight uses
+var AURORA = [0.3569, 0.4863, 1.0]; // #4FD8C4, the same accent northlight uses
 
 var S = null; // module-scope: exactly one 'solution' act is ever live at once
 

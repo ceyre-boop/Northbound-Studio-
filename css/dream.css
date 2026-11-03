@@ -10,13 +10,13 @@
 @font-face { font-family: 'Inter'; src: url('../fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
 
 :root {
-  --cream: #F7F6F2;
-  --cream-2: #ECEAE0;
-  --espresso: #241B17;
-  --espresso-2: #57493F;
-  --taupe: #A6968A;
-  --taupe-2: #C4B9AE;
-  --red: #BF4B4B;
+  --cream: #0F1218;
+  --cream-2: #171B24;
+  --espresso: #E6EAF2;
+  --espresso-2: #A3ADBF;
+  --taupe: #6B7385;
+  --taupe-2: #2A3140;
+  --red: #5B7CFF;
   --radius: 28px;
   --page: min(1100px, 92vw);
   --measure: 650px;
@@ -88,7 +88,7 @@ a { color: inherit; }
   border-radius: 999px;
   transition: transform .35s var(--ease), background .35s var(--ease);
 }
-.btn:hover { transform: translateY(-2px); background: #3A2C25; }
+.btn:hover { transform: translateY(-2px); background: #C9D2FF; }
 .btn-small { padding: 9px 20px; font-size: 14px; }
 .btn-light { background: var(--cream); color: var(--espresso); }
 .btn-light:hover { background: #FFFFFF; }
@@ -364,16 +364,18 @@ html:not(.js) .hero-pause { display: none; }
 .testdrive {
   width: var(--page);
   margin: 96px auto 0;
-  background: var(--espresso);
-  color: var(--cream);
+  background: #1B2A6B;
+  color: #E6EAF2;
   border-radius: var(--radius);
   padding: 84px 6vw;
   text-align: center;
 }
 
 .testdrive .band-title { margin-bottom: 24px; }
+.testdrive .eyebrow { color: #9DB0FF; }
+.testdrive .btn-light { background: #E6EAF2; color: #0F1218; }
 .testdrive .band-lede {
-  color: #D8CFC4;
+  color: #C3CCEB;
   margin: 0 auto 36px;
 }
 

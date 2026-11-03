@@ -65,7 +65,7 @@
 <style>
   :root { --nb-leave-ms: 620; --nb-arrive-ms: 700; --nb-veil-cells: 12; }
   .nb-veil { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; display: grid; grid-template-columns: repeat(12, 1fr); }
-  .nb-veil i { display: block; background: #241B17; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
+  .nb-veil i { display: block; background: #0F1218; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
   .nb-veil i:nth-child(1) { animation-delay: 0ms; }
   .nb-veil i:nth-child(2) { animation-delay: 26ms; }
   .nb-veil i:nth-child(3) { animation-delay: 52ms; }
@@ -79,7 +79,7 @@
   .nb-veil i:nth-child(11) { animation-delay: 260ms; }
   .nb-veil i:nth-child(12) { animation-delay: 286ms; }
   @keyframes nb-drop { to { transform: none; } }
-  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #241B17; }
+  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #0F1218; }
   html.nb-arriving::before { animation: nb-open-l 700ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
   html.nb-arriving::after { animation: nb-open-r 700ms 60ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
   @keyframes nb-open-l { from { clip-path: inset(0 50% 0 0); } to { clip-path: inset(0 100% 0 0); } }
@@ -143,8 +143,8 @@
      one dusty red. The old names are kept so the rules below read as
      they always did; only the values changed. */
   :root {
-    --ink: #241B17; --ink-soft: #57493F; --line: #C4B9AE; --bg: #F7F6F2;
-    --panel: #ECEAE0; --accent: #241B17; --accent-dark: #3A2C25; --red: #BF4B4B; --taupe: #A6968A;
+    --ink: #E6EAF2; --ink-soft: #A3ADBF; --line: #2A3140; --bg: #0F1218;
+    --panel: #171B24; --accent: #3F5FE0; --accent-dark: #4A68E6; --red: #5B7CFF; --taupe: #6B7385;
     --display: 'Fraunces', Georgia, serif;
     --body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
     --mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -206,8 +206,8 @@
   .panel h1.q { font-size: clamp(24px, 3.4vw, 32px); line-height: 1.15; margin: 0 0 18px; outline: none; }
   .hint { color: var(--ink-soft); font-size: 15px; margin: -8px 0 16px; }
   .opts { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-  .opt { display: flex; align-items: center; gap: 12px; min-height: 54px; width: 100%; padding: 12px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; }
-  .opt::before { content: ''; flex: none; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); background: #fff; }
+  .opt { display: flex; align-items: center; gap: 12px; min-height: 54px; width: 100%; padding: 12px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink); font: inherit; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; }
+  .opt::before { content: ''; flex: none; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); background: var(--panel); }
   .opt[data-multi]::before { border-radius: 5px; }
   .opt:hover { border-color: var(--ink-soft); }
   .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--panel); }
@@ -218,7 +218,7 @@
   .field { display: grid; gap: 6px; margin: 16px 0 0; }
   .field label { font-family: var(--mono); font-weight: 600; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
   .field label span { text-transform: none; letter-spacing: 0; font-family: var(--body); font-size: 12px; }
-  .field input, .field textarea, .field select { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: #fff; color: inherit; width: 100%; min-width: 0; }
+  .field input, .field textarea, .field select { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: var(--panel); color: inherit; width: 100%; min-width: 0; }
   .field textarea { min-height: 110px; resize: vertical; }
   .field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
@@ -228,7 +228,7 @@
 
   /* The look picker: five real screenshots, phone-shaped like the preview. */
   .looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
-  .look { display: block; width: 100%; padding: 8px; border: 2px solid var(--line); border-radius: 14px; background: #fff; font: inherit; cursor: pointer; text-align: left; }
+  .look { display: block; width: 100%; padding: 8px; border: 2px solid var(--line); border-radius: 14px; background: var(--panel); font: inherit; cursor: pointer; text-align: left; }
   .look img { display: block; width: 100%; height: auto; aspect-ratio: 390 / 700;  /* height:auto — the width/height attributes would otherwise pin it at 1050px tall and object-fit would show a sliver */ object-fit: cover; object-position: top; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); }
   .look span { display: block; margin: 8px 2px 0; font-weight: 700; font-size: 14px; }
   .look[aria-pressed="true"] { border-color: var(--accent); background: var(--panel); }
@@ -273,12 +273,12 @@
   .sheet h1.q { margin-bottom: 4px; }
   .sheet .lede { color: var(--ink-soft); margin: 0 0 20px; }
   .pkgs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 18px; padding: 0; list-style: none; }
-  .pkg-opt { display: grid; gap: 2px; width: 100%; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+  .pkg-opt { display: grid; gap: 2px; width: 100%; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); font: inherit; text-align: left; cursor: pointer; }
   .pkg-opt b { font-family: var(--display); font-size: 15px; }
   .pkg-opt small { color: var(--ink-soft); font-size: 12px; }
   .pkg-opt em { font-style: normal; font-family: var(--mono); font-weight: 600; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); }
   .pkg-opt[aria-pressed="true"] { border-color: var(--accent); background: var(--panel); box-shadow: 0 0 0 1px var(--accent); }
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; margin: 0 0 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; margin: 0 0 14px; }
   .card h2 { font-size: 18px; margin: 0 0 10px; }
   .price { font-family: var(--display); font-size: 34px; letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
   .price .was { font-family: var(--body); font-size: 16px; font-weight: 400; text-decoration: line-through; color: var(--ink-soft); margin-left: 8px; }
@@ -309,7 +309,7 @@
   .copy-status code { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); word-break: break-all; }
   .card .reserve { display: flex; margin-top: 16px; min-height: 54px; font-size: 17px; }
   .card .reassure { margin-top: 8px; }
-  .fold { border: 1px solid var(--line); border-radius: 20px; background: #fff; margin: 0 0 14px; padding: 0 22px; }
+  .fold { border: 1px solid var(--line); border-radius: 20px; background: var(--panel); margin: 0 0 14px; padding: 0 22px; }
   .fold summary { cursor: pointer; padding: 16px 0; font-family: var(--display); font-weight: 500; font-size: 18px; letter-spacing: -0.01em; list-style: none; display: flex; justify-content: space-between; align-items: center; }
   .fold summary::-webkit-details-marker { display: none; }
   .fold summary::after { content: '+'; font-family: var(--mono); color: var(--ink-soft); }
@@ -373,7 +373,7 @@
 
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Northbound Studio — home"><img src="brand/wordmark-espresso.svg" alt="Northbound Studio" width="148" height="24"></a>
+    <a class="brand" href="/" aria-label="Northbound Studio — home"><img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24"></a>
     <a class="mail-link" href="mailto:hello@northbound-dev.com"><span class="mail-long">hello@northbound-dev.com</span><span class="mail-short" aria-hidden="true">Email us</span></a>
   </div>
 </header>

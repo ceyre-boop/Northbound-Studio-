@@ -2,6 +2,26 @@
 <html lang="en" data-gl="off" data-motion="full">
 <head>
 <meta charset="utf-8">
+<script>
+  /* Two editions of one site: index.html is the phone edition, studio.html is
+     the desktop stage. Each sends the other kind of device across. ?v=m or
+     ?v=d pins the edition for the session (the footer links use it). Automated
+     browsers are left where they landed so the test suite can address either
+     page directly. Vercel will not rewrite "/" over an existing index.html, so
+     the switch lives here, in the head, before anything paints. */
+  (function () {
+    try {
+      var q = /[?&]v=(m|d)\b/.exec(location.search);
+      if (q) sessionStorage.setItem('nb-edition', q[1]);
+      var pin = sessionStorage.getItem('nb-edition');
+      if (navigator.webdriver && !q) return;
+      var desktop = pin ? pin === 'd' : (matchMedia('(min-width: 1024px)').matches && matchMedia('(hover: hover) and (pointer: fine)').matches);
+      var here = 'd';
+      if (here === 'm' && desktop) location.replace('/studio.html' + location.hash);
+      if (here === 'd' && !desktop) location.replace('/' + location.hash);
+    } catch (e) {}
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Northbound Studio — ready-made websites and booking systems for local businesses</title>
 <meta name="description" content="A design and engineering studio in Grand Ledge, Michigan. We build the booking, the follow-up, the payments and the dashboard behind a small business website — the part that pays for itself.">
@@ -599,6 +619,7 @@
   <p><a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a></p>
   <p><a class="tel" href="tel:+14705738908">470-573-8908</a></p>
   <p>Built without a framework. Four hand-written WebGL systems, one canvas, one render loop.</p>
+  <p><a href="/?v=m">Phone version</a></p>
 </footer>
 
 <noscript>

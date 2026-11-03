@@ -44,21 +44,6 @@
   ],
   "rewrites": [
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i).*(mobi|android|iphone|ipod|ipad).*"
-        }
-      ],
-      "destination": "/index.html"
-    },
-    {
-      "source": "/",
-      "destination": "/studio.html"
-    },
-    {
       "source": "/demos/atlas",
       "destination": "https://nb-atlas.vercel.app/"
     },

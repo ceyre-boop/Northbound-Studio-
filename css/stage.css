@@ -283,7 +283,7 @@ p { margin: 0 0 1.05em; max-width: var(--measure); }
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
 }
 .pkg { background: var(--ink-2); padding: clamp(22px, 2.6vw, 34px); }
-.pkg--lead { background: #0C1A1C; box-shadow: inset 2px 0 0 var(--aurora); }
+.pkg--lead { background: #101830; box-shadow: inset 2px 0 0 var(--aurora); }
 .pkg h3 { color: var(--paper); }
 .pkg__price {
   font-family: var(--mono); font-size: 1.5rem; font-weight: 600;

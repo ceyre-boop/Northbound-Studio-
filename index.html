@@ -21,17 +21,110 @@
 <meta name="twitter:image" content="https://northbound-dev.com/brand/og.png">
 <meta name="theme-color" content="#F7F6F2">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- The two faces are self-hosted and preloaded so the first paint is in
+     them: a swap from a fallback face is a layout shift, and the build page
+     holds itself to zero. -->
+<link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/dream.css">
 <script>document.documentElement.classList.add('js');</script>
+<!--
+  THE WAY OUT. Twelve bands close over the page, left to right, and the next
+  page opens from behind them. Twelve because that is how many things are on
+  the homepage: the transition is made of the site's own count, not a stock
+  wipe.
+
+  Inline and in the head on purpose. The arrival half has to be applied
+  before the first paint — loaded any later and you would see the page, then
+  the bands arrive, then they leave, which is worse than no transition at
+  all. It is about 1.2KB gzipped and costs no request.
+
+  It never delays the sale. The href is followed at 85% of the close, the
+  destination is prefetched the moment a pointer touches the link, and under
+  prefers-reduced-motion none of it runs and a link is just a link. The three
+  pages carry identical copies; tests/checkout.unit.test.ts asserts they stay
+  identical.
+-->
+<style>
+  :root { --nb-leave-ms: 620; --nb-arrive-ms: 700; --nb-veil-cells: 12; }
+  .nb-veil { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; display: grid; grid-template-columns: repeat(12, 1fr); }
+  .nb-veil i { display: block; background: #241B17; transform: translateY(-101%); animation: nb-drop 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; }
+  .nb-veil i:nth-child(1) { animation-delay: 0ms; }
+  .nb-veil i:nth-child(2) { animation-delay: 26ms; }
+  .nb-veil i:nth-child(3) { animation-delay: 52ms; }
+  .nb-veil i:nth-child(4) { animation-delay: 78ms; }
+  .nb-veil i:nth-child(5) { animation-delay: 104ms; }
+  .nb-veil i:nth-child(6) { animation-delay: 130ms; }
+  .nb-veil i:nth-child(7) { animation-delay: 156ms; }
+  .nb-veil i:nth-child(8) { animation-delay: 182ms; }
+  .nb-veil i:nth-child(9) { animation-delay: 208ms; }
+  .nb-veil i:nth-child(10) { animation-delay: 234ms; }
+  .nb-veil i:nth-child(11) { animation-delay: 260ms; }
+  .nb-veil i:nth-child(12) { animation-delay: 286ms; }
+  @keyframes nb-drop { to { transform: none; } }
+  html.nb-arriving::before, html.nb-arriving::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: #241B17; }
+  html.nb-arriving::before { animation: nb-open-l 700ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+  html.nb-arriving::after { animation: nb-open-r 700ms 60ms cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+  @keyframes nb-open-l { from { clip-path: inset(0 50% 0 0); } to { clip-path: inset(0 100% 0 0); } }
+  @keyframes nb-open-r { from { clip-path: inset(0 0 0 50%); } to { clip-path: inset(0 0 0 100%); } }
+  html.nb-arriving body { animation: nb-up 700ms 180ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  @keyframes nb-up { from { transform: translateY(24px); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .nb-veil { display: none; } html.nb-arriving::before, html.nb-arriving::after, html.nb-arriving body { animation: none; } }
+</style>
+<script>
+  (function () {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var root = document.documentElement;
+    var LINKS = 'a[href^="checkout.html"], a[href^="/checkout.html"], a[href^="build.html"], a[href^="/build.html"]';
+    var ms = function (name, fallback) {
+      var n = parseFloat(getComputedStyle(root).getPropertyValue(name));
+      return isNaN(n) ? fallback : n;
+    };
+    try {
+      if (sessionStorage.getItem('nb-transit') === '1') {
+        sessionStorage.removeItem('nb-transit');
+        root.classList.add('nb-arriving');
+        setTimeout(function () { root.classList.remove('nb-arriving'); }, ms('--nb-arrive-ms', 700) + 160);
+      }
+    } catch (e) {}
+    var warmed = {};
+    document.addEventListener('pointerover', function (e) {
+      var a = e.target.closest && e.target.closest(LINKS);
+      if (!a || warmed[a.href]) return;
+      warmed[a.href] = 1;
+      var l = document.createElement('link');
+      l.rel = 'prefetch';
+      l.href = a.href;
+      document.head.appendChild(l);
+    }, true);
+    var going = false;
+    document.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest && e.target.closest(LINKS);
+      if (!a || going) return;
+      e.preventDefault();
+      going = true;
+      try { sessionStorage.setItem('nb-transit', '1'); } catch (err) {}
+      var veil = document.createElement('div');
+      veil.className = 'nb-veil';
+      veil.setAttribute('aria-hidden', 'true');
+      var cells = ms('--nb-veil-cells', 12);
+      for (var i = 0; i < cells; i++) veil.appendChild(document.createElement('i'));
+      /* On <html>: a transformed <body> would become the containing block for
+         a fixed child and the bands would size to the whole document. */
+      root.appendChild(veil);
+      var leave = ms('--nb-leave-ms', 620);
+      setTimeout(function () { location.href = a.href; }, leave * 0.85);
+      setTimeout(function () { location.href = a.href; }, leave + 700);
+    }, true);
+  })();
+</script>
 </head>
 <body>
 
 <header class="site-head">
   <a class="brand" href="/" aria-label="Northbound Studio — home">
-    <img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24">
+    <img src="brand/wordmark-espresso.svg" alt="Northbound Studio" width="148" height="24">
   </a>
   <nav class="site-nav" aria-label="Sections">
     <a href="#builds">The builds</a>
@@ -39,7 +132,7 @@
     <a href="#packages">Packages</a>
     <a href="#founder">Who's behind this</a>
   </nav>
-  <a class="btn btn-small" href="checkout.html">Book a call</a>
+  <a class="btn btn-small" href="build.html">Start a build</a>
 </header>
 
 <main>
@@ -52,6 +145,12 @@
         <source src="brand/buddy-wave.webm" type="video/webm">
         <source src="brand/buddy-wave.mp4" type="video/mp4">
       </video>
+      <!-- Buddy waves on a loop, so there is a way to stop him: the one
+           control a moving picture owes a visitor who did not ask for it. -->
+      <button type="button" class="hero-pause" data-hero-pause aria-pressed="false" aria-label="Pause Buddy">
+        <svg class="ic-pause" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="3" height="9" rx="0.8" fill="currentColor"/><rect x="7" y="1.5" width="3" height="9" rx="0.8" fill="currentColor"/></svg>
+        <svg class="ic-play" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.8v8.4L10 6z" fill="currentColor"/></svg>
+      </button>
     </div>
     <div class="hero-content">
       <p class="eyebrow">Northbound Studio · Grand Ledge, Michigan</p>
@@ -61,8 +160,8 @@
         <span class="line"><span class="line-in">a month.</span></span>
       </h1>
       <p class="lede">Northbound is a one-man studio. Every site is designed and built by hand — a few a month, never more — so yours gets a builder, not a queue.</p>
-      <p class="hero-cta"><a class="btn" href="checkout.html">Book the 15-minute call</a></p>
-      <p class="hero-note">Fifteen minutes. If it's not a fit, you'll hear that on the call.</p>
+      <p class="hero-cta"><a class="btn" href="build.html">Start your build</a></p>
+      <p class="hero-note">Eight quick questions, one per screen. You end with a priced build, and nothing is charged until you say so.</p>
     </div>
   </section>
 
@@ -85,9 +184,9 @@
         <span class="program-no">Build No. 002</span>
         <div class="program-body">
           <h3>This one could be yours</h3>
-          <p>The next slot in the program. It starts with a 15-minute call.</p>
+          <p>The next slot in the program. It starts with eight quick questions about your business.</p>
         </div>
-        <span class="program-status"><a href="checkout.html">Start here →</a></span>
+        <span class="program-status"><a href="build.html">Start here →</a></span>
       </li>
     </ol>
   </section>
@@ -131,14 +230,14 @@
       <span class="line"><span class="line-in">Love it or walk away.</span></span>
     </h2>
     <p class="band-lede">The call comes first — it's how the 48 hours go to buyers, not browsers. After it, the clock starts. What you get is a real homepage: your name, your words, your customers in mind. If it isn't right, you walk away and owe nothing.</p>
-    <p><a class="btn btn-light" href="checkout.html">Start with the call</a></p>
+    <p><a class="btn btn-light" href="build.html">Start your build</a></p>
   </section>
 
   <!-- 4 · PACKAGES -->
   <section class="section" id="packages" data-reveal>
     <p class="eyebrow">Packages</p>
     <h2 class="section-title">The price is on the window.</h2>
-    <p class="section-lede">Three ways to commission a build. Every one starts the same way: a 15-minute call.</p>
+    <p class="section-lede">Three ways to commission a build. Every one starts the same way: eight questions, then a call.</p>
 
     <ol class="program">
       <li class="program-row">
@@ -166,7 +265,7 @@
         <span class="program-price">From $600/mo</span>
       </li>
     </ol>
-    <p class="section-cta"><a class="btn" href="checkout.html">Book the 15-minute call</a></p>
+    <p class="section-cta"><a class="btn" href="build.html">Start your build</a></p>
   </section>
 
   <!-- 5 · SPEC SHEET -->
@@ -214,13 +313,13 @@
     <p class="eyebrow">Handover</p>
     <h2 class="section-title">Delivery is a handover.</h2>
     <p class="section-lede">When your site is done, we sit down — in person or on a call — and walk through it together: how to update it, how the booking flows, where the numbers live. You leave with an owner's manual that explains all of it in plain language. After that, Bearing is your service plan: hosting, maintenance, and a monthly report, handled.</p>
-    <p class="section-cta"><a class="btn" href="checkout.html">Book the 15-minute call</a></p>
+    <p class="section-cta"><a class="btn" href="build.html">Start your build</a></p>
   </section>
 
 </main>
 
 <footer class="site-foot">
-  <img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24">
+  <img src="brand/wordmark-espresso.svg" alt="Northbound Studio" width="148" height="24">
   <p class="foot-line">Made to order in Grand Ledge, Michigan.</p>
   <p class="foot-links">
     <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a>

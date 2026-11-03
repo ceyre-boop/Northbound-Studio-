@@ -2,8 +2,11 @@
  * Three things only, per rebuild-brief §4:
  *   1. hero headline lines rise in, staggered, on load;
  *   2. sections fade/slide in once via IntersectionObserver, then stay;
- *   3. the hero media drifts a few px against scroll (rAF).
- * prefers-reduced-motion turns all of it off.
+ *   3. the hero media drifts a few px against scroll (rAF);
+ *   4. Buddy waves on a loop, with one control that stops him.
+ * prefers-reduced-motion turns 1–3 off. Buddy's wave is a small picture in
+ * a fixed frame, not the page moving, so he still waves; the pause control
+ * is for anyone who would rather he did not.
  */
 (function () {
   'use strict';
@@ -35,14 +38,12 @@
   }
 
   /* 3 — hero drift. The video is 112% tall inside its frame; sliding it a
-   * few px against scroll reads as depth without anything bouncing. */
+   * few px against scroll reads as depth without anything bouncing. Written
+   * as a variable so the CSS can keep its own X (Buddy centred in the frame). */
   var wrap = document.querySelector('[data-drift-wrap]');
   var media = document.querySelector('[data-drift]');
   if (wrap && media) {
-    if (reduced) {
-      media.removeAttribute('autoplay');
-      media.pause();
-    } else {
+    if (!reduced) {
       var ticking = false;
       var onScroll = function () {
         if (ticking) return;
@@ -53,11 +54,31 @@
           if (rect.bottom < 0 || rect.top > window.innerHeight) return;
           var progress = -rect.top / (rect.height + window.innerHeight);
           var shift = Math.max(-14, Math.min(14, progress * 28 - 7));
-          media.style.transform = 'translate3d(0,' + shift.toFixed(1) + 'px,0)';
+          media.style.setProperty('--drift', shift.toFixed(1) + 'px');
         });
       };
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
     }
+  }
+
+  /* 4 — Buddy waves; one button stops him. A visitor who stopped him stays
+   * stopped for the session. */
+  var pause = document.querySelector('[data-hero-pause]');
+  if (media && pause) {
+    var KEY = 'nb-buddy-paused';
+    var setPaused = function (on) {
+      pause.setAttribute('aria-pressed', on ? 'true' : 'false');
+      pause.setAttribute('aria-label', on ? 'Let Buddy wave' : 'Pause Buddy');
+      if (on) media.pause();
+      else { var p = media.play(); if (p && p.catch) p.catch(function () {}); }
+      try { sessionStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+    };
+    var wanted = false;
+    try { wanted = sessionStorage.getItem(KEY) === '1'; } catch (e) {}
+    setPaused(wanted);
+    pause.addEventListener('click', function () {
+      setPaused(pause.getAttribute('aria-pressed') !== 'true');
+    });
   }
 })();

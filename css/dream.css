@@ -4,6 +4,11 @@
  * no shadows doing design work, no boxes-in-boxes.
  */
 
+/* Self-hosted, latin subset, variable weight 400–600 (SIL Open Font License).
+   Preloaded from the page head so the first paint is in them. */
+@font-face { font-family: 'Fraunces'; src: url('../fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('../fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+
 :root {
   --cream: #F7F6F2;
   --cream-2: #ECEAE0;
@@ -167,6 +172,14 @@ html.js [data-reveal].is-in {
   height: 112%;
   object-fit: contain; /* Buddy's video is square — contain keeps all of him in the wide frame; his own cream backdrop blends with the frame */
   will-change: transform;
+  /* The clip is composed for the wave: standing, Buddy's body sits at 37% of
+     its width, and his raised arm reaches the right edge. In the wide frame
+     the clip is height-limited (about 0.506 of the frame's width), so the
+     13% of the clip that centres his body is 6.6% of this element, and the
+     wave still has the whole right half of the frame to itself. dream.js
+     writes --drift; the X stays here. */
+  --buddy-x: 6.6%;
+  transform: translate3d(var(--buddy-x), var(--drift, 0px), 0);
 }
 
 .hero-content {
@@ -206,9 +219,37 @@ html.js [data-reveal].is-in {
 
 @media (max-width: 640px) {
   .hero-media { aspect-ratio: 4 / 3; border-radius: 20px 20px 0 0; }
-  .hero-video { object-fit: cover; }
+  .hero-video { object-fit: cover; --buddy-x: 0px; }
   .hero-content { padding-top: 38px; }
 }
+
+/* ---------- the pause control ----------
+ * Buddy waves on a loop, so there is a way to stop him: the one control a
+ * moving picture owes a visitor who did not ask for it. */
+.hero-pause {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--taupe-2);
+  background: var(--cream);
+  color: var(--espresso);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  opacity: .85;
+  transition: opacity .3s var(--ease);
+}
+.hero-pause:hover { opacity: 1; }
+.hero-pause:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.hero-pause .ic-play { display: none; }
+.hero-pause[aria-pressed="true"] .ic-pause { display: none; }
+.hero-pause[aria-pressed="true"] .ic-play { display: block; }
+html:not(.js) .hero-pause { display: none; }
 
 /* ---------- sections ---------- */
 

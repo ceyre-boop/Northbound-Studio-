@@ -217,6 +217,14 @@ html.js [data-reveal].is-in {
   margin: 0;
 }
 
+/* the contained clip sits in the middle half of the wide frame; feather its two edges into the frame */
+@media (min-width: 641px) {
+  .hero-video {
+    -webkit-mask-image: linear-gradient(to right, transparent 24.5%, #000 29%, #000 71%, transparent 75.5%);
+    mask-image: linear-gradient(to right, transparent 24.5%, #000 29%, #000 71%, transparent 75.5%);
+  }
+}
+
 @media (max-width: 640px) {
   .hero-media { aspect-ratio: 4 / 3; border-radius: 20px 20px 0 0; }
   .hero-video { object-fit: cover; --buddy-x: 0px; }

@@ -72,6 +72,35 @@ class GzipHandler(SimpleHTTPRequestHandler):
             super().send_header('Cache-Control', 'no-store')
             super().end_headers()
             return io.BytesIO(b'{}')
+        # Safari will not play <video> from a server that ignores Range
+        # requests (Vercel honours them), so answer them for media files.
+        rng = self.headers.get('Range', '')
+        if rng.startswith('bytes='):
+            import os, re
+            fpath = self.translate_path(self.path)
+            m = re.match(r'bytes=(\d*)-(\d*)$', rng)
+            if m and os.path.isfile(fpath) and str(self.guess_type(fpath)).startswith(('video/', 'audio/')):
+                size = os.path.getsize(fpath)
+                a, b = m.group(1), m.group(2)
+                start = int(a) if a else max(size - int(b or 0), 0)
+                end = min(int(b), size - 1) if (a and b) else size - 1
+                if start >= size or start > end:
+                    self._gz = False
+                    self.send_response(416)
+                    super().send_header('Content-Range', 'bytes */%d' % size)
+                    super().end_headers()
+                    return None
+                with open(fpath, 'rb') as f:
+                    f.seek(start)
+                    chunk = f.read(end - start + 1)
+                self._gz = False
+                self.send_response(206)
+                super().send_header('Content-Type', self.guess_type(fpath))
+                super().send_header('Accept-Ranges', 'bytes')
+                super().send_header('Content-Range', 'bytes %d-%d/%d' % (start, end, size))
+                super().send_header('Content-Length', str(len(chunk)))
+                super().end_headers()
+                return io.BytesIO(chunk)
         # SimpleHTTPRequestHandler writes content-length before we know the
         # compressed size, so buffer the response and send it ourselves.
         if 'gzip' not in self.headers.get('Accept-Encoding', ''):

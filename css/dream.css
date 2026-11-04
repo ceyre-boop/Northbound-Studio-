@@ -10,13 +10,13 @@
 @font-face { font-family: 'Inter'; src: url('../fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
 
 :root {
-  --cream: #0F1218;
-  --cream-2: #171B24;
-  --espresso: #E6EAF2;
-  --espresso-2: #A3ADBF;
-  --taupe: #6B7385;
-  --taupe-2: #2A3140;
-  --red: #5B7CFF;
+  --cream: #1F2228;
+  --cream-2: #2B2F36;
+  --espresso: #ECEEF2;
+  --espresso-2: #B4B9C2;
+  --taupe: #8B919C;
+  --taupe-2: #3E434C;
+  --red: #9DBAF7;
   --radius: 28px;
   --page: min(1100px, 92vw);
   --measure: 650px;
@@ -88,7 +88,7 @@ a { color: inherit; }
   border-radius: 999px;
   transition: transform .35s var(--ease), background .35s var(--ease);
 }
-.btn:hover { transform: translateY(-2px); background: #C9D2FF; }
+.btn:hover { transform: translateY(-2px); background: #C4D6FB; }
 .btn-small { padding: 9px 20px; font-size: 14px; }
 .btn-light { background: var(--cream); color: var(--espresso); }
 .btn-light:hover { background: #FFFFFF; }
@@ -373,7 +373,7 @@ html:not(.js) .hero-pause { display: none; }
   width: var(--page);
   margin: 96px auto 0;
   background: #1B2A6B;
-  color: #E6EAF2;
+  color: #ECEEF2;
   border-radius: var(--radius);
   padding: 84px 6vw;
   text-align: center;
@@ -381,7 +381,7 @@ html:not(.js) .hero-pause { display: none; }
 
 .testdrive .band-title { margin-bottom: 24px; }
 .testdrive .eyebrow { color: #9DB0FF; }
-.testdrive .btn-light { background: #E6EAF2; color: #0F1218; }
+.testdrive .btn-light { background: #ECEEF2; color: #0F1218; }
 .testdrive .band-lede {
   color: #C3CCEB;
   margin: 0 auto 36px;

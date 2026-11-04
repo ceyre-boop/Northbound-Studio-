@@ -220,12 +220,20 @@ html.js [data-reveal].is-in {
   margin: 0;
 }
 
-/* the contained clip sits in the middle half of the wide frame; feather its two edges into the frame */
+/* the contained clip sits in the middle of the wide frame; fade its two edges into the frame colour.
+   An overlay, not a mask on the video: Safari drops masked, transformed video. */
 @media (min-width: 641px) {
-  .hero-video {
-    -webkit-mask-image: linear-gradient(to right, transparent 24.5%, #000 29%, #000 71%, transparent 75.5%);
-    mask-image: linear-gradient(to right, transparent 24.5%, #000 29%, #000 71%, transparent 75.5%);
+  .hero-media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to right,
+      var(--cream-2) 0, var(--cream-2) 31%, transparent 36%,
+      transparent 76%, var(--cream-2) 81.5%, var(--cream-2) 100%);
   }
+  .hero-pause { z-index: 2; }
 }
 
 @media (max-width: 640px) {

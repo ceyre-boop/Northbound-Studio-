@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "measuredAt": "2026-09-25T02:14:25.489Z",
-  "commit": "394fd57",
-  "codeCommit": "394fd57",
+  "measuredAt": "2026-11-04T18:26:52.343Z",
+  "commit": "b3d6694",
+  "codeCommit": "b3d6694",
   "url": "https://northbound-dev.com/studio.html",
   "harness": {
     "cpuThrottleRate": 4,
@@ -19,20 +19,20 @@
   },
   "frame": {
     "p50Ms": 8.3,
-    "p95Ms": 9.7,
-    "p99Ms": 32.4,
-    "samples": 796
+    "p95Ms": 16.5,
+    "p99Ms": 41.7,
+    "samples": 794
   },
   "acts": {
     "northlight": {
       "label": "Northlight",
       "p50Ms": 0,
-      "p95Ms": 0.4
+      "p95Ms": 0.5
     },
     "drift": {
       "label": "Drift",
       "p50Ms": 0.1,
-      "p95Ms": 0.8
+      "p95Ms": 0.7
     },
     "solution": {
       "label": "Solution",
@@ -55,13 +55,13 @@
     {
       "key": "lcp4g",
       "label": "LCP — regular 4G (9 Mbps / 85ms RTT), 4x CPU",
-      "detail": "676ms (samples: 864, 676, 552)",
+      "detail": "600ms (samples: 744, 552, 600)",
       "pass": true
     },
     {
       "key": "lcpSlow4g",
       "label": "LCP — slow 4G (1.6 Mbps / 150ms RTT), 4x CPU",
-      "detail": "976ms (samples: 976, 956, 1028)",
+      "detail": "1016ms (samples: 1160, 1016, 960)",
       "pass": true
     },
     {
@@ -73,19 +73,19 @@
     {
       "key": "fpsMedian",
       "label": "FPS — median at 4x CPU, 390x844",
-      "detail": "120fps (samples: 118, 119, 120, 120, 121, 121)",
+      "detail": "118fps (samples: 112, 118, 114, 120, 120, 118)",
       "pass": true
     },
     {
       "key": "fpsMin",
       "label": "FPS — minimum at 4x CPU, 390x844",
-      "detail": "118fps",
+      "detail": "112fps",
       "pass": true
     },
     {
       "key": "jsBytes",
       "label": "JS bytes gzipped over the wire",
-      "detail": "69.2 KB",
+      "detail": "92.8 KB",
       "pass": true
     },
     {
@@ -115,30 +115,30 @@
   ],
   "report": {
     "tti": {
-      "fcp": 404,
-      "tti": 1368.3000001907349,
+      "fcp": 524,
+      "tti": 1527.300000011921,
       "longtaskCount": 1
     },
     "scrollLongTasks": {
-      "count": 2,
-      "totalMs": 374,
-      "windowMs": 3983.2000000476837
+      "count": 4,
+      "totalMs": 706,
+      "windowMs": 4500.699999988079
     },
     "programsBeforeFCP": {
-      "fcp": 400,
+      "fcp": 420,
       "total": 3,
       "beforeFCP": 0,
       "programs": [
         {
-          "time": 666.5,
+          "time": 691.6000000238419,
           "type": "WebGL2RenderingContext"
         },
         {
-          "time": 717.8999998569489,
+          "time": 743.8000000119209,
           "type": "WebGL2RenderingContext"
         },
         {
-          "time": 719,
+          "time": 744.4000000357628,
           "type": "WebGL2RenderingContext"
         }
       ]

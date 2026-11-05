@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "echo 'no install: static page and two functions'",
+  "buildCommand": "echo 'nothing to build'",
+  "outputDirectory": ".",
+  "headers": [
+    { "source": "/engine.config.json", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] }
+  ]
+}

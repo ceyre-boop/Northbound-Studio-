@@ -15,12 +15,15 @@ test.describe('templates — the page and the table agree', () => {
     await expect(page.locator('[data-tpl="atlas"] .tpl-price')).toContainText(`$${TEMPLATES.atlas.price}`);
     await expect(page.locator('[data-tpl="vector"] .tpl-price')).toContainText(`$${TEMPLATES.vector.price}`);
     await expect(page.locator('[data-tpl="both"] .tpl-price')).toContainText(`$${TEMPLATES.both.price}`);
+    await expect(page.locator('[data-tpl="engine"] .tpl-price')).toContainText(`$${TEMPLATES.engine.price}`);
   });
 
   test('with no shop url, the page asks for an email and sells nothing', async ({ page }) => {
-    test.skip(Boolean(TEMPLATES.atlas.url || TEMPLATES.vector.url || TEMPLATES.both.url), 'a url is set: the Buy buttons are live');
+    test.skip(Boolean(TEMPLATES.atlas.url || TEMPLATES.vector.url || TEMPLATES.both.url || TEMPLATES.engine.url), 'a url is set: the Buy buttons are live');
     await page.goto('/templates.html');
-    for (const key of ['atlas', 'vector']) {
+    await expect(page.locator('[data-demo="engine"]')).toBeHidden(); // no demo url, no dead link
+    await page.goto('/templates.html');
+    for (const key of ['atlas', 'vector', 'engine']) {
       const box = page.locator(`[data-tpl="${key}"]`);
       await expect(box.locator('.tpl-wait')).toBeVisible();
       await expect(box.locator('.tpl-wait')).toHaveAttribute('action', '/api/quote');

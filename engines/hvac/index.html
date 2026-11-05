@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Book a visit</title>
+<meta name="description" content="Tell us what's going on, pick a time, and hold your spot with a deposit.">
+<meta name="robots" content="noindex">
+<!-- An inline icon: no favicon request, no 404 in your logs. Swap for your own. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%231F4E79%27/%3E%3Cpath d=%27M9 20h14M9 14h14M16 8v16%27 stroke=%27%23fff%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<!--
+  THE BOOKING ENGINE.
+
+  One page, one question per screen, and a deposit at the end. Everything it
+  says and charges comes from engine.config.json; this file never needs
+  editing to change a service or a price. The browser shows the price for
+  the customer's information only — api/book.ts re-derives it from the same
+  config, so nothing typed into the page can change what is charged.
+
+  Without JavaScript the plain form below is what you get: it posts to the
+  same route, which takes it as a visit request (no payment) and emails you.
+  Never a blank page.
+-->
+<style>
+  :root {
+    --accent: #1F4E79;
+    --ink: #17202A;
+    --ink-soft: #566573;
+    --line: #D9DEE3;
+    --panel: #F4F6F8;
+    --bg: #FFFFFF;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.55; color: var(--ink); background: var(--bg); }
+  a { color: inherit; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 20px; }
+  .top { border-bottom: 1px solid var(--line); }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; }
+  .brand { font-weight: 700; font-size: 18px; text-decoration: none; }
+  .call { display: inline-flex; align-items: center; min-height: 42px; padding: 8px 16px; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 600; text-decoration: none; white-space: nowrap; }
+  main { padding: 24px 0 56px; min-height: 70vh; }
+  h1 { font-size: clamp(26px, 5vw, 34px); line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .lede { color: var(--ink-soft); margin: 0 0 22px; }
+  .progress { display: flex; justify-content: space-between; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 8px; }
+  .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin: 0 0 22px; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 240ms ease; }
+  .q { font-size: clamp(22px, 4.2vw, 28px); line-height: 1.2; margin: 0 0 6px; }
+  .hint { color: var(--ink-soft); margin: 0 0 16px; font-size: 15px; }
+  .opts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .opt { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  .opt::before { content: ''; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); margin-top: 2px; }
+  .opt:hover { border-color: var(--ink-soft); }
+  .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--panel); }
+  .opt[aria-pressed="true"]::before { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px #fff; }
+  .opt b { display: block; font-weight: 600; }
+  .opt small { display: block; color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+  .field { display: grid; gap: 6px; margin: 14px 0 0; }
+  .field label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  .field label span { font-weight: 400; }
+  .field input, .field textarea, .field select { width: 100%; min-width: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 16px; background: #fff; color: inherit; }
+  .field textarea { min-height: 96px; resize: vertical; }
+  .field input:focus, .field textarea:focus, .field select:focus, .opt:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .nav { display: flex; gap: 10px; margin-top: 22px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 20px; border-radius: 10px; border: 1px solid transparent; font: inherit; font-weight: 600; font-size: 16px; cursor: pointer; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #fff; flex: 2; }
+  .btn-quiet { background: transparent; color: var(--ink-soft); border-color: var(--line); flex: 1; }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; }
+  .card { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin: 0 0 14px; background: #fff; }
+  .card h2 { font-size: 17px; margin: 0 0 10px; }
+  .row { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 15px; }
+  .row:first-of-type { border-top: 0; }
+  .row b { font-weight: 600; }
+  .row .v { text-align: right; color: var(--ink-soft); }
+  .total { font-size: 20px; margin: 12px 0 2px; }
+  .total .amt { font-weight: 700; }
+  .note { color: var(--ink-soft); font-size: 14px; margin: 6px 0 0; }
+  .status { margin: 12px 0 0; font-size: 15px; min-height: 1.4em; }
+  .status.err { color: #B3261E; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .foot { border-top: 1px solid var(--line); padding: 20px 0 40px; color: var(--ink-soft); font-size: 14px; }
+  .foot p { margin: 0 0 6px; }
+  /* JavaScript decides which of the two is on the page. */
+  .js #plain { display: none; }
+  html:not(.js) #flow { display: none; }
+  .js #flow[hidden] { display: none; }
+</style>
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" id="brand" href="./">Book a visit</a>
+    <a class="call" id="call" href="#">Call</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <section id="flow" hidden aria-label="Book a visit">
+      <p class="progress"><span id="step-label">Step 1 of 6</span><span id="step-name">What's going on</span></p>
+      <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+      <div id="panel" aria-live="polite"></div>
+    </section>
+
+    <!-- The no-JavaScript path: a request, not a payment. api/book.ts prices
+         only from a service key it recognises; free text becomes a visit
+         request and an email to you. -->
+    <section id="plain">
+      <h1 id="plain-h1">Book a visit.</h1>
+      <p class="lede" id="plain-sub">Tell us what's going on and when works, and we'll confirm by phone.</p>
+      <form method="post" action="api/book">
+        <p class="field"><label for="p-name">Your name</label><input id="p-name" name="name" type="text" autocomplete="name" required></p>
+        <p class="field"><label for="p-phone">Phone</label><input id="p-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
+        <p class="field"><label for="p-email">Email <span>(optional)</span></label><input id="p-email" name="email" type="email" autocomplete="email"></p>
+        <p class="field"><label for="p-address">Address</label><input id="p-address" name="address" type="text" autocomplete="street-address"></p>
+        <p class="field"><label for="p-issue">What's going on</label><textarea id="p-issue" name="issue"></textarea></p>
+        <p class="field"><label for="p-day">When works</label><input id="p-day" name="day" type="text" placeholder="e.g. Tuesday morning"></p>
+        <p class="hp" aria-hidden="true"><label for="p-hp">Leave this empty</label><input id="p-hp" name="nb_hp" type="text" tabindex="-1" autocomplete="new-password"></p>
+        <p class="nav"><button class="btn btn-primary" type="submit">Request a visit</button></p>
+      </form>
+    </section>
+
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p id="foot-line"></p>
+    <p id="foot-hours"></p>
+  </div>
+</footer>
+
+<script type="module" src="js/engine.js"></script>
+</body>
+</html>

@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Templates — Northbound Studio</title>
-<meta name="description" content="The studio's two concept builds as source you own: a trades site built around booking the call, and a small shop with real card checkout. One content file to edit, a free Vercel account, an afternoon.">
+<meta name="description" content="The studio's two concept builds and its booking engine, as source you own: a trades site built around booking the call, a small shop with real card checkout, and a booking-and-deposit flow. One config file to edit, a free Vercel account, an afternoon.">
 <link rel="canonical" href="https://northbound-dev.com/templates.html">
 <meta property="og:title" content="Templates — Northbound Studio">
-<meta property="og:description" content="Two builds, to run yourself. A trades site with booking and a small shop with card checkout, as source you own.">
+<meta property="og:description" content="Three builds, to run yourself. A trades site with booking, a small shop with card checkout, and a booking engine, as source you own.">
 <meta property="og:url" content="https://northbound-dev.com/templates.html">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://northbound-dev.com/brand/og.png">
@@ -66,13 +66,22 @@
   .tpl-wait input:focus { outline: 2px solid var(--red); outline-offset: 1px; }
   .tpl-wait .btn { border: 0; cursor: pointer; font-family: inherit; justify-self: start; }
   .tpl-note { font-size: 13.5px; color: var(--taupe); margin: 2px 0 0; max-width: 420px; }
-  .tpl-buy-link[hidden], .tpl-wait[hidden] { display: none; }  /* the grid above would otherwise outrank the hidden attribute */
+  .tpl-buy-link[hidden], .tpl-wait[hidden], .tpl-demo[hidden] { display: none; }  /* the grid above would otherwise outrank the hidden attribute */
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .tpl-gets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 44px; margin-top: 44px; }
   .tpl-gets h3 { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 22px; margin: 0 0 8px; }
   .tpl-gets p { margin: 0; color: var(--espresso-2); }
   .tpl-both { margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--taupe-2); display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 24px; }
   .tpl-both .tpl-price { font-size: 28px; }
+  /* The engine has no poster: a drawn mock of its last screen, in its own neutral colours. */
+  .tpl-screen-engine { padding: 28px 24px; background: #fff; }
+  .eng-mock { max-width: 360px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #17202A; }
+  .eng-step { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #566573; margin: 0 0 6px; }
+  .eng-q { font-size: 24px; font-weight: 600; margin: 0 0 14px; }
+  .eng-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid #D9DEE3; font-size: 14px; }
+  .eng-row span:last-child { color: #566573; }
+  .eng-due { font-size: 18px; margin: 14px 0 10px; }
+  .eng-btn { margin: 0; padding: 13px 16px; border-radius: 10px; background: #1F4E79; color: #fff; font-weight: 600; text-align: center; font-size: 15px; }
   @media (max-width: 820px) {
     .tpl { grid-template-columns: 1fr; gap: 28px; }
     .tpl-gets { grid-template-columns: 1fr; gap: 28px; }
@@ -100,8 +109,8 @@
 
   <section class="section tpl-intro" data-reveal>
     <p class="eyebrow">Templates</p>
-    <h1 class="section-title">Two builds, to run yourself.</h1>
-    <p class="section-lede">The studio's two concept builds, as source you own. Ridgeline Roofing and Marrow Coffee are invented businesses, and the demos say so on every page. What's real is the code behind them: the booking that saves the lead before it emails it, the checkout that prices on the server so a cart can't be tampered with. That code is what you're buying. One text file holds every word, price and hour; a free Vercel account hosts it; an afternoon makes it yours.</p>
+    <h1 class="section-title">Three builds, to run yourself.</h1>
+    <p class="section-lede">The studio's two concept builds and its booking engine, as source you own. Ridgeline Roofing and Marrow Coffee are invented businesses, and the demos say so on every page. What's real is the code behind them: the booking that saves the lead before it emails it, the checkout that prices on the server so a cart can't be tampered with. That code is what you're buying. One text file holds every word, price and hour; a free Vercel account hosts it; an afternoon makes it yours.</p>
   </section>
 
   <!-- ATLAS. Every line in the list names code in demos/atlas/src. -->
@@ -175,6 +184,50 @@
     </div>
   </section>
 
+  <!-- THE ENGINE. Every line in the list names code in engines/hvac. -->
+  <section class="section" id="engine" data-reveal>
+    <div class="tpl">
+      <div class="tpl-screen tpl-screen-engine" aria-hidden="true">
+        <div class="eng-mock">
+          <p class="eng-step">Step 6 of 6 · Confirm</p>
+          <p class="eng-q">Hold your spot.</p>
+          <div class="eng-row"><span>AC not cooling</span><span>Diagnostic visit</span></div>
+          <div class="eng-row"><span>Today</span><span>Morning, 8–12</span></div>
+          <p class="eng-due">Due now: <b>$139.00</b></p>
+          <p class="eng-btn">Pay $139.00 and hold my spot</p>
+        </div>
+      </div>
+      <div class="tpl-body">
+        <p class="eyebrow">03 · The booking engine</p>
+        <h2 class="section-title">The machine behind the site.</h2>
+        <p class="tpl-job">A customer says what's wrong, where, how soon and when, sees the price, and pays the deposit on Stripe's page. You get the email the moment it's paid. Built for heating and cooling; the trade is a config file.</p>
+        <a class="tpl-demo" hidden data-demo="engine" href="#" target="_blank" rel="noopener">Open the live demo →</a>
+        <p class="tpl-h">What's behind it</p>
+        <ul class="tpl-list">
+          <li><b>Six screens, one question each.</b> Service, place, urgency, time, contact, confirm. The answers survive a refresh.</li>
+          <li><b>The price is decided on the server.</b> The page shows it; the server re-derives it from your config before Stripe is ever asked. Nothing typed into the page can change what is charged.</li>
+          <li><b>A deposit, a full price, or nothing.</b> Each service says what is due now and what the whole job costs. An estimate takes no payment and comes through as a request you confirm by phone. Same-day visits add your after-hours fee, shown before they pay.</li>
+          <li><b>Nothing a customer does can lose a booking.</b> Stripe not set up, or Stripe refusing: the booking still reaches your inbox, marked to take payment by phone. Without JavaScript, a plain form does the same.</li>
+          <li><b>Two emails when the deposit lands.</b> A webhook verifies the payment with Stripe, then emails you the job and the customer a confirmation.</li>
+          <li><b>Needs:</b> a Stripe account and a free Resend account. Five environment variables, one config file, Vercel's free tier.</li>
+        </ul>
+        <div class="tpl-buy" data-tpl="engine">
+          <p class="tpl-price">$149 <span>one business, yours to keep</span></p>
+          <a class="btn tpl-buy-link" hidden data-buy="engine" href="#">Buy the engine — $149</a>
+          <form class="tpl-wait" method="post" action="/api/quote">
+            <input type="hidden" name="need" value="Template: The booking engine (HVAC)">
+            <input type="hidden" name="message" value="Tell me when the booking engine is on sale, at the launch price.">
+            <p class="field"><label for="e-name">Your name</label><input id="e-name" name="name" type="text" autocomplete="name" required></p>
+            <p class="field"><label for="e-email">Email</label><input id="e-email" name="email" type="email" autocomplete="email" required></p>
+            <p class="hp" aria-hidden="true"><label for="e-hp">Leave this empty</label><input id="e-hp" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
+            <button class="btn" type="submit">Tell me when it's out</button>
+            <p class="tpl-note">Not on sale yet. Leave your email and you'll hear the day it is, at the launch price. Nothing else happens to your address.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section section-alt" id="what-you-get" data-reveal>
     <p class="eyebrow">What you get</p>
     <h2 class="section-title">The source, a read-me, and a licence you can read.</h2>
@@ -238,6 +291,8 @@
       buy.hidden = false;
       if (wait) wait.hidden = true;
     }
+    const demo = document.querySelector(`[data-demo="${key}"]`);
+    if (demo && t.demo) { demo.href = t.demo; demo.hidden = false; }
   }
 </script>
 </body>

@@ -1,4 +1,4 @@
-/* tests/engine-hvac.unit.test.ts — the booking engine's money path, unit-tested.
+/* tests/engine-trades.unit.test.ts — the booking engine's money path, unit-tested.
  *
  * bun:test, no server, no browser; global.fetch is mocked so neither Stripe
  * nor Resend is called. Proves the things that are about money:
@@ -8,12 +8,13 @@
  *      booking intact;
  *   3. the webhook believes only Stripe: a forged signature emails nobody,
  *      a genuine completed session emails the owner and the customer.
- * Run: bun test tests/engine-hvac.unit.test.ts
+ * Run: bun test tests/engine-trades.unit.test.ts
  */
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
-import config from '../engines/hvac/engine.config.json';
-import { POST as book, priceFor } from '../engines/hvac/api/book.ts';
-import { POST as webhook } from '../engines/hvac/api/webhook.ts';
+import { readdirSync, readFileSync } from 'node:fs';
+import config from '../engines/trades/engine.config.json';
+import { POST as book, priceFor } from '../engines/trades/api/book.ts';
+import { POST as webhook } from '../engines/trades/api/webhook.ts';
 
 type Call = { url: string; body: string };
 let calls: Call[] = [];
@@ -57,20 +58,46 @@ function stripeParam(body: string, key: string): string | null {
   return new URLSearchParams(body).get(key);
 }
 
+/* The checks every config must pass: the shipped one and each example. */
+function checkConfig(c: typeof config) {
+  expect(c.business.name.length).toBeGreaterThan(2);
+  expect(c.business.phoneHref).toMatch(/^tel:\+?\d+$/);
+  expect(c.business.accent).toMatch(/^#[0-9A-Fa-f]{6}$/);
+  expect(Number.isInteger(c.afterHours.cents) && c.afterHours.cents >= 0).toBe(true);
+  const keys = new Set<string>();
+  for (const s of c.services) {
+    expect(s.key).toMatch(/^[a-z0-9-]+$/);
+    expect(keys.has(s.key)).toBe(false); keys.add(s.key);
+    expect(s.name.length).toBeGreaterThan(2);
+    expect(s.label.length).toBeGreaterThan(2);
+    expect(Number.isInteger(s.due) && s.due >= 0).toBe(true);
+    expect(Number.isInteger(s.total) && s.total >= 0).toBe(true);
+    if (s.total) expect(s.total).toBeGreaterThanOrEqual(s.due);
+  }
+  expect(c.services.some((s) => s.due === 0)).toBe(true);  // one request-only job
+  expect(c.services.some((s) => s.due > 0)).toBe(true);    // one paid one
+  expect(c.property.length).toBeGreaterThan(0);
+  expect(c.windows.length).toBeGreaterThan(0);
+  expect(c.urgency.some((u) => u.key === 'today')).toBe(true); // the after-hours fee is tied to this key
+  expect(new Set(c.urgency.map((u) => u.key)).size).toBe(c.urgency.length);
+}
+
 describe('the config', () => {
-  test('every service has a key, a name, a label, and numbers that make sense', () => {
-    const keys = new Set<string>();
-    for (const s of config.services) {
-      expect(s.key).toMatch(/^[a-z0-9-]+$/);
-      expect(keys.has(s.key)).toBe(false); keys.add(s.key);
-      expect(s.name.length).toBeGreaterThan(2);
-      expect(s.label.length).toBeGreaterThan(2);
-      expect(Number.isInteger(s.due) && s.due >= 0).toBe(true);
-      expect(Number.isInteger(s.total) && s.total >= 0).toBe(true);
-      if (s.total) expect(s.total).toBeGreaterThanOrEqual(s.due);
-    }
-    expect(config.services.some((s) => s.due === 0)).toBe(true);  // one request-only job
-    expect(config.services.some((s) => s.due > 0)).toBe(true);    // one paid one
+  test('every service has a key, a name, a label, and numbers that make sense', () => checkConfig(config));
+});
+
+describe('the example configs', () => {
+  const dir = new URL('../engines/trades/examples/', import.meta.url);
+  const names = readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
+  const read = (name: string) => JSON.parse(readFileSync(new URL(name, dir), 'utf8')) as typeof config;
+  test('one per trade, and the heating one is the shipped config, byte for byte in meaning', () => {
+    expect(names).toEqual(['electrical.json', 'hvac.json', 'plumbing.json', 'roofing.json']);
+    expect(read('hvac.json')).toEqual(config);
+  });
+  for (const name of names) test(`${name} passes the same checks as the shipped config`, () => checkConfig(read(name)));
+  test('the examples are different businesses, not the demo renamed', () => {
+    const n = new Set(names.map((x) => read(x).business.name));
+    expect(n.size).toBe(names.length);
   });
 });
 

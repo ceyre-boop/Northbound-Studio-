@@ -1,6 +1,7 @@
 # The booking engine — read me first
 
-This is a booking-and-deposit flow for a heating and cooling company. A
+This is a booking-and-deposit flow for a trade business: heating and
+cooling, plumbing, electrical, roofing, or any trade that books visits. A
 customer says what's wrong, where, how soon and when, leaves a name and a
 number, sees the price, and pays the deposit on Stripe's page. You get an
 email the moment it's paid; they get a confirmation. Jobs with nothing to
@@ -29,6 +30,15 @@ service has:
 This file is served to the browser, so nothing private goes in it. The
 inbox that receives bookings is an environment variable (below), not a
 line in the config.
+
+### Pick your trade
+
+The config that ships is a heating and cooling company. `examples/` has the
+same file written for plumbing, electrical and roofing. Copy the one closest
+to your trade over `engine.config.json` and edit from there. Nothing else
+changes: the services, the property types, the urgency options and the time
+windows are all data, so any trade that books visits fits. Keep the urgency
+key `today`; that is the one the after-hours fee is tied to.
 
 ## Thirty minutes to live
 

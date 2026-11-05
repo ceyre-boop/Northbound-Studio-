@@ -1,6 +1,6 @@
-/* tests/engine-hvac.spec.ts — the booking engine's page, driven.
+/* tests/engine-trades.spec.ts — the booking engine's page, driven.
  *
- * Served from this repo's root at /engines/hvac/, where there is no api/, so
+ * Served from this repo's root at /engines/trades/, where there is no api/, so
  * the final post is intercepted and its body inspected: the browser sends
  * the answers and nothing about price. The price on the last screen is read
  * against engine.config.json. No-JS gets the plain form. No sideways scroll,
@@ -10,8 +10,8 @@ import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 // Playwright runs under Node, where import.meta.dir does not exist; a URL does.
-const cfg = JSON.parse(readFileSync(new URL('../engines/hvac/engine.config.json', import.meta.url), 'utf8'));
-const PAGE = '/engines/hvac/index.html'; // not `URL`: that shadows the global class used two lines up
+const cfg = JSON.parse(readFileSync(new URL('../engines/trades/engine.config.json', import.meta.url), 'utf8'));
+const PAGE = '/engines/trades/index.html'; // not `URL`: that shadows the global class used two lines up
 const money = (c: number) => `$${(c / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 
 async function fresh(page: Page) {
@@ -59,9 +59,9 @@ test.describe('the booking engine', () => {
     await expect(page.locator('#due')).toHaveText(money(ac.due + cfg.afterHours.cents));
     await expect(page.locator('#go')).toContainText(money(ac.due + cfg.afterHours.cents));
     let sent: Record<string, unknown> | null = null;
-    await page.route('**/engines/hvac/api/book', async (route) => {
+    await page.route('**/engines/trades/api/book', async (route) => {
       sent = route.request().postDataJSON();
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, url: '/engines/hvac/booked.html' }) });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, url: '/engines/trades/booked.html' }) });
     });
     await page.locator('#go').click();
     await expect(page).toHaveURL(/booked\.html$/);
@@ -80,7 +80,7 @@ test.describe('the booking engine', () => {
   test('a refused post keeps the customer on the page with the phone number', async ({ page }) => {
     await fresh(page);
     await walk(page, 'tune-up', 'week');
-    await page.route('**/engines/hvac/api/book', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ ok: false, error: 'Not configured' }) }));
+    await page.route('**/engines/trades/api/book', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ ok: false, error: 'Not configured' }) }));
     await page.locator('#go').click();
     await expect(page.locator('#status')).toContainText(cfg.business.phone);
     await expect(page.locator('#go')).toBeEnabled();

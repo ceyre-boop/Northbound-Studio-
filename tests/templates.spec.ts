@@ -16,7 +16,7 @@ test.describe('templates — the page and the table agree', () => {
     await expect(page.locator('[data-tpl="vector"] .tpl-price')).toContainText(`$${TEMPLATES.vector.price}`);
     await expect(page.locator('[data-tpl="both"] .tpl-price')).toContainText(`$${TEMPLATES.both.price}`);
     // The engine's price is Colin's call: until set, the page says so and shows no number.
-    if (TEMPLATES.engine.price) await expect(page.locator('[data-tpl="engine"] .tpl-price')).toContainText(`$${TEMPLATES.engine.price}`);
+    if (TEMPLATES.engine.price) await expect(page.locator('[data-tpl="engine"] .tpl-price')).toContainText(`$${TEMPLATES.engine.price.toLocaleString('en-US')}`);
     else await expect(page.locator('[data-tpl="engine"] .tpl-price')).not.toContainText('$');
   });
 

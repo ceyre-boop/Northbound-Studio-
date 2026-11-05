@@ -76,29 +76,28 @@ not reach; they can join the shop later.
 
 The templates sell the front. The thing that actually makes money while
 nobody is watching is the flow behind it, so the first engine is built and
-listed: `engines/hvac`, a booking-and-deposit flow for a heating and cooling
-company. One HTML page, one config file, two Vercel functions, no
+listed: `engines/trades`, a booking-and-deposit flow for a trade business. One HTML page, one config file, two Vercel functions, no
 dependencies. Six screens, the price derived on the server from the config,
 a Stripe Checkout Session for what is due, a webhook that emails both sides
 when it is paid, and a request path (no payment) for estimates, for a Stripe
 that is not set up, and for visitors without JavaScript. Nothing a customer
 does can lose a booking.
 
-HVAC was the vertical because it was first on the list, it is a bigger trade
-than roofing, Atlas already covers roofing, and "today, it's not working"
-gives the after-hours fee a reason to exist. Roofing or med-spa is a config
-file away: the services, the property types, the urgency options and the
-windows are all data.
+Colin's call (2026-11-05): the engine is for any trade business, not one
+vertical. The code never knew a trade; the config does. So the folder is
+`engines/trades`, the shipped config is the heating-and-cooling demo, and
+`examples/` carries the same file for plumbing, electrical and roofing. The
+services, the property types, the urgency options and the windows are all
+data. The price is $2,000, also his call, the same day.
 
-Listed on templates.html as the third product with no price yet (the price
-is Colin's call, and the page says "to be announced" until he sets it), with
+Listed on templates.html as the third product at $2,000, with
 the same honest form until a shop url is set, and
 a demo link that appears only when `TEMPLATES.engine.demo` is set.
-`scripts/templates.ts` packages it as `nb-engine-hvac.zip`.
+`scripts/templates.ts` packages it as `nb-engine-trades.zip`.
 
 What only Colin can do, added to the list above:
 
-- [ ] Deploy `engines/hvac` as its own Vercel project with test keys, book a
+- [ ] Deploy `engines/trades` as its own Vercel project with test keys, book a
       visit with Stripe's test card, and confirm both emails arrive. Then set
       `TEMPLATES.engine.demo` to that url so the page shows the live demo.
-- [ ] Set the price in `TEMPLATES.engine.price`. Nothing is listed until he does.
+- [x] Set the price in `TEMPLATES.engine.price`. $2,000, 2026-11-05.

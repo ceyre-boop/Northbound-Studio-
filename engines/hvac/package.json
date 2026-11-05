@@ -1,6 +1,0 @@
-{
-  "name": "nb-engine-hvac",
-  "private": true,
-  "type": "module",
-  "description": "A booking-and-deposit engine for a heating and cooling company. One config file, two Vercel functions, no dependencies."
-}

@@ -33,11 +33,22 @@ test.describe('homepage — every door leads to the questions', () => {
     await expect(page.locator('#q')).toHaveText('What kind of business?');
   });
 
-  test('the wordmark is the espresso one, so it shows on cream', async ({ page }) => {
+  test('the wordmark is drawn in a colour that shows on the page', async ({ page }) => {
+    // The ground has changed colour before (cream, then smoky grey) and the
+    // wordmark once vanished into it. Whatever the palette, the mark's fill
+    // must contrast with the body behind it.
     await page.goto('/');
     const marks = page.locator('img[alt="Northbound Studio"]');
     expect(await marks.count()).toBe(2);
-    for (let i = 0; i < 2; i++) await expect(marks.nth(i)).toHaveAttribute('src', 'brand/wordmark-espresso.svg');
+    const src = await marks.first().getAttribute('src');
+    const svg = await (await page.request.get(src!)).text();
+    const fill = (svg.match(/fill="(?:var\([^,]+,\s*)?(#[0-9a-fA-F]{6})/) || [])[1];
+    expect(fill, 'the wordmark has a hex fill').toBeTruthy();
+    const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    const lum = (hex: string) => { const n = parseInt(hex.slice(1), 16); return (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255; };
+    const [r, g, b] = bg.match(/\d+/g)!.map(Number);
+    const bgLum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    expect(Math.abs(lum(fill!) - bgLum), `wordmark ${fill} on ${bg}`).toBeGreaterThan(0.4);
   });
 
   test('no horizontal scroll at 390 or 1280', async ({ page }) => {
@@ -77,11 +88,14 @@ test.describe('homepage — Buddy', () => {
 
 test.describe('the questions and the counter wear the same clothes', () => {
   for (const path of ['/build.html', '/checkout.html']) {
-    test(`${path}: dream tokens, espresso wordmark, email instead of a phone number`, async ({ page }) => {
+    test(`${path}: the homepage's ground and wordmark, email instead of a phone number`, async ({ page }) => {
+      await page.goto('/');
+      const homeBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      const homeMark = await page.locator('header img[alt="Northbound Studio"]').getAttribute('src');
       await page.goto(path);
       const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-      expect(bg).toBe('rgb(247, 246, 242)');
-      await expect(page.locator('header img[alt="Northbound Studio"]')).toHaveAttribute('src', 'brand/wordmark-espresso.svg');
+      expect(bg).toBe(homeBg);
+      await expect(page.locator('header img[alt="Northbound Studio"]')).toHaveAttribute('src', homeMark!);
       expect(await page.locator('a[href^="tel:"]').count()).toBe(0);
       await expect(page.locator('header a[href^="mailto:"]')).toHaveCount(1);
     });

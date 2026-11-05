@@ -71,3 +71,34 @@ not reach; they can join the shop later.
       discovery: the research is explicit that a large share of listings
       never sell once.
 - [ ] Count to ten. Ten buyers opens the micro-SaaS question; fewer answers it.
+
+## Addendum: the engine (2026-11-05)
+
+The templates sell the front. The thing that actually makes money while
+nobody is watching is the flow behind it, so the first engine is built and
+listed: `engines/hvac`, a booking-and-deposit flow for a heating and cooling
+company. One HTML page, one config file, two Vercel functions, no
+dependencies. Six screens, the price derived on the server from the config,
+a Stripe Checkout Session for what is due, a webhook that emails both sides
+when it is paid, and a request path (no payment) for estimates, for a Stripe
+that is not set up, and for visitors without JavaScript. Nothing a customer
+does can lose a booking.
+
+HVAC was the vertical because it was first on the list, it is a bigger trade
+than roofing, Atlas already covers roofing, and "today, it's not working"
+gives the after-hours fee a reason to exist. Roofing or med-spa is a config
+file away: the services, the property types, the urgency options and the
+windows are all data.
+
+Listed on templates.html as the third product with no price yet (the price
+is Colin's call, and the page says "to be announced" until he sets it), with
+the same honest form until a shop url is set, and
+a demo link that appears only when `TEMPLATES.engine.demo` is set.
+`scripts/templates.ts` packages it as `nb-engine-hvac.zip`.
+
+What only Colin can do, added to the list above:
+
+- [ ] Deploy `engines/hvac` as its own Vercel project with test keys, book a
+      visit with Stripe's test card, and confirm both emails arrive. Then set
+      `TEMPLATES.engine.demo` to that url so the page shows the live demo.
+- [ ] Set the price in `TEMPLATES.engine.price`. Nothing is listed until he does.

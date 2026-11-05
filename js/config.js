@@ -27,4 +27,7 @@ export const TEMPLATES = {
   atlas: { name: 'Atlas', price: 79, url: '' },
   vector: { name: 'Vector', price: 79, url: '' },
   both: { name: 'Both', price: 129, url: '' },
+  /* The engine: a booking-and-deposit flow, sold as source like the two
+     templates. `demo` is the live demo's url; empty hides the demo link. */
+  engine: { name: 'The booking engine', price: null, url: '', demo: '' }, // price: Colin's call; null = not announced
 };

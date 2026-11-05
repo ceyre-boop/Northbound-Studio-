@@ -29,3 +29,6 @@ brand-src/
 
 # The buyer-facing README and license ship inside the template zips, not on the site.
 templates/
+
+# The booking engine is its own Vercel project and a product; its source stays out of the site's bundle.
+engines/

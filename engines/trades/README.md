@@ -56,6 +56,20 @@ key `today`; that is the one the after-hours fee is tied to.
    | `STRIPE_SECRET_KEY` | from stripe.com. Start with the test key (`sk_test_…`); switch to the live key when you are ready to take money. Without it, every booking is a request. |
    | `STRIPE_WEBHOOK_SECRET` | see step 3 |
 
+   **Finding your Stripe key** (screenshots in `docs/stripe-keys/`):
+
+   1. In the Stripe dashboard, use the search bar or the API keys panel on the
+      Home page and open **Developers, API keys**
+      (`1-dashboard-api-keys.png`, `2-developers-api-keys.png`).
+   2. Under **Standard keys**, click **Create secret key**
+      (`3-create-secret-key.png`).
+   3. Stripe asks how you will use it (`4-how-will-you-use-it.png`). Pasting
+      it into your own Vercel project: choose **Powering an integration you
+      built**. Handing it to Northbound to set up for you: choose **Providing
+      this key to a third-party application**.
+   4. Use the **test** key (`sk_test_…`) until step 4 below passes. This
+      engine needs only the secret key; the publishable key is not used.
+
 3. **Tell Stripe where to report payments.** In the Stripe dashboard,
    Developers, Webhooks: add an endpoint at `https://your-site/api/webhook`
    for the event `checkout.session.completed`. Copy its signing secret into

@@ -73,6 +73,7 @@
   .tpl-gets p { margin: 0; color: var(--espresso-2); }
   .tpl-both { margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--taupe-2); display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 24px; }
   .tpl-both .tpl-price { font-size: 28px; }
+  .tpl-price-tba { font-size: 22px; }
   /* The engine has no poster: a drawn mock of its last screen, in its own neutral colours. */
   .tpl-screen-engine { padding: 28px 24px; background: #fff; }
   .eng-mock { max-width: 360px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #17202A; }
@@ -82,6 +83,7 @@
   .eng-row span:last-child { color: #566573; }
   .eng-due { font-size: 18px; margin: 14px 0 10px; }
   .eng-btn { margin: 0; padding: 13px 16px; border-radius: 10px; background: #1F4E79; color: #fff; font-weight: 600; text-align: center; font-size: 15px; }
+  .eng-cap { margin: 16px 0 0; text-align: center; font-size: 12.5px; color: #566573; }
   @media (max-width: 820px) {
     .tpl { grid-template-columns: 1fr; gap: 28px; }
     .tpl-gets { grid-template-columns: 1fr; gap: 28px; }
@@ -196,6 +198,7 @@
           <p class="eng-due">Due now: <b>$139.00</b></p>
           <p class="eng-btn">Pay $139.00 and hold my spot</p>
         </div>
+        <p class="eng-cap">The last screen, with the demo config's example prices.</p>
       </div>
       <div class="tpl-body">
         <p class="eyebrow">03 · The booking engine</p>
@@ -212,8 +215,8 @@
           <li><b>Needs:</b> a Stripe account and a free Resend account. Five environment variables, one config file, Vercel's free tier.</li>
         </ul>
         <div class="tpl-buy" data-tpl="engine">
-          <p class="tpl-price">$149 <span>one business, yours to keep</span></p>
-          <a class="btn tpl-buy-link" hidden data-buy="engine" href="#">Buy the engine — $149</a>
+          <p class="tpl-price tpl-price-tba">Price to be announced <span>one business, yours to keep</span></p>
+          <a class="btn tpl-buy-link" hidden data-buy="engine" href="#">Buy the engine</a>
           <form class="tpl-wait" method="post" action="/api/quote">
             <input type="hidden" name="need" value="Template: The booking engine (HVAC)">
             <input type="hidden" name="message" value="Tell me when the booking engine is on sale, at the launch price.">
@@ -288,6 +291,7 @@
     const wait = box.querySelector('.tpl-wait');
     if (t.url && buy) {
       buy.href = t.url;
+      if (t.price) buy.textContent = `Buy ${key === 'both' ? 'both' : t.name} — $${t.price}`;
       buy.hidden = false;
       if (wait) wait.hidden = true;
     }

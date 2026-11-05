@@ -15,7 +15,9 @@ test.describe('templates — the page and the table agree', () => {
     await expect(page.locator('[data-tpl="atlas"] .tpl-price')).toContainText(`$${TEMPLATES.atlas.price}`);
     await expect(page.locator('[data-tpl="vector"] .tpl-price')).toContainText(`$${TEMPLATES.vector.price}`);
     await expect(page.locator('[data-tpl="both"] .tpl-price')).toContainText(`$${TEMPLATES.both.price}`);
-    await expect(page.locator('[data-tpl="engine"] .tpl-price')).toContainText(`$${TEMPLATES.engine.price}`);
+    // The engine's price is Colin's call: until set, the page says so and shows no number.
+    if (TEMPLATES.engine.price) await expect(page.locator('[data-tpl="engine"] .tpl-price')).toContainText(`$${TEMPLATES.engine.price}`);
+    else await expect(page.locator('[data-tpl="engine"] .tpl-price')).not.toContainText('$');
   });
 
   test('with no shop url, the page asks for an email and sells nothing', async ({ page }) => {

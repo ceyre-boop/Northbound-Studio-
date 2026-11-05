@@ -90,8 +90,9 @@ gives the after-hours fee a reason to exist. Roofing or med-spa is a config
 file away: the services, the property types, the urgency options and the
 windows are all data.
 
-Listed on templates.html as the third product at a $149 launch price (the
-studio's to change), with the same honest form until a shop url is set, and
+Listed on templates.html as the third product with no price yet (the price
+is Colin's call, and the page says "to be announced" until he sets it), with
+the same honest form until a shop url is set, and
 a demo link that appears only when `TEMPLATES.engine.demo` is set.
 `scripts/templates.ts` packages it as `nb-engine-hvac.zip`.
 
@@ -100,5 +101,4 @@ What only Colin can do, added to the list above:
 - [ ] Deploy `engines/hvac` as its own Vercel project with test keys, book a
       visit with Stripe's test card, and confirm both emails arrive. Then set
       `TEMPLATES.engine.demo` to that url so the page shows the live demo.
-- [ ] Decide the price. $149 is a placeholder between a page template and a
-      commission.
+- [ ] Set the price in `TEMPLATES.engine.price`. Nothing is listed until he does.

@@ -23,7 +23,10 @@ test.describe('templates — the page and the table agree', () => {
   test('with no shop url, the page asks for an email and sells nothing', async ({ page }) => {
     test.skip(Boolean(TEMPLATES.atlas.url || TEMPLATES.vector.url || TEMPLATES.both.url || TEMPLATES.engine.url), 'a url is set: the Buy buttons are live');
     await page.goto('/templates.html');
-    await expect(page.locator('[data-demo="engine"]')).toBeHidden(); // no demo url, no dead link
+    // The engine's demo link shows only when a demo url is set, and then goes there.
+    const demo = page.locator('[data-demo="engine"]');
+    if (TEMPLATES.engine.demo) await expect(demo).toHaveAttribute('href', TEMPLATES.engine.demo);
+    else await expect(demo).toBeHidden(); // no demo url, no dead link
     await page.goto('/templates.html');
     for (const key of ['atlas', 'vector', 'engine']) {
       const box = page.locator(`[data-tpl="${key}"]`);

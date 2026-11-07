@@ -84,10 +84,16 @@ test.describe('homepage — Buddy', () => {
     await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
   });
 
+  test('the mp4 is offered first, so Safari never commits to the VP9 WebM it cannot reliably decode', async ({ page }) => {
+    await page.goto('/');
+    const types = await page.locator('.hero-video source').evaluateAll((els) => els.map((s) => (s as HTMLSourceElement).type));
+    expect(types[0]).toBe('video/mp4');
+    expect(types).toContain('video/webm');
+  });
 });
 
-test.describe('the questions and the counter wear the same clothes', () => {
-  for (const path of ['/build.html', '/checkout.html']) {
+test.describe('the questions, the counter and the landing pages wear the same clothes', () => {
+  for (const path of ['/build.html', '/checkout.html', '/account.html', '/account-received.html', '/order-paid.html', '/order-received.html']) {
     test(`${path}: the homepage's ground and wordmark, email instead of a phone number`, async ({ page }) => {
       await page.goto('/');
       const homeBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
@@ -100,4 +106,12 @@ test.describe('the questions and the counter wear the same clothes', () => {
       await expect(page.locator('header a[href^="mailto:"]')).toHaveCount(1);
     });
   }
+  test('/thanks.html: the homepage\'s ground, no phone number', async ({ page }) => {
+    await page.goto('/');
+    const homeBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    await page.goto('/thanks.html');
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor)).toBe(homeBg);
+    expect(await page.locator('a[href^="tel:"]').count()).toBe(0);
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(1);
+  });
 });

@@ -97,7 +97,10 @@ a demo link that appears only when `TEMPLATES.engine.demo` is set.
 
 What only Colin can do, added to the list above:
 
-- [ ] Deploy `engines/trades` as its own Vercel project with test keys, book a
-      visit with Stripe's test card, and confirm both emails arrive. Then set
-      `TEMPLATES.engine.demo` to that url so the page shows the live demo.
+- [x] Deploy `engines/trades` as its own Vercel project (nb-engine-trades-demo,
+      2026-11-05) and set `TEMPLATES.engine.demo` to it (2026-11-07).
+- [ ] Finish the Stripe test on it: a test booking reached the server and
+      Stripe refused the session (the booking fell back to a request, as
+      designed). Check the key is a full test secret key, not a restricted
+      one, book with the test card, and confirm both emails arrive.
 - [x] Set the price in `TEMPLATES.engine.price`. $2,000, 2026-11-05.

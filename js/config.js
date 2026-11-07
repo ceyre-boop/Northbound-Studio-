@@ -29,5 +29,5 @@ export const TEMPLATES = {
   both: { name: 'Both', price: 129, url: '' },
   /* The engine: a booking-and-deposit flow, sold as source like the two
      templates. `demo` is the live demo's url; empty hides the demo link. */
-  engine: { name: 'The booking engine', price: 2000, url: '', demo: '' }, // $2,000: Colin's call, 2026-11-05
+  engine: { name: 'The booking engine', price: 2000, url: '', demo: 'https://nb-engine-trades-demo.vercel.app/' }, // $2,000: Colin's call, 2026-11-05; the demo is his Vercel project
 };

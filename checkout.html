@@ -272,7 +272,7 @@
       <a class="change" id="build-change" href="build.html">Change it</a>
     </section>
 
-    <form class="card" method="post" action="/api/checkout" id="order" data-today="600" data-balance="0">
+    <form class="card" method="post" action="/api/checkout" id="order" data-today="500" data-balance="0">
       <input type="hidden" name="buy" value="clean">
       <input type="hidden" name="spec" value="" id="spec">
 
@@ -287,10 +287,11 @@
 
       <div class="line">
         <h2>Cheap and Clean</h2>
-        <p class="amt">$600 <span>once</span></p>
+        <p class="amt">$500 <span>once</span></p>
       </div>
-      <p class="desc">One page, your brand, live. It puts you on the board.</p>
+      <p class="desc">One page, your brand, live in seven days. It puts you on the board.</p>
       <ul class="includes">
+        <li>Live within seven days of the call</li>
         <li>One of five designs, built around your business</li>
         <li>Your logo, colours and photos</li>
         <li>Your phone number, tappable, and a form that reaches you</li>
@@ -358,7 +359,7 @@
         api/checkout.ts actually bills — its summary splits once from monthly.
       -->
       <div class="totals">
-        <div class="row total"><span>Due today</span><span class="v" id="total">$600.00</span></div>
+        <div class="row total"><span>Due today</span><span class="v" id="total">$500.00</span></div>
         <div class="row balance" id="balance-row" hidden><span>Then on delivery</span><span class="v" id="balance">$0.00</span></div>
         <div class="row" id="monthly-row" hidden><span>Then monthly, from next month</span><span class="v" id="monthly">$0.00</span></div>
         <p class="then" id="then">No monthly charges. You can add support any time from your account.</p>
@@ -394,7 +395,7 @@
          The amounts come from the form's data attributes so
          js/checkout-build.js can switch the page to a Beacon or Engine
          deposit; they default to Cheap and Clean. */
-      var today = Number(form.getAttribute('data-today')) || 600;
+      var today = Number(form.getAttribute('data-today')) || 500;
       var balance = Number(form.getAttribute('data-balance')) || 0;
       document.getElementById('total').textContent = money(today);
       document.getElementById('balance').textContent = money(balance);

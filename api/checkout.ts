@@ -114,7 +114,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
    price. Ordering one of these requires review_name to be filled in (see
    problem() below), and the emails say so in words a person can read. */
 const PRICES = {
-  clean: { label: 'Cheap and Clean', cents: 60000, cadence: 'once' },
+  clean: { label: 'Cheap and Clean', cents: 50000, cadence: 'once' },
   beacon: { label: 'Beacon — 50% deposit (founding price $1,750, standard $3,500)', cents: 87500, balance: 87500, cadence: 'deposit', founding: true },
   engine: { label: 'Engine — 50% deposit (founding price $4,250, standard $8,500)', cents: 212500, balance: 212500, cadence: 'deposit', founding: true },
   care: { label: 'Changes and support', cents: 4900, cadence: '/mo' },
@@ -447,7 +447,7 @@ export function specRecommend(parts: string[]): string {
 
 /* `buy` is the package the server priced and is charging for. The spec code
    carries a package too, but it came from the visitor's URL — describing the
-   order from that let `?buy=clean&s=<engine code>` produce a $600 order whose
+   order from that let `?buy=clean&s=<engine code>` produce a $500 order whose
    confirmation email listed eleven parts as covered. Money was never at risk
    (PRICES is the only source of an amount); what the email claimed they had
    bought was. */

@@ -167,7 +167,7 @@ describe('the mapping', () => {
 describe('the payback line', () => {
   test('is arithmetic on the bracket, phrased in their unit', () => {
     expect(payback(PACKAGES.engine, 'u200', 'job')).toBe('At under $200 a job, this build is at least 22 new jobs.');
-    expect(payback(PACKAGES.clean, 'u200', 'customer')).toBe('At under $200 a customer, this build is at least 4 new customers.');
+    expect(payback(PACKAGES.clean, 'u200', 'customer')).toBe('At under $200 a customer, this build is at least 3 new customers.');
     expect(payback(PACKAGES.beacon, '200-1k', 'order')).toBe('At $200–$1,000 an order, this build is between 2 and 9 new orders.');
     expect(payback(PACKAGES.clean, '1k-5k', 'job')).toBe('One $1,000–$5,000 job covers this build.');
     expect(payback(PACKAGES.engine, '5k+', 'client')).toBe('One client worth $5,000 or more covers this build.');

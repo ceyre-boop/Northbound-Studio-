@@ -341,6 +341,7 @@ html:not(.js) .hero-pause { display: none; }
 .program-row.is-open .program-status { color: var(--red); font-style: normal; }
 .program-status a, .program-price a { text-decoration: none; }
 .program-price a:hover { color: var(--red); }
+.program-price small { font-size: 13px; color: var(--taupe); font-weight: 400; margin-left: 4px; white-space: nowrap; }
 .program-status a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 @media (max-width: 700px) {

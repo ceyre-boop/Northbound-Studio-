@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Got it — Northbound Studio</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#05090C">
+<meta name="theme-color" content="#1F2228">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
 <!--
   Where the quote form lands when it was posted without JavaScript. With
@@ -15,9 +15,10 @@
   might have.
 -->
 <style>
-  @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-display: swap; }
-  @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-display: swap; }
-  :root { --ink: #05090C; --paper: #E8EFF2; --paper-dim: #9DB0B8; --aurora: #4FD8C4; }
+  @font-face { font-family: 'Fraunces'; src: url('fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url('fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  /* The dream rebuild's ground, ink and one accent (css/dream.css). */
+  :root { --ink: #1F2228; --paper: #ECEEF2; --paper-dim: #B4B9C2; --aurora: #9DBAF7; }
   html { background: var(--ink); }
   body {
     margin: 0;
@@ -27,10 +28,10 @@
     padding: 48px clamp(20px, 5vw, 72px);
     box-sizing: border-box;
     color: var(--paper);
-    font: 1.05rem/1.55 'Instrument Sans', system-ui, -apple-system, sans-serif;
+    font: 1.05rem/1.55 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   }
   main { max-width: 34rem; }
-  h1 { font-family: 'Syne', 'Helvetica Neue', Arial, sans-serif; font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1.05; margin: 0 0 20px; }
+  h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1.05; margin: 0 0 20px; }
   p { color: var(--paper-dim); margin: 0 0 16px; }
   a { color: var(--aurora); }
   .back {
@@ -39,19 +40,19 @@
     padding: 14px 22px;
     min-height: 44px;
     box-sizing: border-box;
-    border: 1px solid var(--aurora);
-    color: var(--aurora);
+    border-radius: 999px;
+    background: var(--aurora);
+    color: var(--ink);
+    font-weight: 500;
     text-decoration: none;
   }
-  .tel { color: inherit; text-decoration: none; }
-  @media (pointer: coarse) { .tel { color: var(--aurora); text-decoration: underline; } }
 </style>
 </head>
 <body>
 <main>
   <h1>Got it.</h1>
   <p>We'll get back to you within one business day. A copy of what you sent is on its way to your inbox.</p>
-  <p>If it can't wait, call <a class="tel" href="tel:+14705738908">470-573-8908</a>.</p>
+  <p>If it can't wait, email <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a>.</p>
   <a class="back" href="/">Back to Northbound</a>
 </main>
 </body>

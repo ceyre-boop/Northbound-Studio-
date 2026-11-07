@@ -143,8 +143,13 @@
     <div class="hero-media" data-drift-wrap>
       <video class="hero-video" data-drift autoplay muted loop playsinline preload="metadata"
              poster="brand/buddy-wave-poster-dark.webp" aria-label="Buddy, the Northbound mascot, waving hello">
-        <source src="brand/buddy-wave-dark.webm" type="video/webm">
+        <!-- mp4 first, on purpose. A browser takes the first source it says
+             it can play and does not fall back once it has committed. Safari
+             says yes to WebM and then decodes VP9-with-alpha unreliably: no
+             frames, or a blank frame. H.264 plays everywhere, carries the same
+             baked backdrop, and is the smaller file. -->
         <source src="brand/buddy-wave-dark.mp4" type="video/mp4">
+        <source src="brand/buddy-wave-dark.webm" type="video/webm">
       </video>
       <!-- Buddy waves on a loop, so there is a way to stop him: the one
            control a moving picture owes a visitor who did not ask for it. -->

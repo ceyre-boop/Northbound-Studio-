@@ -11,8 +11,8 @@
  *
  * Env: STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, NOTIFY_TO, FROM (optional).
  */
-import config from '../engine.config.json';
-import { money, sender } from './book';
+import config from '../engine.config.json' with { type: 'json' };
+import { money, sender } from './book.js';
 
 type Meta = Record<string, string>;
 type Sent = { ok: true; id: string } | { ok: false; error: string };

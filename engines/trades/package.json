@@ -1,0 +1,6 @@
+{
+  "name": "nb-engine-trades",
+  "private": true,
+  "type": "module",
+  "description": "A booking-and-deposit engine for a trade business. One config file, two Vercel functions, no dependencies."
+}

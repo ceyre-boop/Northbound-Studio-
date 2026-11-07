@@ -6,6 +6,8 @@
 <title>Order received — Northbound Studio</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <!--
   Where the checkout form lands when the order goes through. Self-contained
   on purpose, same visual language as checkout.html, same reasoning as
@@ -14,34 +16,44 @@
   have.
 -->
 <style>
-  @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
-  @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
+  @font-face { font-family: 'Fraunces'; src: url('fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url('fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  /* The dream rebuild's tokens (css/dream.css), as build.html carries them:
+     the old names are kept so the rules below read as they always did; only
+     the values changed. */
   :root {
-    --ink: #0E1512; --ink-soft: #55635C; --line: #E4EAE6; --bg: #FFFFFF;
-    --panel: #F4F8F6; --accent: #0E6F5C; --accent-dark: #0A5445;
-    --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
-    --body: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+    --ink: #ECEEF2; --ink-soft: #B4B9C2; --line: #3E434C; --bg: #1F2228;
+    --panel: #2B2F36; --accent: #9DBAF7; --accent-dark: #B5CCFA;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
     --gutter: clamp(20px, 5vw, 40px);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--panel); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); }
-  .site-header { background: #fff; border-bottom: 1px solid var(--line); }
-  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; max-width: 1080px; }
-  .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }  /* nowrap: at 390px the two words broke onto two lines and shoved the phone pill down */
-  .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 22px 10px; max-width: 1080px; }
+  .brand { display: inline-flex; }
+  .brand img { display: block; height: 22px; width: auto; }
+  .mail-link { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 18px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap; transition: transform 160ms ease, background 160ms ease; }
+  .mail-link:hover { transform: translateY(-2px); background: var(--accent-dark); }
+  .mail-short { display: none; }
+  /* The address does not fit beside the wordmark at 390px; the pill says
+     what it does instead, and the href still carries the address. */
+  @media (max-width: 560px) { .mail-long { display: none; } .mail-short { display: inline; } }
+  @media (max-width: 480px) { .site-header .wrap { flex-wrap: wrap; row-gap: 10px; } }
 
   main { padding: clamp(32px, 6vw, 64px) 0 80px; }
-  h1 { font-family: var(--display); font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -0.02em; margin: 0 0 6px; }
-  .step { font-family: 'Instrument Sans', system-ui; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
+  h1 { font-family: var(--display); font-weight: 500; font-size: clamp(30px, 4.5vw, 42px); letter-spacing: -0.01em; line-height: 1.1; margin: 0 0 6px; }
+  .step { font-family: var(--mono); font-weight: 600; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
 
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px; margin-bottom: 18px; }
   .card p { margin: 0 0 14px; }
   .card p:last-child { margin-bottom: 0; }
   .card strong { color: var(--ink); }
 
-  .back { display: inline-block; margin-top: 8px; padding: 12px 26px; min-height: 48px; box-sizing: border-box; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 700; text-decoration: none; }
+  .back { display: inline-flex; align-items: center; margin-top: 8px; padding: 12px 24px; min-height: 48px; box-sizing: border-box; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 500; text-decoration: none; }
   .back:hover { background: var(--accent-dark); }
 </style>
 </head>
@@ -49,8 +61,8 @@
 
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="/">Northbound Studio</a>
-    <a class="phone-link" href="tel:+14705738908">470-573-8908</a>
+    <a class="brand" href="/" aria-label="Northbound Studio — home"><img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24"></a>
+    <a class="mail-link" href="mailto:hello@northbound-dev.com"><span class="mail-long">hello@northbound-dev.com</span><span class="mail-short" aria-hidden="true">Email us</span></a>
   </div>
 </header>
 
@@ -63,7 +75,7 @@
       <p>Your order is in. <strong>Nothing has been charged yet</strong> — we'll email a secure payment link within one business hour, and the build starts as soon as that's paid.</p>
       <p>A copy of your order and its total is on its way to your inbox.</p>
       <p>You'll be able to add or drop the monthly plans any time from <a href="account.html">your account</a>.</p>
-      <p>If it can't wait, call <a href="tel:+14705738908">470-573-8908</a>.</p>
+      <p>If it can't wait, email <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a>.</p>
       <a class="back" href="/">Back to Northbound</a>
     </div>
   </div>

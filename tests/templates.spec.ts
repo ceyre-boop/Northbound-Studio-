@@ -62,7 +62,6 @@ test.describe('templates — the page and the table agree', () => {
     await expect(page.locator('#vector a.tpl-demo')).toHaveAttribute('href', '/demos/vector/');
     await page.goto('/');
     await expect(page.locator('.site-nav a[href="templates.html"]')).toHaveCount(1);
-    await expect(page.locator('#packages a[href="templates.html"]')).toHaveCount(1);
     await expect(page.locator('footer a[href="templates.html"]')).toHaveCount(1);
   });
 

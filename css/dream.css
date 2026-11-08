@@ -341,11 +341,68 @@ html:not(.js) .hero-pause { display: none; }
 .program-row.is-open .program-status { color: var(--red); font-style: normal; }
 .program-status a, .program-price a { text-decoration: none; }
 .program-price a:hover { color: var(--red); }
-.program-price small { font-size: 13px; color: var(--taupe); font-weight: 400; margin-left: 4px; white-space: nowrap; }
+.program-price { display: grid; justify-items: end; text-align: right; }
+.program-price small {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--taupe);
+  margin-top: 6px;
+  white-space: nowrap;
+}
+
+/* the starter row: the one price most visitors came for, lifted a hair
+   off the ledger with a tinted panel. Same grid, so the columns still align. */
+.program-row--lead {
+  margin: 0 -24px;
+  padding: 30px 24px;
+  border-radius: 14px;
+  border-top-color: transparent;
+  background: color-mix(in srgb, var(--red) 7%, transparent);
+}
+.program-row--lead + .program-row { border-top-color: transparent; }
+.program-add {
+  margin-top: 12px !important;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--red) 24%, transparent);
+  color: var(--espresso) !important;
+  font-size: 15px;
+}
+
+/* where the starter price sits: three comparisons under the ledger */
+.basis { margin: 56px 0 0; }
+.basis-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--taupe);
+  margin: 0 0 22px;
+}
+.basis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 36px;
+  margin: 0;
+}
+.basis-item { padding-top: 18px; border-top: 1px solid var(--taupe-2); }
+.basis-item dt {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.2;
+  margin: 0 0 8px;
+}
+.basis-item dd { margin: 0; color: var(--espresso-2); font-size: 15.5px; line-height: 1.55; }
 .program-status a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 @media (max-width: 700px) {
   .program-row { grid-template-columns: 1fr; gap: 8px; }
+  .program-row--lead { margin: 0 -16px; padding: 26px 16px; }
+  .program-price { justify-items: start; text-align: left; margin-top: 6px; }
+  .basis-grid { grid-template-columns: 1fr; gap: 22px; }
 }
 
 /* steps */

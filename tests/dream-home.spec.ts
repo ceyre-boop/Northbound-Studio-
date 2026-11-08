@@ -121,7 +121,7 @@ test.describe('the questions, the counter and the landing pages wear the same cl
   });
 });
 
-test.describe('the offer — Plans/the-line.md §2, word for word', () => {
+test.describe('the offer — Plans/the-line.md §2', () => {
   test('one card, one price, one button; the care plan beside it; nothing from the old menu', async ({ page }) => {
     await page.goto('/');
     const offer = page.locator('#packages');
@@ -130,9 +130,9 @@ test.describe('the offer — Plans/the-line.md §2, word for word', () => {
     await expect(offer.locator('.offer-card--site .offer-price')).toContainText('Live in 7 days, or $100 off');
     await expect(offer.locator('.offer-card--site .offer-terms')).toHaveText('$250 to start, $250 at launch.');
     await expect(offer.locator('.offer-card--site .offer-list li')).toHaveText([
-      'Up to 5 pages',
+      'Up to 5 pages, built from the universal template',
       'Fast and phone-ready',
-      'Your domain connected, or help buying one',
+      'Domain connected (or help buying one)',
       'Contact form and click-to-call',
       'One round of edits before launch',
     ]);

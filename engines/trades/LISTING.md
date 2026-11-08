@@ -1,17 +1,17 @@
 # Gumroad listing — draft, not published
 
-Price: **left blank on purpose. Colin sets it.**
+Price: **$2,000** (Colin, 2026-11-05).
 Demo link: **left blank until the demo project is deployed** (see README step 1).
 
 ---
 
 ## Title
 
-The Booking Engine for HVAC companies — a book-and-pay-the-deposit flow for your website
+The Booking Engine for trade businesses — a book-and-pay-the-deposit flow for your website
 
 ## Subtitle
 
-Six questions, a price, and a deposit paid on Stripe. One config file, no monthly software.
+Six questions, a price, and a deposit paid on Stripe. For heating and cooling, plumbing, electrical, roofing, any trade that books visits. One config file, no monthly software.
 
 ## Description
 
@@ -24,6 +24,7 @@ Your customers already know what's wrong. This gives them somewhere to say it at
 **What's inside the download.**
 - The booking page (one HTML file) and its script.
 - `engine.config.json`: your business name, phone, hours, service area, accent colour, and every service with what's due now and the whole price. Prices are in cents. Edit this one file and the whole thing is yours.
+- Four example configs: heating and cooling, plumbing, electrical, roofing. Start from the one closest to your trade.
 - Two small server functions: one creates the Stripe checkout for the price in *your* config (nothing a customer types can change it), one verifies the payment with Stripe and sends the two emails.
 - A thirty-minute setup guide and a plain-language licence.
 
@@ -31,7 +32,7 @@ Your customers already know what's wrong. This gives them somewhere to say it at
 
 **What it is not.** It is not a scheduling calendar. It takes the customer's preferred day and time window and you confirm the slot by phone, which is how most trades actually run. It stores nothing but what lands in your inbox and your Stripe dashboard.
 
-**Honest notes.** The demo business, Summit Heating & Air, is invented. The prices in the demo config are examples, not advice. This is source code you edit, not an app you install; if you'd rather have it set up for you, that's a commission at northbound-dev.com.
+**Honest notes.** The demo business, Summit Heating & Air, is invented, and so are the three businesses in the example configs. The prices in them are examples, not advice. This is source code you edit, not an app you install; if you'd rather have it set up for you, that's a commission at northbound-dev.com.
 
 ## Licence line (shown on the listing)
 
@@ -39,7 +40,7 @@ One business, yours to keep and change. Not for resale or redistribution as a te
 
 ## Tags
 
-hvac, booking, deposit, stripe, website template, trades, contractor, vercel
+trades, contractor, hvac, plumbing, electrical, roofing, booking, deposit, stripe, website template, vercel
 
 ## Cover image
 
@@ -47,4 +48,4 @@ A phone-width screenshot of the confirm screen ("Hold your spot." with the price
 
 ## Files to upload
 
-`nb-engine-hvac.zip` from `bun scripts/templates.ts` in the studio repo.
+`nb-engine-trades.zip` from `bun scripts/templates.ts` in the studio repo.

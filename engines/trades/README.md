@@ -1,6 +1,7 @@
 # The booking engine — read me first
 
-This is a booking-and-deposit flow for a heating and cooling company. A
+This is a booking-and-deposit flow for a trade business: heating and
+cooling, plumbing, electrical, roofing, or any trade that books visits. A
 customer says what's wrong, where, how soon and when, leaves a name and a
 number, sees the price, and pays the deposit on Stripe's page. You get an
 email the moment it's paid; they get a confirmation. Jobs with nothing to
@@ -30,6 +31,15 @@ This file is served to the browser, so nothing private goes in it. The
 inbox that receives bookings is an environment variable (below), not a
 line in the config.
 
+### Pick your trade
+
+The config that ships is a heating and cooling company. `examples/` has the
+same file written for plumbing, electrical and roofing. Copy the one closest
+to your trade over `engine.config.json` and edit from there. Nothing else
+changes: the services, the property types, the urgency options and the time
+windows are all data, so any trade that books visits fits. Keep the urgency
+key `today`; that is the one the after-hours fee is tied to.
+
 ## Thirty minutes to live
 
 1. **Put this folder in a Git repository** of its own and import it at
@@ -45,6 +55,20 @@ line in the config.
    | `FROM` | optional. A sender on a domain you have verified in Resend, like `Summit Heating <bookings@yourdomain.com>`. Without it the default sender only delivers to the Resend account owner, which is fine for testing and wrong for customers. |
    | `STRIPE_SECRET_KEY` | from stripe.com. Start with the test key (`sk_test_…`); switch to the live key when you are ready to take money. Without it, every booking is a request. |
    | `STRIPE_WEBHOOK_SECRET` | see step 3 |
+
+   **Finding your Stripe key** (screenshots in `docs/stripe-keys/`):
+
+   1. In the Stripe dashboard, use the search bar or the API keys panel on the
+      Home page and open **Developers, API keys**
+      (`1-dashboard-api-keys.png`, `2-developers-api-keys.png`).
+   2. Under **Standard keys**, click **Create secret key**
+      (`3-create-secret-key.png`).
+   3. Stripe asks how you will use it (`4-how-will-you-use-it.png`). Pasting
+      it into your own Vercel project: choose **Powering an integration you
+      built**. Handing it to Northbound to set up for you: choose **Providing
+      this key to a third-party application**.
+   4. Use the **test** key (`sk_test_…`) until step 4 below passes. This
+      engine needs only the secret key; the publishable key is not used.
 
 3. **Tell Stripe where to report payments.** In the Stripe dashboard,
    Developers, Webhooks: add an endpoint at `https://your-site/api/webhook`

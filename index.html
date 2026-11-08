@@ -143,8 +143,13 @@
     <div class="hero-media" data-drift-wrap>
       <video class="hero-video" data-drift autoplay muted loop playsinline preload="metadata"
              poster="brand/buddy-wave-poster-dark.webp" aria-label="Buddy, the Northbound mascot, waving hello">
-        <source src="brand/buddy-wave-dark.webm" type="video/webm">
+        <!-- mp4 first, on purpose. A browser takes the first source it says
+             it can play and does not fall back once it has committed. Safari
+             says yes to WebM and then decodes VP9-with-alpha unreliably: no
+             frames, or a blank frame. H.264 plays everywhere, carries the same
+             baked backdrop, and is the smaller file. -->
         <source src="brand/buddy-wave-dark.mp4" type="video/mp4">
+        <source src="brand/buddy-wave-dark.webm" type="video/webm">
       </video>
       <!-- Buddy waves on a loop, so there is a way to stop him: the one
            control a moving picture owes a visitor who did not ask for it. -->
@@ -238,11 +243,19 @@
   <section class="section" id="packages" data-reveal>
     <p class="eyebrow">Packages</p>
     <h2 class="section-title">The price is on the window.</h2>
-    <p class="section-lede">Three ways to commission a build. Every one starts the same way: eight questions, then a call.</p>
+    <p class="section-lede">Four ways to commission a build. Every one starts the same way: eight questions, then a call.</p>
 
     <ol class="program">
       <li class="program-row">
-        <span class="program-no">01 · Beacon</span>
+        <span class="program-no">01 · Cheap and Clean</span>
+        <div class="program-body">
+          <h3>One page, live in seven days.</h3>
+          <p>A single page built around your business: your name, your words, your phone number tappable, a form that reaches you. Changes and a human reply are $49 a month, added whenever you like.</p>
+        </div>
+        <span class="program-price">$500 <small>+ $49/mo</small></span>
+      </li>
+      <li class="program-row">
+        <span class="program-no">02 · Beacon</span>
         <div class="program-body">
           <h3>The site and the brand.</h3>
           <p>A complete website and a brand to match — the whole presence, designed and built properly.</p>
@@ -250,7 +263,7 @@
         <span class="program-price">From $3,500</span>
       </li>
       <li class="program-row">
-        <span class="program-no">02 · Engine</span>
+        <span class="program-no">03 · Engine</span>
         <div class="program-body">
           <h3>The site, and the machine behind it.</h3>
           <p>Everything in Beacon, plus booking, payments, automated follow-up, and a dashboard that shows it working.</p>
@@ -258,7 +271,7 @@
         <span class="program-price">From $8,500</span>
       </li>
       <li class="program-row">
-        <span class="program-no">03 · Bearing</span>
+        <span class="program-no">04 · Bearing</span>
         <div class="program-body">
           <h3>The service plan.</h3>
           <p>Hosting, maintenance, and a monthly report. It follows every build, so the site stays fast and you stay hands-off.</p>

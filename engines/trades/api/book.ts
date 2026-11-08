@@ -14,7 +14,7 @@
  *      a domain verified in Resend; the default only delivers to the Resend
  *      account owner, which is fine for testing and wrong for customers).
  */
-import config from '../engine.config.json';
+import config from '../engine.config.json' with { type: 'json' };
 
 type Service = { key: string; name: string; label: string; due: number; total: number; note?: string };
 type Booking = {

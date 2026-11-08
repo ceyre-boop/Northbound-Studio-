@@ -8,10 +8,10 @@ import { test, expect } from '@playwright/test';
 import { GOOGLE_REVIEW_URL } from '../js/config.js';
 
 test.describe('homepage — pricing', () => {
-  test('the three prices are present: $600, $3,500, $8,500', async ({ page }) => {
+  test('the three prices are present: $500, $3,500, $8,500', async ({ page }) => {
     await page.goto('/');
     const body = await page.locator('body').innerText();
-    expect(body).toContain('$600');
+    expect(body).toContain('$500');
     expect(body).toContain('$3,500');
     expect(body).toContain('$8,500');
   });

@@ -7,6 +7,8 @@
 <meta name="description" content="Add or drop a Northbound plan, or ask for a change to your site.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <!--
   YOUR ACCOUNT.
 
@@ -27,50 +29,61 @@
   checkout.html / order-received.html, no scripts, works with JS off.
 -->
 <style>
-  @font-face { font-family: 'Syne'; src: url('fonts/syne.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
-  @font-face { font-family: 'Instrument Sans'; src: url('fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
-  @font-face { font-family: 'JetBrains Mono'; src: url('fonts/jetbrains-mono.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Fraunces'; src: url('fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url('fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  /* The dream rebuild's tokens (css/dream.css), as build.html carries them:
+     the old names are kept so the rules below read as they always did; only
+     the values changed. */
   :root {
-    --ink: #0E1512; --ink-soft: #55635C; --line: #E4EAE6; --bg: #FFFFFF;
-    --panel: #F4F8F6; --accent: #0E6F5C; --accent-dark: #0A5445;
-    --display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
-    --body: 'Instrument Sans', system-ui, -apple-system, sans-serif;
-    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --ink: #ECEEF2; --ink-soft: #B4B9C2; --line: #3E434C; --bg: #1F2228;
+    --panel: #2B2F36; --accent: #9DBAF7; --accent-dark: #B5CCFA;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
     --gutter: clamp(20px, 5vw, 40px);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--panel); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); }
-  .site-header { background: #fff; border-bottom: 1px solid var(--line); }
-  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; max-width: 1080px; flex-wrap: wrap; }
-  .brand { font-family: var(--display); font-weight: 800; font-size: clamp(16px, 4.6vw, 20px); letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; }
-  .phone-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 22px 10px; max-width: 1080px; }
+  .brand { display: inline-flex; }
+  .brand img { display: block; height: 22px; width: auto; }
+  .mail-link { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 18px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap; transition: transform 160ms ease, background 160ms ease; }
+  .mail-link:hover { transform: translateY(-2px); background: var(--accent-dark); }
+  .mail-short { display: none; }
+  /* The address does not fit beside the wordmark at 390px; the pill says
+     what it does instead, and the href still carries the address. */
+  @media (max-width: 560px) { .mail-long { display: none; } .mail-short { display: inline; } }
+  @media (max-width: 480px) { .site-header .wrap { flex-wrap: wrap; row-gap: 10px; } }
 
   main { padding: clamp(32px, 6vw, 64px) 0 80px; }
-  h1 { font-family: var(--display); font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -0.02em; margin: 0 0 8px; }
+  h1 { font-family: var(--display); font-weight: 500; font-size: clamp(30px, 4.5vw, 42px); letter-spacing: -0.01em; line-height: 1.1; margin: 0 0 8px; }
   .lede { color: var(--ink-soft); margin: 0 0 24px; max-width: 58ch; }
-  h2 { font-family: var(--display); font-size: 20px; margin: 0 0 6px; }
+  h2 { font-family: var(--display); font-weight: 500; font-size: 22px; margin: 0 0 6px; }
 
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px; margin-bottom: 18px; }
   .card > p { color: var(--ink-soft); margin: 0 0 16px; }
   .card > p:last-child { margin-bottom: 0; }
   .card strong { color: var(--ink); }
 
-  .plan { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px; background: var(--panel); cursor: pointer; }
+  .plan { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px; background: var(--bg); cursor: pointer; }
   .plan input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
   .plan .t { font-weight: 700; display: block; }
   .plan .d { color: var(--ink-soft); font-size: 15px; }
   .plan .p { font-family: var(--display); white-space: nowrap; margin-left: auto; }
+  /* At phone width the price beside the text squeezed the description into a
+     ten-word-high column; the price drops under the title instead. */
+  @media (max-width: 480px) { .plan { flex-wrap: wrap; } .plan .p { margin-left: 34px; flex-basis: 100%; } }
 
   .field { display: grid; gap: 6px; margin: 0 0 14px; }
   .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
-  .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: #fff; color: inherit; width: 100%; max-width: 100%; }
+  .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: var(--bg); color: inherit; width: 100%; max-width: 100%; }
   /* A <select> sizes itself to its longest option, and the Bearing terms are
      long sentences: without this it grew wider than its own card at 390px. */
   .field textarea { min-height: 110px; resize: vertical; }
   .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .send { width: 100%; min-height: 52px; border: none; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer; }
+  .send { width: 100%; min-height: 52px; border: none; border-radius: 999px; background: var(--accent); color: var(--bg); font-family: inherit; font-weight: 500; font-size: 17px; cursor: pointer; }
   .send:hover { background: var(--accent-dark); }
   .note { font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
@@ -81,8 +94,8 @@
 
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="/">Northbound Studio</a>
-    <a class="phone-link" href="tel:+14705738908">470-573-8908</a>
+    <a class="brand" href="/" aria-label="Northbound Studio — home"><img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24"></a>
+    <a class="mail-link" href="mailto:hello@northbound-dev.com"><span class="mail-long">hello@northbound-dev.com</span><span class="mail-short" aria-hidden="true">Email us</span></a>
   </div>
 </header>
 
@@ -149,7 +162,7 @@
 
     <div class="card">
       <h2>Rather just talk?</h2>
-      <p>Call or text <a href="tel:+14705738908"><strong>470-573-8908</strong></a>. That reaches a person, not a queue.</p>
+      <p>Email <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a>. That reaches a person, not a queue.</p>
     </div>
   </div>
 </main>

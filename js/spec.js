@@ -110,10 +110,10 @@ export const PACKAGES = {
     key: 'clean',
     code: 'c',
     name: 'Cheap and Clean',
-    price: 600,
+    price: 500,
     standard: null,
-    deposit: 600,
-    tag: 'One page, your brand, live. It puts you on the board.',
+    deposit: 500,
+    tag: 'One page, your brand, live in seven days. It puts you on the board.',
     includes: ['A custom site'],
   },
   beacon: {

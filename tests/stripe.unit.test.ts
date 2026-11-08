@@ -112,13 +112,13 @@ describe('checkout routes to Stripe only when it can be honoured end to end', ()
     expect(emails.length).toBe(0);
   });
 
-  test('Cheap and Clean charges $600.00, from the server table', async () => {
+  test('Cheap and Clean charges $500.00, from the server table', async () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_x';
     process.env.STRIPE_WEBHOOK_SECRET = SECRET;
     await order({ buy: 'clean' });
     const sent = stripeCall();
-    expect(sent['line_items[0][price_data][unit_amount]']).toBe('60000');
-    expect(sent['metadata[nb_due]']).toBe('60000');
+    expect(sent['line_items[0][price_data][unit_amount]']).toBe('50000');
+    expect(sent['metadata[nb_due]']).toBe('50000');
     expect(sent.mode).toBe('payment');
   });
 
@@ -126,7 +126,7 @@ describe('checkout routes to Stripe only when it can be honoured end to end', ()
     process.env.STRIPE_SECRET_KEY = 'sk_test_x';
     process.env.STRIPE_WEBHOOK_SECRET = SECRET;
     await order({ buy: 'clean', cents: '1', unit_amount: '1', price: '1' });
-    expect(stripeCall()['line_items[0][price_data][unit_amount]']).toBe('60000');
+    expect(stripeCall()['line_items[0][price_data][unit_amount]']).toBe('50000');
   });
 
   test('Beacon collects the 50% founding deposit and records the balance', async () => {
@@ -147,7 +147,7 @@ describe('checkout routes to Stripe only when it can be honoured end to end', ()
     const res = await order({ buy: 'clean' });
     expect(res.status).toBe(200);
     expect(emails.length).toBe(2);
-    expect(emails[0].text as string).toContain('Due today: $600.00');
+    expect(emails[0].text as string).toContain('Due today: $500.00');
   });
 
   test('everything the webhook will need is carried in metadata', async () => {
@@ -349,13 +349,13 @@ describe('the webhook believes only Stripe', () => {
       data: {
         object: {
           id: 'cs_test_clean',
-          amount_total: 60000,
+          amount_total: 50000,
           metadata: {
             nb_name: 'Sam Doyle',
             nb_business: 'Doyle Electric',
             nb_email: 'sam@example.com',
-            nb_item: 'Cheap and Clean — $600.00',
-            nb_due: '60000',
+            nb_item: 'Cheap and Clean — $500.00',
+            nb_due: '50000',
             nb_balance: '0',
             nb_founding: '0',
           },
@@ -365,7 +365,7 @@ describe('the webhook believes only Stripe', () => {
     const res = await hook(payload, await sign(payload));
     expect(res.status).toBe(200);
     const notif = emails[0].text as string;
-    expect(notif).toContain('Deposit paid: $600.00');
+    expect(notif).toContain('Deposit paid: $500.00');
     expect(notif).not.toContain('On delivery');
     expect(emails[1].text as string).not.toContain('due on delivery');
   });
@@ -434,13 +434,13 @@ describe('the webhook believes only Stripe', () => {
       data: {
         object: {
           id: 'cs_test_spec',
-          amount_total: 60000,
+          amount_total: 50000,
           metadata: {
             nb_name: 'Sam Doyle',
             nb_business: 'Doyle Electric',
             nb_email: 'sam@example.com',
-            nb_item: 'Cheap and Clean — $600.00',
-            nb_due: '60000',
+            nb_item: 'Cheap and Clean — $500.00',
+            nb_due: '50000',
             nb_balance: '0',
             nb_founding: '0',
             nb_spec: 'Trade: electrician | Wants: booked jobs | Look: clean',

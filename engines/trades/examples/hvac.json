@@ -1,0 +1,84 @@
+{
+  "_readme": "The one file to edit. Everything the booking engine says and charges comes from here. Prices are in cents: 8900 is $89.00. A service with \"due\": 0 takes no payment and becomes a visit request instead. This file is served to the browser, so put nothing private in it; the inbox that receives bookings is the NOTIFY_TO environment variable, not this file.",
+
+  "business": {
+    "name": "Summit Heating & Air",
+    "tagline": "Heating and cooling, fixed the first time.",
+    "phone": "(555) 013-2210",
+    "phoneHref": "tel:+15550132210",
+    "email": "hello@example.com",
+    "area": "Lansing and the surrounding towns",
+    "hours": "Mon–Fri 7am–7pm · Sat 8am–2pm · Emergencies any hour",
+    "license": "LIC# 0000000",
+    "accent": "#1F4E79"
+  },
+
+  "copy": {
+    "headline": "Book your visit.",
+    "sub": "Tell us what's going on, pick a time, and hold your spot. Two minutes, and nothing is charged until you confirm.",
+    "depositNote": "The deposit comes off your bill. If we can't make it, you get it back in full."
+  },
+
+  "afterHours": {
+    "cents": 5000,
+    "label": "Same-day / after-hours fee"
+  },
+
+  "services": [
+    {
+      "key": "ac-repair",
+      "name": "AC not cooling",
+      "blurb": "Warm air, no air, ice on the lines, or a unit that won't start.",
+      "label": "Diagnostic visit",
+      "due": 8900,
+      "total": 8900,
+      "note": "Covers the visit and the diagnosis. Any repair is quoted before we touch it."
+    },
+    {
+      "key": "heat-repair",
+      "name": "No heat",
+      "blurb": "Furnace or heat pump not keeping up, short-cycling, or dead.",
+      "label": "Diagnostic visit",
+      "due": 8900,
+      "total": 8900,
+      "note": "Covers the visit and the diagnosis. Any repair is quoted before we touch it."
+    },
+    {
+      "key": "tune-up",
+      "name": "Seasonal tune-up",
+      "blurb": "A full check and clean before the season turns.",
+      "label": "Tune-up, one system",
+      "due": 12900,
+      "total": 12900,
+      "note": "Paid in full up front. Second system half price on the day."
+    },
+    {
+      "key": "duct-cleaning",
+      "name": "Duct cleaning",
+      "blurb": "Whole-house duct and vent cleaning.",
+      "label": "Duct cleaning, whole house",
+      "due": 10000,
+      "total": 29900,
+      "note": "A $100 deposit holds the day; the balance is due when we're done."
+    },
+    {
+      "key": "install",
+      "name": "New system or replacement",
+      "blurb": "An in-home estimate, free, with options and prices on paper.",
+      "label": "Free in-home estimate",
+      "due": 0,
+      "total": 0,
+      "note": "Nothing to pay now. We'll confirm the time by phone."
+    }
+  ],
+
+  "property": ["House", "Condo or apartment", "Business"],
+
+  "urgency": [
+    { "key": "today", "label": "Today — it's not working", "note": "Same-day and after-hours visits carry a fee, shown before you pay." },
+    { "key": "week", "label": "This week" },
+    { "key": "flexible", "label": "Whenever's convenient" }
+  ],
+
+  "windows": ["Morning, 8–12", "Afternoon, 12–4", "Evening, 4–7"]
+}

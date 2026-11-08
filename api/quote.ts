@@ -116,7 +116,7 @@ function notification(q: Quote, page: string): string {
     `Business:  ${q.business || '—'}`,
     `Phone:     ${q.phone}`,
     `Email:     ${q.email}`,
-    `Package:   ${foundingLabel ?? (q.package === 'clean' ? 'Cheap and Clean — $600' : 'Not sure yet')}`,
+    `Package:   ${foundingLabel ?? (q.package === 'clean' ? 'Cheap and Clean — $500' : 'Not sure yet')}`,
     '',
     'What they need:',
     q.need || '—',

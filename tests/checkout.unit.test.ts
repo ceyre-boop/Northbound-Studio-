@@ -207,7 +207,7 @@ describe('Bearing — both founding term variants', () => {
       review_name: 'Jamie R.',
     });
     const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Due today: $600.00');
+    expect(notif).toContain('Due today: $500.00');
   });
 });
 
@@ -377,7 +377,7 @@ describe('the guided build, carried in `spec`', () => {
   test('Cheap and Clean is the whole price now, with no balance line', async () => {
     await post({ ...baseFields(), buy: 'clean' });
     const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Payment: $600.00 now, in full.');
+    expect(notif).toContain('Payment: $500.00 now, in full.');
     expect(notif).not.toContain('On delivery');
   });
 
@@ -406,11 +406,11 @@ describe('the guided build, carried in `spec`', () => {
     expect(notif).toContain('(Their answers pointed at engine; they chose beacon.)');
   });
 
-  test('the spec never changes the price: an Engine code on a Cheap and Clean order is still $600', async () => {
+  test('the spec never changes the price: an Engine code on a Cheap and Clean order is still $500', async () => {
     const res = await post({ ...baseFields(), buy: 'clean', spec: ROOFER });
     expect(res.status).toBe(200);
     const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Due today: $600.00');
+    expect(notif).toContain('Due today: $500.00');
     expect(notif).not.toContain('$2,125');
     expect(notif).toContain('Their build (from build.html):');
   });
@@ -519,15 +519,15 @@ describe('an invisible review name is not a review name', () => {
 
 describe('the order emails describe the package that was priced', () => {
   /* 235re = every one of the twelve, package Engine. Posted with buy=clean it
-     used to produce a $600 order whose confirmation listed eleven parts. */
+     used to produce a $500 order whose confirmation listed eleven parts. */
   const EVERYTHING_AS_ENGINE = '235re';
 
-  test('a spec code claiming Engine cannot make a $600 order list eleven parts', async () => {
+  test('a spec code claiming Engine cannot make a $500 order list eleven parts', async () => {
     const res = await post({ ...baseFields(), buy: 'clean', spec: EVERYTHING_AS_ENGINE });
     expect(res.status).toBe(200);
     const [notif, conf] = sentEmails.map((e) => e.text as string);
     for (const text of [notif, conf]) {
-      expect(text).toContain('Due today: $600.00');
+      expect(text).toContain('Due today: $500.00');
       expect(text).toContain('Parts:      A custom site');
       expect(text).not.toMatch(/Parts:.*Brand identity/);
       expect(text).toContain('Not in package: Brand identity');

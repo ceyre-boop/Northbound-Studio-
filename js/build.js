@@ -279,7 +279,7 @@ function sheetHtml() {
       ${partsHtml(b.included)}
       ${b.extra.length ? `<p class="extra"><strong>Not in ${esc(p.name)}:</strong> ${b.extra.map(esc).join(', ')}. Your answers called for ${b.extra.length === 1 ? 'it' : 'these'}; ${b.recommended !== p.key ? `${esc(PACKAGES[b.recommended].name)} includes ${b.extra.length === 1 ? 'it' : 'them'}, or ask us to quote ${b.extra.length === 1 ? 'it' : 'them'} on ${b.extra.length === 1 ? 'its' : 'their'} own.` : 'ask us and we\'ll quote it.'}</p>` : ''}
       ${p.key === 'engine' && A.answers === 'nobody' ? '<p class="extra"><strong>Worth asking about:</strong> AI intake — enquiries read, sorted and answered in your voice. An add-on to Engine, quoted per job.</p>' : ''}
-      ${p.key === 'clean' ? `<p class="extra">One page, one of the five looks${A.look && A.look !== '_' ? ` (you picked ${esc(d.look)})` : ''}, your phone number tappable and a form that reaches you. Hosted free, forever. Changes and a human reply are $49/mo, added at checkout or later.</p>` : ''}
+      ${p.key === 'clean' ? `<p class="extra">One page, one of the five looks${A.look && A.look !== '_' ? ` (you picked ${esc(d.look)})` : ''}, your phone number tappable and a form that reaches you. Live within seven days of the call. Hosted free, forever. Changes and a human reply are $49/mo, added at checkout or later.</p>` : ''}
     </div>
 
     ${bearingHtml}

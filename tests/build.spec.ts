@@ -92,7 +92,7 @@ test.describe('guided build — the flow', () => {
       await page.locator('#panel [data-nav="next"]').click();
     }
     await expect(page.locator('#step-label')).toHaveText('Step 4 of 8');
-    expect((await page.locator('#panel').innerText())).not.toMatch(/\$4,250|\$1,750|\$600/);
+    expect((await page.locator('#panel').innerText())).not.toMatch(/\$4,250|\$1,750|\$500/);
   });
 
   test('the preview phone builds as the answers land', async ({ page }) => {
@@ -192,16 +192,16 @@ test.describe('guided build — the spec sheet', () => {
     await expect(sheet.locator('#reserve')).toHaveText('Reserve my build — $875 now');
   });
 
-  test('shop, not sure what it wants: Cheap and Clean, $600 in full, payback at under $200', async ({ page }) => {
+  test('shop, not sure what it wants: Cheap and Clean, $500 in full, payback at under $200', async ({ page }) => {
     await fresh(page);
     await walk(page, SHOP);
     const sheet = page.locator('#panel');
     await expect(sheet.locator('.pkg-opt[aria-pressed="true"]')).toContainText('Cheap and Clean');
-    await expect(sheet.locator('.price').first()).toContainText('$600');
+    await expect(sheet.locator('.price').first()).toContainText('$500');
     await expect(sheet.locator('.price .was')).toHaveCount(0);
     expect(await sheet.locator('.parts .t').allInnerTexts()).toEqual(['A custom site']);
-    await expect(sheet.locator('.payback')).toHaveText('At under $200 a customer, this build is at least 4 new customers.');
-    await expect(sheet).toContainText('$600 in full');
+    await expect(sheet.locator('.payback')).toHaveText('At under $200 a customer, this build is at least 3 new customers.');
+    await expect(sheet).toContainText('$500 in full');
     await expect(sheet).toContainText('you picked Dark');
     await expect(sheet.locator('#reserve')).toHaveAttribute('href', /checkout\.html\?buy=clean&s=/);
   });
@@ -332,13 +332,13 @@ test.describe('guided build — into checkout', () => {
     await expect(page.locator('.back')).toHaveAttribute('href', /build\.html\?s=/);
   });
 
-  test('a Cheap and Clean build reaches checkout as the whole $600, no balance row', async ({ page }) => {
+  test('a Cheap and Clean build reaches checkout as the whole $500, no balance row', async ({ page }) => {
     await fresh(page);
     await walk(page, SHOP);
     await page.locator('#reserve').click();
     await expect(page).toHaveURL(/checkout\.html\?buy=clean/);
     await expect(page.locator('h1')).toHaveText('Cheap and Clean');
-    await expect(page.locator('#total')).toHaveText('$600.00');
+    await expect(page.locator('#total')).toHaveText('$500.00');
     await expect(page.locator('#balance-row')).toBeHidden();
     await expect(page.locator('input[name="care"]')).toBeVisible();
     await expect(page.locator('#build-card')).toBeVisible();
@@ -350,7 +350,7 @@ test.describe('guided build — into checkout', () => {
     await expect(page.locator('h1')).toHaveText('Cheap and Clean');
     await expect(page.locator('#build-card')).toBeHidden();
     await expect(page.locator('#spec')).toHaveValue('');
-    await expect(page.locator('#total')).toHaveText('$600.00');
+    await expect(page.locator('#total')).toHaveText('$500.00');
     await expect(page.locator('#balance-row')).toBeHidden();
   });
 });

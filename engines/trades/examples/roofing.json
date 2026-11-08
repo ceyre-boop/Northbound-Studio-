@@ -1,0 +1,95 @@
+{
+  "_readme": "An example config for this trade. Copy it over engine.config.json and edit. Prices are in cents: 8900 is $89.00. A service with \"due\": 0 takes no payment and becomes a visit request instead. This file is served to the browser, so put nothing private in it; the inbox that receives bookings is the NOTIFY_TO environment variable, not this file.",
+  "business": {
+    "name": "Harbor Roofing",
+    "tagline": "Dry by tonight.",
+    "phone": "(555) 013-9910",
+    "phoneHref": "tel:+15550139910",
+    "email": "hello@example.com",
+    "area": "Lansing and the surrounding towns",
+    "hours": "Mon–Sat 7am–6pm · Storm damage any hour",
+    "license": "LIC# 0000000",
+    "accent": "#8A3B2E"
+  },
+  "copy": {
+    "headline": "Book a roofer.",
+    "sub": "Tell us what's going on, pick a time, and hold your spot. Two minutes, and nothing is charged until you confirm.",
+    "depositNote": "The deposit comes off your bill. If we can't make it, you get it back in full."
+  },
+  "afterHours": {
+    "cents": 10000,
+    "label": "Same-day / storm-call fee"
+  },
+  "services": [
+    {
+      "key": "leak",
+      "name": "Active leak",
+      "blurb": "Water coming in now. We find it, tarp it, and tell you what it needs.",
+      "label": "Leak visit and tarp",
+      "due": 9900,
+      "total": 9900,
+      "note": "Covers the visit, the find and a temporary cover. The repair is quoted before we start."
+    },
+    {
+      "key": "inspection",
+      "name": "Roof inspection",
+      "blurb": "Before you buy, after a storm, or because it's been a while. A written report with photos.",
+      "label": "Inspection with report",
+      "due": 14900,
+      "total": 14900,
+      "note": "Paid in full up front. Comes off the price if we do the work."
+    },
+    {
+      "key": "repair",
+      "name": "Repair",
+      "blurb": "A few shingles, flashing, a vent boot, a soft spot.",
+      "label": "Repair visit",
+      "due": 10000,
+      "total": 45000,
+      "note": "A $100 deposit holds the day; the balance is due when it's done. Bigger than it looked: we stop and quote."
+    },
+    {
+      "key": "gutters",
+      "name": "Gutter clean-out",
+      "blurb": "Cleared, flushed, downspouts checked.",
+      "label": "Gutter clean-out, whole house",
+      "due": 17900,
+      "total": 17900,
+      "note": "Paid in full up front. Guards and repairs quoted on the day."
+    },
+    {
+      "key": "replace",
+      "name": "Full replacement",
+      "blurb": "An estimate on paper, free, with material options and prices.",
+      "label": "Free on-site estimate",
+      "due": 0,
+      "total": 0,
+      "note": "Nothing to pay now. We'll confirm the time by phone."
+    }
+  ],
+  "property": [
+    "House",
+    "Condo or townhouse",
+    "Business"
+  ],
+  "urgency": [
+    {
+      "key": "today",
+      "label": "Today — it's leaking",
+      "note": "Same-day and after-hours visits carry a fee, shown before you pay."
+    },
+    {
+      "key": "week",
+      "label": "This week"
+    },
+    {
+      "key": "flexible",
+      "label": "Whenever's convenient"
+    }
+  ],
+  "windows": [
+    "Morning, 8–12",
+    "Afternoon, 12–4",
+    "Evening, 4–7"
+  ]
+}

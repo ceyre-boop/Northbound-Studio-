@@ -73,7 +73,6 @@
   .tpl-gets p { margin: 0; color: var(--espresso-2); }
   .tpl-both { margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--taupe-2); display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 24px; }
   .tpl-both .tpl-price { font-size: 28px; }
-  .tpl-price-tba { font-size: 22px; }
   /* The engine has no poster: a drawn mock of its last screen, in its own neutral colours. */
   .tpl-screen-engine { padding: 28px 24px; background: #fff; }
   .eng-mock { max-width: 360px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #17202A; }
@@ -186,7 +185,7 @@
     </div>
   </section>
 
-  <!-- THE ENGINE. Every line in the list names code in engines/hvac. -->
+  <!-- THE ENGINE. Every line in the list names code in engines/trades. -->
   <section class="section" id="engine" data-reveal>
     <div class="tpl">
       <div class="tpl-screen tpl-screen-engine" aria-hidden="true">
@@ -203,7 +202,7 @@
       <div class="tpl-body">
         <p class="eyebrow">03 · The booking engine</p>
         <h2 class="section-title">The machine behind the site.</h2>
-        <p class="tpl-job">A customer says what's wrong, where, how soon and when, sees the price, and pays the deposit on Stripe's page. You get the email the moment it's paid. Built for heating and cooling; the trade is a config file.</p>
+        <p class="tpl-job">A customer says what's wrong, where, how soon and when, sees the price, and pays the deposit on Stripe's page. You get the email the moment it's paid. Built for the trades: heating and cooling, plumbing, electrical, roofing. Your trade is a config file, and four come in the box.</p>
         <a class="tpl-demo" hidden data-demo="engine" href="#" target="_blank" rel="noopener">Open the live demo →</a>
         <p class="tpl-h">What's behind it</p>
         <ul class="tpl-list">
@@ -215,10 +214,10 @@
           <li><b>Needs:</b> a Stripe account and a free Resend account. Five environment variables, one config file, Vercel's free tier.</li>
         </ul>
         <div class="tpl-buy" data-tpl="engine">
-          <p class="tpl-price tpl-price-tba">Price to be announced <span>one business, yours to keep</span></p>
+          <p class="tpl-price">$2,000 <span>one business, yours to keep</span></p>
           <a class="btn tpl-buy-link" hidden data-buy="engine" href="#">Buy the engine</a>
           <form class="tpl-wait" method="post" action="/api/quote">
-            <input type="hidden" name="need" value="Template: The booking engine (HVAC)">
+            <input type="hidden" name="need" value="Template: The booking engine (trades)">
             <input type="hidden" name="message" value="Tell me when the booking engine is on sale, at the launch price.">
             <p class="field"><label for="e-name">Your name</label><input id="e-name" name="name" type="text" autocomplete="name" required></p>
             <p class="field"><label for="e-email">Email</label><input id="e-email" name="email" type="email" autocomplete="email" required></p>
@@ -291,7 +290,7 @@
     const wait = box.querySelector('.tpl-wait');
     if (t.url && buy) {
       buy.href = t.url;
-      if (t.price) buy.textContent = `Buy ${key === 'both' ? 'both' : t.name} — $${t.price}`;
+      if (t.price) buy.textContent = `Buy ${key === 'both' ? 'both' : t.name} — $${t.price.toLocaleString('en-US')}`;
       buy.hidden = false;
       if (wait) wait.hidden = true;
     }

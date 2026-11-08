@@ -16,14 +16,17 @@ test.describe('templates — the page and the table agree', () => {
     await expect(page.locator('[data-tpl="vector"] .tpl-price')).toContainText(`$${TEMPLATES.vector.price}`);
     await expect(page.locator('[data-tpl="both"] .tpl-price')).toContainText(`$${TEMPLATES.both.price}`);
     // The engine's price is Colin's call: until set, the page says so and shows no number.
-    if (TEMPLATES.engine.price) await expect(page.locator('[data-tpl="engine"] .tpl-price')).toContainText(`$${TEMPLATES.engine.price}`);
+    if (TEMPLATES.engine.price) await expect(page.locator('[data-tpl="engine"] .tpl-price')).toContainText(`$${TEMPLATES.engine.price.toLocaleString('en-US')}`);
     else await expect(page.locator('[data-tpl="engine"] .tpl-price')).not.toContainText('$');
   });
 
   test('with no shop url, the page asks for an email and sells nothing', async ({ page }) => {
     test.skip(Boolean(TEMPLATES.atlas.url || TEMPLATES.vector.url || TEMPLATES.both.url || TEMPLATES.engine.url), 'a url is set: the Buy buttons are live');
     await page.goto('/templates.html');
-    await expect(page.locator('[data-demo="engine"]')).toBeHidden(); // no demo url, no dead link
+    // The engine's demo link shows only when a demo url is set, and then goes there.
+    const demo = page.locator('[data-demo="engine"]');
+    if (TEMPLATES.engine.demo) await expect(demo).toHaveAttribute('href', TEMPLATES.engine.demo);
+    else await expect(demo).toBeHidden(); // no demo url, no dead link
     await page.goto('/templates.html');
     for (const key of ['atlas', 'vector', 'engine']) {
       const box = page.locator(`[data-tpl="${key}"]`);

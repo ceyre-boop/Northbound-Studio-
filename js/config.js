@@ -31,3 +31,12 @@ export const TEMPLATES = {
      templates. `demo` is the live demo's url; empty hides the demo link. */
   engine: { name: 'The booking engine', price: 2000, url: '', demo: 'https://nb-engine-trades-demo.vercel.app/' }, // $2,000: Colin's call, 2026-11-05; the demo is his Vercel project
 };
+
+/* THE ONE DOOR. "Start your site" on the homepage goes to a Stripe Payment
+ * Link for the $250 deposit, which redirects to the Tally intake form. A plain
+ * URL: no key, no server. While it is empty every door is the mailto below,
+ * which is also what the HTML carries, so the page works with JavaScript off.
+ */
+export const STRIPE_DEPOSIT_LINK = '';
+export const START_SITE_FALLBACK = 'mailto:colineyre222@gmail.com?subject=Start%20my%20Northbound%20site';
+export const START_SITE_HREF = STRIPE_DEPOSIT_LINK || START_SITE_FALLBACK;

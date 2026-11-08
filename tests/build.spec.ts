@@ -457,15 +457,4 @@ test.describe('guided build — the page itself', () => {
     }
   });
 
-  test('the homepage sends every call-to-action here', async ({ page }) => {
-    // The dream homepage has no quote form of its own: every button and
-    // the open slot's "Start here" lead to the questions, none to checkout.
-    await page.goto('/');
-    await expect(page.locator('.hero a.btn')).toHaveAttribute('href', 'build.html');
-    const ctas = page.locator('header a.btn, main a.btn, .program-status a');
-    const n = await ctas.count();
-    expect(n).toBeGreaterThanOrEqual(6);
-    for (let i = 0; i < n; i++) await expect(ctas.nth(i)).toHaveAttribute('href', 'build.html');
-    await expect(page.locator('a[href*="checkout.html"]')).toHaveCount(0);
-  });
 });

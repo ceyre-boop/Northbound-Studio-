@@ -369,7 +369,10 @@ async function createCheckoutSession(key: string, o: Order, p: Offer, specText: 
     allow_promotion_codes: 'true',
     success_url: `${SITE}/order-paid.html?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: referer.startsWith(SITE) ? referer : `${SITE}/checkout.html`,
-    'payment_intent_data[description]': `${OFFER_NAME} deposit — ${o.business}`.slice(0, 200),
+    /* No payment_intent_data here. A 100%-off promotion code makes the order
+       free, a free order has no PaymentIntent, and Stripe then rejects the
+       code as "invalid" if the session carries PaymentIntent settings. The
+       business name is in the metadata instead. */
     'metadata[nb_name]': o.name,
     'metadata[nb_business]': o.business,
     'metadata[nb_phone]': o.phone,

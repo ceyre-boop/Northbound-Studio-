@@ -32,6 +32,9 @@ While a question waits, only the work for that one client pauses. Everything els
 - **Answering away from the Mac:** questions also arrive by text message. Colin replies with the choice number (or types his own answer), and that counts exactly like answering on the dashboard.
 - **Home screen:** the dashboard opens on live agent activity, with an open-questions badge always visible.
 
+- **Texting:** iMessage, sent and read by the Mac's Messages app on Colin's number. Free.
+- **Big answers get a confirm text first.** Before anything that moves money or can't be undone (a refund, a price change, a full rebuild), the agent texts back something like "Refunding <client>'s $250 — reply Y" and waits for the Y.
+
 ## 2. Agent activity (to the second)
 
 Each agent logs every state change with a timestamp to the second:
@@ -65,6 +68,8 @@ The screen shows:
 **Business:** revenue, MRR, clients by stage, the pricing engine's current price and results, and Max plan usage.
 
 ## 4. Data
-- One append-only event log on the Mac: every agent action, state change, message, question and answer, timestamped to the second.
+- One append-only event log on the Mac: every agent action, state change, message, question and answer, timestamped to the second. Plain files, no database service.
+  - **Short-term:** the last 30 days, in a working log the dashboard reads live.
+  - **Long-term:** anything older than 30 days is moved into a long-term archive file on the Mac and kept forever.
 - The client files and the pricing log, from `Plans/agent-team.md` and `Plans/pricing-engine.md`.
 - The dashboard only reads these. It never needs its own copy of the truth.

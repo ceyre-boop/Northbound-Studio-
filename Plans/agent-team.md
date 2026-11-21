@@ -114,7 +114,7 @@ Colin presses it. It finds verified small businesses and sends the approved cold
 - **Visibility:** a live dashboard that Colin builds as a localhost front end on the Mac, showing every client, their stage, and every agent action.
 
 ## Build order: one at a time, each one live before the next
-1. **Buddy, onboarding only:** payment → onboarding email → conversation until the info is complete.
+1. **Buddy, onboarding only + dashboard v0, built together:** payment → onboarding email → conversation until the info is complete. Dashboard v0 is only the event log, the live activity screen, and question texts by iMessage. Metrics and the full question cards come after Buddy works live.
 2. **Site Builder:** info complete → live site on the client's domain.
 3. **Buddy, after launch:** edits, check-ins, upsells, bottleneck questions.
 4. **Automation Builder.**

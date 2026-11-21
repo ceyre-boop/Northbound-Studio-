@@ -26,6 +26,12 @@ Agreed with Colin on 2026-11-21. Built by Colin as a localhost front end; everyt
 
 While a question waits, only the work for that one client pauses. Everything else keeps running.
 
+**Settled:**
+- **When agents escalate:** after 3 rounds of agents messaging each other without agreeing, the question goes to Colin.
+- **Alert:** a phone push notification for every new question card.
+- **Answering away from the Mac:** questions also arrive by text message. Colin replies with the choice number (or types his own answer), and that counts exactly like answering on the dashboard.
+- **Home screen:** the dashboard opens on live agent activity, with an open-questions badge always visible.
+
 ## 2. Agent activity (to the second)
 
 Each agent logs every state change with a timestamp to the second:

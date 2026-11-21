@@ -22,6 +22,8 @@
  * Env: RESEND_API_KEY, QUOTE_TO (the studio inbox), QUOTE_FROM (optional).
  */
 
+import { offer, money, CARE_NAME } from '../lib/price.js';
+
 const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
 const FALLBACK_FROM = 'Northbound Studio <quotes@northbound-dev.com>';
@@ -32,22 +34,24 @@ const LIMITS = {
   email: 200,
   phone: 40,
   message: 5000,
-  term: 40,
 } as const;
 
-/* The only plan changes this page offers, and what each costs. Prices live
-   here, never in the posted form: account.html shows them, this decides
-   them. They mirror api/checkout.ts's table — if one moves, move both. */
+/* The only plan changes this page offers. No price lives here or on
+   account.html: the care plan's monthly price is read from data/price.json
+   when the emails are written, and a client who already has a plan keeps the
+   price they signed up at. */
 const PLANS = {
-  want_care: { label: 'Changes and support', price: '$49/mo' },
-  want_bearing: { label: 'Bearing (founding)', price: '$300/mo' },
-  want_cancel: { label: 'Drop a plan', price: 'no charge' },
+  want_care: { label: CARE_NAME },
+  want_cancel: { label: 'Drop a plan' },
 } as const;
 
-const TERMS: Record<string, string> = {
-  bearing_12: '12-month commitment — $300/mo for all twelve months',
-  bearing_mtm: 'month-to-month — $300 the first month, then $600/mo after',
-};
+function carePrice(): string {
+  try {
+    return `${money(offer().careCents)}/mo`;
+  } catch {
+    return 'price to be confirmed';
+  }
+}
 
 type Field = keyof typeof LIMITS;
 type Request_ = Record<Field, string>;
@@ -62,7 +66,7 @@ function read(form: FormData, key: Field): string {
 function chosen(form: FormData): string[] {
   return (Object.keys(PLANS) as (keyof typeof PLANS)[])
     .filter((k) => form.get(k) === '1')
-    .map((k) => `${PLANS[k].label} (${PLANS[k].price})`);
+    .map((k) => (k === 'want_care' ? `${PLANS[k].label} (${carePrice()})` : PLANS[k].label));
 }
 
 function problem(r: Request_, picks: string[]): string | null {
@@ -71,7 +75,6 @@ function problem(r: Request_, picks: string[]): string | null {
   if (!EMAIL_RE.test(r.email)) return 'Please check your email address.';
   if (r.phone.replace(/\D/g, '').length < 7) return 'Please leave a phone number we can call.';
   if (!picks.length && !r.message) return 'Tick what you want to change, or tell us in the box.';
-  if (r.term && !(r.term in TERMS)) return 'That Bearing term is not one we offer.';
   return null;
 }
 
@@ -99,7 +102,6 @@ function notification(r: Request_, picks: string[]): string {
     `Phone:     ${r.phone}`,
     '',
     `Wants:     ${picks.length ? picks.join(', ') : '(nothing ticked — see message)'}`,
-    r.term ? `Term:      ${TERMS[r.term]}` : '',
     '',
     'Message:',
     r.message || '—',
@@ -113,7 +115,6 @@ function confirmation(r: Request_, picks: string[]): string {
     '',
     'We have your request:',
     picks.length ? picks.map((p) => `  · ${p}`).join('\n') : '  · (see your note below)',
-    r.term ? `  · ${TERMS[r.term]}` : '',
     r.message ? `\nYou wrote:\n${r.message}` : '',
     '',
     "Nothing has been charged. If the change costs anything we'll email a secure payment link first, and it only starts once you pay it. If you asked to drop a plan, we'll confirm the date it stops.",

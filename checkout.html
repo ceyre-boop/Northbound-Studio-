@@ -16,29 +16,20 @@
 
   This page exists because "send a request into the abyss" is how every other
   small-studio site ends, and it is why people don't believe anything will
-  happen. Here they see the thing they are buying, what it costs, what it
-  does not include, and what happens next. Stripe is wired up: a validated
-  order becomes a Stripe Checkout Session and the visitor pays the deposit
-  on Stripe's hosted page — no card details touch this site. If Stripe is
-  ever not fully configured, /api/checkout falls back to capturing the order
-  by email, honestly labelled as such. Nothing is a claim: the totals are
-  computed from the same table the server charges from.
+  happen. Here they see the one thing we sell, what it costs, and what
+  happens next. This is the only page on the site that shows a price, and the
+  price is not written in this file: it is read from data/price.json, the
+  same file /api/checkout charges from. Stripe is wired up: a validated order
+  becomes a Stripe Checkout Session and the visitor pays the deposit on
+  Stripe's hosted page. No card details touch this site.
 
-  The add-on is offered here rather than as a fourth price card, because this
-  is the moment someone is actually deciding. Saying no costs nothing: it is
-  in their account afterwards, one click, forever.
+  JavaScript only fills in the amounts. With it off, the form still posts to
+  /api/checkout and the server prices it.
 
-  JavaScript only updates the running total. With it off, the form still
-  posts every choice to /api/checkout and the server prices it.
-
-  THE GUIDED BUILD. build.html sends people here with ?buy=<package>&s=<code>.
-  js/checkout-build.js reads both: it switches the page to Beacon or Engine
-  (the 50% deposit now, the balance on delivery — "50% up front, always. No
-  deposit, no work."), shows the build they assembled, pre-ticks Bearing if
-  they asked us to keep it running, and carries the code in a hidden field so
-  the order emails describe the build. The package key and the code are the
-  only things that travel; api/checkout.ts prices from its own table. Without
-  JavaScript this page is Cheap and Clean, as it always was.
+  THE GUIDED BUILD. build.html sends people here with ?s=<code>.
+  js/checkout-build.js shows what they told us and carries the code in a
+  hidden field so the order emails can repeat it. The code decides nothing
+  about the price.
 
   THE TWELVE ON THE HOMEPAGE arrive the same way — index.html's panels send
   ?buy=<package>&s=<version-2 code> — and the build card lists exactly the
@@ -191,29 +182,9 @@
   .addon input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
   .addon > span:not(.p) { flex: 1 1 auto; min-width: 0; }  /* the text column was shrinking to a third of the row at 390px, leaving the price alone on the right */
   .addon .t { font-weight: 700; display: block; }
-  .addon .t .was { font-weight: 400; font-size: 13px; color: var(--ink-soft); text-decoration: line-through; margin-left: 6px; }
   .addon .d { color: var(--ink-soft); font-size: 15px; }
   .addon .p { font-family: var(--display); white-space: nowrap; margin-left: auto; }
 
-  /* The two Bearing terms and the founding claim. Always present in the
-     markup (no `hidden`) so a no-JS visitor can still choose a term and
-     make the claim — JS only dims this block visually while Bearing is unchecked. */
-  .bearing-terms { display: grid; gap: 10px; margin: 10px 0 0 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; }
-  .bearing-terms.is-dim { opacity: 0.45; }
-  .term { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 14px; color: var(--ink-soft); }
-  .term input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
-  .term strong { color: var(--ink); }
-  /* The founding claim: the review link, the name it is posted under, and
-     the honest note. The border turns accent while something founding-priced
-     is in the order and the name is empty. */
-  .founding-claim { display: grid; gap: 10px; margin-top: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
-  .founding-claim.is-required.is-empty { border-color: var(--accent); background: var(--panel); }
-  .founding-claim p { margin: 0; }
-  .founding-claim .claim-lede { font-size: 15px; }
-  .founding-claim .field { margin: 0; }
-  .founding-claim .note { font-size: 13px; color: var(--ink-soft); }
-  .btn-review { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-weight: 500; text-decoration: none; white-space: nowrap; }
-  .btn-review:hover { border-color: var(--red); color: var(--red); }
 
   .totals { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 16px; }
   .totals .row { display: flex; justify-content: space-between; color: var(--ink-soft); }
@@ -260,109 +231,73 @@
 
 <main>
   <div class="wrap">
-    <a class="back" href="/#packages">← Back to pricing</a>
+    <a class="back" href="/#packages">← Back to the offer</a>
     <p class="step">Step 1 of 2 · your order</p>
-    <h1>Cheap and Clean</h1>
+    <h1>The Northbound Site</h1>
 
-    <section class="card build-card" id="build-card" hidden aria-label="Your build">
-      <h2>Your build</h2>
+    <section class="card build-card" id="build-card" hidden aria-label="What you told us">
+      <h2>What you told us</h2>
       <ul class="parts" id="build-parts"></ul>
       <p class="answers" id="build-extra" hidden></p>
       <p class="answers" id="build-answers"></p>
       <a class="change" id="build-change" href="build.html">Change it</a>
     </section>
 
-    <form class="card" method="post" action="/api/checkout" id="order" data-today="500" data-balance="0">
-      <input type="hidden" name="buy" value="clean">
+    <!--
+      THE PRICE. Not written in this file. It is fetched from data/price.json,
+      the same file api/checkout.ts charges from, and filled into the
+      [data-price] elements below. This page is the only place on the site a
+      price is shown. With JavaScript off the amounts read "shown on the next
+      step": Stripe's page states the exact deposit before any card is
+      entered, so nobody pays a number they have not seen.
+    -->
+    <form class="card" method="post" action="/api/checkout" id="order">
+      <input type="hidden" name="buy" value="site">
       <input type="hidden" name="spec" value="" id="spec">
 
       <div class="pause">
         <h2>Before you pay, pause.</h2>
-        <p class="pause-lede">Think about this purchase for a minute. We'd rather build the machine you actually need than the biggest one. All three are optional.</p>
+        <p class="pause-lede">Think about this purchase for a minute. We'd rather build the site you actually need. All three are optional.</p>
         <p class="field"><label for="f-why-not">Every reason you don't need us to build this</label><textarea id="f-why-not" name="why_not" rows="3" maxlength="500"></textarea></p>
         <p class="field"><label for="f-benefit">What will it actually bring you and your business?</label><textarea id="f-benefit" name="benefit" rows="3" maxlength="500"></textarea></p>
         <p class="field"><label for="f-why-us">Why are you coming to Northbound?</label><textarea id="f-why-us" name="why_us" rows="2" maxlength="500"></textarea></p>
-        <p class="reassure pause-note">We read every word of this before we start your build, and it shapes what we make. The more honest it is, the closer the machine gets to what you want.</p>
+        <p class="reassure pause-note">We read every word of this before we start your build, and it shapes what we make.</p>
       </div>
 
       <div class="line">
-        <h2>Cheap and Clean</h2>
-        <p class="amt">$500 <span>once</span></p>
+        <h2>The Northbound Site</h2>
+        <p class="amt"><span data-price="setup">Shown on the next step</span></p>
       </div>
-      <p class="desc">One page, your brand, live in seven days. It puts you on the board.</p>
+      <p class="desc">Your business online, live in 7 days or $100 off.</p>
       <ul class="includes">
-        <li>Live within seven days of the call</li>
-        <li>One of five designs, built around your business</li>
-        <li>Your logo, colours and photos</li>
-        <li>Your phone number, tappable, and a form that reaches you</li>
-        <li>Hosted free, forever — it stays live whether or not you add anything below</li>
+        <li>Up to 5 pages, built from our template around your business</li>
+        <li>Fast and phone-ready</li>
+        <li>Your domain connected (you buy it; we walk you through it and set it up)</li>
+        <li>Contact form and click-to-call</li>
+        <li>Revisions until you're happy with it</li>
       </ul>
 
-      <label class="addon">
-        <input type="checkbox" name="care" value="49" data-price="49">
-        <span>
-          <span class="t">Changes and support — $49/mo</span>
-          <span class="d">Text or email us and a person answers. Edits, fixes, new photos, new sections. Without it the site stays exactly as built and replies are automated. Cancel any time.</span>
-        </span>
-        <span class="p">$49<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
-      </label>
-
-      <label class="addon" for="bearing-toggle">
-        <input type="checkbox" id="bearing-toggle" name="bearing" value="1" data-price="300" data-bearing-toggle>
-        <span>
-          <span class="t">Bearing — founding price $300/mo <span class="was">standard $600/mo</span></span>
-          <span class="d">The full care plan: hosting, monitoring, backups, unlimited small edits, your automations kept running, and a monthly report on where the calls came from. Built for Engine sites; available here if you want it. One of the first 15 founding clients only — pick a term below.</span>
-        </span>
-        <span class="p">$300<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
-      </label>
-
-      <!--
-        Two terms, same first-month price. The choice is which one comes
-        after: locked at $300 for a year, or free to leave any time but back
-        to $600 after month one. Left visible (not hidden) even before
-        Bearing is ticked, so a visitor with JavaScript disabled can still
-        pick a term and make the founding claim below — the only thing
-        JavaScript does here is dim this block until Bearing is checked.
-      -->
-      <div class="bearing-terms" data-bearing-terms>
-        <label class="term">
-          <input type="radio" name="bearing_term" value="12" checked>
-          <span><strong>12-month commitment</strong> — $300/mo, locked for all twelve months.</span>
-        </label>
-        <label class="term">
-          <input type="radio" name="bearing_term" value="mtm">
-          <span><strong>Month-to-month</strong> — $300 the first month, then $600/mo after. Cancel any time.</span>
-        </label>
+      <div class="line" style="margin-top:22px">
+        <h2>Care plan</h2>
+        <p class="amt"><span data-price="care">Shown on the next step</span></p>
       </div>
+      <p class="desc">Starts the day your site goes live. Nothing for it is charged today.</p>
+      <ul class="includes">
+        <li>Hosting, security and updates</li>
+        <li>Small edits, up to 30 minutes a month</li>
+        <li>Cancel with 30 days' notice. Your words and photos stay yours.</li>
+      </ul>
 
       <!--
-        The founding claim. Founding pricing is an early client who leaves us
-        a Google review, so the claim is the review itself: the link opens
-        Google in a new tab, and the name the review is posted under is what
-        we need to find it. Nothing here verifies anything — Colin looks it
-        up himself before finalising, and the note says so. The href is the
-        same string as GOOGLE_REVIEW_URL in js/config.js and api/checkout.ts
-        (tests/checkout.unit.test.ts keeps them equal); it is written out
-        here so the link works with JavaScript off.
-      -->
-      <div class="founding-claim" id="founding-claim">
-        <p class="claim-lede">Taking founding pricing? Leave your Google review, then tell us the name it's posted under.</p>
-        <p class="claim-link"><a class="btn-review" href="https://g.page/r/CRFQRq5WLg6HECE/review" target="_blank" rel="noopener">Leave your Google review</a></p>
-        <p class="field"><label for="f-review-name">The name your review is posted under</label><input id="f-review-name" name="review_name" type="text" maxlength="120" data-founding-agree></p>
-        <p class="note" id="founding-note">Needed to add Bearing at the founding price above. Founding pricing is confirmed once we can see the review — we check it ourselves before finalising, there's no automatic check.</p>
-      </div>
-
-      <!--
-        Two numbers, and they are not the same number. The build is charged
-        once, now; a plan starts next month. Showing a combined "total" here
-        would contradict the line below it and, worse, would not match what
-        api/checkout.ts actually bills — its summary splits once from monthly.
+        Three numbers, and they are not the same number. Half is charged now,
+        half at launch, and the care plan starts at launch. A combined
+        "total" would not match what api/checkout.ts bills today.
       -->
       <div class="totals">
-        <div class="row total"><span>Due today</span><span class="v" id="total">$500.00</span></div>
-        <div class="row balance" id="balance-row" hidden><span>Then on delivery</span><span class="v" id="balance">$0.00</span></div>
-        <div class="row" id="monthly-row" hidden><span>Then monthly, from next month</span><span class="v" id="monthly">$0.00</span></div>
-        <p class="then" id="then">No monthly charges. You can add support any time from your account.</p>
+        <div class="row total"><span>Due today (deposit)</span><span class="v" id="total" data-price="deposit">Shown on the next step</span></div>
+        <div class="row balance" id="balance-row"><span>Then at launch</span><span class="v" id="balance" data-price="balance">Shown on the next step</span></div>
+        <div class="row" id="monthly-row"><span>Then monthly, from launch</span><span class="v" id="monthly" data-price="care-row">Shown on the next step</span></div>
+        <p class="then" id="then">If you cancel before we start building, your deposit is refunded in full. The 7-day clock starts when we have your info, and it counts the days we are working, not the days we are waiting on you.</p>
       </div>
 
       <div style="margin-top:24px">
@@ -372,79 +307,35 @@
         <p class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
         <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
         <button class="pay" type="submit">Continue to secure payment</button>
-        <p class="reassure">No card details are entered on this site. The next step takes you to Stripe to pay the deposit securely — nothing is charged until you complete payment there.</p>
+        <p class="reassure">No card details are entered on this site. The next step takes you to Stripe to pay the deposit securely. Nothing is charged until you complete payment there.</p>
       </div>
     </form>
   </div>
 </main>
 
 <script>
-  /* The total shown here is a convenience only. The server prices the order
-     from its own table; nothing a visitor can edit decides what they pay. */
+  /* The amounts shown here are a convenience only. They are read from
+     data/price.json, the file the server charges from; the form posts no
+     amount, and nothing a visitor can edit decides what they pay. */
   (function () {
-    var form = document.getElementById('order');
-    if (!form) return;
     var money = function (n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
-    var render = function () {
-      var monthly = 0;
-      form.querySelectorAll('input[type=checkbox][data-price]').forEach(function (box) {
-        if (box.checked) monthly += Number(box.getAttribute('data-price'));
-      });
-      /* Due today is the build alone. A plan's first charge is next month,
-         which is what the server bills and what the line below promises.
-         The amounts come from the form's data attributes so
-         js/checkout-build.js can switch the page to a Beacon or Engine
-         deposit; they default to Cheap and Clean. */
-      var today = Number(form.getAttribute('data-today')) || 500;
-      var balance = Number(form.getAttribute('data-balance')) || 0;
-      document.getElementById('total').textContent = money(today);
-      document.getElementById('balance').textContent = money(balance);
-      document.getElementById('balance-row').hidden = balance === 0;
-      document.getElementById('monthly').textContent = money(monthly);
-      document.getElementById('monthly-row').hidden = monthly === 0;
-
-      var bearingOn = form.querySelector('[data-bearing-toggle]').checked;
-      var terms = document.querySelector('[data-bearing-terms]');
-      if (terms) terms.classList.toggle('is-dim', !bearingOn);
-
-      var thenText;
-      if (!monthly) {
-        thenText = 'No monthly charges. You can add support any time from your account.';
-      } else if (bearingOn) {
-        var mtm = form.querySelector('input[name="bearing_term"]:checked').value === 'mtm';
-        thenText = mtm
-          ? 'Your first monthly charge is next month, at the founding price. Bearing is $300 the first month, then $600/mo after. Cancel any time from your account.'
-          : 'Your first monthly charge is next month, at the founding price. Bearing is locked at $300/mo for the full 12-month term.';
-      } else {
-        thenText = 'Your first monthly charge is next month. Cancel any time from your account.';
-      }
-      document.getElementById('then').textContent = thenText;
+    var set = function (name, text) {
+      document.querySelectorAll('[data-price="' + name + '"]').forEach(function (el) { el.textContent = text; });
     };
-    /* The server refuses founding pricing without the review name, and it is
-       right to. But a server refusal on a native POST throws away everything
-       they typed — which is exactly what happened to the first real order
-       through this page. So the browser enforces it too, only while something
-       founding-priced is actually selected, and the message says what to do. */
-    var agree = form.querySelector('[data-founding-agree]');
-    var syncAgree = function () {
-      if (!agree) return;
-      var buying = form.querySelector('input[name="buy"]');
-      var foundingBuy = buying && (buying.value === 'beacon' || buying.value === 'engine');
-      var needed = foundingBuy || form.querySelector('[data-bearing-toggle]').checked;
-      var empty = agree.value.trim() === '';
-      agree.required = !!needed;
-      agree.setCustomValidity(
-        needed && empty
-          ? 'To take the founding price, leave your Google review (the link above opens it), then type the name it\u2019s posted under here. We check it ourselves before finalising.'
-          : ''
-      );
-      var block = agree.closest('.founding-claim');
-      if (block) { block.classList.toggle('is-required', !!needed); block.classList.toggle('is-empty', empty); }
-    };
-    agree && agree.addEventListener('input', syncAgree);
-    form.addEventListener('change', function () { render(); syncAgree(); });
-    render();
-    syncAgree();
+    fetch('data/price.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('price ' + r.status); return r.json(); })
+      .then(function (p) {
+        var setup = Math.round(p.setup * 100);
+        var deposit = Math.round(setup * p.deposit_ratio);
+        if (!(setup > 0) || !(deposit > 0) || !(p.care_monthly > 0)) throw new Error('price out of range');
+        set('setup', money(setup / 100));
+        set('deposit', money(deposit / 100));
+        set('balance', money((setup - deposit) / 100));
+        set('care', money(p.care_monthly) + '/mo');
+        set('care-row', money(p.care_monthly));
+        document.documentElement.setAttribute('data-price-week', p.week);
+      })
+      .catch(function () { /* the fallback text stays: Stripe shows the amount before any card is entered */ });
   })();
 </script>
 <script type="module" src="js/checkout-build.js"></script>

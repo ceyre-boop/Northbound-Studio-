@@ -1,41 +1,63 @@
-/* The dream homepage, and the road from it to the questions.
+/* The homepage, and its two doors.
  *
- * The rebuild pointed every call-to-action straight at checkout.html, so a
- * visitor went from "book a call" to a payment form with nothing asked in
- * between. The guided build at build.html is the discovery; these specs pin
- * the homepage to it, and pin the two things found while putting it back:
- * the wordmark drawn in a cream that vanished on the cream page, and Buddy
+ * Plans/DECISIONS.md #2: automations are the main product and the website is
+ * the second offer, so the page leads with automations and its first door is
+ * the "what slows you down" form. #21: no price anywhere but checkout, so
+ * every "Start your site" door goes to checkout.html, the one page that
+ * shows one. These specs pin both, and the two things found on the way: the
+ * wordmark drawn in a cream that vanished on the cream page, and Buddy
  * paused by the reduced-motion setting on the one machine he is built on.
  */
 import { test, expect } from '@playwright/test';
-import { START_SITE_HREF, START_SITE_FALLBACK } from '../js/config.js';
+import { START_SITE_HREF } from '../js/config.js';
 
-test.describe('homepage — every door is the one door', () => {
-  // Plans/the-line.md §2: one item, no custom quotes. Every call-to-action on
-  // the homepage is the same door: the Stripe Payment Link for the deposit,
-  // or, while that constant is empty, the mailto the HTML already carries.
-  test('every call-to-action carries the one href, and none goes to checkout or the old guided build', async ({ page }) => {
+test.describe('homepage — automations first, the site second', () => {
+  test('the hero leads with automations and its button opens the form', async ({ page }) => {
     await page.goto('/');
-    const ctas = page.locator('header a.btn, main a.btn, .program-status a');
-    const n = await ctas.count();
-    expect(n).toBeGreaterThanOrEqual(5);
-    for (let i = 0; i < n; i++) await expect(ctas.nth(i)).toHaveAttribute('href', START_SITE_HREF);
-    expect(await page.locator('a[href*="checkout.html"]').count()).toBe(0);
-    expect(await page.locator('a[href*="build.html"]').count()).toBe(0);
+    await expect(page.locator('h1.hero-title')).toContainText('We automate');
+    await expect(page.locator('.hero-cta a')).toHaveText('Tell us what slows you down');
+    await expect(page.locator('.hero-cta a')).toHaveAttribute('href', '#contact');
+    await expect(page.locator('header a.btn')).toHaveAttribute('href', '#contact');
+    await expect(page.locator('.hero-note a')).toHaveText('start your site');
   });
 
-  test('with JavaScript off the doors are the mailto, with the subject line', async ({ browser }) => {
-    const ctx = await browser.newContext({ javaScriptEnabled: false });
-    const page = await ctx.newPage();
+  test('the automations section comes before the website offer', async ({ page }) => {
     await page.goto('/');
-    for (const a of await page.locator('[data-start-site]').all()) await expect(a).toHaveAttribute('href', START_SITE_FALLBACK);
+    const order = await page.locator('main section[id]').evaluateAll((els) => els.map((e) => e.id));
+    expect(order.indexOf('automations')).toBeGreaterThanOrEqual(0);
+    expect(order.indexOf('automations')).toBeLessThan(order.indexOf('packages'));
+    const nav = await page.locator('.site-nav a').allTextContents();
+    expect(nav.indexOf('Automations')).toBeLessThan(nav.indexOf('Websites'));
+  });
+
+  test('every "Start your site" door goes to checkout, with or without JavaScript', async ({ page, browser }) => {
+    await page.goto('/');
+    const doors = page.locator('[data-start-site]');
+    expect(await doors.count()).toBeGreaterThanOrEqual(4);
+    for (const a of await doors.all()) await expect(a).toHaveAttribute('href', START_SITE_HREF);
+    expect(START_SITE_HREF).toBe('checkout.html');
+    expect(await page.locator('a[href^="mailto:colineyre"]').count()).toBe(0);
+    const ctx = await browser.newContext({ javaScriptEnabled: false });
+    const plain = await ctx.newPage();
+    await plain.goto('/');
+    for (const a of await plain.locator('[data-start-site]').all()) await expect(a).toHaveAttribute('href', 'checkout.html');
     await ctx.close();
   });
 
-  test('the hero says what the button does', async ({ page }) => {
+  test('the form posts to the quote endpoint and asks only for what an answer needs', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.hero-cta a')).toHaveText('Start your site');
-    await expect(page.locator('.hero-note')).toContainText('$250 to start, $250 at launch');
+    const form = page.locator('#contact form');
+    await expect(form).toHaveAttribute('action', '/api/quote');
+    await expect(form).toHaveAttribute('method', 'post');
+    for (const name of ['need', 'name', 'email', 'phone']) await expect(form.locator(`[name="${name}"]`)).toHaveAttribute('required', '');
+    await expect(form.locator('[name="business"]')).toHaveCount(1);
+    await expect(form.locator('[name="nb_hp_7"]')).toHaveCount(1);
+  });
+
+  test('the work is shown without a client name', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#builds')).toContainText('A construction company');
+    await expect(page.locator('body')).not.toContainText('Keystone');
   });
 
   test('the wordmark is drawn in a colour that shows on the page', async ({ page }) => {
@@ -121,34 +143,33 @@ test.describe('the questions, the counter and the landing pages wear the same cl
   });
 });
 
-test.describe('the offer — Plans/the-line.md §2', () => {
-  test('one card, one price, one button; the care plan beside it; nothing from the old menu', async ({ page }) => {
+test.describe('the website offer — one item, no price', () => {
+  test('one card, one button, the care plan beside it; no price and nothing from the old menu', async ({ page }) => {
     await page.goto('/');
     const offer = page.locator('#packages');
     await expect(offer.locator('.offer-card--site .offer-name')).toHaveText('The Northbound Site');
-    await expect(offer.locator('.offer-card--site .offer-price')).toContainText('$500');
     await expect(offer.locator('.offer-card--site .offer-price')).toContainText('Live in 7 days, or $100 off');
-    await expect(offer.locator('.offer-card--site .offer-terms')).toHaveText('$250 to start, $250 at launch.');
+    await expect(offer.locator('.offer-card--site .offer-terms')).toHaveText('Half to start, half at launch.');
     await expect(offer.locator('.offer-card--site .offer-list li')).toHaveText([
-      'Up to 5 pages, built from the universal template',
+      'Up to 5 pages, built from our template around your business',
       'Fast and phone-ready',
-      'Domain connected (or help buying one)',
+      'Your domain connected. You buy it, we walk you through it and set it up.',
       'Contact form and click-to-call',
-      'One round of edits before launch',
+      "Revisions until you're happy with it",
     ]);
-    await expect(offer.locator('.offer-card--care .offer-price')).toContainText('$49');
     await expect(offer.locator('.offer-card--care .offer-list li')).toHaveText([
       'Hosting, security, updates',
       'Small edits, up to 30 minutes a month',
-      "Cancel anytime with 30 days' notice. Your words and photos stay yours.",
+      "Cancel with 30 days' notice. Your words and photos stay yours.",
     ]);
-    await expect(offer.locator('.offer-later')).toContainText('Online stores, booking systems, logo design, extra pages.');
     await expect(offer.locator('a.btn')).toHaveCount(1);
     await expect(offer.locator('a.btn')).toHaveText('Start your site');
     await expect(offer.locator('a.btn')).toHaveAttribute('href', START_SITE_HREF);
 
     const body = await page.locator('body').innerText();
-    for (const gone of ['Beacon', 'Bearing', 'Engine', 'Cheap and Clean', '$3,500', '$8,500', '$600', '$79']) expect(body, gone).not.toContain(gone);
+    for (const gone of ['Beacon', 'Bearing', 'Engine', 'Cheap and Clean', 'founding', '$500', '$250', '$49', '$79']) expect(body, gone).not.toContain(gone);
+    // The guarantee is the only dollar figure the page may carry.
+    expect(body.match(/\$\s?\d[\d,.]*/g)?.every((m) => m === '$100') ?? true).toBe(true);
   });
 
   test('the care plan sits beside the site on desktop and under it on a phone, without overflow', async ({ page }) => {

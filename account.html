@@ -79,8 +79,6 @@
   .field { display: grid; gap: 6px; margin: 0 0 14px; }
   .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
   .field input, .field select, .field textarea { padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 16px; min-height: 46px; background: var(--bg); color: inherit; width: 100%; max-width: 100%; }
-  /* A <select> sizes itself to its longest option, and the Bearing terms are
-     long sentences: without this it grew wider than its own card at 390px. */
   .field textarea { min-height: 110px; resize: vertical; }
   .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .send { width: 100%; min-height: 52px; border: none; border-radius: 999px; background: var(--accent); color: var(--bg); font-family: inherit; font-weight: 500; font-size: 17px; cursor: pointer; }
@@ -103,36 +101,26 @@
   <div class="wrap">
     <a class="back" href="/">← Back to Northbound</a>
     <h1>Your account</h1>
-    <p class="lede">Add a plan, drop one, or ask for a change to your site. Tell us your email and we'll match it to your build — there's no password to remember.</p>
+    <p class="lede">Add the care plan, drop it, or ask for a change to your site. Tell us your email and we'll match it to your site. There's no password to remember.</p>
 
     <div class="card">
       <h2>What you can change here</h2>
-      <p>Your site stays live either way. Hosting is ours, and a Cheap and Clean build stays up exactly as delivered whether or not you carry a plan.</p>
+      <p>Tick what you want and send it. Nothing is charged from this page: if a change costs anything, we email you the price and a secure payment link first.</p>
 
       <form method="post" action="/api/account">
         <label class="plan">
           <input type="checkbox" name="want_care" value="1">
           <span>
-            <span class="t">Add changes and support — $49/mo</span>
-            <span class="d">Text or email us and a person answers. Edits, fixes, new photos, new sections. Cancel any time.</span>
+            <span class="t">Add the care plan</span>
+            <span class="d">Hosting, security and updates, plus small edits, up to 30 minutes a month. Billed monthly. We'll email you the price before anything is charged.</span>
           </span>
-          <span class="p">$49<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
-        </label>
-
-        <label class="plan">
-          <input type="checkbox" name="want_bearing" value="1">
-          <span>
-            <span class="t">Add Bearing — $300/mo as a founding client</span>
-            <span class="d">Hosting, monitoring, backups, unlimited small edits, your automations kept running, and a monthly report on where the calls came from. Standard price is $600/mo. A 12-month commitment locks $300/mo for all twelve months; month-to-month is $300 the first month, then $600/mo after. Say which you'd prefer below.</span>
-          </span>
-          <span class="p">$300<span style="font-family:var(--body);font-size:13px;color:var(--ink-soft)">/mo</span></span>
         </label>
 
         <label class="plan">
           <input type="checkbox" name="want_cancel" value="1">
           <span>
             <span class="t">Drop a plan I'm on</span>
-            <span class="d">No notice period and no exit fee. Your site stays live; it simply stops changing.</span>
+            <span class="d">The care plan cancels with 30 days' notice. Your words and photos stay yours, and we send them to you.</span>
           </span>
         </label>
 
@@ -140,18 +128,10 @@
         <p class="field"><label for="a-business">Business name</label><input id="a-business" name="business" type="text" autocomplete="organization" required></p>
         <p class="field"><label for="a-email">Email you ordered with</label><input id="a-email" name="email" type="email" autocomplete="email" required></p>
         <p class="field"><label for="a-phone">Phone</label><input id="a-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
-        <p class="field">
-          <label for="a-term">If you're adding Bearing, which term?</label>
-          <select id="a-term" name="term">
-            <option value="">Not adding Bearing</option>
-            <option value="bearing_12">12-month commitment — $300/mo for twelve months</option>
-            <option value="bearing_mtm">Month-to-month — $300 first month, then $600/mo</option>
-          </select>
-        </p>
         <p class="field"><label for="a-note">Anything else</label><textarea id="a-note" name="message" rows="4" placeholder="What you'd like changed, added or dropped."></textarea></p>
         <p class="hp" aria-hidden="true"><label for="a-hp7">Leave this empty</label><input id="a-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
         <p><button class="send" type="submit">Send this request</button></p>
-        <p class="note">No card details are entered on this site. If a change costs money, we email a secure payment link first — nothing is charged until you pay it. We answer within one business hour on a plan, and within one business day otherwise.</p>
+        <p class="note">No card details are entered on this site. If a change costs money, we email a secure payment link first — nothing is charged until you pay it. We answer within one business day.</p>
       </form>
     </div>
 

@@ -15,6 +15,15 @@
       ]
     },
     {
+      "source": "/data/price.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/data/perf-budget.json",
       "headers": [
         {
@@ -67,5 +76,10 @@
       "source": "/demos/vector/:path*",
       "destination": "https://nb-vector.vercel.app/:path*"
     }
-  ]
+  ],
+  "functions": {
+    "api/*.ts": {
+      "includeFiles": "data/price.json"
+    }
+  }
 }

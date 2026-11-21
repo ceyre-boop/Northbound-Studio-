@@ -110,20 +110,24 @@ test.describe('the acts', () => {
   });
 
   /* The commercial content of the page must survive every visual treatment.
-     Act III turns its own heading into a texture; it may never take the prices
-     with it. */
-  test('the prices stay readable through the type treatment', async ({ page }) => {
-    await page.goto('/?motion=full');
+     Act III turns its own heading into a texture; it may never take the offer
+     with it. (There is no price to protect any more: the page shows none.) */
+  test('the offer stays readable through the type treatment', async ({ page }) => {
+    await page.goto('/studio.html?motion=full');
     await page.waitForFunction(() => (window as any).NB_STAGE?.ok, { timeout: 10_000 });
     await dwell(page, 'solution');
 
-    for (const price of ['$3,500', '$8,500', '$600']) {
-      const el = page.locator('.pkg__price', { hasText: price }).first();
+    await expect(page.locator('.pkg__price')).toHaveCount(0);
+    for (const name of ['The Northbound Site', 'Care plan', 'Anything beyond the site']) {
+      const el = page.locator('.pkg h3', { hasText: name }).first();
       await expect(el).toBeVisible();
       const opacity = await el.evaluate((n) => getComputedStyle(n).opacity);
       const color = await el.evaluate((n) => getComputedStyle(n).color);
-      expect(Number(opacity), `${price} is faded to ${opacity}`).toBeGreaterThan(0.85);
-      expect(color, `${price} is transparent`).not.toMatch(/rgba\(.*,\s*0\)/);
+      expect(Number(opacity), `${name} is faded to ${opacity}`).toBeGreaterThan(0.85);
+      expect(color, `${name} is transparent`).not.toMatch(/rgba\(.*,\s*0\)/);
     }
+    const cta = page.locator('.pkg a[href="checkout.html"]').first();
+    await expect(cta).toHaveText('Start your site');
+    await expect(cta).toBeVisible();
   });
 });

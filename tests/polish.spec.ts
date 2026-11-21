@@ -24,19 +24,23 @@ async function boot(page: import('@playwright/test').Page, query = '?motion=full
   await page.waitForFunction(() => !!(window as any).__NB_WALL, { timeout: 20_000 });
 }
 
-test.describe('P0-2 — the separator between the package badge and the upkeep note', () => {
-  test('the readable list shows "Engine · kept running by Bearing"', async ({ page }) => {
+test.describe('P0-2 — the badge on each of the twelve', () => {
+  /* The badge used to name a tier and, on four of them, a retainer after a
+     separator. There is one offer now: the first of the twelve is the site
+     itself, the rest are quoted separately, and nothing is named after a
+     tier that no longer exists. */
+  test('the readable list says which part the site covers and which are quoted separately', async ({ page }) => {
     await page.goto('/studio.html');
-    for (const n of [6, 7, 8, 9]) {
-      const meta = page.locator(`[data-offer="${n}"] .offer__meta`);
-      const sep = meta.locator('.offer__sep');
-      await expect(sep).toHaveCount(1);
-      const text = (await meta.textContent())!.replace(/\s+/g, ' ').trim();
-      expect(text).toContain('Engine · kept running by Bearing');
-    }
+    const clean = async (n: number) => (await page.locator(`[data-offer="${n}"] .offer__meta`).textContent())!.replace(/\s+/g, ' ').trim();
+    expect(await clean(0)).toBe('The Northbound Site');
+    for (let n = 1; n <= 10; n++) expect(await clean(n)).toBe('Quoted separately');
+    expect(await clean(11)).toContain('quoted per job');
+    await expect(page.locator('.offer__upkeep')).toHaveCount(0);
+    const all = (await page.locator('.offer__meta').allTextContents()).join(' ');
+    expect(all).not.toMatch(/Beacon|Engine|Bearing/);
   });
 
-  test('the overlay card shows the same separator', async ({ page }) => {
+  test('the overlay card shows the same badge', async ({ page }) => {
     await boot(page);
     await page.evaluate(() => {
       const link = document.querySelector('[data-offer="6"] h3 a') as HTMLElement;
@@ -45,8 +49,8 @@ test.describe('P0-2 — the separator between the package badge and the upkeep n
     await page.waitForTimeout(500);
     const meta = page.locator('.offer-overlay__meta');
     await expect(meta).toBeVisible();
-    const text = (await meta.textContent())!.replace(/\s+/g, ' ').trim();
-    expect(text).toContain('Engine · kept running by Bearing');
+    const text = (await meta.innerText()).replace(/\s+/g, ' ').trim();
+    expect(text.toLowerCase()).toBe('quoted separately');   // the badge is set in capitals by CSS
   });
 });
 
@@ -191,13 +195,14 @@ test.describe('P1-7 — the concept builds, in owner language', () => {
 });
 
 test.describe('P2-9 — how we work', () => {
-  test('the rules list has exactly three items and keeps deposit, Bearing, and the honesty rule', async ({ page }) => {
+  test('the rules list has exactly three items and keeps deposit, the guarantee, and the honesty rule', async ({ page }) => {
     await page.goto('/studio.html');
     const items = page.locator('.rules li');
     await expect(items).toHaveCount(3);
     const text = (await items.allInnerTexts()).join(' | ');
     expect(text).toContain('50% up front');
-    expect(text).toContain('Bearing');
+    expect(text).toContain('Live in 7 days or $100 off');
+    expect(text).not.toContain('Bearing');
     expect(text).toContain('labelled as concept work');
     expect(text).not.toContain('Two builds at a time');
     expect(text).not.toContain('rate only goes up');

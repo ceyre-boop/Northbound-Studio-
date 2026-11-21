@@ -1,9 +1,10 @@
 /* The guided build — build.html.
  *
  * One spec per bullet of the plan's verification section: every step
- * advances and goes back; the multi-select minimum; the spec sheet is right
- * for three named answer paths; localStorage restore; URL restore; Reserve
- * carries the spec into checkout; no-JS shows the plain form; no horizontal
+ * advances and goes back; the multi-select minimum; the summary is right
+ * for three named answer paths and never shows a price or an old tier;
+ * localStorage restore; URL restore; "Start your site" carries the spec into
+ * checkout; no-JS shows the plain form; no horizontal
  * scroll at 390px; CLS 0; zero console errors. Plus the guard that the step 1
  * shipped in the HTML is the step 1 the module renders, so the takeover
  * cannot move anything on the page.
@@ -35,6 +36,9 @@ async function walk(page: Page, path: Step[]) {
 }
 
 /* Three named paths, and what each must add up to. */
+/* The one dollar figure the page may carry is the guarantee, "$100 off". */
+const noPrice = (text: string) => text.replace(/\$100 off/g, '');
+const OLD_MENU = /Beacon|Engine|Bearing|Cheap and Clean|founding/i;
 const ROOFER: Step[] = [
   { value: 'trades', name: 'Rivera Roofing' }, { value: 'call' }, { value: ['jobs', 'quotes'] },
   { value: '1k-5k' }, { value: 'nobody' }, { value: 'you' }, { value: 'industrial' },
@@ -83,16 +87,25 @@ test.describe('guided build — the flow', () => {
     await expect(next).toBeEnabled();
   });
 
-  test('the price never appears before the worth question is answered', async ({ page }) => {
+  test('no price and no old tier appears on any step, the summary included', async ({ page }) => {
     await fresh(page);
-    for (let i = 0; i < 3; i++) {
-      const text = await page.locator('#panel, #say').allInnerTexts();
-      expect(text.join(' ')).not.toMatch(/\$\d/);
+    for (let i = 0; i <= ROOFER.length; i++) {
+      const text = (await page.locator('#panel, #say').allInnerTexts()).join(' ');
+      expect(noPrice(text), `step ${i + 1}`).not.toMatch(/\$\s?\d/);
+      expect(text, `step ${i + 1}`).not.toMatch(OLD_MENU);
+      if (i === ROOFER.length) break;
       await answer(page, ROOFER[i]);
       await page.locator('#panel [data-nav="next"]').click();
     }
+    await expect(page.locator('#step-label')).toHaveText('Step 8 of 8');
+  });
+
+  test('the worth question asks in dollars, and its answers carry no dollar sign', async ({ page }) => {
+    await fresh(page);
+    await walk(page, ROOFER.slice(0, 3)).catch(() => {});
     await expect(page.locator('#step-label')).toHaveText('Step 4 of 8');
-    expect((await page.locator('#panel').innerText())).not.toMatch(/\$4,250|\$1,750|\$500/);
+    await expect(page.locator('#q')).toHaveText('What is one new customer worth to you, in dollars?');
+    expect(await page.locator('#panel .opt:not(.opt-unsure)').allInnerTexts()).toEqual(['Under 200', '200 to 1,000', '1,000 to 5,000', 'More than 5,000']);
   });
 
   test('the preview phone builds as the answers land', async ({ page }) => {
@@ -149,73 +162,53 @@ test.describe('guided build — the flow', () => {
   });
 });
 
-test.describe('guided build — the spec sheet', () => {
-  test('roofer: Engine, Bearing, the parts, the payback in jobs, $2,125 now and $2,125 on delivery', async ({ page }) => {
+test.describe('guided build — the summary', () => {
+  test('roofer: the one offer, the site covered, everything else quoted separately, one button', async ({ page }) => {
     await fresh(page);
     await walk(page, ROOFER);
     const sheet = page.locator('#panel');
-    await expect(sheet.locator('.pkg-opt[aria-pressed="true"]')).toContainText('Engine');
-    await expect(sheet.locator('.pkg-opt[data-pkg="engine"] em')).toHaveText('Our pick from your answers');
-    await expect(sheet.locator('.price').first()).toContainText('$4,250');
-    await expect(sheet.locator('.price .was').first()).toHaveText('$8,500');
-    const parts = await sheet.locator('.parts .t').allInnerTexts();
-    expect(parts).toEqual(['A custom site', 'Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automated follow-up', 'Reminders', 'Review requests']);
-    await expect(sheet).toContainText('Keeping it running');
-    await expect(sheet).toContainText('$300/mo');
-    await expect(sheet.locator('.payback')).toHaveText('At $1,000–$5,000 a job, this build is between 1 and 5 new jobs.');
-    await expect(sheet).toContainText('$2,125 now, $2,125 on delivery.');
-    await expect(sheet).toContainText('50% up front, always. No deposit, no work.');
-    await expect(sheet.locator('#reserve')).toHaveText('Reserve my build — $2,125 now');
-    await expect(sheet.locator('#reserve-top')).toHaveText('Reserve my build — $2,125 now');
-    expect(await sheet.locator('#reserve-top').getAttribute('href')).toBe(await sheet.locator('#reserve').getAttribute('href'));
-    // The first Reserve sits under the price, above the parts list.
-    const topY = await sheet.locator('#reserve-top').evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
-    const partsY = await sheet.locator('.parts').evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
-    expect(topY).toBeLessThan(partsY);
     await expect(sheet).toContainText('Your build for Rivera Roofing');
+    await expect(sheet.locator('#offer-card h2')).toHaveText('The Northbound Site');
+    await expect(sheet.locator('#offer-card')).toContainText('Up to 5 pages, built from one template');
+    await expect(sheet.locator('#offer-card')).toContainText("Unlimited revisions until you're happy");
+    await expect(sheet.locator('#offer-card')).toContainText('Live in 7 days or $100 off');
+    await expect(sheet.locator('#offer-card')).toContainText('In the look you picked: Industrial.');
+    await expect(sheet.locator('#care-card')).toContainText("Hosting, security, updates and small edits, billed monthly from launch. Cancel with 30 days' notice.");
+    expect(await sheet.locator('.parts .t').allInnerTexts()).toEqual(['A custom site']);
+    await expect(sheet.locator('#extra-note')).toContainText('Quoted separately: Booking flow, Quote flow, Payments, Lead capture, Automated follow-up, Reminders, Review requests.');
+    // One way forward, and it names no price.
+    await expect(sheet.locator('a.reserve')).toHaveCount(1);
+    await expect(sheet.locator('#reserve')).toHaveText('Start your site');
+    await expect(sheet.locator('#reserve')).toHaveAttribute('href', /^checkout\.html\?s=1tc33ny5c\.Rivera/);
+    // Nothing left of the package picker, the price or the payback sum.
+    await expect(sheet.locator('.pkg-opt, .price, .payback')).toHaveCount(0);
+    const text = await sheet.innerText();
+    expect(noPrice(text)).not.toMatch(/\$\s?\d/);
+    expect(text).not.toMatch(OLD_MENU);
     const body = await page.locator('body').innerText();
     expect(body).not.toMatch(/spots? (left|remaining)|hurry|countdown|hours left|ends (today|soon)/i);
   });
 
-  test('café: Beacon, Review requests flagged as not included, payback in orders, $875 now and $875 on delivery', async ({ page }) => {
+  test('café: the leftovers are named as quoted separately, not dropped', async ({ page }) => {
     await fresh(page);
     await walk(page, CAFE);
     const sheet = page.locator('#panel');
-    await expect(sheet.locator('.pkg-opt[aria-pressed="true"]')).toContainText('Beacon');
-    await expect(sheet.locator('.price').first()).toContainText('$1,750');
-    const parts = await sheet.locator('.parts .t').allInnerTexts();
-    expect(parts).toEqual(['A custom site', 'Brand identity', 'Local SEO']);
-    await expect(sheet).toContainText('Not in Beacon: Review requests');
-    await expect(sheet).not.toContainText('Keeping it running');
-    await expect(sheet.locator('.payback')).toHaveText('At $200–$1,000 an order, this build is between 2 and 9 new orders.');
-    await expect(sheet).toContainText('$875 now, $875 on delivery.');
-    await expect(sheet.locator('#reserve')).toHaveText('Reserve my build — $875 now');
+    await expect(sheet.locator('#offer-card h2')).toHaveText('The Northbound Site');
+    expect(await sheet.locator('.parts .t').allInnerTexts()).toEqual(['A custom site']);
+    await expect(sheet.locator('#extra-note')).toContainText('Quoted separately: Brand identity, Review requests, Local SEO.');
+    await expect(sheet.locator('#reserve')).toHaveText('Start your site');
+    expect(noPrice(await sheet.innerText())).not.toMatch(/\$\s?\d/);
   });
 
-  test('shop, not sure what it wants: Cheap and Clean, $500 in full, payback at under $200', async ({ page }) => {
+  test('shop, not sure what it wants: just the site, nothing to quote separately', async ({ page }) => {
     await fresh(page);
     await walk(page, SHOP);
     const sheet = page.locator('#panel');
-    await expect(sheet.locator('.pkg-opt[aria-pressed="true"]')).toContainText('Cheap and Clean');
-    await expect(sheet.locator('.price').first()).toContainText('$500');
-    await expect(sheet.locator('.price .was')).toHaveCount(0);
     expect(await sheet.locator('.parts .t').allInnerTexts()).toEqual(['A custom site']);
-    await expect(sheet.locator('.payback')).toHaveText('At under $200 a customer, this build is at least 3 new customers.');
-    await expect(sheet).toContainText('$500 in full');
-    await expect(sheet).toContainText('you picked Dark');
-    await expect(sheet.locator('#reserve')).toHaveAttribute('href', /checkout\.html\?buy=clean&s=/);
-  });
-
-  test('the customer can overrule the package, and the sheet says what falls out', async ({ page }) => {
-    await fresh(page);
-    await walk(page, ROOFER);
-    await page.locator('.pkg-opt[data-pkg="beacon"]').click();
-    const sheet = page.locator('#panel');
-    await expect(sheet.locator('.pkg-opt[aria-pressed="true"]')).toContainText('Beacon');
-    await expect(sheet).toContainText('Not in Beacon: Booking flow, Quote flow');
-    await expect(sheet).toContainText('Engine includes them');
-    await expect(sheet.locator('#reserve')).toHaveText('Reserve my build — $875 now');
-    await expect(sheet.locator('#reserve')).toHaveAttribute('href', /buy=beacon/);
+    await expect(sheet.locator('#extra-note')).toHaveCount(0);
+    await expect(sheet.locator('#offer-card')).toContainText('In the look you picked: Dark.');
+    await expect(sheet.locator('#reserve')).toHaveText('Start your site');
+    await expect(sheet.locator('#reserve')).toHaveAttribute('href', /^checkout\.html\?s=1rc01mm2c$/);
   });
 
   test('the recap and the send block are folded on a phone and open on a desktop', async ({ page }) => {
@@ -240,10 +233,10 @@ test.describe('guided build — the spec sheet', () => {
     await expect(page.locator('#copy-status')).toHaveText('Link copied — it restores this exact build.');
   });
 
-  test('"not sure" on worth gives no payback line and no invented number', async ({ page }) => {
+  test('the recap says what a customer is worth without a dollar sign', async ({ page }) => {
     await fresh(page);
-    await walk(page, [ROOFER[0], ROOFER[1], ROOFER[2], { value: '_' }, ROOFER[4], ROOFER[5], ROOFER[6]]);
-    await expect(page.locator('.payback')).toHaveText("Tell us what one customer is worth and we'll do the arithmetic here.");
+    await walk(page, ROOFER);
+    await expect(page.locator('#fold-answers .answers-list')).toContainText('One customer is worth, in dollars: 1,000 to 5,000');
   });
 });
 
@@ -292,8 +285,8 @@ test.describe('guided build — saved and restored', () => {
     await expect(other.locator('#step-label')).toHaveText('Step 8 of 8');
     await expect(other.locator('#panel')).toContainText('Restored from your link');
     await expect(other.locator('#panel')).toContainText('Your build for Rivera Roofing');
-    await expect(other.locator('.pkg-opt[aria-pressed="true"]')).toContainText('Engine');
-    await expect(other.locator('.payback')).toHaveText('At $1,000–$5,000 a job, this build is between 1 and 5 new jobs.');
+    await expect(other.locator('#offer-card h2')).toHaveText('The Northbound Site');
+    await expect(other.locator('#reserve')).toHaveText('Start your site');
     await expect(other.locator('#phone')).toHaveAttribute('data-look', 'industrial');
     await expect(other.locator('#phone [data-p="brand"]')).toHaveText('Rivera Roofing');
     // The query is consumed, so a reload does not clobber later edits.
@@ -303,6 +296,15 @@ test.describe('guided build — saved and restored', () => {
     await ctx.close();
   });
 
+  test('a link saved under the old menu still opens, as the one offer', async ({ page }) => {
+    for (const old of ['1tc33ny5e.Rivera%2520Roofing', '1fhg2mm3b', '1rc01mm2c']) {
+      await page.goto('/build.html?s=' + old);
+      await expect(page.locator('#step-label')).toHaveText('Step 8 of 8');
+      await expect(page.locator('#offer-card h2')).toHaveText('The Northbound Site');
+      await expect(page.locator('#reserve')).toHaveAttribute('href', /^checkout\.html\?s=1[a-z0-9_]{7}c/);
+    }
+  });
+
   test('a link that cannot be read falls back to a fresh step 1', async ({ page }) => {
     await page.goto('/build.html?s=garbage');
     await expect(page.locator('#step-label')).toHaveText('Step 1 of 8');
@@ -310,48 +312,41 @@ test.describe('guided build — saved and restored', () => {
 });
 
 test.describe('guided build — into checkout', () => {
-  test('Reserve carries the package and the spec into checkout, priced as the deposit', async ({ page }) => {
+  test('"Start your site" carries the spec into checkout, and checkout shows what they told us', async ({ page }) => {
     await fresh(page);
     await walk(page, ROOFER);
     const href = await page.locator('#reserve').getAttribute('href');
-    expect(href).toMatch(/^checkout\.html\?buy=engine&s=1tc33ny5/);
+    expect(href).toMatch(/^checkout\.html\?s=1tc33ny5c/);
+    expect(href).not.toContain('buy=');
     await page.locator('#reserve').click();
-    await expect(page).toHaveURL(/checkout\.html\?buy=engine/);
-    await expect(page.locator('h1')).toHaveText('Engine');
-    await expect(page.locator('input[name="buy"]')).toHaveValue('engine');
-    await expect(page.locator('#spec')).toHaveValue(/^1tc33ny5e\.Rivera/);
-    await expect(page.locator('#total')).toHaveText('$2,125.00');
-    await expect(page.locator('#balance-row')).toBeVisible();
-    await expect(page.locator('#balance')).toHaveText('$2,125.00');
+    await expect(page).toHaveURL(/checkout\.html\?s=1tc33ny5c/);
+    await expect(page.locator('#spec')).toHaveValue(/^1tc33ny5c\.Rivera/);
     await expect(page.locator('#build-card')).toBeVisible();
-    expect(await page.locator('#build-parts li').allInnerTexts()).toContain('Booking flow');
-    await expect(page.locator('input[name="bearing"]')).toBeChecked();
-    await expect(page.locator('#monthly')).toHaveText('$300.00');
-    await expect(page.locator('input[name="care"]')).toBeHidden();
-    await expect(page.locator('body')).toContainText('$2,125 now, $2,125 on delivery. 50% up front, always. No deposit, no work.');
+    const parts = await page.locator('#build-parts li').allInnerTexts();
+    expect(parts).toContain('A custom site');
+    expect(parts).toContain('Booking flow');
+    await expect(page.locator('#build-extra')).toBeVisible();
+    await expect(page.locator('#build-extra')).toContainText('Quoted separately: Booking flow, Quote flow');
+    await expect(page.locator('#build-answers')).toContainText('Rivera Roofing');
+    await expect(page.locator('#build-card')).not.toContainText(OLD_MENU);
+    await expect(page.locator('#build-change')).toHaveAttribute('href', /build\.html\?s=1tc33ny5c/);
     await expect(page.locator('.back')).toHaveAttribute('href', /build\.html\?s=/);
   });
 
-  test('a Cheap and Clean build reaches checkout as the whole $500, no balance row', async ({ page }) => {
+  test('a site-only build reaches checkout with nothing to quote separately', async ({ page }) => {
     await fresh(page);
     await walk(page, SHOP);
     await page.locator('#reserve').click();
-    await expect(page).toHaveURL(/checkout\.html\?buy=clean/);
-    await expect(page.locator('h1')).toHaveText('Cheap and Clean');
-    await expect(page.locator('#total')).toHaveText('$500.00');
-    await expect(page.locator('#balance-row')).toBeHidden();
-    await expect(page.locator('input[name="care"]')).toBeVisible();
+    await expect(page).toHaveURL(/checkout\.html\?s=1rc01mm2c/);
     await expect(page.locator('#build-card')).toBeVisible();
-    await expect(page.locator('input[name="bearing"]')).not.toBeChecked();
+    expect(await page.locator('#build-parts li').allInnerTexts()).toEqual(['A custom site']);
+    await expect(page.locator('#build-extra')).toBeHidden();
   });
 
-  test('checkout without a spec is exactly what it was', async ({ page }) => {
+  test('checkout without a spec shows no build card and carries no code', async ({ page }) => {
     await page.goto('/checkout.html');
-    await expect(page.locator('h1')).toHaveText('Cheap and Clean');
     await expect(page.locator('#build-card')).toBeHidden();
     await expect(page.locator('#spec')).toHaveValue('');
-    await expect(page.locator('#total')).toHaveText('$500.00');
-    await expect(page.locator('#balance-row')).toBeHidden();
   });
 });
 
@@ -365,7 +360,13 @@ test.describe('guided build — the page itself', () => {
     await expect(form).toBeVisible();
     await expect(form).toHaveAttribute('method', 'post');
     await expect(form).toHaveAttribute('action', '/api/quote');
-    await expect(form.locator('select[name="package"] option')).toHaveCount(5);
+    // One offer: nothing to choose, no review field, and no price in the form.
+    await expect(form.locator('select[name="package"]')).toHaveCount(0);
+    await expect(form.locator('input[type="hidden"][name="package"]')).toHaveValue('site');
+    await expect(form.locator('[name="review_name"]')).toHaveCount(0);
+    const text = await page.locator('body').innerText();
+    expect(text).not.toMatch(/\$\s?\d/);
+    expect(text).not.toMatch(OLD_MENU);
     await expect(form.locator('button[type="submit"]')).toBeVisible();
     // The phone number came off the site (email and review only); the
     // header and footer carry the address instead.

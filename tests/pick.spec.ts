@@ -1,5 +1,6 @@
-/* tests/pick.spec.ts — the four things an adversarial review found wrong with
- * the twelve selectable panels, each pinned so it cannot come back.
+/* tests/pick.spec.ts — things an adversarial review found wrong with the
+ * twelve selectable panels, each pinned so it cannot come back. (The two
+ * about package cards went with the packages: there is one offer now.)
  *
  * Companion to the panel tests already in home.spec.ts, which cover the
  * happy path (toggle, Continue appears, the code reaches checkout). These
@@ -67,27 +68,4 @@ test.describe('the twelve, live', () => {
     await expect(page.locator('#pick-continue')).toBeVisible();
   });
 
-  test('"Buy it now" carries the picks rather than dropping them', async ({ page }) => {
-    await page.goto('/');
-    const buy = page.locator('.pkg a[href^="checkout.html?buy=clean"]').first();
-    expect(await buy.getAttribute('href')).toBe('checkout.html?buy=clean');
-
-    for (const name of PICKS) await panel(page, name).click();
-    const withPicks = await buy.getAttribute('href');
-    expect(withPicks).toContain('buy=clean'); // the card keeps its own package
-    expect(withPicks).toContain('s=');
-
-    // Unpicking everything puts it back exactly as it was.
-    for (const name of PICKS) await panel(page, name).click();
-    expect(await buy.getAttribute('href')).toBe('checkout.html?buy=clean');
-  });
-
-  test('one ride-along part alone does not propose a package without it', async ({ page }) => {
-    await page.goto('/');
-    await panel(page, 'Reminders').click();
-    const href = await page.locator('#pick-continue').getAttribute('href');
-    /* It used to say buy=beacon — $1,750 for a package containing none of
-       what was clicked. */
-    expect(href).toContain('buy=clean');
-  });
 });

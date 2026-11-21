@@ -280,7 +280,8 @@ test.describe('the stage', () => {
 
     expect(await page.locator('html').getAttribute('data-gl')).toBe('off');
     await expect(page.locator('h1')).toBeVisible();
-    await expect(page.locator('.pkg__price').first()).toHaveText(/\$3,500/);
+    await expect(page.locator('.pkg h3').first()).toHaveText('The Northbound Site');
+    await expect(page.locator('.pkg__price')).toHaveCount(0);
     await expect(page.locator('.work-card a[href="/demos/atlas"]')).toBeVisible();
     await expect(page.locator('.work-card__kind').first()).toBeVisible();
     expect(errors, errors.join('\n')).toEqual([]);
@@ -294,9 +295,16 @@ test.describe('the stage', () => {
     await page.goto('/studio.html');
 
     await expect(page.locator('h1')).toContainText('machine that brings customers in');
-    for (const price of ['$3,500', '$8,500', '$600']) {
-      await expect(page.getByText(price, { exact: false }).first()).toBeVisible();
+    /* One offer, and no price: the visitor first sees one at checkout. The
+       guarantee's "$100 off" is the only dollar figure the page may carry. */
+    for (const name of ['The Northbound Site', 'Care plan', 'Anything beyond the site']) {
+      await expect(page.locator('.pkg h3', { hasText: name })).toBeVisible();
     }
+    await expect(page.locator('.pkg a[href="checkout.html"]').first()).toHaveText('Start your site');
+    const words = await page.locator('body').innerText();
+    expect(words.replace(/\$100 off/g, '')).not.toMatch(/\$\s?\d/);
+    expect(words).not.toMatch(/Beacon|Bearing|Cheap and Clean|founding/i);
+    expect(words).not.toMatch(/\bEngine\b/);
     /* Concept builds are labelled on every surface, in every state. */
     expect(await page.locator('.work-card__kind').count()).toBe(2);
     await expect(page.locator('form.contact button[type=submit]')).toBeVisible();

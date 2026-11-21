@@ -66,7 +66,7 @@ Keep the mailing address and the opt-out line: US law requires both in cold sale
 
 **Not on the menu (upsells later):** online stores, booking systems, logo design, extra pages.
 
-**Price ladder:** clients 1–3 at $500 → 4–6 at $750 → 7–10 at $1,000 → then raise 20% whenever 2 of 3 quotes close; step back a rung when fewer than 1 in 4 close.
+**Price:** set by Buddy's pricing engine, not a fixed ladder. See `Plans/pricing-engine.md`. The price is no longer shown publicly; Buddy quotes it.
 
 ---
 

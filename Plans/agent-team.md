@@ -94,7 +94,12 @@ Colin presses it. It finds verified small businesses and sends the approved cold
 - **Client memory:** one file per client in a private folder on the Mac (later the Mac mini). Every agent reads and writes it, and it's never in the public repo.
 - **Revisions:** Site Builder redesigns until the client is happy. There's no cap on rounds.
 - **AI cost:** everything runs on Colin's Claude Max plan on the Mac. There are no extra API bills.
-- **Automation pricing:** $100–$300/mo per automation, depending on how niche it is (replaces $300 setup + $49/mo).
+- **Automation pricing:** $100–$300/mo per automation, with no setup fee. Price depends on how niche it is:
+  - Broad (e.g. Gmail triage) → around $100/mo.
+  - Niche (e.g. creating and posting videos) → up to $300/mo.
+  - Hyper-specific to one company → a one-time build fee upfront, then the regular monthly price.
+- **7-day clock:** counts only days Northbound is working. It pauses while the client is reviewing or answering, so unlimited revisions don't break the "$100 off if late" promise.
+- **Northbound's own site:** Site Builder may change anything except the brand: the logo, Buddy's design, and the core look.
 - **Visibility:** a live dashboard that Colin builds as a localhost front end on the Mac, showing every client, their stage, and every agent action.
 
 ## Build order: one at a time, each one live before the next

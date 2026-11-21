@@ -107,6 +107,10 @@ Colin presses it. It finds verified small businesses and sends the approved cold
 - **Design work agents can't do well (logos, brand design):** goes to Colin's art student. Agents handle everything else.
 - **Non-payment:** Buddy sends reminders on day 1, 3 and 7. The site or automation pauses at day 14.
 - **Positioning shift (2026-11-21):** automations are now Northbound's main product and its portfolio; websites are the side offer.
+- **Front door:** cold emails, the site and the reels lead with automations. Websites are offered second.
+- **Off-menu quotes:** a fixed project price = Builder's estimated hours × $95/hr when agents do the work, or $150/hr for any part Colin builds himself (experimental or hyper-specific work). $250 minimum per job. Quoted as a fixed price, never billed as hours. Goes into the pricing engine once there's data.
+- **Art student:** paid per design job. Buddy handles the client side.
+- **Portfolio:** client automations and sites are shown without names ("a roofing company"), with real measured results only.
 - **Visibility:** a live dashboard that Colin builds as a localhost front end on the Mac, showing every client, their stage, and every agent action.
 
 ## Build order: one at a time, each one live before the next

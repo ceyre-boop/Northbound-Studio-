@@ -23,21 +23,18 @@
  * Zero dependencies on purpose: the site has no install step, and one POST to
  * Resend's REST API does not justify adding one.
  *
- * FOUNDING OFFER (first 15 founding clients only). The "Which package"
- * field on index.html's quote form posts `package`: '', 'clean', 'beacon',
- * 'engine' or 'bearing'. Beacon, Engine and Bearing are founding-priced —
- * when one of those is chosen, the visitor must also have claimed it by
- * filling in review_name, the name their Google review is posted under
- * (non-empty after trimming), or the enquiry is refused, same as
- * api/checkout.ts. Nothing verifies the review: Colin looks it up himself
- * before finalising the quote, and both emails say so. Cheap and Clean and
- * "Not sure yet" never require it.
+ * ONE OFFER. The form may post `package`: '' (not sure yet / an automation
+ * or anything else) or 'site' (The Northbound Site). There are no tiers and
+ * no founding prices. The visitor is never shown a price here and the
+ * auto-reply never states one; the studio's copy carries this week's price
+ * from data/price.json so whoever answers quotes the same number checkout
+ * would charge.
  *
  * Env: RESEND_API_KEY, QUOTE_TO (the studio inbox), QUOTE_FROM (optional
  * override, "Name <address>" on a Resend-verified domain).
  */
 
-import { GOOGLE_REVIEW_URL } from './checkout';
+import { offer, money, OFFER_NAME, CARE_NAME } from '../lib/price.js';
 
 const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -54,7 +51,6 @@ const LIMITS = {
   message: 5000,
   offerings: 400,
   package: 20,
-  review_name: 120,
 } as const;
 
 type Field = keyof typeof LIMITS;
@@ -63,19 +59,20 @@ type Sent = { ok: true; id: string } | { ok: false; error: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/* The founding-priced packages a quote can carry, and what to call each one
-   in an email a person reads. Kept in one place so the notification, the
-   auto-reply and the validation below can never say three different things
-   about the same package. */
-const FOUNDING_PACKAGES: Record<string, string> = {
-  beacon: 'Beacon — founding price $1,750 (standard $3,500)',
-  engine: 'Engine — founding price $4,250 (standard $8,500)',
-  bearing: 'Bearing — founding price $300/mo',
-};
+/* This week's price, in words, for the studio's copy only. If the config
+   cannot be read the enquiry still goes through: a lead is worth more than
+   a line in an email. */
+function priceLine(): string {
+  try {
+    const p = offer();
+    return `${OFFER_NAME}: ${money(p.setupCents)} (${money(p.depositCents)} now, ${money(p.balanceCents)} at launch) + ${CARE_NAME} ${money(p.careCents)}/mo. Week ${p.week}. Quote exactly this if they ask.`;
+  } catch {
+    return 'Price config could not be read. Check data/price.json before quoting.';
+  }
+}
 
-/* Zero-width and bidi characters survive String.trim(), so without stripping
-   them a review name of "\u200B" satisfied the founding requirement. Same
-   rule as api/checkout.ts. */
+/* Zero-width and bidi characters survive String.trim(). Same rule as
+   api/checkout.ts. */
 const INVISIBLE = /[\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2064\uFEFF]/gu;
 
 function read(form: FormData, key: Field): string {
@@ -87,9 +84,6 @@ function problem(q: Quote): string | null {
   if (!q.name) return 'Please tell us your name.';
   if (q.phone.replace(/\D/g, '').length < 7) return 'Please leave a phone number we can call.';
   if (!EMAIL_RE.test(q.email)) return 'Please check your email address.';
-  if (Object.hasOwn(FOUNDING_PACKAGES, q.package) && !q.review_name) {
-    return "Founding pricing needs the name your Google review is posted under — leave the review first, then tell us the name it shows. We check it ourselves before finalising the quote.";
-  }
   return null;
 }
 
@@ -110,13 +104,13 @@ async function send(key: string, email: Record<string, unknown>): Promise<Sent> 
 }
 
 function notification(q: Quote, page: string): string {
-  const foundingLabel = Object.hasOwn(FOUNDING_PACKAGES, q.package) ? FOUNDING_PACKAGES[q.package] : undefined;
   return [
     `Name:      ${q.name}`,
     `Business:  ${q.business || '—'}`,
     `Phone:     ${q.phone}`,
     `Email:     ${q.email}`,
-    `Package:   ${foundingLabel ?? (q.package === 'clean' ? 'Cheap and Clean — $500' : 'Not sure yet')}`,
+    `Asking about: ${q.package === 'site' ? OFFER_NAME : 'Not said (an automation, or not sure yet)'}`,
+    `This week:  ${priceLine()}`,
     '',
     'What they need:',
     q.need || '—',
@@ -125,7 +119,6 @@ function notification(q: Quote, page: string): string {
     q.message || '—',
     '',
     `Added on the rail: ${q.offerings || 'nothing'}`,
-    ...(foundingLabel ? [`Founding review: posted under "${q.review_name}" — look it up on Google before finalising the quote; nothing has checked it.`] : []),
     `Sent from: ${page || 'unknown'}`,
   ].join('\n');
 }
@@ -133,19 +126,11 @@ function notification(q: Quote, page: string): string {
 function autoReply(q: Quote): string {
   const first = q.name.split(/\s+/)[0];
   const sent = [q.need, q.message].filter(Boolean).join('\n\n');
-  const foundingLabel = q.package ? FOUNDING_PACKAGES[q.package] : undefined;
   return [
     `Hi ${first},`,
     '',
     "Thanks for getting in touch. We have your request and we'll get back to you within one business day.",
     '',
-    ...(foundingLabel
-      ? [
-          `You asked about ${foundingLabel}.`,
-          `You told us your Google review is posted under "${q.review_name}". Founding pricing is confirmed once we can see that review — we check it ourselves before finalising the quote, there's nothing automatic about it. If it isn't up yet, this is the place to leave it: ${GOOGLE_REVIEW_URL}`,
-          '',
-        ]
-      : []),
     ...(sent ? ['What you sent us:', sent, ''] : []),
     `If it can't wait, call ${PHONE}.`,
     '',

@@ -24,8 +24,8 @@
   invented businesses with real code behind them, and the code is what is for
   sale here. Every claim on this page is a claim about a file in demos/, and
   the honesty rule from js/content.js applies: no sales figure, no "used by",
-  no countdown. The prices are the studio's own, from js/config.js, and
-  tests/templates.spec.ts keeps the two equal.
+  no countdown. No price is printed here: the buyer sees it on the payment
+  page the Buy button opens, and tests/no-prices.spec.ts keeps it that way.
 
   While TEMPLATES.*.url is empty there is nothing to buy yet, so the page
   does not pretend: each build has a "tell me when it's out" form that posts
@@ -100,7 +100,7 @@
   <nav class="site-nav" aria-label="Sections">
     <a href="/#builds">The builds</a>
     <a href="/#how">How it works</a>
-    <a href="/#packages">Packages</a>
+    <a href="/#packages">The offer</a>
     <a href="/#founder">Who's behind this</a>
   </nav>
   <a class="btn btn-small" href="build.html">Start a build</a>
@@ -133,16 +133,16 @@
           <li><b>Needs:</b> a place to send the bookings (any JSON endpoint: Formspree, a Zapier hook, your own). That's one environment variable.</li>
         </ul>
         <div class="tpl-buy" data-tpl="atlas">
-          <p class="tpl-price">$79 <span>one business, yours to keep</span></p>
-          <a class="btn tpl-buy-link" hidden data-buy="atlas" href="#">Buy Atlas — $79</a>
+          <p class="tpl-price"><span>One business, yours to keep</span></p>
+          <a class="btn tpl-buy-link" hidden data-buy="atlas" href="#">Buy Atlas</a>
           <form class="tpl-wait" method="post" action="/api/quote">
             <input type="hidden" name="need" value="Template: Atlas (the trades site)">
-            <input type="hidden" name="message" value="Tell me when the Atlas template is on sale, at the launch price.">
+            <input type="hidden" name="message" value="Tell me when the Atlas template is on sale.">
             <p class="field"><label for="a-name">Your name</label><input id="a-name" name="name" type="text" autocomplete="name" required></p>
             <p class="field"><label for="a-email">Email</label><input id="a-email" name="email" type="email" autocomplete="email" required></p>
             <p class="hp" aria-hidden="true"><label for="a-hp">Leave this empty</label><input id="a-hp" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
             <button class="btn" type="submit">Tell me when it's out</button>
-            <p class="tpl-note">Not on sale yet. Leave your email and you'll hear the day it is, at the launch price. Nothing else happens to your address.</p>
+            <p class="tpl-note">Not on sale yet. Leave your email and you'll hear the day it is. Nothing else happens to your address.</p>
           </form>
         </div>
       </div>
@@ -169,16 +169,16 @@
           <li><b>Needs:</b> a Stripe account. Two environment variables.</li>
         </ul>
         <div class="tpl-buy" data-tpl="vector">
-          <p class="tpl-price">$79 <span>one business, yours to keep</span></p>
-          <a class="btn tpl-buy-link" hidden data-buy="vector" href="#">Buy Vector — $79</a>
+          <p class="tpl-price"><span>One business, yours to keep</span></p>
+          <a class="btn tpl-buy-link" hidden data-buy="vector" href="#">Buy Vector</a>
           <form class="tpl-wait" method="post" action="/api/quote">
             <input type="hidden" name="need" value="Template: Vector (the small shop)">
-            <input type="hidden" name="message" value="Tell me when the Vector template is on sale, at the launch price.">
+            <input type="hidden" name="message" value="Tell me when the Vector template is on sale.">
             <p class="field"><label for="v-name">Your name</label><input id="v-name" name="name" type="text" autocomplete="name" required></p>
             <p class="field"><label for="v-email">Email</label><input id="v-email" name="email" type="email" autocomplete="email" required></p>
             <p class="hp" aria-hidden="true"><label for="v-hp">Leave this empty</label><input id="v-hp" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
             <button class="btn" type="submit">Tell me when it's out</button>
-            <p class="tpl-note">Not on sale yet. Leave your email and you'll hear the day it is, at the launch price. Nothing else happens to your address.</p>
+            <p class="tpl-note">Not on sale yet. Leave your email and you'll hear the day it is. Nothing else happens to your address.</p>
           </form>
         </div>
       </div>
@@ -194,10 +194,10 @@
           <p class="eng-q">Hold your spot.</p>
           <div class="eng-row"><span>AC not cooling</span><span>Diagnostic visit</span></div>
           <div class="eng-row"><span>Today</span><span>Morning, 8–12</span></div>
-          <p class="eng-due">Due now: <b>$139.00</b></p>
-          <p class="eng-btn">Pay $139.00 and hold my spot</p>
+          <p class="eng-due">Due now: <b>the deposit</b></p>
+          <p class="eng-btn">Pay the deposit and hold my spot</p>
         </div>
-        <p class="eng-cap">The last screen, with the demo config's example prices.</p>
+        <p class="eng-cap">The last screen. The amounts come from your own config.</p>
       </div>
       <div class="tpl-body">
         <p class="eyebrow">03 · The booking engine</p>
@@ -214,16 +214,16 @@
           <li><b>Needs:</b> a Stripe account and a free Resend account. Five environment variables, one config file, Vercel's free tier.</li>
         </ul>
         <div class="tpl-buy" data-tpl="engine">
-          <p class="tpl-price">$2,000 <span>one business, yours to keep</span></p>
+          <p class="tpl-price"><span>One business, yours to keep</span></p>
           <a class="btn tpl-buy-link" hidden data-buy="engine" href="#">Buy the engine</a>
           <form class="tpl-wait" method="post" action="/api/quote">
             <input type="hidden" name="need" value="Template: The booking engine (trades)">
-            <input type="hidden" name="message" value="Tell me when the booking engine is on sale, at the launch price.">
+            <input type="hidden" name="message" value="Tell me when the booking engine is on sale.">
             <p class="field"><label for="e-name">Your name</label><input id="e-name" name="name" type="text" autocomplete="name" required></p>
             <p class="field"><label for="e-email">Email</label><input id="e-email" name="email" type="email" autocomplete="email" required></p>
             <p class="hp" aria-hidden="true"><label for="e-hp">Leave this empty</label><input id="e-hp" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
             <button class="btn" type="submit">Tell me when it's out</button>
-            <p class="tpl-note">Not on sale yet. Leave your email and you'll hear the day it is, at the launch price. Nothing else happens to your address.</p>
+            <p class="tpl-note">Not on sale yet. Leave your email and you'll hear the day it is. Nothing else happens to your address.</p>
           </form>
         </div>
       </div>
@@ -248,16 +248,16 @@
       </div>
     </div>
     <div class="tpl-both" data-tpl="both">
-      <p class="tpl-price">$129 <span>both templates</span></p>
-      <a class="btn tpl-buy-link" hidden data-buy="both" href="#">Buy both — $129</a>
-      <p class="tpl-note">A question about setup gets an answer by email. Changing the build for you is a commission, and the price of those is on the window: <a href="/#packages">packages</a>.</p>
+      <p class="tpl-price"><span>Both templates together</span></p>
+      <a class="btn tpl-buy-link" hidden data-buy="both" href="#">Buy both</a>
+      <p class="tpl-note">A question about setup gets an answer by email. Changing the build for you is a separate job: <a href="/#packages">see the offer</a>.</p>
     </div>
   </section>
 
   <section class="section handover" data-reveal>
     <p class="eyebrow">Or</p>
     <h2 class="section-title">Have it built for you.</h2>
-    <p class="section-lede">If an afternoon with a text file is not how you want to spend an afternoon, the studio builds it: eight questions, a priced build, and nothing charged until you say so.</p>
+    <p class="section-lede">If an afternoon with a text file is not how you want to spend an afternoon, we build it for you: a few questions, then your site, live in 7 days or $100 off.</p>
     <p class="section-cta"><a class="btn" href="build.html">Start your build</a></p>
   </section>
 
@@ -290,7 +290,6 @@
     const wait = box.querySelector('.tpl-wait');
     if (t.url && buy) {
       buy.href = t.url;
-      if (t.price) buy.textContent = `Buy ${key === 'both' ? 'both' : t.name} — $${t.price.toLocaleString('en-US')}`;
       buy.hidden = false;
       if (wait) wait.hidden = true;
     }

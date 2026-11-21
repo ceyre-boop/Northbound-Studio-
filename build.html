@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Build your machine — Northbound Studio</title>
-<meta name="description" content="Eight questions, in plain words, and you end with a specific, priced build you can reserve or save for later.">
+<meta name="description" content="Eight questions, in plain words, and you end with a specific build you can start or save for later.">
 <link rel="canonical" href="https://northbound-dev.com/build.html">
 <meta property="og:title" content="Build your machine — Northbound Studio">
-<meta property="og:description" content="Eight questions, in plain words, and you end with a specific, priced build you can reserve or save for later.">
+<meta property="og:description" content="Eight questions, in plain words, and you end with a specific build you can start or save for later.">
 <meta property="og:url" content="https://northbound-dev.com/build.html">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://northbound-dev.com/brand/og.png">
@@ -22,11 +22,10 @@
 
   The homepage ends in a blank "what you need" box, which asks a contractor to
   do the discovery himself. This page does the discovery for him: eight
-  questions, one per screen, in the order that is the sales logic (what one
-  customer is worth is asked before any price appears, so the price reads as
-  arithmetic). A phone beside the questions assembles as he answers, and he
-  ends on a spec sheet — the parts, the package, the payback in his own
-  number — that he can reserve, save, or email to himself as a link.
+  questions, one per screen. A phone beside the questions assembles as he
+  answers, and he ends on a summary — what he told us, the parts that calls
+  for, the one offer — that he can start, save, or email to himself as a
+  link. No price is shown here: the visitor first sees it at checkout.
 
   Scripted, not an LLM. A fixed tree answers instantly, costs nothing per
   visitor, stays on message, and cannot promise anything we would then have
@@ -40,9 +39,7 @@
   onerror handler puts the plain form back. Never a blank page.
 
   Honesty rules apply here with teeth: no countdown, no spots-remaining, no
-  invented conversion rate. The only scarcity is the fixed founding-client
-  count on the homepage, and the only numbers are prices the studio sets and
-  arithmetic on the bracket the customer chose.
+  invented conversion rate, no scarcity, and no price.
 -->
 <script>document.documentElement.className += ' js';</script>
 <!--
@@ -213,7 +210,7 @@
   .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--panel); }
   .opt[aria-pressed="true"]::before { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px #fff; }
   .opt-unsure { font-weight: 500; color: var(--ink-soft); }
-  .opt:focus-visible, .btn:focus-visible, .look:focus-visible, .pkg-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .opt:focus-visible, .btn:focus-visible, .look:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .field { display: grid; gap: 6px; margin: 16px 0 0; }
   .field label { font-family: var(--mono); font-weight: 600; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
@@ -272,25 +269,14 @@
   /* ---- the spec sheet ---- */
   .sheet h1.q { margin-bottom: 4px; }
   .sheet .lede { color: var(--ink-soft); margin: 0 0 20px; }
-  .pkgs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 18px; padding: 0; list-style: none; }
-  .pkg-opt { display: grid; gap: 2px; width: 100%; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); font: inherit; text-align: left; cursor: pointer; }
-  .pkg-opt b { font-family: var(--display); font-size: 15px; }
-  .pkg-opt small { color: var(--ink-soft); font-size: 12px; }
-  .pkg-opt em { font-style: normal; font-family: var(--mono); font-weight: 600; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); }
-  .pkg-opt[aria-pressed="true"] { border-color: var(--accent); background: var(--panel); box-shadow: 0 0 0 1px var(--accent); }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; margin: 0 0 14px; }
   .card h2 { font-size: 18px; margin: 0 0 10px; }
-  .price { font-family: var(--display); font-size: 34px; letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
-  .price .was { font-family: var(--body); font-size: 16px; font-weight: 400; text-decoration: line-through; color: var(--ink-soft); margin-left: 8px; }
-  .price-note { font-family: var(--mono); font-weight: 600; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); margin: 4px 0 0; }
   .parts { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
   .parts li { display: flex; gap: 10px; align-items: baseline; }
   .parts .n { font-family: var(--mono); font-weight: 600; font-size: 11px; color: var(--red); flex: none; width: 20px; }
   .parts .t { font-weight: 700; }
   .parts .d { color: var(--ink-soft); font-size: 14px; display: block; }
   .extra { margin: 12px 0 0; color: var(--ink-soft); font-size: 14px; }
-  .payback { font-family: var(--display); font-size: 18px; line-height: 1.3; margin: 0; }
-  .payback-note { color: var(--ink-soft); font-size: 13px; margin: 8px 0 0; }
   .next-steps { margin: 0; padding-left: 1.1em; color: var(--ink-soft); font-size: 15px; }
   .next-steps li { margin-bottom: 6px; }
   .next-steps strong { color: var(--ink); }
@@ -336,11 +322,6 @@
   .section-lede { color: var(--ink-soft); max-width: 58ch; margin: 0 0 24px; }
   .quote-form { display: grid; gap: 14px; max-width: 520px; }
   .quote-form .field { margin: 0; }
-  .founding-claim { display: grid; gap: 10px; margin: 4px 0 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
-  .founding-claim p { margin: 0; }
-  .founding-claim .claim-lede { font-size: 15px; }
-  .founding-claim .claim-link .btn { min-height: 44px; padding: 10px 20px; }
-  .founding-claim .hint { font-size: 13px; color: var(--ink-soft); margin: 0; }
   .quote-form button { min-height: 48px; padding: 12px 26px; border: none; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 500; font-size: 16px; font-family: inherit; cursor: pointer; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
@@ -360,8 +341,8 @@
     .ph-cta { min-height: 36px; }
     .preview-note { margin-top: 0; }
     .say { min-height: 140px; }  /* five lines of Inter at 15px: the spec sheet's line, restored from a link, must not grow the row */
-    .pkgs { grid-template-columns: 1fr; }
-    .pkg-opt { grid-template-columns: 1fr auto; min-height: 0; }
+
+
     .looks { grid-template-columns: repeat(2, 1fr); }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -448,31 +429,15 @@
     <section id="quote">
       <p class="eyebrow">Get a quote</p>
       <h1>Tell us what the job is.</h1>
-      <p class="section-lede">The useful first question is what one new customer is worth to you, and how many more you want a month. The answer decides the build.</p>
+      <p class="section-lede">The useful first question is what one new customer is worth to you, and how many more you want a month. Anything beyond the site, tell us here and we'll quote it.</p>
       <form class="quote-form" method="post" action="/api/quote">
         <p class="field"><label for="f-name">Your name</label><input id="f-name" name="name" type="text" autocomplete="name" required></p>
         <p class="field"><label for="f-business">Business</label><input id="f-business" name="business" type="text" autocomplete="organization"></p>
         <p class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></p>
         <p class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></p>
-        <p class="field">
-          <label for="f-package">Which package</label>
-          <select id="f-package" name="package">
-            <option value="">Not sure yet</option>
-            <option value="clean">Cheap and Clean — $500</option>
-            <option value="beacon">Beacon — founding price $1,750 (standard $3,500)</option>
-            <option value="engine">Engine — founding price $4,250 (standard $8,500)</option>
-            <option value="bearing">Bearing — founding price $300/mo</option>
-          </select>
-        </p>
+        <input type="hidden" name="package" value="site">
         <p class="field"><label for="f-need">What you need</label><textarea id="f-need" name="need" rows="3"></textarea></p>
         <p class="field"><label for="f-message">Anything else</label><textarea id="f-message" name="message" rows="3"></textarea></p>
-        <!-- The founding claim, same as index.html's form: see the comment there. -->
-        <div class="founding-claim" id="founding-claim">
-          <p class="claim-lede">Taking founding pricing (Beacon, Engine or Bearing)? Leave your Google review, then tell us the name it's posted under.</p>
-          <p class="claim-link"><a class="btn btn-secondary" href="https://g.page/r/CRFQRq5WLg6HECE/review" target="_blank" rel="noopener">Leave your Google review</a></p>
-          <p class="field"><label for="f-review-name">The name your review is posted under</label><input id="f-review-name" name="review_name" type="text" maxlength="120" data-founding-agree></p>
-          <p class="hint">Founding pricing is confirmed once we can see the review. We check it ourselves before finalising the quote — there's no automatic check. Not needed for Cheap and Clean.</p>
-        </div>
         <p class="hp" aria-hidden="true"><label for="f-hp7">Leave this empty</label><input id="f-hp7" name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></p>
         <p><button type="submit">Send it</button></p>
       </form>
@@ -483,40 +448,11 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a> &middot; Made to order in Grand Ledge, Michigan &middot; &copy; 2026 Northbound Studio &middot; <a href="/#packages">Prices</a>
+    <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a> &middot; Made to order in Grand Ledge, Michigan &middot; &copy; 2026 Northbound Studio
   </div>
 </footer>
 
 <!-- If the module never arrives, the plain form comes back. -->
-<!--
-  The same guard index.html puts on its copy of this form. It matters most
-  here: this block is only reachable when the module failed to load, which is
-  exactly when a server refusal would throw away everything they typed.
--->
-<script>
-  (function () {
-    var form = document.querySelector('.quote-form');
-    var pkg = document.getElementById('f-package');
-    var name = form && form.querySelector('[data-founding-agree]');
-    if (!form || !pkg || !name) return;
-    var block = name.closest('.founding-claim');
-    var sync = function () {
-      var needed = pkg.value === 'beacon' || pkg.value === 'engine' || pkg.value === 'bearing';
-      var empty = name.value.trim() === '';
-      name.required = needed;
-      name.setCustomValidity(
-        needed && empty
-          ? 'To take the founding price, leave your Google review (the link above opens it), then type the name it\u2019s posted under here. We check it ourselves before finalising.'
-          : ''
-      );
-      if (block) { block.classList.toggle('is-required', needed); block.classList.toggle('is-empty', empty); }
-    };
-    pkg.addEventListener('change', sync);
-    name.addEventListener('input', sync);
-    sync();
-  })();
-</script>
-
 <script type="module" src="js/build.js" onerror="document.documentElement.classList.add('no-module')"></script>
 
 </body>

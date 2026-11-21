@@ -39,6 +39,13 @@ Every quote is logged with a reputation snapshot: sites launched, number of revi
 
 ## Data
 - One log of every quote: week, price, lead, business type, outcome, and the reputation snapshot.
+
+### Where the quote log lives (built in Build 00)
+- **The price the site charges:** `data/price.json` (`week`, `setup`, `care_monthly`, `deposit_ratio`). The engine rewrites this one file each Monday and ships it. `lib/price.ts` is the only code that reads it; `api/checkout.ts` charges `setup × deposit_ratio` from it, and `checkout.html` fetches the same file to show it. It refuses a setup price under $300.
+- **The record of every quote: Stripe.** Each Checkout Session is one quote. `api/checkout.ts` writes the week and setup price into the session's metadata (`nb_week`, `nb_setup` in cents, plus `nb_due`, `nb_balance`, `nb_care`, `nb_business`). The outcome is the session's own status: `complete` = yes, `expired` or still open after 14 days = no. Stripe keeps these, so nothing is lost while the Mac is off, and there is no database to run.
+- **How the engine reads it:** list Checkout Sessions from the Stripe API and read the metadata. The Mac worker (Build 01) also copies each one into a plain file, `~/northbound/pricing/quotes.jsonl`, one line per event, so the dashboard can read it without calling Stripe.
+- **Trail in the logs:** the site also prints one `[quote-log] {json}` line to the Vercel function log when a session is created (`quote_created`, outcome `open`) and when it is paid (`quote_paid`, outcome `yes`).
+- **Quotes Buddy gives by email** (someone asks the price before checkout) are not in Stripe. Buddy appends those to the same `quotes.jsonl` when that part is built.
 - The dashboard shows each price's yes/no count, its estimated lifetime value per quote, and this week's price.
 
 ## Be honest about early data

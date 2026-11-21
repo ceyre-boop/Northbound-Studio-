@@ -15,8 +15,20 @@
  *   https://northbound-dev.com/api/stripe-webhook
  *   events: checkout.session.completed
  *
+ * PRICES. Nothing here knows a price. Every number in these emails comes from
+ * the session's metadata, which api/checkout.ts filled from data/price.json
+ * when the session was created. That is deliberate: the price can change on
+ * a Monday, and a client who was quoted last week's price is confirmed at
+ * last week's price.
+ *
+ * THE QUOTE LOG. A completed session is a "yes" for the pricing engine; the
+ * [quote-log] line below records it against the week and setup price the
+ * session was quoted at. See Plans/pricing-engine.md.
+ *
  * Env: STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, QUOTE_TO, QUOTE_FROM (optional).
  */
+
+import { logQuote, money } from '../lib/price.js';
 
 const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -24,10 +36,6 @@ const FALLBACK_FROM = 'Northbound Studio <quotes@northbound-dev.com>';
 
 type Sent = { ok: true; id: string } | { ok: false; error: string };
 type Meta = Record<string, string>;
-
-function money(cents: number): string {
-  return `$${(cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-}
 
 async function send(key: string, email: Record<string, unknown>): Promise<Sent> {
   try {
@@ -101,16 +109,9 @@ function notification(md: Meta, sessionId: string): string {
   }
   lines.push('', `Deposit paid: ${money(Number(md.nb_due ?? '0'))}`);
   const balance = Number(md.nb_balance ?? '0');
-  if (balance) lines.push(`On delivery: ${money(balance)} (the balance — collect before handoff)`);
-  if (md.nb_spec) lines.push('', 'Their build:', ...md.nb_spec.split(' | ').map((l) => `  ${l}`));
-  if (md.nb_founding === '1') {
-    lines.push(
-      '',
-      md.nb_review
-        ? `Founding client — review posted under "${md.nb_review}". Look it up on Google before finalising; nothing has checked it.`
-        : 'Founding client — one of the first 15. No review name: there is no Google profile to leave one on yet.',
-    );
-  }
+  if (balance) lines.push(`At launch: ${money(balance)} (the balance)`);
+  if (md.nb_week) lines.push(`Price week: ${md.nb_week}`);
+  if (md.nb_spec) lines.push('', 'What they told us:', ...md.nb_spec.split(' | ').map((l) => `  ${l}`));
   const pause = pauseLines(md);
   if (pause.length) lines.push('', ...pause);
   lines.push('', `Stripe session: ${sessionId}`);
@@ -130,18 +131,10 @@ function confirmation(md: Meta): string {
   if (md.nb_monthly) {
     for (const m of md.nb_monthly.split(' | ')) lines.push(`  ${m}`);
   }
-  if (balance) lines.push('', `The remaining ${money(balance)} is due on delivery.`);
-  if (md.nb_founding === '1') {
-    lines.push(
-      '',
-      md.nb_review
-        ? `You're taking founding pricing, and you told us your Google review is posted under "${md.nb_review}". We look that up ourselves before finalising — there's nothing automatic about it.`
-        : "You're taking founding pricing as one of our first 15 clients. Part of that is a Google review — our profile isn't live yet, so there is nothing for you to do today. We'll ask you once it is.",
-    );
-  }
+  if (balance) lines.push('', `The remaining ${money(balance)} is due at launch.`);
   lines.push(
     '',
-    "The build starts now — we'll be in touch to kick things off.",
+    "What happens next: you'll get an email from us shortly asking for what we need to build your site: your details, your logo and your photos. The 7-day clock starts the moment we have all of it.",
     '',
     `If it can't wait, call ${PHONE}.`,
     '',
@@ -178,6 +171,9 @@ export async function POST(request: Request): Promise<Response> {
   const paid = Number(obj.amount_total ?? 0);
   if (md.nb_due && String(paid) !== md.nb_due) {
     console.error('[stripe-webhook] amount mismatch', { expected: md.nb_due, paid, session: sessionId });
+  }
+  if (md.nb_week && md.nb_setup) {
+    logQuote({ event: 'quote_paid', week: md.nb_week, setup: Number(md.nb_setup) / 100, session: sessionId, outcome: 'yes', business: md.nb_business });
   }
 
   const resendKey = process.env.RESEND_API_KEY;

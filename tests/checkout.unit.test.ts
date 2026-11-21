@@ -1,598 +1,283 @@
-/* tests/checkout.unit.test.ts — api/checkout.ts pricing, unit-tested directly.
+/* tests/checkout.unit.test.ts — the one offer, priced from data/price.json.
  *
  * bun:test, not Playwright: no server, no browser. global.fetch is mocked so
- * POST() never makes a real Resend call; each test inspects what it *would*
- * have sent (the request body handed to fetch) rather than a rendered page.
- * Run explicitly — `bun test tests/checkout.unit.test.ts` — because the repo's
- * Playwright specs also match *.spec.ts and bun's own test runner cannot run
- * those. Mirrors api/quote.ts's own honeypot/JSON/validation conventions.
+ * POST() never makes a real Resend or Stripe call; each test inspects what it
+ * *would* have sent. Run with `bun run test:unit`.
+ *
+ * What these pin (Plans/builds/00-remove-prices.md):
+ *   - every amount is computed from data/price.json, and nothing a browser
+ *     posts can change it;
+ *   - the retired tiers are refused, not quietly sold as something else;
+ *   - the quote and account emails take their numbers from the same file,
+ *     and the customer-facing quote reply states no price at all.
  */
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { GOOGLE_REVIEW_URL, POST } from '../api/checkout.ts';
+import { POST, decodeSpec, specLines, specParts } from '../api/checkout.ts';
 import { POST as quotePOST } from '../api/quote.ts';
-import { GOOGLE_REVIEW_URL as BROWSER_REVIEW_URL } from '../js/config.js';
+import { POST as accountPOST } from '../api/account.ts';
+import { offer, offerFrom, validate, money } from '../lib/price.ts';
 
-const ENV_KEY = 'RESEND_API_KEY';
-const ENV_TO = 'QUOTE_TO';
+const ROOT = join(import.meta.dir, '..');
+const CONFIG = JSON.parse(readFileSync(join(ROOT, 'data/price.json'), 'utf8'));
+const P = offer();
 
 function baseFields(): Record<string, string> {
-  return {
-    name: 'Jamie Rivera',
-    business: 'Rivera Roofing',
-    phone: '5551234567',
-    email: 'jamie@example.com',
-  };
+  return { buy: 'site', name: 'Jamie Rivera', business: 'Rivera Roofing', phone: '5551234567', email: 'jamie@example.com' };
 }
 
-function post(fields: Record<string, string>, opts: { json?: boolean } = {}): Promise<Response> {
+function request(path: string, fields: Record<string, string>, json = true): Request {
   const form = new FormData();
   for (const [k, v] of Object.entries(fields)) form.set(k, v);
-  const headers: Record<string, string> = {};
-  if (opts.json !== false) headers['accept'] = 'application/json';
-  const request = new Request('http://localhost/api/checkout', {
-    method: 'POST',
-    body: form,
-    headers,
-  });
-  return POST(request);
+  return new Request(`http://localhost${path}`, { method: 'POST', body: form, headers: json ? { accept: 'application/json' } : {} });
 }
+const post = (fields: Record<string, string>, json = true) => POST(request('/api/checkout', fields, json));
 
-let sentEmails: Record<string, unknown>[] = [];
+let sent: { to: string[]; subject: string; text: string; reply_to?: string }[] = [];
 
 beforeEach(() => {
-  process.env[ENV_KEY] = 'test-key';
-  process.env[ENV_TO] = 'studio@example.com';
-  sentEmails = [];
+  process.env.RESEND_API_KEY = 'test-key';
+  process.env.QUOTE_TO = 'studio@example.com';
+  delete process.env.STRIPE_SECRET_KEY;
+  delete process.env.STRIPE_WEBHOOK_SECRET;
+  sent = [];
   // @ts-expect-error — test double, not the real fetch signature
   global.fetch = mock(async (_url: string, init: { body: string }) => {
-    const body = JSON.parse(init.body);
-    sentEmails.push(body);
-    return {
-      ok: true,
-      json: async () => ({ id: `email_${sentEmails.length}` }),
-    } as Response;
+    sent.push(JSON.parse(init.body));
+    return { ok: true, json: async () => ({ id: `email_${sent.length}` }) } as Response;
   });
 });
 
 afterEach(() => {
-  delete process.env[ENV_KEY];
-  delete process.env[ENV_TO];
+  delete process.env.RESEND_API_KEY;
+  delete process.env.QUOTE_TO;
 });
 
-describe('founding Beacon and Engine amounts', () => {
-  test('Beacon: 50% deposit of the founding price ($875.00 of $1,750)', async () => {
-    const res = await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.' });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('$875.00 once');
-    expect(notif).toContain('Due today: $875.00');
-    expect(notif).toContain('founding price $1,750');
-    expect(notif).toContain('standard $3,500');
+describe('data/price.json is the single source of truth', () => {
+  test('the file holds the four fields and nothing below the floor', () => {
+    expect(Object.keys(CONFIG).sort()).toEqual(['care_monthly', 'deposit_ratio', 'setup', 'week']);
+    expect(CONFIG.week).toMatch(/^\d{4}-W\d{2}$/);
+    expect(CONFIG.setup).toBeGreaterThanOrEqual(300);
+    expect(CONFIG.care_monthly).toBe(49);
+    expect(CONFIG.deposit_ratio).toBe(0.5);
   });
 
-  test('Engine: 50% deposit of the founding price ($2,125.00 of $4,250)', async () => {
-    const res = await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.' });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('$2,125.00 once');
-    expect(notif).toContain('Due today: $2,125.00');
-    expect(notif).toContain('founding price $4,250');
-    expect(notif).toContain('standard $8,500');
-  });
-
-  test('the review name is carried into both emails, with the manual check said plainly', async () => {
-    await post({ ...baseFields(), buy: 'beacon', review_name: '  Jamie R.  ' });
-    const notif = sentEmails[0].text as string;
-    const conf = sentEmails[1].text as string;
-    expect(notif).toContain('Founding review: posted under "Jamie R."');
-    expect(notif).toContain('look it up on Google before finalising');
-    expect(conf).toContain('posted under "Jamie R."');
-    expect(conf).toContain('we check it ourselves before finalising');
-    expect(conf).toContain(GOOGLE_REVIEW_URL);
-    for (const text of [notif, conf]) {
-      expect(text).not.toMatch(/isn't live|nothing to review|verified automatically/i);
-    }
-  });
-
-  test('Cheap and Clean alone says nothing about a review', async () => {
-    await post({ ...baseFields(), buy: 'clean' });
-    for (const email of sentEmails) expect(email.text as string).not.toContain('Founding review');
-  });
-});
-
-/* One URL, written in four places on purpose (the pages need a plain href
-   for JavaScript-off), and this is what stops them drifting apart. */
-describe('GOOGLE_REVIEW_URL', () => {
-  const ROOT = join(import.meta.dir, '..');
-  const PAGES = ['index.html', 'checkout.html', 'build.html'];
-  const live = GOOGLE_REVIEW_URL !== '';
-
-  test('the server and the browser hold the same string', () => {
-    expect(GOOGLE_REVIEW_URL).toBe(BROWSER_REVIEW_URL);
-  });
-
-  /* Empty means there is no Google Business Profile yet. The whole founding
-     review flow is off in that state, and the thing being guarded against is
-     the site asking for a review it has nowhere to receive — which is not
-     hypothetical: a search for our own name returns a different Northbound
-     Studio, a marketing agency in Grandville. */
-  describe.skipIf(live)('while there is no profile to review', () => {
-    for (const page of PAGES) {
-      test(`${page} asks for no review and links nowhere`, () => {
-        const raw = readFileSync(join(ROOT, page), 'utf8');
-        expect(raw).toContain('data-review-pending');
-        /* Comments stripped first: each of these pages carries the markup to
-           restore, commented out, so the day the profile exists it is a
-           paste rather than a rewrite. A comment ships nothing. */
-        const html = raw.replace(/<!--[\s\S]*?-->/g, '');
-        expect(Array.from(html.matchAll(/<a\s+([^>]*)>Leave your Google review<\/a>/g)).length).toBe(0);
-        expect(html).not.toContain('name="review_name"');
-      });
-    }
-
-    test('no page links to a Google place or search', () => {
-      for (const page of PAGES) {
-        const html = readFileSync(join(ROOT, page), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
-        expect(html).not.toMatch(/maps\/search|maps\/place|g\.page/);
+  test('the deposit is setup x deposit_ratio, and deposit + balance is always the setup price', () => {
+    for (const setup of [300, 500, 750, 1000, 333]) {
+      for (const ratio of [0.5, 0.25, 1 / 3, 1]) {
+        const o = offerFrom({ week: '2026-W47', setup, care_monthly: 49, deposit_ratio: ratio });
+        expect(o.setupCents).toBe(setup * 100);
+        expect(o.depositCents).toBe(Math.round(setup * 100 * ratio));
+        expect(o.depositCents + o.balanceCents).toBe(o.setupCents);
+        expect(Number.isInteger(o.depositCents)).toBe(true);
       }
-    });
+    }
+    expect(offerFrom({ week: '2026-W47', setup: 500, care_monthly: 49, deposit_ratio: 0.5 })).toEqual({ week: '2026-W47', setupCents: 50000, depositCents: 25000, balanceCents: 25000, careCents: 4900 });
+    expect(offerFrom({ week: '2026-W48', setup: 750, care_monthly: 49, deposit_ratio: 0.5 }).depositCents).toBe(37500);
+    expect(offerFrom({ week: '2026-W49', setup: 300, care_monthly: 49, deposit_ratio: 0.5 }).depositCents).toBe(15000);
+  });
 
-    test('a founding order goes through without one', async () => {
-      const res = await post({ ...baseFields(), buy: 'beacon' });
+  test('a broken or out-of-range config is refused rather than charged', () => {
+    const good = { week: '2026-W47', setup: 500, care_monthly: 49, deposit_ratio: 0.5 };
+    expect(() => validate(good)).not.toThrow();
+    for (const bad of [
+      null, {}, { ...good, setup: 299 }, { ...good, setup: '500' }, { ...good, setup: NaN }, { ...good, setup: 0 },
+      { ...good, deposit_ratio: 0 }, { ...good, deposit_ratio: 1.5 }, { ...good, care_monthly: 0 }, { ...good, week: 'this week' }, { ...good, week: undefined },
+    ]) expect(() => validate(bad)).toThrow();
+  });
+
+  test('no api file carries a price of its own', () => {
+    for (const f of ['api/checkout.ts', 'api/quote.ts', 'api/account.ts', 'api/stripe-webhook.ts', 'lib/price.ts']) {
+      const src = readFileSync(join(ROOT, f), 'utf8');
+      // Booleans, so a failure names the file instead of printing all of it.
+      expect(/\$\d/.test(src), `${f} has a dollar figure`).toBe(false);
+      expect(/\b(50000|25000|4900|87500|212500|30000)\b/.test(src), `${f} has a hardcoded amount in cents`).toBe(false);
+      expect(/Beacon|Bearing|Cheap and Clean|FOUNDING|review_name/.test(src), `${f} still names a retired tier`).toBe(false);
+    }
+  });
+});
+
+describe('POST /api/checkout — the email path (Stripe not configured)', () => {
+  test('a valid order sends two emails with the amounts from the config', async () => {
+    const res = await post(baseFields());
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+    expect(sent).toHaveLength(2);
+    const [studio, customer] = sent;
+    expect(studio.to).toEqual(['studio@example.com']);
+    expect(studio.reply_to).toBe('jamie@example.com');
+    expect(studio.subject).toBe('Order: The Northbound Site — Rivera Roofing');
+    expect(studio.text).toContain(`The Northbound Site — ${money(P.setupCents)}`);
+    expect(studio.text).toContain(`Care plan — ${money(P.careCents)}/mo, starting the day the site goes live`);
+    expect(studio.text).toContain(`Due today: ${money(P.depositCents)}`);
+    expect(studio.text).toContain(`At launch: ${money(P.balanceCents)} (the balance)`);
+    expect(studio.text).toContain(`Price week: ${P.week}`);
+    expect(customer.to).toEqual(['jamie@example.com']);
+    expect(customer.text).toContain(`Due today: ${money(P.depositCents)}`);
+    expect(customer.text).toContain('Nothing has been charged yet.');
+    for (const e of sent) expect(e.text).not.toMatch(/founding|Bearing|Beacon|Google review/i);
+  });
+
+  test('an amount posted from the browser changes nothing', async () => {
+    await post({ ...baseFields(), setup: '1', price: '1', amount: '1', deposit: '1', care: '1', care_monthly: '1', nb_due: '100', unit_amount: '100' });
+    expect(sent[0].text).toContain(`Due today: ${money(P.depositCents)}`);
+    expect(sent[0].text).toContain(`The Northbound Site — ${money(P.setupCents)}`);
+    expect(sent[0].text).not.toContain('$1.00');
+  });
+
+  test('the retired tiers are refused, and nothing is sent', async () => {
+    for (const buy of ['beacon', 'engine', 'bearing', 'bearing_12', 'anything']) {
+      const res = await post({ ...baseFields(), buy });
+      expect(res.status, buy).toBe(422);
+      expect((await res.json()).error).toBe("We don't recognise what you're buying.");
+    }
+    expect(sent).toHaveLength(0);
+  });
+
+  test('a cached copy of the old page (buy=clean, or no buy at all) still orders the site', async () => {
+    for (const buy of ['clean', '']) {
+      sent = [];
+      const res = await post({ ...baseFields(), buy });
       expect(res.status).toBe(200);
-      expect(sentEmails[0].text as string).toContain('no Google profile to leave one on yet');
-    });
+      expect(sent[0].text).toContain('The Northbound Site');
+    }
   });
 
-  describe.skipIf(!live)('once the profile is live', () => {
-    for (const page of PAGES) {
-      test(`${page}'s "Leave your Google review" link is that URL, in a new tab`, () => {
-        const html = readFileSync(join(ROOT, page), 'utf8');
-        const links = Array.from(html.matchAll(/<a\s+([^>]*)>Leave your Google review<\/a>/g)).map((m) => m[1]);
-        expect(links.length).toBe(1);
-        const href = links[0].match(/href="([^"]+)"/)![1].replace(/&amp;/g, '&');
-        expect(href).toBe(GOOGLE_REVIEW_URL);
-        expect(links[0]).toContain('target="_blank"');
-        expect(links[0]).toContain('rel="noopener"');
-        expect(html).toContain('name="review_name"');
-      });
-    }
-
-    test('founding pricing is refused without the name the review is posted under', async () => {
-      const res = await post({ ...baseFields(), buy: 'beacon' });
+  test('each required field is asked for by name', async () => {
+    const cases: [Record<string, string>, string][] = [
+      [{ name: '' }, 'Please tell us your name.'],
+      [{ business: '' }, 'Please tell us your business name.'],
+      [{ phone: '12' }, 'Please leave a phone number we can call.'],
+      [{ email: 'not-an-email' }, 'Please check your email address.'],
+    ];
+    for (const [over, message] of cases) {
+      const res = await post({ ...baseFields(), ...over });
       expect(res.status).toBe(422);
-    });
+      expect((await res.json()).error).toBe(message);
+    }
+    expect(sent).toHaveLength(0);
+  });
+
+  test('the honeypot answers like a success and delivers nothing', async () => {
+    const res = await post({ ...baseFields(), nb_hp_7: 'http://spam.example' });
+    expect(res.status).toBe(200);
+    expect(sent).toHaveLength(0);
+  });
+
+  test('a native post is redirected, so a refresh never re-sends the order', async () => {
+    const res = await post(baseFields(), false);
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('/order-received.html');
+  });
+
+  test('a failed studio notification fails the submit; a failed confirmation does not', async () => {
+    let call = 0;
+    // @ts-expect-error — test double
+    global.fetch = mock(async () => ({ ok: false, status: 500, json: async () => ({ message: 'down' }) }) as Response);
+    expect((await post(baseFields())).status).toBe(502);
+    // @ts-expect-error — test double
+    global.fetch = mock(async () => (++call === 1 ? { ok: true, json: async () => ({ id: 'a' }) } : { ok: false, status: 500, json: async () => ({}) }) as Response);
+    expect((await post(baseFields())).status).toBe(200);
+  });
+
+  test('with no inbox configured the visitor is told, not thanked', async () => {
+    delete process.env.QUOTE_TO;
+    expect((await post(baseFields())).status).toBe(503);
+  });
+
+  test('the optional "pause" answers reach the studio, and empty ones add nothing', async () => {
+    await post({ ...baseFields(), why_not: 'I already have a Facebook page', benefit: 'More calls\non weekends' });
+    expect(sent[0].text).toContain('In their words:');
+    expect(sent[0].text).toContain('  Reasons they might not need us: I already have a Facebook page');
+    expect(sent[0].text).toContain('  What it should bring them: More calls\n    on weekends');
+    sent = [];
+    await post(baseFields());
+    expect(sent[0].text).not.toContain('In their words:');
   });
 });
 
-describe('Bearing — both founding term variants', () => {
-  test('12-month commitment: $300/mo, locked for all twelve months', async () => {
-    const res = await post({
-      ...baseFields(),
-      buy: 'clean',
-      bearing: '1',
-      bearing_term: '12',
-      review_name: 'Jamie R.',
-    });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('12-month commitment');
-    expect(notif).toContain('$300.00/mo');
-    expect(notif).toContain('Then: $300.00/mo, starting next month');
-    expect(notif).not.toContain('$600.00/mo');
+describe('the guided build code, in words', () => {
+  test('answers are repeated in the email, and parts beyond the site are named as separate quotes', async () => {
+    await post({ ...baseFields(), spec: '1tc33ny5e.Rivera%20Roofing' });
+    expect(sent[0].text).toContain('Their answers (from build.html):');
+    expect(sent[0].text).toContain('Business:   Rivera Roofing — Trades & home services');
+    expect(sent[0].text).toContain('Worth:      1,000 to 5,000 dollars per customer');
+    expect(sent[0].text).toContain('To quote separately: Booking flow');
+    expect(sent[0].text).not.toContain('$1,000');
   });
 
-  test('month-to-month: $300 the first month, then $600/mo after', async () => {
-    const res = await post({
-      ...baseFields(),
-      buy: 'clean',
-      bearing: '1',
-      bearing_term: 'mtm',
-      review_name: 'Jamie R.',
-    });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('month-to-month');
-    expect(notif).toContain('$300.00/mo (then $600/mo after)');
+  test('every package character decodes to the one site, including the retired ones', () => {
+    for (const c of ['c', 'b', 'e']) expect(decodeSpec(`1tc33ny5${c}`)?.pkg).toBe('site');
+    expect(decodeSpec('2005e')?.pkg).toBe('site');
+    expect(decodeSpec('2005e')?.parts).toEqual(['A custom site', 'Booking flow']);
+    expect(specLines(decodeSpec('2005e')!).join('\n')).toContain('To quote separately: Booking flow');
   });
 
-  test('due today never includes the monthly Bearing charge', async () => {
-    await post({
-      ...baseFields(),
-      buy: 'clean',
-      bearing: '1',
-      bearing_term: '12',
-      review_name: 'Jamie R.',
-    });
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Due today: $500.00');
+  test('a code that is not one is ignored, never an error', async () => {
+    for (const spec of ['', 'x', '1', '9tc33ny5e', '2zzzze', '1tc33ny5e.%E0%A4%A']) {
+      sent = [];
+      const res = await post({ ...baseFields(), spec });
+      expect(res.status, spec).toBe(200);
+    }
+    expect(decodeSpec('nonsense')).toBeNull();
+    expect(specParts(decodeSpec('1________')!)).toEqual(['A custom site']);
   });
 });
 
-describe('refusals', () => {
-  test.skipIf(GOOGLE_REVIEW_URL === '')('refuses founding pricing without the review name — Beacon', async () => {
-    const res = await post({ ...baseFields(), buy: 'beacon' });
+describe('POST /api/quote', () => {
+  const quote = (fields: Record<string, string>) => quotePOST(request('/api/quote', fields));
+  const q = () => ({ name: 'Sam Ortiz', business: 'Ortiz Plumbing', phone: '5175550100', email: 'sam@example.com', need: 'Following up on quotes takes my whole Friday' });
+
+  test('the visitor is never told a price; the studio is told this week\'s', async () => {
+    const res = await quote({ ...q(), package: 'site' });
+    expect(res.status).toBe(200);
+    const [studio, reply] = sent;
+    expect(studio.text).toContain('Asking about: The Northbound Site');
+    expect(studio.text).toContain(`The Northbound Site: ${money(P.setupCents)} (${money(P.depositCents)} now, ${money(P.balanceCents)} at launch) + Care plan ${money(P.careCents)}/mo. Week ${P.week}.`);
+    expect(reply.to).toEqual(['sam@example.com']);
+    expect(reply.text).not.toMatch(/\$\d/);
+    expect(reply.text).toContain('Following up on quotes takes my whole Friday');
+  });
+
+  test('an automation enquiry needs no package and no review name', async () => {
+    const res = await quote(q());
+    expect(res.status).toBe(200);
+    expect(sent[0].text).toContain('Asking about: Not said (an automation, or not sure yet)');
+    expect(sent[0].subject).toContain('Ortiz Plumbing');
+  });
+
+  test('the old package values no longer gate the form or reach the email as tiers', async () => {
+    for (const pkg of ['beacon', 'engine', 'bearing']) {
+      sent = [];
+      const res = await quote({ ...q(), package: pkg });
+      expect(res.status, pkg).toBe(200);
+      for (const e of sent) expect(e.text).not.toMatch(/Beacon|Engine —|Bearing|founding/);
+    }
+  });
+});
+
+describe('POST /api/account', () => {
+  const account = (fields: Record<string, string>) => accountPOST(request('/api/account', fields));
+  const a = () => ({ name: 'Sam Ortiz', business: 'Ortiz Plumbing', phone: '5175550100', email: 'sam@example.com' });
+
+  test('adding the care plan names the price from the config, in the emails only', async () => {
+    const res = await account({ ...a(), want_care: '1' });
+    expect(res.status).toBe(200);
+    expect(sent[0].text).toContain(`Wants:     Care plan (${money(P.careCents)}/mo)`);
+    expect(sent[1].text).toContain(`Care plan (${money(P.careCents)}/mo)`);
+    expect(sent[1].text).toContain('Nothing has been charged.');
+  });
+
+  test('Bearing is not a thing you can ask for any more', async () => {
+    const res = await account({ ...a(), want_bearing: '1', term: 'bearing_12' });
     expect(res.status).toBe(422);
-    const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/name your Google review is posted under/i);
-    expect(sentEmails.length).toBe(0);
+    expect(sent).toHaveLength(0);
   });
 
-  test.skipIf(GOOGLE_REVIEW_URL === '')('refuses founding pricing without the review name — Bearing', async () => {
-    const res = await post({
-      ...baseFields(),
-      buy: 'clean',
-      bearing: '1',
-      bearing_term: '12',
-    });
-    expect(res.status).toBe(422);
-    const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/name your Google review is posted under/i);
-    expect(sentEmails.length).toBe(0);
-  });
-
-  test.skipIf(GOOGLE_REVIEW_URL === '')('a review name that is only whitespace is absent, and the old checkbox no longer counts', async () => {
-    const blank = await post({ ...baseFields(), buy: 'engine', review_name: '   ' });
-    expect(blank.status).toBe(422);
-    const checkbox = await post({ ...baseFields(), buy: 'engine', founding_agree: 'yes' });
-    expect(checkbox.status).toBe(422);
-    expect(sentEmails.length).toBe(0);
-  });
-
-  test('Cheap and Clean alone never requires the review name', async () => {
-    const res = await post({ ...baseFields(), buy: 'clean' });
-    expect(res.status).toBe(200);
-  });
-
-  test('refuses a Bearing checkbox with no recognised term', async () => {
-    const res = await post({
-      ...baseFields(),
-      buy: 'clean',
-      bearing: '1',
-      bearing_term: 'quarterly',
-      review_name: 'Jamie R.',
-    });
-    expect(res.status).toBe(422);
-    const body = await res.json();
-    expect(body.error).toMatch(/term/i);
-  });
-
-  test('refuses a buy value that is not in the price table', async () => {
-    const res = await post({ ...baseFields(), buy: 'platinum' });
-    expect(res.status).toBe(422);
-    const body = await res.json();
-    expect(body.error).toMatch(/don't recognise/i);
-  });
-
-  test('refuses posting an add-on key directly as `buy` — bearing_12 is not a buyable item', async () => {
-    const res = await post({ ...baseFields(), buy: 'bearing_12' });
-    expect(res.status).toBe(422);
-    const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(sentEmails.length).toBe(0);
-  });
-});
-
-/* "Before you pay, pause." — optional last word from the buyer, on the
-   email-capture fallback path (api/checkout.ts's notification()). */
-describe('"Before you pay, pause." answers', () => {
-  test('all three answers appear under "In their words:" in the studio notification', async () => {
-    const res = await post({
-      ...baseFields(),
-      buy: 'clean',
-      why_not: "I could probably do this myself",
-      benefit: 'More booked jobs every week',
-      why_us: 'You built my cousin\'s site',
-    });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('In their words:');
-    expect(notif).toContain('Reasons they might not need us: I could probably do this myself');
-    expect(notif).toContain('What it should bring them: More booked jobs every week');
-    expect(notif).toContain("Why Northbound: You built my cousin's site");
-  });
-
-  test('empty answers produce no "In their words:" section, on either email', async () => {
-    const res = await post({ ...baseFields(), buy: 'clean' });
-    expect(res.status).toBe(200);
-    for (const email of sentEmails) {
-      expect(email.text as string).not.toContain('In their words:');
-    }
-  });
-
-  test('the confirmation email never carries these answers', async () => {
-    await post({
-      ...baseFields(),
-      buy: 'clean',
-      why_not: 'reason',
-      benefit: 'benefit',
-      why_us: 'why us',
-    });
-    const conf = sentEmails[1].text as string;
-    expect(conf).not.toContain('In their words:');
-    expect(conf).not.toContain('reason');
-  });
-
-  test('each answer is capped at 500, the same on both delivery paths', async () => {
-    const res = await post({
-      ...baseFields(),
-      buy: 'clean',
-      why_not: 'A'.repeat(2000),
-      benefit: 'B'.repeat(2000),
-      why_us: 'C'.repeat(2000),
-    });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    for (const [label, ch] of [['Reasons they might not need us', 'A'], ['What it should bring them', 'B'], ['Why Northbound', 'C']]) {
-      expect(notif).toContain(`${label}: ${ch.repeat(500)}`);
-      expect(notif).not.toContain(ch.repeat(501));
-    }
-  });
-
-  test('multi-line answers indent their continuation lines by four spaces', async () => {
-    await post({ ...baseFields(), buy: 'clean', why_not: 'line one\nline two' });
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Reasons they might not need us: line one\n    line two');
-  });
-});
-
-describe('honeypot', () => {
-  test('a filled honeypot is answered like a success and nothing is sent', async () => {
-    const res = await post({ ...baseFields(), buy: 'clean', nb_hp_7: 'I am a bot' });
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.ok).toBe(true);
-    expect(sentEmails.length).toBe(0);
-  });
-});
-
-/* The guided build's `spec` field: descriptive only, never priced. */
-describe('the guided build, carried in `spec`', () => {
-  const ROOFER = '1tc33ny5e.Rivera%20Roofing';
-
-  test('Engine: both emails say $2,125 now and $2,125 on delivery, in those words', async () => {
-    const res = await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', spec: ROOFER });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    const conf = sentEmails[1].text as string;
-    for (const text of [notif, conf]) {
-      expect(text).toContain('Due today: $2,125.00');
-      expect(text).toContain('On delivery: $2,125.00 (the balance)');
-      expect(text).toContain('$2,125.00 now, $2,125.00 on delivery — 50% up front, always. No deposit, no work.');
-    }
-  });
-
-  test('Beacon: $875 now, $875 on delivery', async () => {
-    await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.' });
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Due today: $875.00');
-    expect(notif).toContain('On delivery: $875.00 (the balance)');
-    expect(notif).toContain('$875.00 now, $875.00 on delivery');
-  });
-
-  test('Cheap and Clean is the whole price now, with no balance line', async () => {
-    await post({ ...baseFields(), buy: 'clean' });
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Payment: $500.00 now, in full.');
-    expect(notif).not.toContain('On delivery');
-  });
-
-  test('the build is described, part by part, in both emails', async () => {
-    await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', spec: ROOFER });
-    for (const email of sentEmails) {
-      const text = email.text as string;
-      expect(text).toContain('Their build (from build.html):');
-      expect(text).toContain('Business:   Rivera Roofing — Trades & home services');
-      expect(text).toContain('Today:      They call me');
-      expect(text).toContain('Wants more: Booked jobs, Quote requests');
-      expect(text).toContain('Worth:      $1,000–$5,000 per customer');
-      expect(text).toContain('Nights:     Nobody — it waits until morning');
-      expect(text).toContain('Running it: Keep it running for me');
-      expect(text).toContain('Look:       Industrial');
-      expect(text).toContain('Parts:      A custom site, Booking flow, Quote flow, Payments, Lead capture, Automated follow-up, Reminders, Review requests');
-    }
-  });
-
-  test('a package the answers did not point at is noted, with what falls out', async () => {
-    // Same roofer, but they chose Beacon on the sheet (code ends in b).
-    await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.', spec: '1tc33ny5b.Rivera%20Roofing' });
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Parts:      A custom site');
-    expect(notif).toContain('Not in package: Booking flow, Quote flow, Payments, Lead capture, Automated follow-up, Reminders, Review requests');
-    expect(notif).toContain('(Their answers pointed at engine; they chose beacon.)');
-  });
-
-  test('the spec never changes the price: an Engine code on a Cheap and Clean order is still $500', async () => {
-    const res = await post({ ...baseFields(), buy: 'clean', spec: ROOFER });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Due today: $500.00');
-    expect(notif).not.toContain('$2,125');
-    expect(notif).toContain('Their build (from build.html):');
-  });
-
-  test('Bearing chosen in the build is recorded, not charged today', async () => {
-    await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', bearing: '1', bearing_term: '12', spec: ROOFER });
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Due today: $2,125.00');
-    expect(notif).toContain('Bearing — 12-month commitment (founding price) — $300.00/mo');
-    expect(notif).toContain('Then: $300.00/mo, starting next month');
-  });
-
-  test('the twelve picked on the homepage: both emails list exactly what was clicked, and what the package does not cover', async () => {
-    // A custom site, Booking flow and AI intake: bits 0, 2 and 11.
-    const code = '2' + (1 | 4 | 2048).toString(36).padStart(3, '0') + 'e';
-    await post({ ...baseFields(), buy: 'engine', review_name: 'Jamie R.', spec: code });
-    for (const email of sentEmails) {
-      const text = email.text as string;
-      expect(text).toContain('Their build (picked from the twelve on the homepage):');
-      expect(text).toContain('Picked:     A custom site, Booking flow, AI intake');
-      expect(text).toContain('Parts:      A custom site, Booking flow');
-      expect(text).toContain('Not in package: AI intake');
-      expect(text).not.toContain('from build.html');
-      expect(text).not.toContain('Today:');
-      expect(text).not.toContain('Nights:');
-    }
-  });
-
-  test('picks that pointed at Engine but were bought as Beacon are noted', async () => {
-    const code = '2' + (1 | 4).toString(36).padStart(3, '0') + 'b';
-    await post({ ...baseFields(), buy: 'beacon', review_name: 'Jamie R.', spec: code });
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Parts:      A custom site');
-    expect(notif).toContain('Not in package: Booking flow');
-    expect(notif).toContain('(Their picks pointed at engine; they chose beacon.)');
-  });
-
-  test('a spec that cannot be read is ignored, and the order still goes through', async () => {
-    const res = await post({ ...baseFields(), buy: 'clean', spec: 'not-a-code' });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    expect(notif).not.toContain('Their build');
-  });
-
-  test('a spec is capped, so nobody can post a novel into the inbox', async () => {
-    const res = await post({ ...baseFields(), buy: 'clean', spec: '1tc33ny5e.' + 'A'.repeat(5000) });
-    expect(res.status).toBe(200);
-    const notif = sentEmails[0].text as string;
-    expect(notif).toContain('Their build (from build.html):');
-    expect(notif.length).toBeLessThan(2000);
-  });
-});
-
-/* ---- three ways the founding gate and the order emails were got around ---- */
-
-function quote(fields: Record<string, string>): Promise<Response> {
-  const form = new FormData();
-  const base = { name: 'Jamie Rivera', business: 'Rivera Roofing', phone: '5551234567', email: 'jamie@example.com' };
-  for (const [k, v] of Object.entries({ ...base, ...fields })) form.set(k, v);
-  return quotePOST(new Request('http://localhost/api/quote', {
-    method: 'POST', body: form, headers: { accept: 'application/json' },
-  }));
-}
-
-describe('an invisible review name is not a review name', () => {
-  const ZWSP = '\u200B';
-  const BIDI = '\u200E\u202A\u2060\uFEFF';
-
-  /* These two are about read() stripping, which has to hold whether or not a
-     review is currently being asked for — the day the profile goes live the
-     gate above starts using it. */
-  test('checkout: a zero-width space never becomes a review name', async () => {
-    const res = await post({ ...baseFields(), buy: 'beacon', review_name: ZWSP });
-    if (GOOGLE_REVIEW_URL === '') {
-      expect(res.status).toBe(200);
-      expect(sentEmails[0].text as string).not.toContain('posted under');
-    } else {
-      expect(res.status).toBe(422);
-      expect(sentEmails.length).toBe(0);
-    }
-  });
-
-  test('checkout: bidi and joiner marks never become a review name', async () => {
-    const res = await post({ ...baseFields(), buy: 'engine', review_name: BIDI });
-    if (GOOGLE_REVIEW_URL === '') {
-      expect(res.status).toBe(200);
-      expect(sentEmails[0].text as string).not.toContain('posted under');
-    } else {
-      expect(res.status).toBe(422);
-      expect(sentEmails.length).toBe(0);
-    }
-  });
-
-  test.skipIf(GOOGLE_REVIEW_URL === '')('quote: a zero-width space alone is refused', async () => {
-    const res = await quote({ package: 'engine', review_name: ZWSP });
-    expect(res.status).toBe(422);
-    expect(sentEmails.length).toBe(0);
-  });
-
-  test.skipIf(GOOGLE_REVIEW_URL === '')('a real name still passes, and the marks around it are stripped', async () => {
-    const res = await post({ ...baseFields(), buy: 'beacon', review_name: `${ZWSP}Jamie R.${ZWSP}` });
-    expect(res.status).toBe(200);
-    expect(sentEmails[0].text as string).toContain('posted under "Jamie R."');
-  });
-});
-
-describe('the order emails describe the package that was priced', () => {
-  /* 235re = every one of the twelve, package Engine. Posted with buy=clean it
-     used to produce a $500 order whose confirmation listed eleven parts. */
-  const EVERYTHING_AS_ENGINE = '235re';
-
-  test('a spec code claiming Engine cannot make a $500 order list eleven parts', async () => {
-    const res = await post({ ...baseFields(), buy: 'clean', spec: EVERYTHING_AS_ENGINE });
-    expect(res.status).toBe(200);
-    const [notif, conf] = sentEmails.map((e) => e.text as string);
-    for (const text of [notif, conf]) {
-      expect(text).toContain('Due today: $500.00');
-      expect(text).toContain('Parts:      A custom site');
-      expect(text).not.toMatch(/Parts:.*Brand identity/);
-      expect(text).toContain('Not in package: Brand identity');
-    }
-  });
-
-  test('the price was never the thing at risk', async () => {
-    await post({ ...baseFields(), buy: 'clean', spec: EVERYTHING_AS_ENGINE });
-    expect(sentEmails[0].text as string).toContain('Cheap and Clean');
-    expect(sentEmails[0].text as string).not.toContain('$4,250');
-  });
-});
-
-describe('inherited object keys are not packages', () => {
-  test('package=constructor is neither founding nor a label', async () => {
-    const res = await quote({ package: 'constructor' });
-    expect(res.status).toBe(200); // not a founding package, so no review name is demanded
-    expect(sentEmails[0].text as string).not.toContain('native code');
-  });
-
-  test.skipIf(GOOGLE_REVIEW_URL === '')('a real founding package still demands the review name', async () => {
-    const res = await quote({ package: 'engine' });
-    expect(res.status).toBe(422);
-  });
-});
-
-describe('the page-to-page transition', () => {
-  const ROOT = join(import.meta.dir, '..');
-  const PAGES = ['index.html', 'build.html', 'checkout.html'];
-
-  /* It is inlined in three heads rather than loaded from one file, because
-     the arrival half has to apply before the first paint. Three copies drift;
-     this is what stops them. */
-  function block(page: string): string {
-    const html = readFileSync(join(ROOT, page), 'utf8');
-    const start = html.indexOf('<!--\n  THE WAY OUT.');
-    const end = html.indexOf('</script>', start);
-    expect(start, `${page} is missing the transition block`).toBeGreaterThan(-1);
-    return html.slice(start, end);
-  }
-
-  test('all three pages carry the same block, character for character', () => {
-    const [a, b, c] = PAGES.map(block);
-    expect(b).toBe(a);
-    expect(c).toBe(a);
-  });
-
-  test('it is twelve bands, matching the twelve on the homepage', () => {
-    const b = block('index.html');
-    expect(b).toContain('--nb-veil-cells: 12');
-    expect(b).toContain('repeat(12, 1fr)');
-    for (let i = 1; i <= 12; i++) expect(b).toContain(`i:nth-child(${i})`);
-  });
-
-  test('it cannot outlive the click: the href is followed either way', () => {
-    const b = block('index.html');
-    expect(b).toContain('leave * 0.85');
-    expect(b).toContain('leave + 700');
-  });
-
-  test('reduced motion turns it off rather than shortening it', () => {
-    const b = block('index.html');
-    expect(b).toContain("matchMedia('(prefers-reduced-motion: reduce)').matches) return");
-    const reduce = b.slice(b.indexOf('@media (prefers-reduced-motion: reduce)'));
-    expect(reduce).toContain('.nb-veil { display: none; }');
-    expect(reduce).toContain('animation: none');
+  test('dropping a plan carries no price', async () => {
+    await account({ ...a(), want_cancel: '1' });
+    expect(sent[0].text).toContain('Wants:     Drop a plan');
+    expect(sent[0].text).not.toMatch(/\$\d/);
   });
 });

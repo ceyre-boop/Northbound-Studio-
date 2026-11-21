@@ -1,86 +1,47 @@
 /* api/checkout.ts — where the checkout form lands.
  *
+ * ONE OFFER. The menu is a single item: The Northbound Site, at this week's
+ * setup price, half now and half at launch, with the care plan starting the
+ * day the site goes live. There are no tiers, no add-ons and no founding
+ * prices here any more.
+ *
+ * THE PRICE comes from data/price.json through lib/price.ts and from nowhere
+ * else. The pricing engine (Plans/pricing-engine.md) rewrites that file each
+ * week. Nothing a visitor posts decides what they pay: this endpoint never
+ * reads an amount from the form.
+ *
  * Stripe is connected. A validated order becomes a Stripe Checkout Session
- * and the visitor pays the deposit on Stripe's hosted page — card details
+ * for the deposit and the visitor pays on Stripe's hosted page; card details
  * never touch this site. The order emails are NOT sent here; they go out
- * from api/stripe-webhook.ts when Stripe reports the payment completed, so
- * the studio only ever hears about money that arrived. If Stripe is not
- * fully configured (both STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET set),
- * or Stripe itself can't be reached, the order falls back to the email
- * capture below, honestly labelled as it always was: a secure payment link
- * follows within one business hour, and nothing has been charged. Either
- * way, do not add a Stripe SDK or stub a payment call — the REST calls below
- * are the integration, raw fetch, no dependencies (the project ships with
- * no install step).
+ * from api/stripe-webhook.ts when Stripe reports the payment completed. If
+ * Stripe is not fully configured (both STRIPE_SECRET_KEY and
+ * STRIPE_WEBHOOK_SECRET set), or Stripe can't be reached, the order falls
+ * back to the email capture below, honestly labelled: a secure payment link
+ * follows within one business hour, and nothing has been charged. Raw fetch,
+ * no SDK: the project ships with no install step.
  *
- * Modelled closely on api/quote.ts: same Resend REST usage, same honeypot
- * (nb_hp_7), same JSON-vs-form response split, same env vars.
+ * THE QUOTE LOG. Every session created here is a price quote the pricing
+ * engine learns from. The week and the setup price ride in the session's
+ * metadata (nb_week, nb_setup), so Stripe holds the durable record: a
+ * session that completes is a yes, one that expires is a no. A [quote-log]
+ * line is also written to the function log. See Plans/pricing-engine.md.
  *
- * 1. The notification to the studio. This one has to arrive: if it does not,
- *    the order is lost, so a failure here is a failure of the submit and the
- *    visitor is told to phone instead. Reply-To is the customer, so
- *    answering it answers them.
- * 2. The confirmation to the customer. Attempted only after the studio
- *    already has the order, and if it fails the submit still succeeds — a
- *    bounced confirmation must never cost us the order.
+ * THE GUIDED BUILD. build.html and the homepage send the visitor's answers
+ * in `spec`, a short code from js/spec.js. It is descriptive only: it lets
+ * both emails say what the customer told us, in words. The decoder is copied
+ * here rather than imported from js/spec.js, and tests/spec.unit.test.ts
+ * proves the two copies agree.
  *
- * Both are sent from northbound-dev.com, which is verified in Resend.
- *
- * The form posts here natively, with no JavaScript needed — checkout.html's
- * script only updates the displayed running total, never the price actually
- * charged. The Accept header tells a fetch apart from a native post: fetch
- * gets JSON, a native post gets a redirect to /order-received.html (or a
- * page with the phone number on it), so a refresh never re-sends the order.
- *
- * FOUNDING OFFER (first 15 founding clients only). Beacon and Engine are not
- * yet buyable directly from checkout.html — that CTA still sends people to
- * the quote form — but their founding deposit amounts live in PRICES below
- * so this table stays the single source of truth for every founding number
- * on the site, and so a direct POST (e.g. once a future buy button exists)
- * prices correctly from day one. Bearing is buyable here today, as an
- * add-on to Cheap and Clean, and moves from a flat $600/mo to two founding
- * terms: bearing_12 ($300/mo, locked for all twelve months) and
- * bearing_mtm ($300 the first month, then $600/mo after). Whichever
- * founding item is in the order (beacon, engine, or either Bearing term),
- * the visitor must also have claimed it: founding pricing is an early
- * client who leaves us a Google review, and the claim is the name that
- * review is posted under (review_name, non-empty after trimming). Without
- * it the order is refused with a message saying so. Nothing here verifies
- * the review — Colin looks it up on Google himself before finalising, and
- * both emails say so in those words. The name travels in both emails so he
- * can find it.
- *
- * THE GUIDED BUILD. build.html sends its "Reserve my build" here with the
- * package key in `buy` and the build's answers in `spec`, a short code from
- * js/spec.js. The code is descriptive only: it decides nothing about price
- * (PRICES below does), it just lets both emails say what the customer put
- * together, part by part, in words. The decoder and the answers-to-parts
- * mapping are copied here rather than imported from js/spec.js — a browser
- * module is not something to bundle into a serverless function on trust —
- * and tests/spec.unit.test.ts proves the two copies agree.
- *
- * THE TWELVE ON THE HOMEPAGE. index.html's panels send their picks here the
- * same way, as the version-2 code (a mask of the twelve, then the package);
- * the emails list exactly the parts that were clicked, and which of them
- * the package covers.
- *
- * Beacon and Engine are a 50% deposit now and the balance on delivery, and
- * the emails say both numbers: "$875.00 now, $875.00 on delivery". 50% up
- * front, always. No deposit, no work.
- *
- * Env: RESEND_API_KEY, QUOTE_TO (the studio inbox), QUOTE_FROM (optional
- * override, "Name <address>" on a Resend-verified domain).
+ * Env: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, QUOTE_TO
+ * (the studio inbox), QUOTE_FROM (optional, "Name <address>" on a
+ * Resend-verified domain).
  */
+
+import { offer, money, logQuote, OFFER_NAME, CARE_NAME, type Offer } from '../lib/price.js';
 
 const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
 const FALLBACK_FROM = 'Northbound Studio <quotes@northbound-dev.com>';
-
-/* Where "Leave your Google review" goes: the profile's own review link, not
-   a search — a search for our name finds a different Northbound Studio.
-   Empty turns the flow off entirely (no link, no field, no requirement).
-   The same string as js/config.js; tests assert the copies agree. */
-export const GOOGLE_REVIEW_URL = 'https://g.page/r/CRFQRq5WLg6HECE/review';
 
 /* Generous, but bounded: nothing on this form needs more, and an unbounded
    field is an invitation to paste a novel into someone's inbox. */
@@ -91,10 +52,8 @@ const LIMITS = {
   phone: 40,
   email: 200,
   spec: 120,
-  review_name: 120,
   /* 500 each, the same as Stripe's metadata cap, so what the buyer can type
-     is exactly what reaches the studio on either path: the page promises
-     "we read every word", and the textareas carry maxlength="500" to match. */
+     is exactly what reaches the studio on either path. */
   why_not: 500,
   benefit: 500,
   why_us: 500,
@@ -106,37 +65,14 @@ type Sent = { ok: true; id: string } | { ok: false; error: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/* The server-side price table. Nothing a visitor can edit decides what they
-   pay — checkout.html's running total is a convenience only, and this table
-   is what the order is actually priced from. All amounts in cents.
-
-   `founding: true` marks an item that only exists at the founding-client
-   price. Ordering one of these requires review_name to be filled in (see
-   problem() below), and the emails say so in words a person can read. */
-const PRICES = {
-  clean: { label: 'Cheap and Clean', cents: 50000, cadence: 'once' },
-  beacon: { label: 'Beacon — 50% deposit (founding price $1,750, standard $3,500)', cents: 87500, balance: 87500, cadence: 'deposit', founding: true },
-  engine: { label: 'Engine — 50% deposit (founding price $4,250, standard $8,500)', cents: 212500, balance: 212500, cadence: 'deposit', founding: true },
-  care: { label: 'Changes and support', cents: 4900, cadence: '/mo' },
-  bearing_12: { label: 'Bearing — 12-month commitment (founding price)', cents: 30000, cadence: '/mo for 12 months', founding: true },
-  bearing_mtm: { label: 'Bearing — month-to-month (founding price)', cents: 30000, cadence: '/mo, first month', note: 'then $600/mo after', founding: true },
-} as const;
-
-const BEARING_TERMS = { '12': 'bearing_12', mtm: 'bearing_mtm' } as const;
-
-/* What can be posted as the primary `buy` item. care and the two bearing
-   terms are add-ons, priced from the same table, but never a `buy` value on
-   their own. */
-const BUYABLE = ['clean', 'beacon', 'engine'] as const;
-
-function money(cents: number): string {
-  return `$${(cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-}
+/* What `buy` may say. Empty and 'site' are the offer; 'clean' is what the
+   page posted before the menu became one item, kept so a cached copy of the
+   old page still orders the same thing. The retired tiers are refused rather
+   than quietly sold as something else. */
+const BUYABLE = ['', 'site', 'clean'] as const;
 
 /* Characters with no width: zero-width space and friends, the bidi marks,
-   the word joiner, the BOM. String.trim() does not remove them, so without
-   this a review name of "\u200B" satisfied the founding requirement and
-   arrived in the order email as an empty pair of quotes. */
+   the word joiner, the BOM. String.trim() does not remove them. */
 const INVISIBLE = /[\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2064\uFEFF]/gu;
 
 /* Cut by code point, never inside one. String.slice counts UTF-16 units,
@@ -153,32 +89,12 @@ function read(form: FormData, key: Field): string {
   return typeof v === 'string' ? clip(v.replace(INVISIBLE, '').trim(), LIMITS[key]) : '';
 }
 
-function checked(form: FormData, key: string): boolean {
-  const v = form.get(key);
-  return typeof v === 'string' && v.trim() !== '' && v.trim() !== '0' && v.trim().toLowerCase() !== 'false';
-}
-
-function isFounding(key: keyof typeof PRICES): boolean {
-  return (PRICES[key] as { founding?: boolean }).founding === true;
-}
-
-function problem(
-  o: Order,
-  buy: keyof typeof PRICES | null,
-  bearingChecked: boolean,
-  bearingKey: keyof typeof PRICES | null,
-): string | null {
-  if (!buy) return "We don't recognise what you're buying.";
+function problem(o: Order): string | null {
+  if (!(BUYABLE as readonly string[]).includes(o.buy)) return "We don't recognise what you're buying.";
   if (!o.name) return 'Please tell us your name.';
   if (!o.business) return 'Please tell us your business name.';
   if (o.phone.replace(/\D/g, '').length < 7) return 'Please leave a phone number we can call.';
   if (!EMAIL_RE.test(o.email)) return 'Please check your email address.';
-  if (bearingChecked && !bearingKey) return "Please choose a Bearing term — 12-month commitment or month-to-month.";
-  const takingFounding = isFounding(buy) || bearingKey !== null;
-  /* Only demanded once there is somewhere to leave the review. */
-  if (GOOGLE_REVIEW_URL && takingFounding && !o.review_name) {
-    return "Founding pricing needs the name your Google review is posted under — leave the review first, then tell us the name it shows. We check it ourselves before finalising.";
-  }
   return null;
 }
 
@@ -198,46 +114,24 @@ async function send(key: string, email: Record<string, unknown>): Promise<Sent> 
   }
 }
 
-type LineItem = { label: string; cents: number; note?: string };
-
-type Summary = {
-  once: LineItem[];
-  monthly: LineItem[];
-  dueToday: number;
-  balance: number;
-  monthlyTotal: number;
-};
-
-function summarize(buy: keyof typeof PRICES, care: boolean, bearingKey: keyof typeof PRICES | null): Summary {
-  const once: LineItem[] = [{ label: PRICES[buy].label, cents: PRICES[buy].cents }];
-  const balance = (PRICES[buy] as { balance?: number }).balance ?? 0;
-  const monthly: LineItem[] = [];
-  if (care) monthly.push({ label: PRICES.care.label, cents: PRICES.care.cents });
-  if (bearingKey) {
-    const b = PRICES[bearingKey] as { label: string; cents: number; note?: string };
-    monthly.push({ label: b.label, cents: b.cents, note: b.note });
-  }
-  const dueToday = once.reduce((n, l) => n + l.cents, 0);
-  const monthlyTotal = monthly.reduce((n, l) => n + l.cents, 0);
-  return { once, monthly, dueToday, balance, monthlyTotal };
+/* The order in words a person reads. One place, so the two emails and the
+   Stripe metadata can never describe the same order three ways. */
+export function orderLines(p: Offer): string[] {
+  return [
+    `  ${OFFER_NAME} — ${money(p.setupCents)}`,
+    `  ${CARE_NAME} — ${money(p.careCents)}/mo, starting the day the site goes live`,
+  ];
 }
 
-/* The deposit and the balance, in one line a person reads: "$875.00 now,
-   $875.00 on delivery". Cheap and Clean is the whole price, so just "now". */
-function depositLine(summary: Summary): string {
-  return summary.balance
-    ? `${money(summary.dueToday)} now, ${money(summary.balance)} on delivery — 50% up front, always. No deposit, no work.`
-    : `${money(summary.dueToday)} now, in full.`;
-}
-
-function monthlyLine(l: LineItem): string {
-  return `  ${l.label} — ${money(l.cents)}/mo${l.note ? ` (${l.note})` : ''}`;
+export function paymentLine(p: Offer): string {
+  return p.balanceCents
+    ? `${money(p.depositCents)} now, ${money(p.balanceCents)} at launch.`
+    : `${money(p.depositCents)} now, in full.`;
 }
 
 /* "Before you pay, pause." — one last, optional word from the buyer before
    they commit. Nothing here is required; three empty fields produce no
-   section at all. Multi-line answers keep their line breaks, indented four
-   spaces so they read as a continuation rather than a new field. */
+   section at all. Multi-line answers keep their line breaks. */
 function pauseLines(o: Order): string[] {
   const items: [string, string][] = [
     ['Reasons they might not need us', o.why_not],
@@ -255,7 +149,7 @@ function pauseLines(o: Order): string[] {
   return lines;
 }
 
-function notification(o: Order, summary: Summary, foundingTaken: boolean, page: string, spec: Spec | null, buy: keyof typeof PRICES): string {
+function notification(o: Order, p: Offer, page: string, spec: Spec | null): string {
   const lines = [
     `Name:      ${o.name}`,
     `Business:  ${o.business}`,
@@ -263,52 +157,35 @@ function notification(o: Order, summary: Summary, foundingTaken: boolean, page: 
     `Email:     ${o.email}`,
     '',
     'Order:',
-    ...summary.once.map((l) => `  ${l.label} — ${money(l.cents)} once`),
-    ...summary.monthly.map(monthlyLine),
+    ...orderLines(p),
     '',
-    `Due today: ${money(summary.dueToday)}`,
+    `Due today: ${money(p.depositCents)}`,
+    `At launch: ${money(p.balanceCents)} (the balance)`,
+    `Payment: ${paymentLine(p)}`,
+    `Price week: ${p.week}`,
   ];
-  if (summary.balance) lines.push(`On delivery: ${money(summary.balance)} (the balance)`);
-  lines.push(`Payment: ${depositLine(summary)}`);
-  if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month`);
-  if (spec) lines.push('', ...specLines(spec, buy));
-  if (foundingTaken) {
-    lines.push('', o.review_name
-      ? `Founding review: posted under "${o.review_name}" — look it up on Google before finalising; nothing has checked it.`
-      : 'Founding client — one of the first 15. No review asked for: there is no Google profile to leave one on yet.');
-  }
+  if (spec) lines.push('', ...specLines(spec));
   const pause = pauseLines(o);
   if (pause.length) lines.push('', ...pause);
   lines.push('', `Sent from: ${page || 'unknown'}`);
   return lines.join('\n');
 }
 
-function confirmation(o: Order, summary: Summary, foundingTaken: boolean, spec: Spec | null, buy: keyof typeof PRICES): string {
+function confirmation(o: Order, p: Offer, spec: Spec | null): string {
   const first = o.name.split(/\s+/)[0];
   const lines = [
     `Hi ${first},`,
     '',
-    "We have your order for:",
-    ...summary.once.map((l) => `  ${l.label} — ${money(l.cents)} once`),
-    ...summary.monthly.map(monthlyLine),
+    'We have your order for:',
+    ...orderLines(p),
     '',
-    `Due today: ${money(summary.dueToday)}`,
+    `Due today: ${money(p.depositCents)}`,
+    `At launch: ${money(p.balanceCents)} (the balance)`,
   ];
-  if (summary.balance) lines.push(`On delivery: ${money(summary.balance)} (the balance)`);
-  lines.push(`Payment: ${depositLine(summary)}`);
-  if (summary.monthlyTotal) lines.push(`Then: ${money(summary.monthlyTotal)}/mo, starting next month.`);
-  if (spec) lines.push('', ...specLines(spec, buy));
-  if (foundingTaken) {
-    lines.push(
-      '',
-      o.review_name
-        ? `You're taking founding pricing, and you told us your Google review is posted under "${o.review_name}". Founding pricing is confirmed once we can see that review — we check it ourselves before finalising, there's nothing automatic about it. If it isn't up yet, this is the place to leave it: ${GOOGLE_REVIEW_URL}`
-        : "You're taking founding pricing as one of our first 15 clients. Part of that is a Google review — our profile isn't live yet, so there is nothing for you to do today. We'll ask you once it is.",
-    );
-  }
+  if (spec) lines.push('', ...specLines(spec));
   lines.push(
     '',
-    "Nothing has been charged yet. We'll email a secure payment link within one business hour — once that's paid, we start the build.",
+    "Nothing has been charged yet. We'll email a secure payment link within one business hour. Once that's paid, we get started.",
     '',
     `If it can't wait, call ${PHONE}.`,
     '',
@@ -321,8 +198,8 @@ function confirmation(o: Order, summary: Summary, foundingTaken: boolean, spec: 
 /* ---- the guided build's code, decoded into words ---------------------------
  *
  * A copy of js/spec.js's vocabulary, decoder and mapping. Same codes, same
- * labels, same rules; tests/checkout.unit.test.ts asserts they agree. The
- * twelve part names are spelled exactly as index.html spells them. */
+ * labels, same rules; tests/spec.unit.test.ts asserts they agree. The twelve
+ * part names are spelled exactly as the site spells them. */
 
 type Spec = {
   name: string;
@@ -353,24 +230,19 @@ const SPEC_WANT: { key: string; bit: number; label: string }[] = [
   { key: 'walkins', bit: 8, label: 'People walking in' },
   { key: 'found', bit: 16, label: 'Being found at all' },
 ];
-const SPEC_WORTH: Record<string, string> = { '1': 'Under $200', '2': '$200–$1,000', '3': '$1,000–$5,000', '4': 'More than $5,000' };
+const SPEC_WORTH: Record<string, string> = { '1': 'Under 200', '2': '200 to 1,000', '3': '1,000 to 5,000', '4': 'More than 5,000' };
 const SPEC_WORTH_KEY: Record<string, string> = { '1': 'u200', '2': '200-1k', '3': '1k-5k', '4': '5k+' };
 const SPEC_ANSWERS: Record<string, string> = { m: 'Me, always', f: 'My partner or family', n: 'Nobody — it waits until morning' };
 const SPEC_ANSWERS_KEY: Record<string, string> = { m: 'me', f: 'family', n: 'nobody' };
 const SPEC_RUN: Record<string, string> = { m: "I'll run it myself", y: 'Keep it running for me' };
 const SPEC_RUN_KEY: Record<string, string> = { m: 'me', y: 'you' };
 const SPEC_LOOK: Record<string, string> = { '1': 'Clean', '2': 'Dark', '3': 'Editorial', '4': 'Photo', '5': 'Industrial' };
-const SPEC_PKG_KEY: Record<string, string> = { c: 'clean', b: 'beacon', e: 'engine' };
+/* One offer now. The codes the two retired tiers used still decode, to the
+   same site, so a link someone saved last month does not break. */
+const SPEC_PKG_KEY: Record<string, string> = { c: 'site', b: 'site', e: 'site' };
 
 const SPEC_OFFERINGS = ['A custom site', 'Brand identity', 'Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automated follow-up', 'Reminders', 'Review requests', 'Owner dashboard', 'Local SEO', 'AI intake'];
-const SPEC_INCLUDES: Record<string, string[]> = {
-  clean: ['A custom site'],
-  beacon: ['A custom site', 'Brand identity', 'Local SEO'],
-  engine: ['A custom site', 'Brand identity', 'Local SEO', 'Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automated follow-up', 'Reminders', 'Review requests', 'Owner dashboard'],
-};
-const SPEC_CORE = ['Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automated follow-up'];
-const SPEC_ENGINE_ONLY = [...SPEC_CORE, 'Reminders', 'Review requests', 'Owner dashboard'];
-const SPEC_BEACON_PARTS = ['Brand identity', 'Local SEO'];
+const SPEC_INCLUDED = ['A custom site'];
 
 function keyFor(map: Record<string, string>, c: string): string | null {
   return c === SPEC_UNSURE ? SPEC_UNSURE : map[c] ?? null;
@@ -431,61 +303,35 @@ export function specParts(a: Spec): string[] {
   return SPEC_OFFERINGS.filter((o) => set.has(o));
 }
 
-export function specRecommend(parts: string[]): string {
-  const engineParts = parts.filter((p) => SPEC_ENGINE_ONLY.includes(p));
-  let pkg = 'clean';
-  if (engineParts.some((p) => SPEC_CORE.includes(p)) || engineParts.length >= 2) pkg = 'engine';
-  else if (engineParts.length || parts.some((p) => SPEC_BEACON_PARTS.includes(p))) pkg = 'beacon';
-  /* A package containing none of what they picked is not a recommendation,
-     it is an upsell. Picking only Reminders used to propose Beacon at $1,750
-     with an empty build card, because one ride-along part is deliberately not
-     enough to justify Engine. Fall back to the entry package instead and let
-     the "not in package" line offer to quote the part on its own. */
-  if (parts.length && !parts.some((p) => SPEC_INCLUDES[pkg].includes(p))) pkg = 'clean';
-  return pkg;
-}
-
-/* `buy` is the package the server priced and is charging for. The spec code
-   carries a package too, but it came from the visitor's URL — describing the
-   order from that let `?buy=clean&s=<engine code>` produce a $500 order whose
-   confirmation email listed eleven parts as covered. Money was never at risk
-   (PRICES is the only source of an amount); what the email claimed they had
-   bought was. */
-function specLines(a: Spec, buy?: keyof typeof PRICES | null): string[] {
+/* What the visitor told us, in words. The site covers "A custom site"; any
+   other part they picked is something to quote separately, and the email
+   says so rather than implying it is in the order. */
+export function specLines(a: Spec): string[] {
   const label = (map: Record<string, string>, keyMap: Record<string, string>, key: string | null) => {
     const code = Object.keys(keyMap).find((c) => keyMap[c] === key);
     return code ? map[code] : 'Not sure yet';
   };
   const parts = specParts(a);
-  const recommended = specRecommend(parts);
-  const pkg = (buy && SPEC_INCLUDES[buy] ? buy : a.pkg) ?? recommended;
-  const included = parts.filter((p) => SPEC_INCLUDES[pkg]?.includes(p));
-  const extra = parts.filter((p) => !SPEC_INCLUDES[pkg]?.includes(p));
+  const extra = parts.filter((p) => !SPEC_INCLUDED.includes(p));
   if (a.parts) {
-    /* Picked by hand on the homepage: there are no answers to report, only
-       the parts they clicked and how those fell into the package. */
     const lines = [
-      'Their build (picked from the twelve on the homepage):',
+      'What they picked on the site:',
       `  Picked:     ${parts.length ? parts.join(', ') : 'nothing'}`,
-      `  Parts:      ${included.join(', ') || 'none of the picked parts are in this package'}`,
     ];
-    if (extra.length) lines.push(`  Not in package: ${extra.join(', ')}`);
-    if (pkg !== recommended) lines.push(`  (Their picks pointed at ${recommended}; they chose ${pkg}.)`);
+    if (extra.length) lines.push(`  To quote separately: ${extra.join(', ')}`);
     return lines;
   }
   const lines = [
-    'Their build (from build.html):',
+    'Their answers (from build.html):',
     `  Business:   ${[a.name, label(SPEC_BIZ, SPEC_BIZ_KEY, a.biz)].filter(Boolean).join(' — ')}`,
     `  Today:      ${label(SPEC_NOW, SPEC_NOW_KEY, a.now)}`,
     `  Wants more: ${a.want.length ? a.want.map((k) => SPEC_WANT.find((w) => w.key === k)?.label).join(', ') : 'Not sure yet'}`,
-    `  Worth:      ${label(SPEC_WORTH, SPEC_WORTH_KEY, a.worth)} per customer`,
+    `  Worth:      ${label(SPEC_WORTH, SPEC_WORTH_KEY, a.worth)} dollars per customer`,
     `  Nights:     ${label(SPEC_ANSWERS, SPEC_ANSWERS_KEY, a.answers)}`,
     `  Running it: ${label(SPEC_RUN, SPEC_RUN_KEY, a.run)}`,
     `  Look:       ${a.look && SPEC_LOOK[a.look] ? SPEC_LOOK[a.look] : 'Not sure yet'}`,
-    `  Parts:      ${included.join(', ')}`,
   ];
-  if (extra.length) lines.push(`  Not in package: ${extra.join(', ')}`);
-  if (pkg !== recommended) lines.push(`  (Their answers pointed at ${recommended}; they chose ${pkg}.)`);
+  if (extra.length) lines.push(`  To quote separately: ${extra.join(', ')}`);
   return lines;
 }
 
@@ -493,16 +339,16 @@ function specLines(a: Spec, buy?: keyof typeof PRICES | null): string[] {
  *
  * Raw REST, no SDK: POST /v1/checkout/sessions with the secret key as a
  * bearer token, form-encoded the way Stripe expects. The amount charged is
- * summary.dueToday — the deposit (or the whole price for Cheap and Clean) —
- * priced from PRICES above, never from the client. Everything the webhook
- * needs for the order emails rides in metadata (values capped at 500
- * chars, Stripe's limit), including the build description in words.
+ * the deposit, computed from data/price.json, never from the client.
+ * Everything the webhook needs for the order emails rides in metadata
+ * (values capped at 500 chars, Stripe's limit), including the price week and
+ * the setup price the pricing engine reads back.
  */
 
 const STRIPE_SESSIONS_URL = 'https://api.stripe.com/v1/checkout/sessions';
 const SITE = 'https://northbound-dev.com';
 
-type SessionResult = { ok: true; url: string } | { ok: false; error: string };
+type SessionResult = { ok: true; url: string; id: string } | { ok: false; error: string };
 
 function stripeForm(params: Record<string, string>): string {
   return Object.entries(params)
@@ -510,38 +356,32 @@ function stripeForm(params: Record<string, string>): string {
     .join('&');
 }
 
-async function createCheckoutSession(
-  key: string,
-  o: Order,
-  summary: Summary,
-  buy: keyof typeof PRICES,
-  foundingTaken: boolean,
-  specText: string,
-  referer: string,
-): Promise<SessionResult> {
-  const monthlyMeta = summary.monthly
-    .map((l) => `${l.label} — ${money(l.cents)}/mo${l.note ? ` (${l.note})` : ''}`)
-    .join(' | ');
+async function createCheckoutSession(key: string, o: Order, p: Offer, specText: string, referer: string): Promise<SessionResult> {
   const params: Record<string, string> = {
     mode: 'payment',
     'line_items[0][price_data][currency]': 'usd',
-    'line_items[0][price_data][unit_amount]': String(summary.dueToday),
-    'line_items[0][price_data][product_data][name]': `Northbound Studio — ${PRICES[buy].label}`.slice(0, 200),
+    'line_items[0][price_data][unit_amount]': String(p.depositCents),
+    'line_items[0][price_data][product_data][name]': `Northbound Studio — ${OFFER_NAME} (deposit)`,
     'line_items[0][quantity]': '1',
     customer_email: o.email,
+    /* Stripe shows its own "add promotion code" box. A code can only lower
+       what Stripe charges; the quoted price in the metadata does not move. */
+    allow_promotion_codes: 'true',
     success_url: `${SITE}/order-paid.html?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: referer.startsWith(SITE) ? referer : `${SITE}/checkout.html`,
-    'payment_intent_data[description]': `${PRICES[buy].label} — ${o.business}`.slice(0, 200),
+    'payment_intent_data[description]': `${OFFER_NAME} deposit — ${o.business}`.slice(0, 200),
     'metadata[nb_name]': o.name,
     'metadata[nb_business]': o.business,
     'metadata[nb_phone]': o.phone,
     'metadata[nb_email]': o.email,
-    'metadata[nb_item]': `${PRICES[buy].label} — ${money(summary.dueToday)}`.slice(0, 500),
-    'metadata[nb_due]': String(summary.dueToday),
-    'metadata[nb_balance]': String(summary.balance),
-    'metadata[nb_monthly]': monthlyMeta.slice(0, 500),
-    'metadata[nb_founding]': foundingTaken ? '1' : '0',
-    'metadata[nb_review]': o.review_name,
+    'metadata[nb_item]': `${OFFER_NAME} — ${money(p.setupCents)}`,
+    'metadata[nb_due]': String(p.depositCents),
+    'metadata[nb_balance]': String(p.balanceCents),
+    'metadata[nb_monthly]': `${CARE_NAME} — ${money(p.careCents)}/mo, starting the day the site goes live`,
+    /* The pricing engine's record: which week's price this quote was. */
+    'metadata[nb_week]': p.week,
+    'metadata[nb_setup]': String(p.setupCents),
+    'metadata[nb_care]': String(p.careCents),
     'metadata[nb_spec]': specText.slice(0, 500),
   };
   /* Optional, so omitted entirely when empty rather than shipping a blank
@@ -556,8 +396,8 @@ async function createCheckoutSession(
       body: stripeForm(params),
       signal: AbortSignal.timeout(12000),
     });
-    const data = (await res.json().catch(() => ({}))) as { url?: string; error?: { message?: string } };
-    if (res.ok && data.url) return { ok: true, url: data.url };
+    const data = (await res.json().catch(() => ({}))) as { url?: string; id?: string; error?: { message?: string } };
+    if (res.ok && data.url) return { ok: true, url: data.url, id: data.id ?? '' };
     return { ok: false, error: data.error?.message ?? `Stripe returned ${res.status}` };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
@@ -616,35 +456,32 @@ export async function POST(request: Request): Promise<Response> {
     (Object.keys(LIMITS) as Field[]).map((k) => [k, read(form, k)]),
   ) as Order;
 
-  const buy = (BUYABLE as readonly string[]).includes(o.buy) ? (o.buy as (typeof BUYABLE)[number]) : null;
-
-  const care = checked(form, 'care');
-  const bearingChecked = checked(form, 'bearing');
-  const bearingTermRaw = form.get('bearing_term');
-  const bearingTerm = typeof bearingTermRaw === 'string' ? bearingTermRaw.trim() : '';
-  const bearingKey = bearingChecked ? (BEARING_TERMS as Record<string, keyof typeof PRICES>)[bearingTerm] ?? null : null;
-
-  const bad = problem(o, buy, bearingChecked, bearingKey);
+  const bad = problem(o);
   if (bad) return failed(request, 422, bad);
 
-  const summary = summarize(buy!, care, bearingKey);
-  const foundingTaken = isFounding(buy!) || bearingKey !== null;
+  /* The price, read fresh for every order. If the file cannot be read there
+     is no number to charge, and guessing one is worse than refusing. */
+  let p: Offer;
+  try {
+    p = offer();
+  } catch (err) {
+    console.error('[checkout] price config unreadable; order refused', err instanceof Error ? err.message : err, { name: o.name, phone: o.phone });
+    return failed(request, 503, 'Our checkout is not ready right now.');
+  }
+
   const spec = decodeSpec(o.spec);
 
   /* Stripe, when fully configured: the validated order becomes a Checkout
-     Session and the visitor pays the deposit on Stripe's hosted page. The
-     order emails wait for the webhook — the studio only hears about money
-     that arrived. Both keys must be set; a half-configured Stripe is worse
-     than none, so anything less falls through to the email capture below,
-     honestly labelled as it always was. */
+     Session and the visitor pays the deposit on Stripe's hosted page. Both
+     keys must be set; a half-configured Stripe is worse than none. */
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (stripeKey && webhookSecret) {
-    const specText = spec ? specLines(spec, buy).join(' | ') : '';
+    const specText = spec ? specLines(spec).join(' | ') : '';
     const referer = request.headers.get('referer') ?? '';
-    const session = await createCheckoutSession(stripeKey, o, summary, buy!, foundingTaken, specText, referer);
+    const session = await createCheckoutSession(stripeKey, o, p, specText, referer);
     if (session.ok) {
-      console.log('[checkout] stripe session created', { name: o.name, buy: o.buy });
+      logQuote({ event: 'quote_created', week: p.week, setup: p.setupCents / 100, session: session.id, outcome: 'open', business: o.business });
       return wantsJson(request)
         ? Response.json({ ok: true, url: session.url })
         : new Response(null, { status: 303, headers: { Location: session.url } });
@@ -667,8 +504,8 @@ export async function POST(request: Request): Promise<Response> {
     from,
     to: [to],
     reply_to: o.email,
-    subject: `Order: ${PRICES[buy!].label} — ${o.business}`.slice(0, 180),
-    text: notification(o, summary, foundingTaken, request.headers.get('referer') ?? '', spec, buy!),
+    subject: `Order: ${OFFER_NAME} — ${o.business}`.slice(0, 180),
+    text: notification(o, p, request.headers.get('referer') ?? '', spec),
   });
   if (!studio.ok) {
     console.error('[checkout] notification failed; order not delivered', studio.error, { name: o.name, phone: o.phone });
@@ -680,7 +517,7 @@ export async function POST(request: Request): Promise<Response> {
     to: [o.email],
     reply_to: to,
     subject: 'Your order — Northbound Studio',
-    text: confirmation(o, summary, foundingTaken, spec, buy!),
+    text: confirmation(o, p, spec),
   });
   if (courtesy.ok) {
     console.log('[checkout] delivered', { notification: studio.id, confirmation: courtesy.id });

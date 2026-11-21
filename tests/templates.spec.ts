@@ -1,7 +1,7 @@
 /* templates.html — the two concept builds as source for sale.
  *
- * The page prints the prices from js/config.js as plain text; this keeps the
- * two equal. While no url is set the page asks for an email instead of
+ * The page prints no price (Plans/DECISIONS.md #21): the buyer sees it on the
+ * payment page a Buy button opens. While no url is set the page asks for an email instead of
  * selling, and both forms post to the quote endpoint with only name and
  * email required. The demo links go to the two builds the site already
  * proxies. Same chrome rules as the homepage: no sideways scroll, no errors.
@@ -10,14 +10,13 @@ import { test, expect } from '@playwright/test';
 import { TEMPLATES } from '../js/config.js';
 
 test.describe('templates — the page and the table agree', () => {
-  test('the prices on the page are the prices in config', async ({ page }) => {
+  test('no price is printed, and config carries none', async ({ page }) => {
     await page.goto('/templates.html');
-    await expect(page.locator('[data-tpl="atlas"] .tpl-price')).toContainText(`$${TEMPLATES.atlas.price}`);
-    await expect(page.locator('[data-tpl="vector"] .tpl-price')).toContainText(`$${TEMPLATES.vector.price}`);
-    await expect(page.locator('[data-tpl="both"] .tpl-price')).toContainText(`$${TEMPLATES.both.price}`);
-    // The engine's price is Colin's call: until set, the page says so and shows no number.
-    if (TEMPLATES.engine.price) await expect(page.locator('[data-tpl="engine"] .tpl-price')).toContainText(`$${TEMPLATES.engine.price.toLocaleString('en-US')}`);
-    else await expect(page.locator('[data-tpl="engine"] .tpl-price')).not.toContainText('$');
+    for (const key of ['atlas', 'vector', 'engine', 'both']) {
+      await expect(page.locator(`[data-tpl="${key}"] .tpl-price`)).not.toContainText('$');
+      expect((TEMPLATES as Record<string, object>)[key]).not.toHaveProperty('price');
+    }
+    await expect(page.locator('[data-buy="atlas"]')).toHaveText('Buy Atlas');
   });
 
   test('with no shop url, the page asks for an email and sells nothing', async ({ page }) => {
@@ -44,7 +43,7 @@ test.describe('templates — the page and the table agree', () => {
   test('a url in config turns the form into a Buy button', async ({ page }) => {
     // Pretend the shop exists: serve a config with a url for Atlas only.
     await page.route('**/js/config.js', async (route) => {
-      const body = (await (await route.fetch()).text()).replace("atlas: { name: 'Atlas', price: 79, url: '' }", "atlas: { name: 'Atlas', price: 79, url: 'https://example.com/l/atlas' }");
+      const body = (await (await route.fetch()).text()).replace("atlas: { name: 'Atlas', url: '' }", "atlas: { name: 'Atlas', url: 'https://example.com/l/atlas' }");
       await route.fulfill({ body, contentType: 'text/javascript' });
     });
     await page.goto('/templates.html');

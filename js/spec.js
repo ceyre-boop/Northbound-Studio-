@@ -1,4 +1,4 @@
-/* js/spec.js — what a guided build is, and how it turns into a package.
+/* js/spec.js — what a guided build is, and how it travels.
  *
  * One module, three jobs:
  *
@@ -6,28 +6,25 @@
  *      and the one-character code each answer travels as.
  *   2. The codec. A build is seven answers plus an optional business name,
  *      packed into a short string so a link can carry it between devices
- *      with no database behind it:  1tc33ny5e.Rivera%20Roofing
+ *      with no database behind it:  1tc33ny5c.Rivera%20Roofing
  *      A version-2 code carries parts picked straight off the homepage
- *      instead of answers — a 12-bit mask of the twelve, then the package:
- *      2005e (see encode/decode). The answers all read "not sure yet",
- *      because nobody asked them anything.
+ *      instead of answers — a 12-bit mask of the twelve, then the offer
+ *      character: 2005c (see encode/decode). The answers all read "not sure
+ *      yet", because nobody asked them anything.
  *   3. The mapping. Answers select parts (named exactly as the twelve
- *      offerings on index.html), parts decide a package, and the package
- *      plus the customer's own "what is one customer worth" bracket gives a
- *      payback line that is arithmetic, not a claim. Picked parts skip the
- *      first step and go straight to the second.
+ *      offerings on studio.html). There is one offer, The Northbound Site; it
+ *      covers the site itself, and every other part is quoted separately.
  *
- * Nothing here is a price the server trusts. checkout.html carries the code
- * and the package key to api/checkout.ts, which prices only from its own
- * table; api/checkout.ts keeps its own copy of the decoder and the mapping
- * (tests/checkout.unit.test.ts proves the two agree) rather than importing
- * a browser module into a serverless function.
+ * Nothing here is a price. No price is shown anywhere but checkout.html,
+ * which reads it from the server. api/checkout.ts keeps its own copy of the
+ * decoder and the mapping (tests/spec.unit.test.ts proves the two agree)
+ * rather than importing a browser module into a serverless function.
  */
 
 export const VERSION = '1';
 
 /* The homepage's picked-parts code. Same `s=` parameter, same decoder, next
-   version: '2' + a three-character base-36 mask of the twelve + the package
+   version: '2' + a three-character base-36 mask of the twelve + the offer
    character. Five characters, no name. */
 export const PARTS_VERSION = '2';
 
@@ -60,11 +57,14 @@ export const WANT = [
   { key: 'found', bit: 16, label: 'Being found at all', cta: 'Call us' },
 ];
 
+/* How much one new customer is worth, in dollars. The labels carry no dollar
+   sign — the question says "in dollars" — so nothing on the page reads as a
+   price. */
 export const WORTH = [
-  { key: 'u200', code: '1', label: 'Under $200', low: 0, high: 200 },
-  { key: '200-1k', code: '2', label: '$200–$1,000', low: 200, high: 1000 },
-  { key: '1k-5k', code: '3', label: '$1,000–$5,000', low: 1000, high: 5000 },
-  { key: '5k+', code: '4', label: 'More than $5,000', low: 5000, high: null },
+  { key: 'u200', code: '1', label: 'Under 200', low: 0, high: 200 },
+  { key: '200-1k', code: '2', label: '200 to 1,000', low: 200, high: 1000 },
+  { key: '1k-5k', code: '3', label: '1,000 to 5,000', low: 1000, high: 5000 },
+  { key: '5k+', code: '4', label: 'More than 5,000', low: 5000, high: null },
 ];
 
 export const ANSWERS = [
@@ -86,8 +86,8 @@ export const LOOKS = [
   { key: 'industrial', code: '5', label: 'Industrial', file: '05-industrial' },
 ];
 
-/* The twelve, spelled exactly as index.html spells them. AI intake is never
-   selected by an answer: it is an add-on to Engine, quoted per job. */
+/* The twelve, spelled as studio.html lists them. AI intake is never
+   selected by an answer: it is quoted separately, per job. */
 export const OFFERINGS = [
   'A custom site',
   'Brand identity',
@@ -103,54 +103,14 @@ export const OFFERINGS = [
   'AI intake',
 ];
 
-/* Founding prices in whole dollars, for display and arithmetic only.
-   api/checkout.ts is the table an order is actually priced from. */
+/* One offer. The old three-tier menu is retired; its codes ('b', 'e') still
+   decode, to this, so a link someone saved earlier still opens. */
 export const PACKAGES = {
-  clean: {
-    key: 'clean',
-    code: 'c',
-    name: 'Cheap and Clean',
-    price: 500,
-    standard: null,
-    deposit: 500,
-    tag: 'One page, your brand, live in seven days. It puts you on the board.',
-    includes: ['A custom site'],
-  },
-  beacon: {
-    key: 'beacon',
-    code: 'b',
-    name: 'Beacon',
-    price: 1750,
-    standard: 3500,
-    deposit: 875,
-    tag: 'A site that makes you look real.',
-    includes: ['A custom site', 'Brand identity', 'Local SEO'],
-  },
-  engine: {
-    key: 'engine',
-    code: 'e',
-    name: 'Engine',
-    price: 4250,
-    standard: 8500,
-    deposit: 2125,
-    tag: 'The site plus the machine behind it.',
-    includes: [
-      'A custom site', 'Brand identity', 'Local SEO',
-      'Booking flow', 'Quote flow', 'Payments', 'Lead capture',
-      'Automated follow-up', 'Reminders', 'Review requests', 'Owner dashboard',
-    ],
-  },
+  site: { key: 'site', code: 'c', name: 'The Northbound Site', includes: ['A custom site'] },
 };
 
-export const BEARING = { price: 300, standard: 600 };
-
-/* The parts that make a build an Engine rather than a Beacon. Booking, quote,
-   payments, lead capture and follow-up are the transactional core: any one of
-   them is the machine. Reminders, review requests and the dashboard ride
-   along — one of those alone does not justify Engine, two do. */
-const CORE = ['Booking flow', 'Quote flow', 'Payments', 'Lead capture', 'Automated follow-up'];
-const ENGINE_ONLY = [...CORE, 'Reminders', 'Review requests', 'Owner dashboard'];
-const BEACON_PARTS = ['Brand identity', 'Local SEO'];
+const OLD_PACKAGE_CODES = ['c', 'b', 'e'];
+const pkgFor = (c) => (OLD_PACKAGE_CODES.includes(c) ? 'site' : null);
 
 /** @typedef {{ biz: string|null, now: string|null, want: string[], wantUnsure: boolean, worth: string|null, answers: string|null, run: string|null, look: string|null, pkg: string|null, name: string, parts: string[]|null }} Answers */
 
@@ -195,86 +155,30 @@ export function partsFor(a) {
   return OFFERINGS.filter((o) => set.has(o));
 }
 
-/** The package the parts add up to: 'clean' | 'beacon' | 'engine'. */
-export function recommend(parts) {
-  const engineParts = parts.filter((p) => ENGINE_ONLY.includes(p));
-  let pkg = 'clean';
-  if (engineParts.some((p) => CORE.includes(p)) || engineParts.length >= 2) pkg = 'engine';
-  else if (engineParts.length || parts.some((p) => BEACON_PARTS.includes(p))) pkg = 'beacon';
-  /* A package containing none of what they picked is not a recommendation,
-     it is an upsell. Picking only Reminders used to propose Beacon at $1,750
-     with an empty build card, because one ride-along part is deliberately not
-     enough to justify Engine. Fall back to the entry package instead and let
-     the "not in package" line offer to quote the part on its own. Mirrored in
-     api/checkout.ts's specRecommend; tests/spec.unit.test.ts proves they agree. */
-  if (parts.length && !parts.some((p) => PACKAGES[pkg].includes.includes(p))) pkg = 'clean';
-  return pkg;
-}
-
-/** Everything the spec sheet needs, from a set of answers. */
+/** Everything the summary needs, from a set of answers: the parts, the one
+    offer, which parts it covers, and which are quoted separately. */
 export function build(a) {
   const parts = partsFor(a);
-  const recommended = recommend(parts);
-  const pkgKey = a.pkg && PACKAGES[a.pkg] ? a.pkg : recommended;
-  const pkg = PACKAGES[pkgKey];
+  const pkg = PACKAGES.site;
   const included = parts.filter((p) => pkg.includes.includes(p));
   const extra = parts.filter((p) => !pkg.includes.includes(p));
-  return {
-    parts,
-    recommended,
-    pkg,
-    included,
-    extra,
-    bearing: a.run === 'you',
-    balance: pkg.price - pkg.deposit,
-    payback: payback(pkg, a.worth, byKey(BIZ, a.biz)?.unit || 'customer'),
-  };
-}
-
-/* The payback line, in the customer's own number. No conversion rate, no
-   revenue claim: a price divided by the bracket they gave us, phrased as a
-   count of customers. Returns null when they said "not sure yet". */
-export function payback(pkg, worthKey, unit) {
-  const w = byKey(WORTH, worthKey);
-  if (!w) return null;
-  const price = pkg.price;
-  const plural = (n) => `${n} new ${unit}${n === 1 ? '' : 's'}`;
-  const an = /^[aeiou]/.test(unit) ? 'an' : 'a';
-  if (w.high === null) {
-    return `One ${unit} worth ${money(w.low)} or more covers this build.`;
-  }
-  if (w.low === 0) {
-    // Each customer is worth less than `high`, so it takes more than price/high of them.
-    const atLeast = Math.floor(price / w.high) + 1;
-    return `At under ${money(w.high)} ${an} ${unit}, this build is at least ${plural(atLeast)}.`;
-  }
-  const fewest = Math.max(1, Math.ceil(price / w.high));
-  const most = Math.ceil(price / w.low);
-  if (fewest === 1 && most === 1) {
-    return `One ${money(w.low)}–${money(w.high)} ${unit} covers this build.`;
-  }
-  return `At ${money(w.low)}–${money(w.high)} ${an} ${unit}, this build is between ${fewest} and ${plural(most)}.`;
-}
-
-export function money(n) {
-  return '$' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return { parts, pkg, included, extra };
 }
 
 /* ---- the codec -------------------------------------------------------- */
 
 /** Pack answers into a short string. Never throws; unknown values become '_'.
-    Picked parts pack as the version-2 code instead: the mask, then the package. */
+    Picked parts pack as the version-2 code instead: the mask, then the offer.
+    The last character is always the one offer's code. */
 export function encode(a) {
   if (Array.isArray(a.parts)) {
     const mask = OFFERINGS.reduce((n, o, i) => (a.parts.includes(o) ? n | (1 << i) : n), 0);
-    const pkg = a.pkg && PACKAGES[a.pkg] ? PACKAGES[a.pkg].code : UNSURE;
-    return PARTS_VERSION + mask.toString(36).padStart(3, '0') + pkg;
+    return PARTS_VERSION + mask.toString(36).padStart(3, '0') + PACKAGES.site.code;
   }
   const c = (list, key) => byKey(list, key)?.code || UNSURE;
   const mask = a.want.reduce((n, k) => n | (byKey(WANT, k)?.bit || 0), 0);
   const look = byKey(LOOKS, a.look)?.code || UNSURE;
-  const pkg = a.pkg && PACKAGES[a.pkg] ? PACKAGES[a.pkg].code : UNSURE;
-  const code = VERSION + c(BIZ, a.biz) + c(NOW, a.now) + mask.toString(36) + c(WORTH, a.worth) + c(ANSWERS, a.answers) + c(RUN, a.run) + look + pkg;
+  const code = VERSION + c(BIZ, a.biz) + c(NOW, a.now) + mask.toString(36) + c(WORTH, a.worth) + c(ANSWERS, a.answers) + c(RUN, a.run) + look + PACKAGES.site.code;
   const name = String(a.name || '').trim().slice(0, 60);
   return name ? `${code}.${encodeURIComponent(name)}` : code;
 }
@@ -293,7 +197,7 @@ export function decode(s) {
     const a = blank();
     a.biz = UNSURE; a.now = UNSURE; a.wantUnsure = true; a.worth = UNSURE; a.answers = UNSURE; a.run = UNSURE; a.look = UNSURE;
     a.parts = OFFERINGS.filter((o, i) => mask & (1 << i));
-    a.pkg = Object.values(PACKAGES).find((p) => p.code === code[4])?.key ?? null;
+    a.pkg = pkgFor(code[4]);
     return a;
   }
   if (code.length !== 9 || code[0] !== VERSION) return null;
@@ -307,7 +211,7 @@ export function decode(s) {
   a.answers = keyFor(ANSWERS, code[5]);
   a.run = keyFor(RUN, code[6]);
   a.look = keyFor(LOOKS, code[7]);
-  a.pkg = Object.values(PACKAGES).find((p) => p.code === code[8])?.key ?? null;
+  a.pkg = pkgFor(code[8]);
   if (dot !== -1) {
     try { a.name = decodeURIComponent(s.slice(dot + 1)).trim().slice(0, 60); } catch { a.name = ''; }
   }
@@ -326,7 +230,7 @@ export function isPicked(a) {
   return Array.isArray(a.parts);
 }
 
-/** The answers in plain words, for the spec sheet and the emails. */
+/** The answers in plain words, for the summary and the emails. */
 export function describe(a) {
   const label = (list, key) => byKey(list, key)?.label || 'Not sure yet';
   return {

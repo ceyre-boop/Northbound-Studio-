@@ -24,9 +24,9 @@
  *   - SPOTS_LEFT: 2               a hand-set integer dressed as scarcity
  *   - Halo / Lumen Interiors      a case study with no case behind it
  *
- * Every number on this page is either a price the studio sets, or a figure
- * measured by scripts/perf.mjs and read from proof.json at runtime. There is
- * no third category.
+ * Every number on this page is a figure measured by scripts/perf.mjs and read
+ * from proof.json at runtime, or the one guarantee the studio sets for itself.
+ * No price appears here: the visitor first sees one at checkout.
  * ---------------------------------------------------------------------------
  */
 window.NB = {
@@ -56,48 +56,6 @@ window.NB = {
     head: 'Most local websites just sit there.',
     body: "They load slowly, can't take a booking, and forget the customer the moment they leave."
   },
-
-  /* Act III — the offer. Prices are floors, published so the conversation
-     starts above the tire-kickers rather than below them. */
-  packages: [
-    {
-      name: 'Beacon',
-      price: '$3,500',
-      tagline: 'For the business that just needs to look real.',
-      items: [
-        'Custom-built site, up to five pages, no template',
-        'Brand identity: logo, type, colour',
-        'Copywriting, photography direction, local SEO',
-        'Two weeks, 50% up front'
-      ]
-    },
-    {
-      name: 'Engine',
-      price: '$8,500',
-      tagline: 'The site plus the machine behind it.',
-      items: [
-        'Everything in Beacon',
-        'Booking or quote flow, payments, lead capture',
-        'Automated follow-up, reminders, review requests',
-        'Owner dashboard: where the calls came from and what they were worth',
-        'Three to four weeks, 50% up front'
-      ]
-    },
-    {
-      name: 'Bearing',
-      price: '$600',
-      per: 'per month',
-      tagline: 'Attached to every project. Never optional in the pitch.',
-      items: [
-        'Hosting, monitoring, backups, unlimited small edits',
-        'Dashboard kept live, automations maintained and expanded',
-        'Monthly report on calls, bookings and revenue',
-        'Twelve-month term, billed monthly'
-      ]
-    }
-  ],
-
-  pricingNote: 'Published prices are a floor, not a ceiling. What a build is worth follows from what one new customer is worth to you, not from how many hours it takes us.',
 
   /* Act IV — the only two things that are real.
    *
@@ -145,7 +103,7 @@ window.NB = {
      and never as a track record. */
   rules: [
     '50% up front, always. No deposit, no work.',
-    'Every proposal includes Bearing. It is part of the build, not an upsell.',
+    'Live in 7 days or $100 off. Unlimited revisions until you are happy.',
     'Concept work is labelled as concept work. Every performance number is one we measured.'
   ],
 

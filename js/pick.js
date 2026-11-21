@@ -2,18 +2,17 @@
  *
  * Each panel is a toggle button in the HTML already (aria-pressed, Enter and
  * Space for free). This module flips the state on click, keeps a Continue
- * button up while anything is picked, and points that button at the
- * existing checkout: the package the picks add up to (spec.js's recommend,
- * the same rule the guided build uses) in ?buy=, and the picks themselves
- * in ?s= as spec.js's version-2 code, so checkout.html and api/checkout.ts
- * describe exactly what was clicked. Nothing new is invented on the way —
- * the same param, the same decoder on both sides, the same order emails.
+ * button up while anything is picked, and points that button at checkout
+ * with the picks themselves in ?s= as spec.js's version-2 code, so
+ * checkout.html and api/checkout.ts describe exactly what was clicked. There
+ * is one offer; parts beyond the site are quoted separately, and checkout
+ * says so.
  *
  * The count on the button is decoration; its accessible name says the
  * number in words. With this module absent the panels read as they always
  * did and nothing on the page depends on them.
  */
-import { OFFERINGS, PACKAGES, blank, decode, encode, isPicked, recommend } from './spec.js';
+import { OFFERINGS, blank, decode, encode, isPicked } from './spec.js';
 
 /* The panels ship inert — tabindex="-1", no aria-pressed — so that with this
    module absent they are readable content rather than twelve focusable
@@ -24,11 +23,11 @@ const go = document.getElementById('pick-continue');
 const count = document.getElementById('pick-count');
 if (list && go) {
   const buttons = Array.from(list.querySelectorAll('.offer[data-part]'));
-  /* Scoped to the price cards on purpose: once picks exist the Continue's
-     own href also starts with checkout.html?buy=, and a page-wide selector
-     would pick it up and rewrite it from its own stale value. */
-  const buyLinks = Array.from(document.querySelectorAll('.pkg a[href^="checkout.html?buy="]'));
-  for (const b of buyLinks) b.dataset.buyHref = b.getAttribute('href');
+  /* Any other "Start your site" link on the page carries the picks too, so
+     picking three parts and then using a different button does not silently
+     drop them. The Continue button itself is excluded: it is rewritten
+     below from the picks, not from its own stale value. */
+  const startLinks = Array.from(document.querySelectorAll('a[href="checkout.html"]')).filter((l) => l !== go);
   for (const b of buttons) {
     b.removeAttribute('tabindex');
     b.setAttribute('aria-pressed', 'false');
@@ -52,18 +51,14 @@ if (list && go) {
     const parts = picked();
     const on = parts.length > 0;
     if (on) {
-      const pkg = recommend(parts);
-      const code = encode({ ...blank(), parts, pkg });
-      go.href = `checkout.html?buy=${pkg}&s=${encodeURIComponent(code)}`;
-      /* The Cheap and Clean card's own "Buy it now" goes straight to
-         checkout. Leaving it bare meant picking three parts and then buying
-         from the card silently dropped all three. It keeps its own package;
-         it just carries the picks with it. */
-      for (const b of buyLinks) b.href = `${b.dataset.buyHref}&s=${encodeURIComponent(code)}`;
-      go.setAttribute('aria-label', `Continue to checkout with ${parts.length} ${parts.length === 1 ? 'part' : 'parts'} — ${PACKAGES[pkg].name}`);
+      const code = encode({ ...blank(), parts });
+      const href = `checkout.html?s=${encodeURIComponent(code)}`;
+      go.href = href;
+      for (const l of startLinks) l.href = href;
+      go.setAttribute('aria-label', `Start your site with ${parts.length} ${parts.length === 1 ? 'part' : 'parts'} picked`);
       if (count) count.textContent = String(parts.length);
     }
-    if (!on) for (const b of buyLinks) b.href = b.dataset.buyHref;
+    if (!on) for (const l of startLinks) l.href = 'checkout.html';
     go.hidden = !on;
     document.body.classList.toggle('has-pick', on);
   };

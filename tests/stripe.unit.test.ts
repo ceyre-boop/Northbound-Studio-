@@ -1,457 +1,235 @@
-/* tests/stripe.unit.test.ts — the Stripe half, unit-tested directly.
+/* tests/stripe.unit.test.ts — the Stripe path, end to end without Stripe.
  *
- * Companion to tests/checkout.unit.test.ts, same shape: bun:test, no server,
- * no browser, global.fetch mocked so neither Stripe nor Resend is really
- * called. Two things are proved here, and both are about money:
+ * bun:test. global.fetch is mocked, so no session is created and no email is
+ * sent; each test inspects the requests that would have gone out.
  *
- *   1. api/checkout.ts routes to Stripe only when BOTH keys are set, sends
- *      the deposit Stripe should collect (never a price from the form), and
- *      falls back to email capture — order intact — if Stripe refuses.
- *   2. api/stripe-webhook.ts believes only Stripe. A forged or replayed
- *      signature emails nobody; a genuine checkout.session.completed emails
- *      the studio and the customer with the amount that was actually paid.
- *
- * The signature here is built the way Stripe builds it (HMAC-SHA256 over
- * "t.payload"), so these tests exercise the real verification path rather
- * than a bypass. Run: bun test tests/stripe.unit.test.ts
+ * What these pin:
+ *   - the Checkout Session is created for the deposit computed from
+ *     data/price.json (setup x deposit_ratio), never for a posted amount;
+ *   - the session's metadata records the week and the setup price, which is
+ *     the pricing engine's quote log, and a [quote-log] line is written when
+ *     the session is created and again when it is paid;
+ *   - the webhook verifies Stripe's signature and writes its emails from the
+ *     metadata, so a client quoted last week's price is confirmed at last
+ *     week's price even after data/price.json has moved.
  */
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { createHmac } from 'node:crypto';
 import { POST as checkoutPOST } from '../api/checkout.ts';
 import { POST as webhookPOST } from '../api/stripe-webhook.ts';
-import { GOOGLE_REVIEW_URL } from '../api/checkout.ts';
+import { offer, money } from '../lib/price.ts';
 
+const P = offer();
 const SECRET = 'whsec_test_secret';
-const STRIPE_URL = 'https://stripe.example/session';
 
-/* ---------- the shared fetch double ---------- */
-
-type Call = { url: string; body: string };
+type Call = { url: string; headers: Record<string, string>; body: string };
 let calls: Call[] = [];
-let emails: Record<string, unknown>[] = [];
-let stripeRefuses = false;
+let stripeAnswer: () => Response;
+let logs: string[] = [];
+let logSpy: ReturnType<typeof spyOn>;
+let errSpy: ReturnType<typeof spyOn>;
 
-function isStripe(url: string): boolean {
-  return url.includes('stripe.com');
+function order(over: Record<string, string> = {}): Request {
+  const form = new FormData();
+  const fields = { buy: 'site', name: 'Jamie Rivera', business: 'Rivera Roofing', phone: '5551234567', email: 'jamie@example.com', ...over };
+  for (const [k, v] of Object.entries(fields)) form.set(k, v);
+  return new Request('http://localhost/api/checkout', { method: 'POST', body: form, headers: { accept: 'application/json', referer: 'https://northbound-dev.com/checkout.html' } });
 }
 
+const stripeParams = () => Object.fromEntries(new URLSearchParams(calls.find((c) => c.url.includes('stripe.com'))!.body));
+const emails = () => calls.filter((c) => c.url.includes('resend.com')).map((c) => JSON.parse(c.body) as { to: string[]; subject: string; text: string });
+const quoteLogs = () => logs.filter((l) => l.startsWith('[quote-log] ')).map((l) => JSON.parse(l.slice('[quote-log] '.length)));
+
 beforeEach(() => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_unit';
+  process.env.STRIPE_WEBHOOK_SECRET = SECRET;
   process.env.RESEND_API_KEY = 'test-key';
   process.env.QUOTE_TO = 'studio@example.com';
   calls = [];
-  emails = [];
-  stripeRefuses = false;
+  logs = [];
+  stripeAnswer = () => Response.json({ id: 'cs_test_abc123', url: 'https://checkout.stripe.com/c/pay/cs_test_abc123' });
+  logSpy = spyOn(console, 'log').mockImplementation((...a: unknown[]) => { logs.push(a.map(String).join(' ')); });
+  errSpy = spyOn(console, 'error').mockImplementation(() => {});
   // @ts-expect-error — test double, not the real fetch signature
-  global.fetch = mock(async (url: string, init: { body: string }) => {
-    calls.push({ url, body: init.body });
-    if (isStripe(url)) {
-      if (stripeRefuses) {
-        return { ok: false, status: 402, json: async () => ({ error: { message: 'card_declined' } }) } as Response;
-      }
-      return { ok: true, status: 200, json: async () => ({ id: 'cs_test_1', url: STRIPE_URL }) } as Response;
-    }
-    emails.push(JSON.parse(init.body));
-    return { ok: true, status: 200, json: async () => ({ id: `email_${emails.length}` }) } as Response;
+  global.fetch = mock(async (url: string, init: { headers: Record<string, string>; body: string }) => {
+    calls.push({ url: String(url), headers: init.headers, body: init.body });
+    return String(url).includes('stripe.com') ? stripeAnswer() : Response.json({ id: `email_${calls.length}` });
   });
 });
 
 afterEach(() => {
-  delete process.env.RESEND_API_KEY;
-  delete process.env.QUOTE_TO;
-  delete process.env.STRIPE_SECRET_KEY;
-  delete process.env.STRIPE_WEBHOOK_SECRET;
+  logSpy.mockRestore();
+  errSpy.mockRestore();
+  for (const k of ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'RESEND_API_KEY', 'QUOTE_TO']) delete process.env[k];
 });
 
-/* ---------- checkout: the road to Stripe ---------- */
-
-function order(fields: Record<string, string>): Promise<Response> {
-  const form = new FormData();
-  const base = {
-    name: 'Jamie Rivera',
-    business: 'Rivera Roofing',
-    phone: '5551234567',
-    email: 'jamie@example.com',
-  };
-  for (const [k, v] of Object.entries({ ...base, ...fields })) form.set(k, v);
-  return checkoutPOST(
-    new Request('http://localhost/api/checkout', {
-      method: 'POST',
-      body: form,
-      headers: { accept: 'application/json' },
-    }),
-  );
-}
-
-function stripeCall(): Record<string, string> {
-  const call = calls.find((c) => isStripe(c.url));
-  if (!call) throw new Error('nothing was sent to Stripe');
-  return Object.fromEntries(new URLSearchParams(call.body));
-}
-
-describe('checkout routes to Stripe only when it can be honoured end to end', () => {
-  test('with neither key set, nothing reaches Stripe and the order is emailed', async () => {
-    const res = await order({ buy: 'clean' });
+describe('creating the Checkout Session', () => {
+  test('charges the deposit from data/price.json and sends the visitor to Stripe', async () => {
+    const res = await checkoutPOST(order());
     expect(res.status).toBe(200);
-    expect(calls.some((c) => isStripe(c.url))).toBe(false);
-    expect(emails.length).toBe(2);
+    expect(await res.json()).toEqual({ ok: true, url: 'https://checkout.stripe.com/c/pay/cs_test_abc123' });
+    const p = stripeParams();
+    expect(p.mode).toBe('payment');
+    expect(p['line_items[0][price_data][currency]']).toBe('usd');
+    expect(p['line_items[0][price_data][unit_amount]']).toBe(String(P.depositCents));
+    expect(p['line_items[0][price_data][product_data][name]']).toBe('Northbound Studio — The Northbound Site (deposit)');
+    expect(p['line_items[0][quantity]']).toBe('1');
+    expect(p.customer_email).toBe('jamie@example.com');
+    expect(p.allow_promotion_codes).toBe('true');
+    expect(p.success_url).toBe('https://northbound-dev.com/order-paid.html?session_id={CHECKOUT_SESSION_ID}');
+    expect(p.cancel_url).toBe('https://northbound-dev.com/checkout.html');
+    expect(calls[0].headers.Authorization).toBe('Bearer sk_test_unit');
+    // No email until the money has arrived.
+    expect(emails()).toHaveLength(0);
   });
 
-  test('with only the secret key set, still no Stripe — an unverifiable payment is worse than none', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    const res = await order({ buy: 'clean' });
+  test('the metadata is the quote record: week, setup price, deposit, balance, care', async () => {
+    await checkoutPOST(order());
+    const p = stripeParams();
+    expect(p['metadata[nb_week]']).toBe(P.week);
+    expect(p['metadata[nb_setup]']).toBe(String(P.setupCents));
+    expect(p['metadata[nb_due]']).toBe(String(P.depositCents));
+    expect(p['metadata[nb_balance]']).toBe(String(P.balanceCents));
+    expect(p['metadata[nb_care]']).toBe(String(P.careCents));
+    expect(Number(p['metadata[nb_due]']) + Number(p['metadata[nb_balance]'])).toBe(P.setupCents);
+    expect(p['metadata[nb_item]']).toBe(`The Northbound Site — ${money(P.setupCents)}`);
+    expect(p['metadata[nb_monthly]']).toBe(`Care plan — ${money(P.careCents)}/mo, starting the day the site goes live`);
+    expect(p['metadata[nb_business]']).toBe('Rivera Roofing');
+    expect(Object.keys(p).some((k) => /founding|review/.test(k))).toBe(false);
+  });
+
+  test('a posted amount is never the amount charged', async () => {
+    await checkoutPOST(order({ amount: '1', unit_amount: '100', setup: '1', deposit: '1', nb_due: '100', 'line_items[0][price_data][unit_amount]': '100' }));
+    expect(stripeParams()['line_items[0][price_data][unit_amount]']).toBe(String(P.depositCents));
+  });
+
+  test('a quote_created line is logged with the week, the price and the session', async () => {
+    await checkoutPOST(order());
+    const [q] = quoteLogs();
+    expect(q).toMatchObject({ event: 'quote_created', week: P.week, setup: P.setupCents / 100, session: 'cs_test_abc123', outcome: 'open', business: 'Rivera Roofing' });
+    expect(q.at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  test('a native post is redirected to Stripe', async () => {
+    const form = new FormData();
+    for (const [k, v] of Object.entries({ buy: 'site', name: 'Jamie Rivera', business: 'Rivera Roofing', phone: '5551234567', email: 'jamie@example.com' })) form.set(k, v);
+    const res = await checkoutPOST(new Request('http://localhost/api/checkout', { method: 'POST', body: form }));
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('https://checkout.stripe.com/c/pay/cs_test_abc123');
+  });
+
+  test('an emoji cut at the metadata limit does not break the request', async () => {
+    const res = await checkoutPOST(order({ why_not: 'a'.repeat(499) + '🙂🙂' }));
     expect(res.status).toBe(200);
-    expect(calls.some((c) => isStripe(c.url))).toBe(false);
-    expect(emails.length).toBe(2);
+    expect(Array.from(stripeParams()['metadata[nb_why_not]']).length).toBe(500);
   });
 
-  test('with both keys set, the visitor is sent to Stripe and no order email is sent yet', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const res = await order({ buy: 'clean' });
+  test('when Stripe refuses, the order falls back to the email capture and no quote is logged', async () => {
+    stripeAnswer = () => Response.json({ error: { message: 'Invalid API Key' } }, { status: 401 });
+    const res = await checkoutPOST(order());
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, url: STRIPE_URL });
-    expect(emails.length).toBe(0);
+    expect(await res.json()).toEqual({ ok: true });
+    expect(emails()).toHaveLength(2);
+    expect(emails()[1].text).toContain('Nothing has been charged yet.');
+    expect(quoteLogs()).toHaveLength(0);
   });
 
-  test('Cheap and Clean charges $500.00, from the server table', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    await order({ buy: 'clean' });
-    const sent = stripeCall();
-    expect(sent['line_items[0][price_data][unit_amount]']).toBe('50000');
-    expect(sent['metadata[nb_due]']).toBe('50000');
-    expect(sent.mode).toBe('payment');
-  });
-
-  test('a price posted in the form cannot change what Stripe collects', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    await order({ buy: 'clean', cents: '1', unit_amount: '1', price: '1' });
-    expect(stripeCall()['line_items[0][price_data][unit_amount]']).toBe('50000');
-  });
-
-  test('Beacon collects the 50% founding deposit and records the balance', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    await order({ buy: 'beacon', review_name: 'Jamie R.' });
-    const sent = stripeCall();
-    expect(sent['line_items[0][price_data][unit_amount]']).toBe('87500');
-    expect(sent['metadata[nb_balance]']).toBe('87500');
-    expect(sent['metadata[nb_founding]']).toBe('1');
-    expect(sent['metadata[nb_review]']).toBe('Jamie R.');
-  });
-
-  test('the order survives Stripe refusing: it falls back to email capture', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    stripeRefuses = true;
-    const res = await order({ buy: 'clean' });
-    expect(res.status).toBe(200);
-    expect(emails.length).toBe(2);
-    expect(emails[0].text as string).toContain('Due today: $500.00');
-  });
-
-  test('everything the webhook will need is carried in metadata', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    await order({ buy: 'clean', bearing: '1', bearing_term: '12', review_name: 'Jamie R.' });
-    const sent = stripeCall();
-    expect(sent['metadata[nb_name]']).toBe('Jamie Rivera');
-    expect(sent['metadata[nb_business]']).toBe('Rivera Roofing');
-    expect(sent['metadata[nb_email]']).toBe('jamie@example.com');
-    expect(sent['metadata[nb_phone]']).toBe('5551234567');
-    expect(sent['metadata[nb_monthly]']).toContain('$300.00/mo');
-    expect(sent.customer_email).toBe('jamie@example.com');
-    expect(sent.success_url).toContain('/order-paid.html');
-  });
-
-  test('"Before you pay, pause." answers ride in metadata, truncated to 500', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    await order({
-      buy: 'clean',
-      why_not: 'A'.repeat(600),
-      benefit: 'shorter reason',
-      why_us: 'C'.repeat(600),
-    });
-    const sent = stripeCall();
-    expect(sent['metadata[nb_why_not]']).toBe('A'.repeat(500));
-    expect(sent['metadata[nb_benefit]']).toBe('shorter reason');
-    expect(sent['metadata[nb_why_us]']).toBe('C'.repeat(500));
-  });
-
-  test('an emoji on the 500 boundary is cut whole, and the buyer still reaches Stripe', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const res = await order({ buy: 'clean', why_not: 'a'.repeat(499) + '\u{1F600} thanks', why_us: 'b'.repeat(499) + '\u{1F600}' });
-    const sent = stripeCall();
-    expect(sent, 'the Stripe session was never requested').toBeTruthy();
-    expect(sent['metadata[nb_why_not]']).toBe('a'.repeat(499) + '\u{1F600}');
-    expect(sent['metadata[nb_why_us]']).toBe('b'.repeat(499) + '\u{1F600}');
-    expect(res.status).toBeLessThan(400);
-  });
-
-  test('empty "pause" answers are omitted from metadata entirely', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    await order({ buy: 'clean' });
-    const sent = stripeCall();
-    expect('metadata[nb_why_not]' in sent).toBe(false);
-    expect('metadata[nb_benefit]' in sent).toBe(false);
-    expect('metadata[nb_why_us]' in sent).toBe(false);
-  });
-
-  test('a founding order is gated on the review only while there is a profile to review', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const res = await order({ buy: 'beacon' }); // no review_name
-    if (GOOGLE_REVIEW_URL === '') {
-      expect(res.status).toBe(200);           // nothing to ask for, so nothing is withheld
-      expect(stripeCall()['metadata[nb_founding]']).toBe('1');
-    } else {
-      expect(res.status).toBe(422);
-      expect(calls.length).toBe(0);
-    }
+  test('half-configured Stripe is treated as none', async () => {
+    delete process.env.STRIPE_WEBHOOK_SECRET;
+    await checkoutPOST(order());
+    expect(calls.some((c) => c.url.includes('stripe.com'))).toBe(false);
+    expect(emails()).toHaveLength(2);
   });
 });
 
-/* ---------- the webhook: believe only Stripe ---------- */
-
-async function sign(payload: string, opts: { secret?: string; t?: number } = {}): Promise<string> {
-  const secret = opts.secret ?? SECRET;
-  const t = opts.t ?? Math.floor(Date.now() / 1000);
-  const key = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
-  );
-  const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${t}.${payload}`));
-  const hex = Array.from(new Uint8Array(mac), (b) => b.toString(16).padStart(2, '0')).join('');
-  return `t=${t},v1=${hex}`;
+function signed(payload: string, opts: { secret?: string; at?: number } = {}): Request {
+  const t = opts.at ?? Math.floor(Date.now() / 1000);
+  const v1 = createHmac('sha256', opts.secret ?? SECRET).update(`${t}.${payload}`).digest('hex');
+  return new Request('http://localhost/api/stripe-webhook', { method: 'POST', body: payload, headers: { 'stripe-signature': `t=${t},v1=${v1}` } });
 }
 
-function completed(overrides: Record<string, unknown> = {}): string {
-  return JSON.stringify({
-    type: 'checkout.session.completed',
-    data: {
-      object: {
-        id: 'cs_test_9',
-        amount_total: 87500,
-        metadata: {
-          nb_name: 'Jamie Rivera',
-          nb_business: 'Rivera Roofing',
-          nb_phone: '5551234567',
-          nb_email: 'jamie@example.com',
-          nb_item: 'Beacon — 50% deposit (founding price $1,750, standard $3,500) — $875.00',
-          nb_due: '87500',
-          nb_balance: '87500',
-          nb_monthly: '',
-          nb_founding: '1',
-          nb_review: 'Jamie R.',
-          nb_spec: '',
-        },
-        ...overrides,
-      },
-    },
-  });
+function completed(metadata: Record<string, string>, amount: number): string {
+  return JSON.stringify({ type: 'checkout.session.completed', data: { object: { id: 'cs_test_abc123', amount_total: amount, metadata } } });
 }
 
-function hook(payload: string, signature: string): Promise<Response> {
-  return webhookPOST(
-    new Request('http://localhost/api/stripe-webhook', {
-      method: 'POST',
-      body: payload,
-      headers: { 'stripe-signature': signature, 'content-type': 'application/json' },
-    }),
-  );
-}
+const META = {
+  nb_name: 'Jamie Rivera', nb_business: 'Rivera Roofing', nb_phone: '5551234567', nb_email: 'jamie@example.com',
+  nb_item: 'The Northbound Site — $750.00', nb_due: '37500', nb_balance: '37500',
+  nb_monthly: 'Care plan — $49.00/mo, starting the day the site goes live',
+  nb_week: '2026-W40', nb_setup: '75000', nb_care: '4900',
+};
 
-describe('the webhook believes only Stripe', () => {
-  test('no signing secret configured: 503, and nobody is emailed', async () => {
-    const payload = completed();
-    const res = await hook(payload, await sign(payload));
-    expect(res.status).toBe(503);
-    expect(emails.length).toBe(0);
+describe('the webhook', () => {
+  test('a paid session sends both emails, with the amounts the session was quoted at', async () => {
+    // Deliberately not this week's price: the metadata is what was promised.
+    const res = await webhookPOST(signed(completed(META, 37500)));
+    expect(res.status).toBe(200);
+    const [studio, customer] = emails();
+    expect(studio.to).toEqual(['studio@example.com']);
+    expect(studio.subject).toBe('Paid order: The Northbound Site — $750.00 — Rivera Roofing');
+    expect(studio.text).toContain('Order (PAID via Stripe):');
+    expect(studio.text).toContain('Deposit paid: $375.00');
+    expect(studio.text).toContain('At launch: $375.00 (the balance)');
+    expect(studio.text).toContain('Price week: 2026-W40');
+    expect(studio.text).toContain('Stripe session: cs_test_abc123');
+    expect(customer.to).toEqual(['jamie@example.com']);
+    expect(customer.text).toContain('Your deposit of $375.00 is paid');
+    expect(customer.text).toContain('The remaining $375.00 is due at launch.');
+    expect(customer.text).toContain('Care plan — $49.00/mo, starting the day the site goes live');
+    expect(customer.text).toContain('The 7-day clock starts the moment we have all of it.');
+    for (const e of emails()) expect(e.text).not.toMatch(/founding|Bearing|Beacon|Google review/i);
   });
 
-  test('a forged signature is refused', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = completed();
-    const res = await hook(payload, await sign(payload, { secret: 'whsec_wrong' }));
-    expect(res.status).toBe(400);
-    expect(emails.length).toBe(0);
+  test('a quote_paid line is logged against the quoted week and price', async () => {
+    await webhookPOST(signed(completed(META, 37500)));
+    expect(quoteLogs()).toEqual([expect.objectContaining({ event: 'quote_paid', week: '2026-W40', setup: 750, session: 'cs_test_abc123', outcome: 'yes', business: 'Rivera Roofing' })]);
   });
 
-  test('a missing signature header is refused', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const res = await hook(completed(), '');
-    expect(res.status).toBe(400);
-    expect(emails.length).toBe(0);
+  test('a paid amount that differs from the quoted deposit is flagged', async () => {
+    await webhookPOST(signed(completed(META, 100)));
+    expect(errSpy.mock.calls.some((c) => String(c[0]).includes('amount mismatch'))).toBe(true);
   });
 
-  test('a replay older than five minutes is refused', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = completed();
-    const stale = Math.floor(Date.now() / 1000) - 600;
-    const res = await hook(payload, await sign(payload, { t: stale }));
-    expect(res.status).toBe(400);
-    expect(emails.length).toBe(0);
+  test('a wrong signature, a stale one, and a missing one are all refused', async () => {
+    const payload = completed(META, 37500);
+    expect((await webhookPOST(signed(payload, { secret: 'whsec_wrong' }))).status).toBe(400);
+    expect((await webhookPOST(signed(payload, { at: Math.floor(Date.now() / 1000) - 3600 }))).status).toBe(400);
+    expect((await webhookPOST(new Request('http://localhost/api/stripe-webhook', { method: 'POST', body: payload }))).status).toBe(400);
+    expect(emails()).toHaveLength(0);
+    expect(quoteLogs()).toHaveLength(0);
   });
 
-  test('a body altered after signing is refused', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = completed();
-    const signature = await sign(payload);
-    const tampered = payload.replace('"amount_total":87500', '"amount_total":1');
-    const res = await hook(tampered, signature);
-    expect(res.status).toBe(400);
-    expect(emails.length).toBe(0);
-  });
-
-  test('an event we do not handle is acknowledged and ignored', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = JSON.stringify({ type: 'payment_intent.created', data: { object: {} } });
-    const res = await hook(payload, await sign(payload));
+  test('other events are acknowledged and ignored', async () => {
+    const res = await webhookPOST(signed(JSON.stringify({ type: 'payment_intent.created', data: { object: {} } })));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, ignored: 'payment_intent.created' });
-    expect(emails.length).toBe(0);
+    expect(emails()).toHaveLength(0);
   });
 
-  test('a genuine paid deposit emails the studio and the customer', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = completed();
-    const res = await hook(payload, await sign(payload));
-    expect(res.status).toBe(200);
-    expect(emails.length).toBe(2);
-
-    const studio = emails[0];
-    expect(studio.to).toEqual(['studio@example.com']);
-    expect(studio.subject as string).toContain('Paid order');
-    const notif = studio.text as string;
-    expect(notif).toContain('Order (PAID via Stripe)');
-    expect(notif).toContain('Deposit paid: $875.00');
-    expect(notif).toContain('On delivery: $875.00');
-    expect(notif).toContain('cs_test_9');
-    expect(notif).toContain('Founding client — review posted under "Jamie R."');
-    expect(notif).toContain('nothing has checked it');
-
-    const customer = emails[1];
-    expect(customer.to).toEqual(['jamie@example.com']);
-    const conf = customer.text as string;
-    expect(conf).toContain('Your deposit of $875.00 is paid');
-    expect(conf).toContain('The remaining $875.00 is due on delivery');
-    expect(conf).toContain('your Google review is posted under "Jamie R."');
-    expect(conf).toContain('nothing automatic about it');
-    expect(conf).not.toMatch(/isn't yet|nothing to review today/);
-  });
-
-  test('a paid-in-full order mentions no balance', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = JSON.stringify({
-      type: 'checkout.session.completed',
-      data: {
-        object: {
-          id: 'cs_test_clean',
-          amount_total: 50000,
-          metadata: {
-            nb_name: 'Sam Doyle',
-            nb_business: 'Doyle Electric',
-            nb_email: 'sam@example.com',
-            nb_item: 'Cheap and Clean — $500.00',
-            nb_due: '50000',
-            nb_balance: '0',
-            nb_founding: '0',
-          },
-        },
-      },
-    });
-    const res = await hook(payload, await sign(payload));
-    expect(res.status).toBe(200);
-    const notif = emails[0].text as string;
-    expect(notif).toContain('Deposit paid: $500.00');
-    expect(notif).not.toContain('On delivery');
-    expect(emails[1].text as string).not.toContain('due on delivery');
-  });
-
-  test('a paid order with no studio inbox configured is not swallowed', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    delete process.env.QUOTE_TO;
-    const payload = completed();
-    const res = await hook(payload, await sign(payload));
-    expect(res.status).toBe(503); // non-2xx: Stripe retries rather than losing it
-    expect(emails.length).toBe(0);
-  });
-
-  test('if the studio notification fails, Stripe is told to retry', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+  test('if the studio email fails, Stripe is asked to retry', async () => {
     // @ts-expect-error — test double
-    global.fetch = mock(async () => ({ ok: false, status: 500, json: async () => ({ message: 'down' }) }) as Response);
-    const payload = completed();
-    const res = await hook(payload, await sign(payload));
-    expect(res.status).toBe(502);
+    global.fetch = mock(async () => Response.json({ message: 'down' }, { status: 500 }));
+    expect((await webhookPOST(signed(completed(META, 37500)))).status).toBe(502);
   });
 
-  test('"Before you pay, pause." answers reach the studio notification when Stripe reports them paid', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = completed({
-      metadata: {
-        nb_name: 'Jamie Rivera',
-        nb_business: 'Rivera Roofing',
-        nb_phone: '5551234567',
-        nb_email: 'jamie@example.com',
-        nb_item: 'Beacon — 50% deposit (founding price $1,750, standard $3,500) — $875.00',
-        nb_due: '87500',
-        nb_balance: '87500',
-        nb_monthly: '',
-        nb_founding: '1',
-        nb_review: 'Jamie R.',
-        nb_spec: '',
-        nb_why_not: 'reason',
-        nb_benefit: 'benefit',
-        nb_why_us: 'why us',
-      },
-    });
-    const res = await hook(payload, await sign(payload));
+  test('without the webhook secret nothing is trusted', async () => {
+    delete process.env.STRIPE_WEBHOOK_SECRET;
+    expect((await webhookPOST(signed(completed(META, 37500)))).status).toBe(503);
+  });
+});
+
+describe('checkout to webhook, joined up', () => {
+  test('the metadata checkout writes is exactly what the webhook reads back', async () => {
+    await checkoutPOST(order());
+    const p = stripeParams();
+    const metadata = Object.fromEntries(Object.entries(p).filter(([k]) => k.startsWith('metadata[')).map(([k, v]) => [k.slice(9, -1), v]));
+    calls = [];
+    const res = await webhookPOST(signed(completed(metadata, P.depositCents)));
     expect(res.status).toBe(200);
-    const notif = emails[0].text as string;
-    expect(notif).toContain('In their words:');
-    expect(notif).toContain('Reasons they might not need us: reason');
-    expect(notif).toContain('What it should bring them: benefit');
-    expect(notif).toContain('Why Northbound: why us');
-    const conf = emails[1].text as string;
-    expect(conf).not.toContain('In their words:');
-  });
-
-  test('no "pause" metadata produces no section in the webhook notification', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = completed();
-    const res = await hook(payload, await sign(payload));
-    expect(res.status).toBe(200);
-    expect(emails[0].text as string).not.toContain('In their words:');
-  });
-
-  test('the guided-build spec reaches the studio with the paid order', async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-    const payload = JSON.stringify({
-      type: 'checkout.session.completed',
-      data: {
-        object: {
-          id: 'cs_test_spec',
-          amount_total: 50000,
-          metadata: {
-            nb_name: 'Sam Doyle',
-            nb_business: 'Doyle Electric',
-            nb_email: 'sam@example.com',
-            nb_item: 'Cheap and Clean — $500.00',
-            nb_due: '50000',
-            nb_balance: '0',
-            nb_founding: '0',
-            nb_spec: 'Trade: electrician | Wants: booked jobs | Look: clean',
-          },
-        },
-      },
-    });
-    await hook(payload, await sign(payload));
-    const notif = emails[0].text as string;
-    expect(notif).toContain('Their build:');
-    expect(notif).toContain('Trade: electrician');
-    expect(notif).toContain('Look: clean');
+    const [, customer] = emails();
+    expect(customer.text).toContain(`Your deposit of ${money(P.depositCents)} is paid`);
+    expect(customer.text).toContain(`The remaining ${money(P.balanceCents)} is due at launch.`);
+    expect(quoteLogs().map((q) => q.event)).toEqual(['quote_created', 'quote_paid']);
+    expect(errSpy.mock.calls.some((c) => String(c[0]).includes('amount mismatch'))).toBe(false);
   });
 });

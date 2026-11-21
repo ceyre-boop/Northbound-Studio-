@@ -10,12 +10,12 @@
  * Buddy hosts: one line per step, in the studio's plain voice, and a pose
  * swap with the mood. His lines never carry a number we cannot back.
  *
- * Nothing here prices anything. The spec sheet shows the founding prices the
- * site already publishes and does arithmetic on the bracket the customer
- * chose; checkout.html carries the package key and the code to
- * api/checkout.ts, which prices only from its own table.
+ * Nothing here prices anything, and nothing here shows a price. The last
+ * screen is a summary of what they told us and one button, "Start your
+ * site", which carries the code to checkout.html — the first place a price
+ * appears.
  */
-import { BIZ, NOW, WANT, WORTH, ANSWERS, RUN, LOOKS, PACKAGES, BEARING, blank, build, encode, decode, link, describe, money } from './spec.js';
+import { BIZ, NOW, WANT, WORTH, ANSWERS, RUN, LOOKS, blank, build, encode, decode, link, describe } from './spec.js';
 
 const KEY = 'nb-build-v1';
 const TOTAL = 8;
@@ -32,7 +32,7 @@ const VOCAB = {
   other: { hero: 'Local, reliable, done right.', sub: 'Serving your town and the surrounding area.', services: ['Services', 'Contact', 'About'] },
 };
 
-/* The one-line description of each part, as index.html writes it. */
+/* The one-line description of each part, as studio.html writes it. */
 const PART_COPY = {
   'A custom site': 'Built for your business rather than adapted from someone else\'s, so it says what you do in the first five seconds.',
   'Brand identity': 'A logo, a typeface and a colour that work on a van, a business card and a phone screen without being redrawn each time.',
@@ -66,7 +66,7 @@ const STEPS = [
   },
   {
     key: 'now', name: 'Today', title: 'When someone wants to buy from you today, what happens?', list: NOW, pose: 'thinking', reactPose: 'thinking',
-    ask: 'No wrong answer. This is the part the machine replaces, so it helps to be honest about it.',
+    ask: 'No wrong answer. This is the part the site takes over, so it helps to be honest about it.',
     react: {
       call: "Calls are the best kind of enquiry. The cost is the ones that ring while you're working.",
       dm: "Messages get buried under everything else. We'd bring them into one place that answers back.",
@@ -81,9 +81,9 @@ const STEPS = [
     react: { '*': "Good. Watch the phone — that's the button your customers will tap.", _: "No problem. We'll start with being reachable and add from there." },
   },
   {
-    key: 'worth', name: 'Worth', title: "What's one new customer worth to you?", list: WORTH, pose: 'thinking', reactPose: 'salute',
-    ask: "Rough is fine. This is how we work out whether the build pays for itself. No price until you've answered.",
-    react: { '*': "Thanks. That's the number we price against — you'll see the arithmetic, not a pitch.", _: "That's fine. We'll show the price plain and do the arithmetic together later." },
+    key: 'worth', name: 'Worth', title: 'What is one new customer worth to you, in dollars?', list: WORTH, pose: 'thinking', reactPose: 'salute',
+    ask: 'Rough is fine. It tells us how much is riding on each enquiry.',
+    react: { '*': 'Thanks. That tells us how much is riding on each enquiry.', _: "That's fine. We'll work it out together on the first call." },
   },
   {
     key: 'answers', name: 'Nights', title: 'Who answers when someone asks at nine at night?', list: ANSWERS, pose: 'thinking', reactPose: 'salute',
@@ -98,12 +98,12 @@ const STEPS = [
   },
   {
     key: 'run', name: 'Running it', title: 'Do you want to run it, or should we keep it running?', list: RUN, pose: 'thinking', reactPose: 'salute',
-    ask: `Either is fine. Running it yourself costs nothing. Keeping it running is Bearing: ${money(BEARING.price)} a month as a founding client, ${money(BEARING.standard)} standard.`,
-    hint: 'Bearing is hosting, monitoring, backups, unlimited small edits, the automations kept running, and a monthly report on calls and bookings.',
+    ask: 'Either is fine. Every site comes with the care plan, so hosting, security and updates are ours either way.',
+    hint: 'The care plan is hosting, security, updates and small edits, billed monthly from launch. Cancel with 30 days\' notice.',
     react: {
-      me: "Then it's yours. Hosting stays free either way, and you can add Bearing later from your account.",
-      you: 'Then we watch it, fix it, keep the automations running and report back every month.',
-      _: 'No rush. You can add it at checkout or any time after.',
+      me: "Then it's yours to steer. Hosting, security and updates stay with us.",
+      you: 'Then send us the small edits and we make them.',
+      _: 'No rush. We can settle it on the first call.',
     },
   },
   {
@@ -111,7 +111,7 @@ const STEPS = [
     ask: 'Five real designs, shown with our own content. Yours goes in. Pick the one that feels like your business.',
     react: { '*': "Good choice. That's everything decided — Next puts it all on one sheet.", _: "Fine — we'll show you all five with your name on them before anything's built." },
   },
-  { key: 'sheet', name: 'Your build', pose: 'awesome', ask: "Here's the whole thing, priced from the same table we charge from. Nothing is charged until you pay the link we send." },
+  { key: 'sheet', name: 'Your build', pose: 'awesome', ask: "Here's everything you told us, on one sheet. You see the price at checkout, before you pay anything." },
 ];
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -232,76 +232,52 @@ function partsHtml(names) {
 
 function sheetHtml() {
   const b = build(A);
-  const p = b.pkg;
   const d = describe(A);
   const url = link(A, location.origin);
   const wide = window.innerWidth > 860;
-  const checkoutHref = `checkout.html?buy=${p.key}&s=${encodeURIComponent(encode(A))}`;
-  const pkgOpts = Object.values(PACKAGES).map((k) =>
-    `<li><button type="button" class="pkg-opt" data-pkg="${k.key}" aria-pressed="${k.key === p.key}"><b>${esc(k.name)}</b><small>${money(k.price)}${k.standard ? ` founding` : ''}</small>${k.key === b.recommended ? '<em>Our pick from your answers</em>' : ''}</button></li>`,
-  ).join('');
-
-  const bearingHtml = b.bearing ? `
-    <div class="card">
-      <h2>Keeping it running</h2>
-      <p class="price" style="font-size:24px">${money(BEARING.price)}<span style="font-size:14px;font-family:var(--body);color:var(--ink-soft)">/mo</span> <span class="was">${money(BEARING.standard)}/mo</span></p>
-      <p class="price-note">Bearing · founding price</p>
-      <p class="extra">Hosting, monitoring, backups, unlimited small edits, the automations kept running, and a monthly report on calls and bookings. Not charged today: your first monthly charge is next month. You pick the term at checkout — 12 months locked at ${money(BEARING.price)}/mo, or month-to-month at ${money(BEARING.price)} the first month and ${money(BEARING.standard)}/mo after.</p>
-    </div>` : '';
-
-  const payback = b.payback
-    ? `<p class="payback">${esc(b.payback)}</p><p class="payback-note">Your bracket, divided into the price. No conversion rate, no promise about how many will come.${b.bearing ? ' Bearing is monthly and not in this arithmetic.' : ''}</p>`
-    : `<p class="payback">Tell us what one customer is worth and we'll do the arithmetic here.</p><p class="payback-note">You said not sure yet — that's fine. The price stands on its own.</p>`;
-
-  const deposit = p.deposit === p.price
-    ? `<li><strong>${money(p.price)} in full</strong> — it's the whole price, and it's due before the build starts.</li>`
-    : `<li><strong>${money(p.deposit)} now, ${money(b.balance)} on delivery.</strong> 50% up front, always. No deposit, no work.</li>`;
+  const checkoutHref = `checkout.html?s=${encodeURIComponent(encode(A))}`;
+  const many = b.extra.length !== 1;
 
   return `<div class="sheet">
     <h1 class="q" id="q" tabindex="-1">Your build${A.name ? ` for ${esc(A.name)}` : ''}</h1>
-    <p class="lede">${fromLink ? 'Restored from your link. Change anything, or reserve it.' : 'Built from your answers. Change the package if you disagree with us.'}</p>
+    <p class="lede">${fromLink ? 'Restored from your link. Change anything, or start your site.' : 'Built from your answers. Go back and change anything.'}</p>
 
-    <ul class="pkgs">${pkgOpts}</ul>
-
-    <div class="card">
-      <h2>${esc(p.name)}</h2>
-      <p class="price">${money(p.price)}${p.standard ? `<span class="was">${money(p.standard)}</span>` : ''}</p>
-      ${p.standard ? '<p class="price-note">Founding price · first 15 founding clients</p>' : ''}
-      <p class="extra" style="margin-top:6px">${esc(p.tag)}</p>
-      <!-- The close sits under the price, not under three screens of detail.
-           The same button repeats at the bottom for whoever reads it all. -->
-      <a class="btn btn-primary reserve" id="reserve-top" href="${esc(checkoutHref)}">Reserve my build — ${money(p.deposit)} now</a>
-      <p class="reassure">${p.deposit === p.price ? `${money(p.price)} in full.` : `${money(p.deposit)} now, ${money(b.balance)} on delivery.`} Nothing is charged today — a secure payment link follows within one business hour.</p>
+    <div class="card" id="offer-card">
+      <h2>${esc(b.pkg.name)}</h2>
+      <ul class="answers-list">
+        <li>Up to 5 pages, built from one template</li>
+        <li>Fast and phone-ready</li>
+        <li>Your domain connected</li>
+        <li>Contact form and click-to-call</li>
+        <li>Unlimited revisions until you're happy</li>
+        <li>Live in 7 days or $100 off</li>
+      </ul>
+      ${A.look && A.look !== '_' ? `<p class="extra">In the look you picked: ${esc(d.look)}.</p>` : ''}
     </div>
 
-    <div class="card">
-      <h2>What you're getting</h2>
+    <div class="card" id="care-card">
+      <h2>Care plan</h2>
+      <p class="extra" style="margin-top:0">Hosting, security, updates and small edits, billed monthly from launch. Cancel with 30 days' notice.</p>
+    </div>
+
+    <div class="card" id="parts-card">
+      <h2>What your answers call for</h2>
       ${partsHtml(b.included)}
-      ${b.extra.length ? `<p class="extra"><strong>Not in ${esc(p.name)}:</strong> ${b.extra.map(esc).join(', ')}. Your answers called for ${b.extra.length === 1 ? 'it' : 'these'}; ${b.recommended !== p.key ? `${esc(PACKAGES[b.recommended].name)} includes ${b.extra.length === 1 ? 'it' : 'them'}, or ask us to quote ${b.extra.length === 1 ? 'it' : 'them'} on ${b.extra.length === 1 ? 'its' : 'their'} own.` : 'ask us and we\'ll quote it.'}</p>` : ''}
-      ${p.key === 'engine' && A.answers === 'nobody' ? '<p class="extra"><strong>Worth asking about:</strong> AI intake — enquiries read, sorted and answered in your voice. An add-on to Engine, quoted per job.</p>' : ''}
-      ${p.key === 'clean' ? `<p class="extra">One page, one of the five looks${A.look && A.look !== '_' ? ` (you picked ${esc(d.look)})` : ''}, your phone number tappable and a form that reaches you. Live within seven days of the call. Hosted free, forever. Changes and a human reply are $49/mo, added at checkout or later.</p>` : ''}
-    </div>
-
-    ${bearingHtml}
-
-    <div class="card">
-      <h2>Does it pay for itself?</h2>
-      ${payback}
+      ${b.extra.length ? `<p class="extra" id="extra-note"><strong>Quoted separately:</strong> ${b.extra.map(esc).join(', ')}. Your answers called for ${many ? 'these' : 'it'}, and ${many ? 'they go' : 'it goes'} beyond the site. ${many ? 'They travel' : 'It travels'} with your order, and we'll quote ${many ? 'them' : 'it'} — or tell us at <a href="mailto:${EMAIL}">${EMAIL}</a>.</p>` : ''}
     </div>
 
     <div class="card">
       <h2>What happens next</h2>
       <ol class="next-steps">
-        ${deposit}
-        <li><strong>Nothing is charged today.</strong> Reserve it and we email a secure payment link within one business hour. Once that's paid, the build starts.</li>
+        <li><strong>You see the price at checkout,</strong> before you pay anything.</li>
         <li><strong>First you get the homepage</strong> in your look, with your words on it, to approve before anything else is built.</li>
-        <li><strong>We don't publish a turnaround we haven't measured.</strong> You get the date on the first call, and it's the date.</li>
+        <li><strong>Live in 7 days or $100 off.</strong> The clock counts our working days; it pauses while you review or reply.</li>
       </ol>
     </div>
 
     <div class="actions">
-      <a class="btn btn-primary reserve" id="reserve" href="${esc(checkoutHref)}">Reserve my build — ${money(p.deposit)} now</a>
-      <p class="reassure">No card details are entered on this site. Reserving sends us the order; a secure payment link follows within one business hour, and nothing is charged until you pay it. Or email <a href="mailto:${EMAIL}">${EMAIL}</a>.</p>
+      <a class="btn btn-primary reserve" id="reserve" href="${esc(checkoutHref)}">Start your site</a>
+      <p class="reassure">You see the price at checkout, before you pay anything. Or email <a href="mailto:${EMAIL}">${EMAIL}</a>.</p>
     </div>
 
     <!-- Folded on a phone, open on a desktop where there is room. The
@@ -313,7 +289,7 @@ function sheetHtml() {
         <li><b>Business:</b> ${esc(d.business)}</li>
         <li><b>Today:</b> ${esc(d.now)}</li>
         <li><b>Wants more:</b> ${esc(d.want)}</li>
-        <li><b>One customer is worth:</b> ${esc(d.worth)}</li>
+        <li><b>One customer is worth, in dollars:</b> ${esc(d.worth)}</li>
         <li><b>Nine at night:</b> ${esc(d.answers)}</li>
         <li><b>Running it:</b> ${esc(d.run)}</li>
         <li><b>Look:</b> ${esc(d.look)}</li>
@@ -415,12 +391,6 @@ el.panel.addEventListener('click', (e) => {
   const t = e.target.closest('button, a');
   if (!t || !el.panel.contains(t)) return;
   if (t.dataset.value !== undefined) { pick(t.dataset.value); return; }
-  if (t.dataset.pkg) {
-    A.pkg = t.dataset.pkg;
-    save();
-    render();
-    return;
-  }
   if (t.dataset.nav === 'next') { go(step + 1); return; }
   if (t.dataset.nav === 'back') { go(step - 1); return; }
   if (t.dataset.nav === 'fresh') { fresh(); return; }
@@ -452,8 +422,7 @@ el.panel.addEventListener('input', (e) => {
 
 /* "Email me this build" posts to the quote endpoint the homepage already
    uses: the studio gets the build as a lead, the customer gets the auto-reply
-   with the link in it. No package key is sent, so no founding agreement is
-   demanded for what is only a saved link. */
+   with the link in it. */
 el.panel.addEventListener('submit', async (e) => {
   const form = e.target;
   if (form.id !== 'email-form') return;
@@ -464,11 +433,11 @@ el.panel.addEventListener('submit', async (e) => {
   const d = describe(A);
   const fd = new FormData(form);
   fd.set('business', A.name || '');
-  fd.set('package', '');
+  fd.set('package', b.pkg.key);
   fd.set('need', [
-    `Guided build: ${b.pkg.name} — ${money(b.pkg.price)}${b.pkg.standard ? ' founding' : ''}${b.bearing ? ` + Bearing ${money(BEARING.price)}/mo founding` : ''}`,
-    `Parts: ${b.included.join(', ')}${b.extra.length ? ` (not in package: ${b.extra.join(', ')})` : ''}`,
-    `Business: ${d.business} · Today: ${d.now} · Wants: ${d.want} · Worth: ${d.worth} · Nights: ${d.answers} · Running it: ${d.run} · Look: ${d.look}`,
+    `Guided build: ${b.pkg.name}`,
+    `Parts: ${b.included.join(', ')}${b.extra.length ? ` (to quote separately: ${b.extra.join(', ')})` : ''}`,
+    `Business: ${d.business} · Today: ${d.now} · Wants: ${d.want} · Worth (dollars per customer): ${d.worth} · Nights: ${d.answers} · Running it: ${d.run} · Look: ${d.look}`,
   ].join('\n'));
   fd.set('message', `Your build link — it brings this back on any device:\n${link(A, location.origin)}`);
   btn.disabled = true;
@@ -523,7 +492,7 @@ el.panel.addEventListener('click', () => { if (!el.toast.hidden) el.toast.hidden
   render();
   const s = saved();
   if (s && (s.step > 1 || s.a.biz !== null || s.a.name)) {
-    el.toastWhere.textContent = s.step === TOTAL ? 'Your spec sheet is ready.' : `You got to step ${s.step} of ${TOTAL}.`;
+    el.toastWhere.textContent = s.step === TOTAL ? 'Your summary is ready.' : `You got to step ${s.step} of ${TOTAL}.`;
     el.toast.hidden = false;
   }
 })();

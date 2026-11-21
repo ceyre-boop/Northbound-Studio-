@@ -1,16 +1,17 @@
 /* question-checkout-v1 — "How important is it to you?", asked quietly.
  *
  * Three answers under the headline. The answer writes nothing: it fills the
- * chip, re-points the primary button to the package that answer implies,
- * and lights the machine behind the hero as far as the answer goes. With no
- * JavaScript the answers are links that still lead somewhere real.
+ * chip and lights the machine behind the hero as far as the answer goes. With
+ * no JavaScript the answers are links that still lead somewhere real. (It
+ * used to re-point the primary button at a package tier; the tiers are
+ * retired, and that test went with them.)
  */
 import { test, expect } from '@playwright/test';
 
 const ANSWERS = [
-  { level: 1, chip: 'Worth a look', cta: 'Start with Cheap and Clean', href: '#packages' },
-  { level: 2, chip: 'It matters', cta: 'Get a quote for Beacon', href: 'build.html' },
-  { level: 3, chip: "It's everything", cta: 'Build the whole machine', href: 'build.html' },
+  { level: 1, chip: 'Worth a look' },
+  { level: 2, chip: 'It matters' },
+  { level: 3, chip: "It's everything" },
 ];
 
 test.describe('the question in the hero', () => {
@@ -23,20 +24,6 @@ test.describe('the question in the hero', () => {
       expect((await chip.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
   });
-
-  for (const a of ANSWERS) {
-    test(`"${a.chip}" re-points the button and lights level ${a.level}, and writes no reply`, async ({ page }) => {
-      await page.goto('/?motion=full');
-      await page.locator(`.q-chip[data-level="${a.level}"]`).click();
-      await expect(page).toHaveURL(/\/\?motion=full$/);
-      await expect(page.locator('.hero')).toHaveAttribute('data-level', String(a.level));
-      await expect(page.locator(`.q-chip[data-level="${a.level}"]`)).toHaveAttribute('aria-checked', 'true');
-      const cta = page.locator('.hero a.btn-primary');
-      await expect(cta).toHaveText(a.cta);
-      await expect(cta).toHaveAttribute('href', a.href);
-      await expect(page.locator('.q-reply, .q-reply-head')).toHaveCount(0);
-    });
-  }
 
   test('the machine lights only as far as the answer goes', async ({ page }, info) => {
     test.skip(info.project.name !== 'desktop', 'the full scene is desktop-only');

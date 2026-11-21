@@ -1,7 +1,7 @@
 # The Line — Northbound's door-to-beyond playbook
 
 Run Northbound like a grocery store: one product, the same steps every time, from first contact to repeat customer.
-Market it as websites (easiest yes). Everything else Northbound does is sold later, to people already paying.
+**Changed 2026-11-21 (Plans/DECISIONS.md #2, #21):** automations are now the main product and websites are the second offer, so every message below leads with automations. No message states a price; the client first sees it at checkout, and Buddy quotes it if asked.
 
 Rule: one step at a time. A step gets built only when the step before it is working.
 
@@ -25,15 +25,15 @@ Rule: one step at a time. A step gets built only when the step before it is work
 
 ### Email (Gmail — saved as a draft template)
 
-Subject: Quick fix for {Business}'s website
+Subject: Quick idea for {Business}
 
 > Hi {Name},
 >
-> I was looking up {Business} and noticed {specific problem, e.g. the site doesn't fit on a phone screen / no website shows up on Google}. Most people find businesses on their phone now, so that's likely costing you calls.
+> I was looking at {Business} and noticed {specific time-sink, e.g. quote requests seem to be answered by hand / there's no way to book online / your posts go up one app at a time}. That's exactly the kind of repetitive work I automate for small businesses, so owners get those hours back.
 >
-> I build websites for small businesses: live in 7 days, $500, plus $49/month that covers hosting and any small changes. You send me your info, I handle everything else.
+> Northbound builds automations that handle the busywork for you: emails, follow-ups, booking, posting. If you need a website too, I build those as well, live in 7 days.
 >
-> Want me to show you what your new homepage could look like? No charge, no call needed.
+> Want me to show you one automation that would fit {Business}? No charge, no call needed.
 >
 > Colin Eyre
 > Northbound Studio | northbound-dev.com
@@ -45,7 +45,7 @@ Keep the mailing address and the opt-out line: US law requires both in cold sale
 
 ### DM (social media)
 
-> Hi! I came across {Business} and noticed {specific problem}. I build small-business websites: live in 7 days, $500 + $49/mo for hosting and edits. Want to see what yours could look like? No charge. – Colin, Northbound Studio
+> Hi! I came across {Business} and noticed {specific problem}. I build automations for small businesses, tools that take the repeat work off your plate, and websites that go live in 7 days. What's the one job that eats most of your week? – Colin, Northbound Studio
 
 ---
 

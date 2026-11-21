@@ -47,6 +47,8 @@ Built fresh (Genie is a reference only). Signs every email "Buddy from Northboun
 
 ## Site Builder
 
+**Northbound's coder and developer for everything,** including northbound-dev.com itself. It edits and ships any Northbound code without asking Colin.
+
 1. Builds from the universal template, customized however the client asked.
 2. Tests everything before going live: phone and desktop layouts, speed, links, click-to-call, no placeholder text, and the contact form actually delivering a real test message.
 3. Deploys it, sets DNS on the client's domain, and confirms the site loads publicly over SSL.

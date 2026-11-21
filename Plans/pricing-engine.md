@@ -12,7 +12,7 @@ So a cheaper yes that keeps paying for a year can beat a single expensive yes.
 ## The test
 - **Website setup prices tested:** $300 · $500 · $750. The $49/mo care plan stays fixed for now.
 - **One price per week.** Everyone Buddy quotes that week gets the same price. The price can change every Monday.
-- **The price only appears in Buddy's quote.** It's not on the website or in cold emails; Buddy quotes only after someone says they're interested. That way a yes or no is really about the price.
+- **No prices anywhere on the site.** The client first sees the price at checkout, which shows this week's price. Buddy quotes the same price if someone asks first. Nothing is in cold emails either, so a yes or no is really about the price.
 
 ## How it picks each week (Thompson sampling)
 1. For each price, keep a count of yeses and noes.
@@ -48,5 +48,5 @@ With zero clients, the first 20–30 quotes are mostly noise. The model will lea
 Automations, currently $300 setup + $49/mo, go into the same engine once the website test has data.
 
 ## Changes this needs elsewhere
-- Remove the public "$500" from the website (#packages) and replace it with "Get a quote."
+- Remove every price from every page of the site except checkout. Checkout reads this week's price from the engine.
 - Remove the price from the cold email and DM templates, including the Gmail draft.

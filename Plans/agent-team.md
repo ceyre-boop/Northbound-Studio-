@@ -78,9 +78,18 @@ Colin presses it. It finds verified small businesses and sends the approved cold
 ## Settled decisions
 - Fully automatic. No approval taps; Colin corrects afterward.
 - Clients buy their own domains; Northbound only sets the DNS.
-- Buddy signs as "Buddy from Northbound."
+- Buddy signs as "Buddy from Northbound," in an upbeat-robot voice: eager, a little playful, still professional.
+- Buddy sends from and reads `ceyre@northbound-dev.com` (the same address as cold outreach).
 - Buddy is built fresh, not on Genie's code.
 - Cold outreach runs only when Colin presses the button.
+- **Buddy handles every email itself**, including angry clients, refunds, cancellations and legal threats.
+- **Refund rule (the only one Buddy may apply):** the full $250 deposit back if the client cancels before the build starts. No refund once the site is live. The $49/mo plan cancels with 30 days' notice, and the client keeps their words and photos. Late launch → $100 off, automatically.
+  - Buddy may issue that refund through Stripe. It moves no other money.
+  - On a legal threat, Buddy stays calm and polite, admits no fault, and makes no legal promises.
+  - Every hard email is flagged on the dashboard.
+- **Hosting:** all client sites live on Colin's Vercel. If a client cancels, they get their words and photos, not the code.
+- **Custom automations:** $300 setup + $49/mo to start, raised over time like the website price ladder.
+- **Visibility:** a live dashboard that Colin builds as a localhost front end on the Mac, showing every client, their stage, and every agent action.
 
 ## Build order: one at a time, each one live before the next
 1. **Buddy, onboarding only:** payment → onboarding email → conversation until the info is complete.

@@ -45,7 +45,7 @@ Every quote is logged with a reputation snapshot: sites launched, number of revi
 With zero clients, the first 20–30 quotes are mostly noise. The model will lean on its exploring until there are real results. That's expected; don't read the early numbers as the answer.
 
 ## Next to test (later)
-Automations, currently $300 setup + $49/mo, go into the same engine once the website test has data.
+Automations are priced at $100–$300/mo depending on how niche they are, and go into the same engine once the website test has data.
 
 ## Changes this needs elsewhere
 - Remove every price from every page of the site except checkout. Checkout reads this week's price from the engine.

@@ -91,6 +91,10 @@ Colin presses it. It finds verified small businesses and sends the approved cold
   - Every hard email is flagged on the dashboard.
 - **Hosting:** all client sites live on Colin's Vercel. If a client cancels, they get their words and photos, not the code.
 - **Custom automations:** $300 setup + $49/mo to start, raised over time like the website price ladder.
+- **Client memory:** one file per client in a private folder on the Mac (later the Mac mini). Every agent reads and writes it, and it's never in the public repo.
+- **Revisions:** Site Builder redesigns until the client is happy. There's no cap on rounds.
+- **AI cost:** everything runs on Colin's Claude Max plan on the Mac. There are no extra API bills.
+- **Automation pricing:** $100–$300/mo per automation, depending on how niche it is (replaces $300 setup + $49/mo).
 - **Visibility:** a live dashboard that Colin builds as a localhost front end on the Mac, showing every client, their stage, and every agent action.
 
 ## Build order: one at a time, each one live before the next

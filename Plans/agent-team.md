@@ -40,7 +40,7 @@ Built fresh (Genie is a reference only). Signs every email "Buddy from Northboun
 
 **Buddy's rules:**
 - Must be excellent at communicating: warm, clear, short, and always answering what the client actually asked.
-- Only offers what's on the menu, at menu prices. Never invents discounts, features, deadlines or terms.
+- Sells the menu at the pricing engine's price. **Off-menu asks (an app, a logo, ads, SEO): Buddy says yes and quotes them,** after Site Builder or Automation Builder confirms it can be built and estimates the work. Buddy never invents discounts, deadlines or terms beyond the written rules.
 - Never claims results, reviews or numbers Northbound doesn't have.
 - If a client asks directly whether they're talking to a person or an AI, Buddy answers honestly.
 - Never moves money. Buddy only sends payment links.
@@ -100,6 +100,9 @@ Colin presses it. It finds verified small businesses and sends the approved cold
   - Hyper-specific to one company → a one-time build fee upfront, then the regular monthly price.
 - **7-day clock:** counts only days Northbound is working. It pauses while the client is reviewing or answering, so unlimited revisions don't break the "$100 off if late" promise.
 - **Northbound's own site:** Site Builder may change anything except the brand: the logo, Buddy's design, and the core look.
+- **When something breaks:** the agent rolls back to the last working version, retries once, then flags it red on the dashboard.
+- **Agents message each other directly.** Every message is also copied into that client's file, so the dashboard shows the full conversation.
+- **Reply speed:** while the Mac is on, Buddy answers client emails within minutes.
 - **Visibility:** a live dashboard that Colin builds as a localhost front end on the Mac, showing every client, their stage, and every agent action.
 
 ## Build order: one at a time, each one live before the next

@@ -59,7 +59,7 @@ If this file conflicts with any other plan, **this file wins.** Detail lives in 
 40. History is kept in **plain files**: the last 30 days in a working log, then moved to a long-term archive file kept forever. No database service.
 
 ## Automations
-43. **Day-one menu:** Inbox autopilot, Post everywhere, Lead catcher, Review getter. The full first 10 is being chosen with Colin now (a new list, not the site's old service rail).
+43. **First 10 automations:** built for **home services first**. The list is in `Plans/automations.md`. **Inbox autopilot is built first.** Post everywhere is already built and sells separately; it doesn't count toward the 10. The AI receptionist is the one **cloud** exception, since it has to answer 24/7.
 44. **Runs in the client's own accounts** (their Gmail, their socials). Northbound builds and manages it.
 45. **Trials only come through Side Gig.** Users earn tokens in the Side Gig app and cash them in for a trial. Northbound then emails a **temporary license key + password, active 24–48 hours** depending on the automation, tied to their account.
 46. **Automations ship as an app the client downloads and runs on a computer, on Mac, Windows and Linux.** Phone versions maybe later.

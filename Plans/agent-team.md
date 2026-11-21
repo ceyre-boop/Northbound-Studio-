@@ -103,6 +103,10 @@ Colin presses it. It finds verified small businesses and sends the approved cold
 - **When something breaks:** the agent rolls back to the last working version, retries once, then flags it red on the dashboard.
 - **Agents message each other directly.** Every message is also copied into that client's file, so the dashboard shows the full conversation.
 - **Reply speed:** while the Mac is on, Buddy answers client emails within minutes.
+- **Off-menu pricing:** Builder estimates the hours; Buddy quotes hours × Northbound's rate.
+- **Design work agents can't do well (logos, brand design):** goes to Colin's art student. Agents handle everything else.
+- **Non-payment:** Buddy sends reminders on day 1, 3 and 7. The site or automation pauses at day 14.
+- **Positioning shift (2026-11-21):** automations are now Northbound's main product and its portfolio; websites are the side offer.
 - **Visibility:** a live dashboard that Colin builds as a localhost front end on the Mac, showing every client, their stage, and every agent action.
 
 ## Build order: one at a time, each one live before the next

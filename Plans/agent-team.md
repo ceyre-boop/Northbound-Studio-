@@ -43,7 +43,7 @@ Built fresh (Genie is a reference only). Signs every email "Buddy from Northboun
 - Sells the menu at the pricing engine's price. **Off-menu asks (an app, a logo, ads, SEO): Buddy says yes and quotes them,** after Site Builder or Automation Builder confirms it can be built and estimates the work. Buddy never invents discounts, deadlines or terms beyond the written rules.
 - Never claims results, reviews or numbers Northbound doesn't have.
 - If a client asks directly whether they're talking to a person or an AI, Buddy answers honestly.
-- Never moves money. Buddy only sends payment links.
+- Moves no money except the one refund the refund rule allows. Otherwise Buddy only sends payment links.
 
 ## Site Builder
 
@@ -90,7 +90,6 @@ Colin presses it. It finds verified small businesses and sends the approved cold
   - On a legal threat, Buddy stays calm and polite, admits no fault, and makes no legal promises.
   - Every hard email is flagged on the dashboard.
 - **Hosting:** all client sites live on Colin's Vercel. If a client cancels, they get their words and photos, not the code.
-- **Custom automations:** $300 setup + $49/mo to start, raised over time like the website price ladder.
 - **Client memory:** one file per client in a private folder on the Mac (later the Mac mini). Every agent reads and writes it, and it's never in the public repo.
 - **Revisions:** Site Builder redesigns until the client is happy. There's no cap on rounds.
 - **AI cost:** everything runs on Colin's Claude Max plan on the Mac. There are no extra API bills.
@@ -103,7 +102,6 @@ Colin presses it. It finds verified small businesses and sends the approved cold
 - **When something breaks:** the agent rolls back to the last working version, retries once, then flags it red on the dashboard.
 - **Agents message each other directly.** Every message is also copied into that client's file, so the dashboard shows the full conversation.
 - **Reply speed:** while the Mac is on, Buddy answers client emails within minutes.
-- **Off-menu pricing:** Builder estimates the hours; Buddy quotes hours × Northbound's rate.
 - **Design work agents can't do well (logos, brand design):** goes to Colin's art student. Agents handle everything else.
 - **Non-payment:** Buddy sends reminders on day 1, 3 and 7. The site or automation pauses at day 14.
 - **Positioning shift (2026-11-21):** automations are now Northbound's main product and its portfolio; websites are the side offer.

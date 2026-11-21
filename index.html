@@ -27,6 +27,7 @@
 <link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/dream.css">
+<link rel="stylesheet" href="css/cinematic.css">
 <style>
   /* The contact form. Sized with the page's own tokens; nothing here moves
      once painted. */
@@ -195,32 +196,107 @@
     <h2 class="section-title">Built for one business. Yours.</h2>
     <p class="section-lede">Every business has one job that eats the owner's week, and it is never the work they love. We build the tool that does that job, test it, and keep it running. These are the ones we built for ourselves first.</p>
 
-    <ol class="program">
-      <li class="program-row">
-        <span class="program-no">No. 001</span>
-        <div class="program-body">
-          <h3>The inbox, sorted and answered</h3>
-          <p>Reads what comes in, sorts it, and drafts the replies, so the mail that needs a person is the only mail a person sees.</p>
+    <div class="machines" data-machines>
+      <div class="machines-track">
+        <div class="machines-stage">
+          <ol class="machines-rail" aria-hidden="true">
+            <li data-dot="1"><b>001</b></li>
+            <li data-dot="2"><b>002</b></li>
+            <li data-dot="3"><b>003</b></li>
+          </ol>
+
+          <!-- 001 · INBOX -->
+          <article class="machine is-active" data-machine="1">
+            <div class="machine-copy">
+              <span class="machine-no">No. 001</span>
+              <h3>The inbox, sorted and answered</h3>
+              <p>It reads what comes in, sorts it, and drafts the replies — so the only mail you ever open is the mail that actually needs you.</p>
+              <span class="machine-status">In use</span>
+            </div>
+            <div class="machine-viz viz-inbox" aria-hidden="true">
+              <svg viewBox="0 0 500 360" role="img">
+                <g class="vz-mail">
+                  <rect class="mail m1" x="24" y="70"  width="86" height="16" rx="4"/>
+                  <rect class="mail m2" x="24" y="110" width="86" height="16" rx="4"/>
+                  <rect class="mail m3" x="24" y="150" width="86" height="16" rx="4"/>
+                  <rect class="mail m4" x="24" y="190" width="86" height="16" rx="4"/>
+                  <rect class="mail m5" x="24" y="230" width="86" height="16" rx="4"/>
+                </g>
+                <g class="vz-links">
+                  <path class="lnk" d="M110 160 H210"/>
+                  <path class="lnk" d="M270 160 C320 160 320 96 372 96"/>
+                  <path class="lnk" d="M270 160 H372"/>
+                  <path class="lnk" d="M270 160 C320 160 320 224 372 224"/>
+                </g>
+                <g class="vz-hub"><rect x="210" y="138" width="60" height="44" rx="10"/><text x="240" y="164">SORT</text></g>
+                <g class="vz-out">
+                  <g class="chip reply"><rect x="372" y="78"  width="92" height="34" rx="9"/><text x="418" y="99">Reply</text></g>
+                  <g class="chip fyi"><rect x="372" y="143" width="92" height="34" rx="9"/><text x="418" y="164">FYI</text></g>
+                  <g class="chip skip"><rect x="372" y="208" width="92" height="34" rx="9"/><text x="418" y="229">Skip</text></g>
+                </g>
+                <g class="vz-draft"><rect x="356" y="286" width="124" height="40" rx="10"/><text x="418" y="311">Draft ready ✓</text></g>
+              </svg>
+            </div>
+          </article>
+
+          <!-- 002 · POSTER -->
+          <article class="machine" data-machine="2">
+            <div class="machine-copy">
+              <span class="machine-no">No. 002</span>
+              <h3>One video, every app</h3>
+              <p>Drop a clip in once and it posts to seven apps for you — no copying, no pasting, no logging in seven times.</p>
+              <span class="machine-status">Built and tested</span>
+            </div>
+            <div class="machine-viz viz-post" aria-hidden="true">
+              <svg viewBox="0 0 500 360" role="img">
+                <g class="vz-links">
+                  <path class="lnk" d="M150 180 C230 120 250 70  330 60"/>
+                  <path class="lnk" d="M150 180 C230 150 250 120 330 118"/>
+                  <path class="lnk" d="M150 180 C240 175 260 176 330 176"/>
+                  <path class="lnk" d="M150 180 C230 210 250 232 330 234"/>
+                  <path class="lnk" d="M150 180 C230 240 250 292 330 292"/>
+                </g>
+                <g class="vz-src"><rect x="70" y="140" width="80" height="80" rx="12"/><path class="play" d="M102 162 v36 l30 -18 z"/><text x="110" y="246">1 clip</text></g>
+                <g class="vz-apps">
+                  <g class="app a1"><rect x="330" y="42"  width="112" height="36" rx="9"/><text x="386" y="64">TikTok</text></g>
+                  <g class="app a2"><rect x="330" y="100" width="112" height="36" rx="9"/><text x="386" y="122">Instagram</text></g>
+                  <g class="app a3"><rect x="330" y="158" width="112" height="36" rx="9"/><text x="386" y="180">YouTube</text></g>
+                  <g class="app a4"><rect x="330" y="216" width="112" height="36" rx="9"/><text x="386" y="238">Facebook</text></g>
+                  <g class="app a5"><rect x="330" y="274" width="112" height="36" rx="9"/><text x="386" y="296">+ three</text></g>
+                </g>
+              </svg>
+            </div>
+          </article>
+
+          <!-- 003 · CUSTOM -->
+          <article class="machine" data-machine="3">
+            <div class="machine-copy">
+              <span class="machine-no">No. 003</span>
+              <h3>The one that's slowing <em>you</em> down</h3>
+              <p>Follow-ups, quotes, scheduling, reminders, reports. Tell us the job and we build the machine around how your business already works.</p>
+              <span class="machine-status"><a href="#contact">Tell us what it is →</a></span>
+            </div>
+            <div class="machine-viz viz-custom" aria-hidden="true">
+              <svg viewBox="0 0 500 360" role="img">
+                <g class="vz-links">
+                  <path class="lnk" d="M118 70  C210 70  210 160 232 168"/>
+                  <path class="lnk" d="M118 140 C210 140 210 164 232 172"/>
+                  <path class="lnk" d="M118 210 C210 210 210 188 232 180"/>
+                  <path class="lnk" d="M118 280 C210 280 210 196 232 188"/>
+                </g>
+                <g class="vz-ins">
+                  <g class="in i1"><rect x="20" y="54"  width="98" height="32" rx="9"/><text x="69" y="74">Quotes</text></g>
+                  <g class="in i2"><rect x="20" y="124" width="98" height="32" rx="9"/><text x="69" y="144">Follow-ups</text></g>
+                  <g class="in i3"><rect x="20" y="194" width="98" height="32" rx="9"/><text x="69" y="214">Reminders</text></g>
+                  <g class="in i4"><rect x="20" y="264" width="98" height="32" rx="9"/><text x="69" y="284">Your job</text></g>
+                </g>
+                <g class="vz-core"><rect x="232" y="138" width="150" height="84" rx="16"/><text x="307" y="172">Your</text><text x="307" y="196">automation</text><circle class="spark" cx="307" cy="180" r="66"/></g>
+              </svg>
+            </div>
+          </article>
         </div>
-        <span class="program-status">In use</span>
-      </li>
-      <li class="program-row">
-        <span class="program-no">No. 002</span>
-        <div class="program-body">
-          <h3>One video, every app</h3>
-          <p>Upload a clip once and it posts to seven social apps. No copying, no pasting, no logging in seven times.</p>
-        </div>
-        <span class="program-status">Built and tested</span>
-      </li>
-      <li class="program-row is-open">
-        <span class="program-no">No. 003</span>
-        <div class="program-body">
-          <h3>The one that's slowing you down</h3>
-          <p>Follow-ups, quotes, scheduling, reminders, reports. Tell us the job and we build the automation around how your business already works.</p>
-        </div>
-        <span class="program-status"><a href="#contact">Tell us →</a></span>
-      </li>
-    </ol>
+      </div>
+    </div>
   </section>
 
   <!-- 3 · HOW IT WORKS -->
@@ -403,5 +479,6 @@
 
 <script src="js/smoke.js" defer></script>
 <script src="js/dream.js" defer></script>
+<script src="js/cinematic.js" defer></script>
 </body>
 </html>

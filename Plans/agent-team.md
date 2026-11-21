@@ -1,119 +1,90 @@
 # Northbound Agent Team
 
-Three agents. Each one owns a field, and each field has three jobs.
-Every job is a fixed recipe: the same trigger, the same steps, and the same output every time. No improvising.
+Agreed with Colin on 2026-11-21. This replaces the earlier Sales/Kitchen/Care draft.
 
-Colin is the CEO. He taps approvals on the Molly Needs list and personally does only new or experimental work (post automation, videos).
+Colin is the CEO. Agents run the business fully automatically and Colin corrects after the fact. He personally works only on new and experimental automations, the post automation, and the videos.
 
-| Agent | Field | Jobs |
+Agents run because **real clients do something**, not on a schedule. The only exception is cold outreach, which runs when Colin presses a button.
+
+---
+
+## The team
+
+| Agent | Woken by | Job |
 |---|---|---|
-| **Sales** | Getting customers | Find, Reach, Close |
-| **Kitchen** | Making the product | Intake, Build + Test, Launch |
-| **Care** | Keeping customers | Keep Running, Grow, Report |
-
-Work moves Sales → Kitchen → Care, recorded in one shared pipeline file (one row per lead or client, with its stage).
-
----
-
-## Agent 1: Sales
-
-### Job 1: Find (every morning)
-1. Search Google Maps for "[business type] [city]", rotating types and cities.
-2. Keep only businesses with a public contact, and a website that's missing, breaks on a phone, or is outdated.
-3. Write their single worst website problem in one line.
-4. Drop duplicates, opt-outs, past clients, and anyone contacted in the last 90 days.
-- **Output:** 20 leads added to the pipeline.
-
-### Job 2: Reach (after Find)
-1. Fill the approved email template with the business name and its problem.
-2. Send from `ceyre@northbound-dev.com`, within the daily cap (start at 10).
-3. Follow up on day 4 and day 10, then stop.
-4. Every email has the postal address and opt-out line. Opt-outs are permanent.
-5. Social DMs are drafted only, and Colin taps send.
-- **Output:** sends logged; bounces and opt-outs handled. Pauses itself if spam complaints spike.
-
-### Job 3: Close (whenever a reply comes in)
-1. Sort the reply: yes / question / wants a preview / not now / no.
-2. Question → answer from the menu only.
-3. Wants a preview → Kitchen builds a free homepage preview from their public info, and Sales sends it.
-4. Yes → send the $250 deposit link (it redirects to the intake form).
-5. Not now → recheck in 90 days. No → stop.
-6. Anything off the menu → Colin's Needs list.
-- **Output:** a deposit paid moves the client to Kitchen.
+| **Buddy** | Payment taken · client email or reply · edit request · Site Builder or Automation Builder finishing | The client's only point of contact. Communicates, onboards, updates, upsells, and asks about bottlenecks |
+| **Site Builder** | Buddy has everything needed to build | Builds the site the way the client asked, tests it, deploys it, and connects their domain until it's live |
+| **Automation Builder** | Buddy logs a client bottleneck | Builds a custom automation for that company, and turns repeat ones into Northbound products |
+| **Lead button** | Colin presses it | Finds verified leads and sends the cold email |
 
 ---
 
-## Agent 2: Kitchen
+## Buddy: the voice of Northbound
 
-### Job 1: Intake (when the deposit and form are in)
-1. Check all 10 intake answers.
-2. Missing anything → ask the client on day 1, 2 and 4.
-3. Form complete → **start the 7-day clock**.
-4. Turn the answers into `client.json`, which maps to the template's blanks.
-- **Output:** a client file ready to build.
+Built fresh (Genie is a reference only). Signs every email "Buddy from Northbound."
 
-### Job 2: Build + Test (day 1–3)
-1. Fill the universal template from `client.json`. No custom code.
-2. Write the copy from the client's facts only, with nothing invented.
-3. Prepare the photos and logo, then deploy a private preview.
-4. Run the test checklist: phone and desktop layouts, speed, every link, click-to-call, no placeholder text, and **the contact form sends a real test message that arrives**.
-5. Any check fails → fix it and test again. Nothing moves on until every check passes.
-- **Output:** a tested preview link.
+**On payment taken (Stripe webhook):**
+1. Send the onboarding email right away.
+2. Carry on the conversation until everything the build needs is in: the intake answers, logo, photos, and domain.
+3. Start the 7-day clock when the info is complete, then hand off to Site Builder.
 
-### Job 3: Launch (day 4–7)
-1. Send the client the preview; apply their one round of edits; re-run the tests.
-2. **Queue the site for Colin's one-tap go-live approval.**
-3. Connect the domain and SSL, then go live.
-4. Send the $250 balance link plus the $49/mo subscription, and the handover email (live link, walkthrough video, how to request edits).
-5. Past day 7 → apply the $100 off automatically and tell the client.
-- **Output:** a live, paid site, handed to Care.
+**During the build:** send the client short updates, and answer their questions.
 
----
+**Domains:** explain that the client buys their own domain (Squarespace or anywhere else), and walk them through it step by step. Northbound then sets the DNS to point at their site. Northbound never pays for a client's domain.
 
-## Agent 3: Care
+**After launch, always in contact:**
+- Edit requests → small ones go to Site Builder; bigger ones get quoted as upsells.
+- Check-ins, review and referral asks.
+- Upsell Northbound services when they fit the client's business.
+- **Ask every client what slows their business down.** Each bottleneck gets logged and handed to Automation Builder.
 
-### Job 1: Keep Running (always on)
-1. Uptime check every few minutes, backups, SSL renewals.
-2. Site down → roll back or fix, then tell the client. Escalate to Colin after an hour.
-3. Edit requests → do anything under 30 minutes a month; bigger asks go to Sales as an upsell.
-4. Failed $49 payment → reminders on day 1, 3 and 7; escalate at 30 days.
-- **Output:** every site up and every edit done.
+**Buddy's rules:**
+- Must be excellent at communicating: warm, clear, short, and always answering what the client actually asked.
+- Only offers what's on the menu, at menu prices. Never invents discounts, features, deadlines or terms.
+- Never claims results, reviews or numbers Northbound doesn't have.
+- If a client asks directly whether they're talking to a person or an AI, Buddy answers honestly.
+- Never moves money. Buddy only sends payment links.
 
-### Job 2: Grow (by client age)
-1. Day 30 → ask for a Google review and one referral.
-2. Day 45–60 → offer one other Northbound service.
-3. Referrals go to Sales as warm leads.
-4. When 2 of 3 quotes are closing → tell Colin it's time for the next price rung.
-- **Output:** reviews, referrals and upsells logged.
+## Site Builder
 
-### Job 3: Report (9:30pm daily, plus Sunday)
-1. Read the pipeline and Stripe (read-only).
-2. Nightly digest to Colin: sent, replies, deposits, sites in build, launches, MRR, and anything stuck.
-3. Flag any build 2 days from its 7-day deadline.
-4. Sunday scoreboard (outcomes only), plus the monthly revenue and tax set-aside.
-- **Output:** one message. Colin reads it in under a minute.
+1. Builds from the universal template, customized however the client asked.
+2. Tests everything before going live: phone and desktop layouts, speed, links, click-to-call, no placeholder text, and the contact form actually delivering a real test message.
+3. Deploys it, sets DNS on the client's domain, and confirms the site loads publicly over SSL.
+4. Reports back to Buddy, who tells the client and sends the balance and care-plan links.
+
+Nothing goes live if a test fails.
+
+## Automation Builder
+
+1. Takes each bottleneck Buddy logs and designs an automation that fixes it for that specific company.
+2. Builds it and tests it, then hands it to Buddy to present to the client as an offer.
+3. When the same bottleneck shows up for several clients, it packages that automation as a Northbound product.
+4. Doesn't wait for Colin. Colin joins only on new or experimental ones (TABOOST-style tools).
+
+## Lead button
+
+Colin presses it. It finds verified small businesses and sends the approved cold email: postal address and opt-out line in every email, opt-outs permanent, follow-ups on day 4 and day 10. Replies go to Buddy.
 
 ---
 
-## Colin's one-tap approvals (Molly Needs list)
-1. A new email template, before its first send
-2. Each site, before it goes live
-3. Anything off the menu: custom work, discounts, refunds
-4. Social DMs
+## Where it runs
 
-Items over 3 days old go to the top of the digest. Over 7 days, the agent takes the safe default (don't send, don't launch) and reports it.
+**Colin's Mac**, moving to a Mac mini soon.
 
-## Hard rules
-- **Never move money.** Agents send payment links only.
-- **Nothing fake:** no invented reviews, results, or numbers.
-- **Verified leads only.** Postal address and opt-out line in every email; opt-outs are permanent.
-- **No automated social DMs.**
-- **Nothing goes live** without the tests passing and Colin's tap.
-- **No secrets in chat or code. Nothing gets deleted.**
+- Events wait until the Mac is on. Colin works about 12 hours a day; a client who emails overnight gets answered the next day, and that's fine at this volume.
+- Payments are still recorded by Stripe and the site's existing webhook, so no money event is ever lost.
+- Revisit this when there are enough clients for the wait to matter.
 
-## Build order: one agent at a time
-1. **Sales.** Live when real leads come in daily, emails send, and a reply gets the deposit link.
-2. **Kitchen.** Live when the universal template exists and one real site launches.
-3. **Care.** Live when the first site has run a month, with one edit and one digest done.
+## Settled decisions
+- Fully automatic. No approval taps; Colin corrects afterward.
+- Clients buy their own domains; Northbound only sets the DNS.
+- Buddy signs as "Buddy from Northbound."
+- Buddy is built fresh, not on Genie's code.
+- Cold outreach runs only when Colin presses the button.
 
-Until an agent is live, its jobs are done by hand, the way `Plans/the-line.md` describes.
+## Build order: one at a time, each one live before the next
+1. **Buddy, onboarding only:** payment → onboarding email → conversation until the info is complete.
+2. **Site Builder:** info complete → live site on the client's domain.
+3. **Buddy, after launch:** edits, check-ins, upsells, bottleneck questions.
+4. **Automation Builder.**
+5. **Lead button.**

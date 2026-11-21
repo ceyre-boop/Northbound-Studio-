@@ -58,8 +58,14 @@ If this file conflicts with any other plan, **this file wins.** Detail lives in 
 39. Agents check past answers so Colin is **never asked the same thing twice**.
 40. History is kept in **plain files**: the last 30 days in a working log, then moved to a long-term archive file kept forever. No database service.
 
+## Automations
+43. **Day-one menu:** Inbox autopilot, Post everywhere, Lead catcher, Review getter, plus the rest of Colin's pre-planned first 10 (list still to be added here).
+44. **Runs in the client's own accounts** (their Gmail, their socials). Northbound builds and manages it.
+45. **Trials only come through Side Gig.** Users earn tokens in the Side Gig app and cash them in for a trial. Northbound then emails a **temporary license key + password, active 24–48 hours** depending on the automation, tied to their account.
+46. **Automations ship as an app the client downloads and runs on a computer.** Phone versions maybe later.
+
 ## Build order: one at a time
-41. Build 00 (remove prices) → Build 01 (Buddy onboarding + dashboard v0, together) → Site Builder → Buddy after launch → Automation Builder → Lead button.
+41. Build 00 (remove prices) → Build 01 (Buddy onboarding + dashboard v0, together) → **Automation Builder** → Site Builder → Buddy after launch → Lead button. (Changed 2026-11-21: automations are the main product, so the Automation Builder moves ahead of the Site Builder.)
 
 ## Always
 42. No secrets in chat or code; they live in `.env` on the Mac. No invented reviews, results or numbers. Cold emails include the postal address and opt-out line, and opt-outs are permanent. Nothing gets deleted.

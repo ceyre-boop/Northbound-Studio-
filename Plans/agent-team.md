@@ -113,7 +113,7 @@ Colin presses it. It finds verified small businesses and sends the approved cold
 
 ## Build order: one at a time, each one live before the next
 1. **Buddy, onboarding only + dashboard v0, built together:** payment → onboarding email → conversation until the info is complete. Dashboard v0 is only the event log, the live activity screen, and question texts by iMessage. Metrics and the full question cards come after Buddy works live.
-2. **Site Builder:** info complete → live site on the client's domain.
+2. **Automation Builder** (moved up 2026-11-21: automations are the main product).
 3. **Buddy, after launch:** edits, check-ins, upsells, bottleneck questions.
-4. **Automation Builder.**
+4. **Site Builder:** info complete → live site on the client's domain.
 5. **Lead button.**

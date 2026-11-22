@@ -48,7 +48,7 @@ If this file conflicts with any other plan, **this file wins.** Detail lives in 
 
 ## Where it runs
 33. **On Colin's Mac**, moving to a Mac mini soon. Overnight events wait until morning; that's fine at this volume.
-34. All AI runs on **Colin's Claude Max plan** (headless Claude Code). No paid API for the AI.
+34. **Colin's own internal agents and dev** (Buddy, the supervisor, Site/Automation Builder, Lead button) run on **Colin's Claude Max plan** (headless Claude Code), no paid API. **Client-facing automations are different — their AI goes through the API, never the Max plan. See "AI hosting" below.**
 35. **Client memory:** one private file per client on the Mac, never in this public repo.
 
 ## Dashboard (localhost on the Mac)
@@ -71,3 +71,13 @@ If this file conflicts with any other plan, **this file wins.** Detail lives in 
 
 ## Always
 42. No secrets in chat or code; they live in `.env` on the Mac. No invented reviews, results or numbers. Cold emails include the postal address and opt-out line, and opt-outs are permanent. Nothing gets deleted.
+
+## AI hosting for client automations (decided 2026-11-21)
+49. **Never run a client's automation through Colin's personal Claude Max plan.** Reselling a personal subscription is against Anthropic's terms and risks suspending the account the whole business runs on. Max is for Colin's own internal agents and dev only (item 34).
+50. **Client-facing AI goes through the Anthropic API**, under Northbound's own commercial API key, via a small Northbound-run backend (it can live on the Mac mini, or a cloud server). This is the legitimate "we host the AI for you" model, and its billing is completely separate from Colin's Max usage.
+51. **Three AI modes for client apps:**
+    - **Hosted (default):** the app calls Northbound's backend, which holds the API key. The client signs in once and never sees a key. This is the premium, on-brand experience — the client does almost nothing, Northbound does everything.
+    - **BYO-key (optional cheaper tier):** the technical few supply their own Anthropic API key and pay Anthropic directly.
+    - **Never** the personal Max plan for any client work.
+52. **Every hosted client has a per-client monthly token cap and rate limit, enforced by the backend**, so no client can run up Colin's API bill. The dashboard tracks tokens and cost per client. Use the cheapest model that does the job (e.g. Haiku for routine drafts) to keep margins high — API cost is cents per client per month against a $100–$300 price.
+53. The backend is the auth + metering + cap layer between the client apps and the Anthropic API. The client apps must support all three modes above, defaulting to Hosted.

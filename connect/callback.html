@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Connecting…</title>
+<style>body{font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0d1117;color:#e9ecf2;padding:40px 22px;max-width:520px;margin:auto}h1{font-size:24px}</style>
+</head>
+<body>
+<h1>Connecting…</h1>
+<p id="m">Sending you back to the poster on your home Wi-Fi.</p>
+<script>
+/* Post Everywhere's sign-in return page. A platform (YouTube, Facebook, Instagram, TikTok, LinkedIn)
+   sends the person here after they sign in; this page hands the one-time code back to the poster on
+   their own Mac, on their home Wi-Fi, and nowhere else. It only forwards code, state and error. */
+(function () {
+  var q = new URLSearchParams(location.search), m = document.getElementById('m'), host = '';
+  try {
+    var raw = (q.get('state') || '').split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+    while (raw.length % 4) raw += '=';
+    host = String(JSON.parse(atob(raw)).h || '');
+  } catch (e) { host = ''; }
+  if (!/^([a-z0-9-]{1,63}\.local|localhost|127\.0\.0\.1):(4747|4748|4749)$/i.test(host)) {
+    m.textContent = 'This sign-in is not for a poster on your home Wi-Fi, so it stops here.';
+    return;
+  }
+  var out = new URLSearchParams();
+  ['code', 'state', 'error', 'error_description'].forEach(function (k) { var v = q.get(k); if (v) out.set(k, v.slice(0, 4096)); });
+  location.replace('http://' + host + '/connect/finish?' + out.toString());
+})();
+</script>
+</body>
+</html>

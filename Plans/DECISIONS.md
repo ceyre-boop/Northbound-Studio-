@@ -45,6 +45,7 @@ If this file conflicts with any other plan, **this file wins.** Detail lives in 
 30. Design work the agents can't do well (logos, brand) goes to Colin's **art student**, paid **per job**.
 31. Client sites are hosted on **Colin's Vercel**. If a client cancels, they get their content, not the code.
 32. When something breaks: **roll back to the last working version, retry once, then flag it red** on the dashboard.
+54. **Domain access (settled 2026-11-22):** the client buys and owns the domain in **their own registrar account** (#20), with Squarespace as Buddy's default suggestion. They give Northbound access through **the registrar's own sharing** (Squarespace's Permissions page, GoDaddy Delegate Access, Namecheap Share Access, a Cloudflare member) to ceyre@northbound-dev.com, **never their password**. Site Builder adds only the records the site needs (`A @ 76.76.21.21`, `CNAME www cname.vercel-dns.com`), **never changes or removes their existing records**, and confirms the domain on public DNS and over SSL before Buddy says it's live. If a registrar can't share access, Buddy sends the records step by step and Site Builder watches until they resolve. Email records (SPF, DKIM, DMARC) only when an automation sends from their domain, and only with the client's OK. When a client leaves, Northbound removes its own access; the domain stays theirs.
 
 ## Where it runs
 33. **On Colin's Mac**, moving to a Mac mini soon. Overnight events wait until morning; that's fine at this volume.

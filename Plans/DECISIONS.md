@@ -5,7 +5,7 @@ Colin answered every one of these in the 2026-11-21 planning session. **They are
 If this file conflicts with any other plan, **this file wins.** Detail lives in `agent-team.md`, `pricing-engine.md`, `dashboard.md` and `the-line.md`.
 
 ## Business
-1. Colin is the CEO. Agents run the business **fully automatically**: no approval taps, and Colin corrects afterward. He personally does only new or experimental work (new automations, post automation, videos).
+1. Colin is the CEO. Agents run the business and act on their own, **except these always wait for Colin's tap: money out (refunds and payments/payment links), legal or firing a client, a site going live, and a brand-new invented product before any client sees it.** Everything else — routine client email, drafts, lead searches, proposals — agents do themselves. (This supersedes the original "fully automatic, no approval taps" wording; it was written before the autonomy decisions in VISION.md and the later rounds.) Early on, Colin may also keep a temporary training-wheels tap on Buddy's outbound emails while he watches the drafts; that's a setting he can turn off, not a permanent rule. He personally does only new or experimental work (new automations, post automation, videos).
 2. **Automations are the main product, and websites are the side offer.** Cold emails, the site and the reels lead with automations; websites come second.
 3. We sell to any small business anywhere, online.
 4. The portfolio shows client work **without names** ("a roofing company"), with real measured results only.
@@ -36,7 +36,7 @@ If this file conflicts with any other plan, **this file wins.** Detail lives in 
 23. **Deposit:** 50% upfront, 50% at launch.
 24. **Automations:** **$100–$300/mo**, with **no setup fee**. Broad (e.g. Gmail) → about $100; niche (e.g. making and posting videos) → up to $300; hyper-specific to one company → a one-time build fee, then the monthly price.
 25. **Off-menu work:** one fixed price = estimated hours × **$95/hr** (agent work) or **$150/hr** (anything Colin builds himself), with a **$250 minimum**. Always quoted as a fixed price, never billed as hours.
-26. **Refund rule (the only one):** the full $250 deposit back if the client cancels before the build starts. No refund once the site is live. The $49/mo cancels with 30 days' notice, and the client keeps their words and photos. Buddy may issue this refund through Stripe; it moves no other money.
+26. **Refund rule (the only one):** the client's **full deposit back — whatever they actually paid** (the deposit is half their quoted price, so it varies; it is NOT a flat $250) — if they cancel before the build starts. No refund once the site is live. The $49/mo cancels with 30 days' notice, and the client keeps their words and photos. Buddy may issue this refund through Stripe; it moves no other money.
 27. **Non-payment:** reminders on day 1, 3 and 7, then the site or automation **pauses at day 14**.
 28. **Guarantee:** live in 7 days or $100 off. **The clock counts only Northbound's working days**; it pauses while the client reviews or replies.
 

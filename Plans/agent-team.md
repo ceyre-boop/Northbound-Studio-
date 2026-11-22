@@ -2,7 +2,7 @@
 
 Agreed with Colin on 2026-11-21. This replaces the earlier Sales/Kitchen/Care draft.
 
-Colin is the CEO. Agents run the business fully automatically and Colin corrects after the fact. He personally works only on new and experimental automations, the post automation, and the videos.
+Colin is the CEO. Agents run the business and act on their own, except money out (refunds/payments), legal or firing a client, a site going live, and a brand-new invented product, which wait for his tap (see DECISIONS.md #1). He personally works only on new and experimental automations, the post automation, and the videos.
 
 Agents run because **real clients do something**, not on a schedule. The only exception is cold outreach, which runs when Colin presses a button.
 
@@ -78,7 +78,7 @@ Colin presses it. It finds verified small businesses and sends the approved cold
 - Revisit this when there are enough clients for the wait to matter.
 
 ## Settled decisions
-- Fully automatic. No approval taps; Colin corrects afterward.
+- Agents act on their own; Colin taps only on money out, legal/firing, site go-live, and new invented products (see DECISIONS.md #1). Not "fully automatic with no taps" — that early wording is superseded.
 - Clients buy their own domains; Northbound only sets the DNS.
 - Buddy signs as "Buddy from Northbound," in an upbeat-robot voice: eager, a little playful, still professional.
 - Buddy sends from and reads `ceyre@northbound-dev.com` (the same address as cold outreach).

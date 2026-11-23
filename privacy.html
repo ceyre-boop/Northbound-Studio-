@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Privacy Policy — Northbound Studio</title>
+<meta name="description" content="What Northbound Studio's websites and automation apps collect, where it stays, and how to remove it.">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<!--
+  The privacy policy: required by Google, Meta and TikTok before Northbound's apps can sign anyone in.
+  Self-contained like account-received.html: the site's fonts and colours, none of its scripts.
+-->
+<style>
+  @font-face { font-family: 'Fraunces'; src: url('fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url('fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  :root {
+    --ink: #ECEEF2; --ink-soft: #B4B9C2; --line: #3E434C; --bg: #1F2228;
+    --panel: #2B2F36; --accent: #9DBAF7; --accent-dark: #B5CCFA;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --gutter: clamp(20px, 5vw, 40px);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--bg); line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 22px 10px; max-width: 1080px; }
+  .brand img { display: block; height: 22px; width: auto; }
+  .mail-link { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 18px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; text-decoration: none; }
+  main { padding: clamp(32px, 6vw, 64px) 0 80px; }
+  h1 { font-family: var(--display); font-weight: 500; font-size: clamp(30px, 4.5vw, 42px); letter-spacing: -0.01em; line-height: 1.1; margin: 0 0 6px; }
+  h2 { font-family: var(--display); font-weight: 500; font-size: 22px; margin: 36px 0 10px; }
+  .step { font-weight: 600; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 22px 24px; margin: 22px 0; }
+  .card p, .card ul { margin: 0 0 10px; } .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  ul { padding-left: 20px; } li { margin-bottom: 6px; }
+  .muted { color: var(--ink-soft); font-size: 14px; }
+  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--ink-soft); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Northbound Studio — home"><img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24"></a>
+    <a class="mail-link" href="mailto:hello@northbound-dev.com">Email us</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="step">Privacy</p>
+    <h1>Privacy Policy</h1>
+    <p class="muted">Effective November 23, 2026</p>
+
+    <div class="card">
+      <p><strong>The short version.</strong> Northbound Studio builds websites and automation apps for small businesses. Our apps run on <em>your</em> computer and work with accounts <em>you</em> connect. We use your information only to do the job you asked for. We never sell it, never use it for advertising, and nothing is sent or posted on your behalf until you say so.</p>
+    </div>
+
+    <h2>Who we are</h2>
+    <p>Northbound Studio, Grand Ledge, Michigan, USA. Questions or requests: <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a>.</p>
+
+    <h2>What our apps access, and why</h2>
+    <p>When you connect an account, you choose it on that service's own sign-in page, and the app asks only for what it needs:</p>
+    <ul>
+      <li><strong>Email (Gmail, Outlook):</strong> to read the messages an automation works on, such as new customer enquiries, and to write <em>drafts</em> of replies, quotes and reminders for you to review.</li>
+      <li><strong>Calendar (Google Calendar, Outlook):</strong> to read upcoming appointments so reminders can go out on time.</li>
+      <li><strong>Sheets (Google Sheets):</strong> to read the rows you point it at and add new rows where you tell it to. It never overwrites your data.</li>
+      <li><strong>Social accounts (YouTube, Facebook Pages, Instagram, TikTok):</strong> to publish or upload the videos and captions you choose, to the accounts you choose. On TikTok, uploads land as drafts for you to finish in the app.</li>
+      <li><strong>Payments you take (your own Stripe account):</strong> only if you connect it, to read what has been paid. We never handle your customers' card details.</li>
+    </ul>
+
+    <h2>Where your information stays</h2>
+    <ul>
+      <li><strong>On your computer.</strong> The apps keep their data, such as your settings, leads, quotes and logs, in a folder on your own Mac.</li>
+      <li><strong>Sign-in permissions stay in your Mac's Keychain,</strong> the system's built-in password vault. They are never written to ordinary files and never sent to Northbound.</li>
+      <li><strong>AI help.</strong> To write a draft, an app sends the text that draft needs to Northbound's AI service, which asks Anthropic's Claude for the wording and sends it straight back. We record how much each request costs so we can bill fairly. We do not keep the content of your messages.</li>
+    </ul>
+
+    <h2>Who we share it with</h2>
+    <p>No one, except the services that make the apps work: the accounts you connect (Google, Microsoft, Meta, TikTok), Anthropic for AI wording, and Stripe when you pay us. We never sell your information, and we never use it for advertising or to train AI models.</p>
+
+    <h2>Google user data</h2>
+    <p>Northbound's use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements. We use Google data only to provide the features you see in the app, we do not transfer it except as described above, and no person at Northbound reads it unless you ask us to for support.</p>
+
+    <h2>What Northbound itself keeps</h2>
+    <p>For our own work with you: your name, business and contact details, what you have bought from us, and the emails you send us. Payments are handled by Stripe, so we never see your full card number.</p>
+
+    <h2>Your choices</h2>
+    <ul>
+      <li><strong>Disconnect any account</strong> in the app at any time. This removes its permission from your Keychain, and the app asks the service to cancel it where the service allows.</li>
+      <li>You can also remove access from the service itself, for example in your Google Account under "Third-party connections".</li>
+      <li><strong>Delete your data:</strong> uninstalling an app and removing its folder deletes what it kept on your Mac. To delete anything Northbound holds about you, email <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a> and we will do it within 30 days.</li>
+    </ul>
+
+    <h2>Security</h2>
+    <p>We keep access to the minimum each feature needs, store permissions in the Keychain, and test our apps so they cannot send, post or change anything you did not approve. No system is perfectly secure, so if something ever goes wrong, we will tell you promptly.</p>
+
+    <h2>Children</h2>
+    <p>Our services are for businesses and are not directed to children under 13.</p>
+
+    <h2>Changes</h2>
+    <p>If we change this policy, we will update the date at the top. If a change is significant, we will tell our clients by email before it takes effect.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">© 2026 Northbound Studio · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a></div>
+</footer>
+
+</body>
+</html>

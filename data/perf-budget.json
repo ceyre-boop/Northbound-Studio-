@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "measuredAt": "2026-11-08T06:31:22.726Z",
-  "commit": "1b8c742",
-  "codeCommit": "1b8c742",
+  "measuredAt": "2026-11-23T04:39:18.981Z",
+  "commit": "a5222a0",
+  "codeCommit": "3da1601",
   "url": "https://northbound-dev.com/studio.html",
   "harness": {
     "cpuThrottleRate": 4,
@@ -19,9 +19,9 @@
   },
   "frame": {
     "p50Ms": 8.3,
-    "p95Ms": 16.9,
-    "p99Ms": 50.1,
-    "samples": 786
+    "p95Ms": 9.3,
+    "p99Ms": 41.5,
+    "samples": 797
   },
   "acts": {
     "northlight": {
@@ -31,18 +31,18 @@
     },
     "drift": {
       "label": "Drift",
-      "p50Ms": 0,
-      "p95Ms": 1.5
+      "p50Ms": 0.1,
+      "p95Ms": 0.8
     },
     "solution": {
       "label": "Solution",
       "p50Ms": 0,
-      "p95Ms": 0.6
+      "p95Ms": 0.5
     },
     "offerings": {
       "label": "The offerings",
       "p50Ms": 0.1,
-      "p95Ms": 0.7
+      "p95Ms": 0.8
     }
   },
   "published": {
@@ -55,13 +55,13 @@
     {
       "key": "lcp4g",
       "label": "LCP — regular 4G (9 Mbps / 85ms RTT), 4x CPU",
-      "detail": "780ms (samples: 1176, 780, 600)",
+      "detail": "584ms (samples: 660, 580, 584)",
       "pass": true
     },
     {
       "key": "lcpSlow4g",
       "label": "LCP — slow 4G (1.6 Mbps / 150ms RTT), 4x CPU",
-      "detail": "1076ms (samples: 1156, 1076, 1040)",
+      "detail": "1052ms (samples: 1268, 964, 1052)",
       "pass": true
     },
     {
@@ -73,19 +73,19 @@
     {
       "key": "fpsMedian",
       "label": "FPS — median at 4x CPU, 390x844",
-      "detail": "84fps (samples: 83, 68, 100, 84, 88, 65)",
+      "detail": "115fps (samples: 120, 106, 120, 110, 110, 120)",
       "pass": true
     },
     {
       "key": "fpsMin",
       "label": "FPS — minimum at 4x CPU, 390x844",
-      "detail": "65fps",
+      "detail": "106fps",
       "pass": true
     },
     {
       "key": "jsBytes",
       "label": "JS bytes gzipped over the wire",
-      "detail": "92.8 KB",
+      "detail": "92.3 KB",
       "pass": true
     },
     {
@@ -115,30 +115,30 @@
   ],
   "report": {
     "tti": {
-      "fcp": 496,
-      "tti": 6560.5,
-      "longtaskCount": 3
+      "fcp": 448,
+      "tti": 1618,
+      "longtaskCount": 2
     },
     "scrollLongTasks": {
-      "count": 7,
-      "totalMs": 948,
-      "windowMs": 4956
+      "count": 3,
+      "totalMs": 450,
+      "windowMs": 4059.8999999910593
     },
     "programsBeforeFCP": {
-      "fcp": 536,
+      "fcp": 620,
       "total": 3,
       "beforeFCP": 0,
       "programs": [
         {
-          "time": 825.6999999880791,
+          "time": 911.7000000029802,
           "type": "WebGL2RenderingContext"
         },
         {
-          "time": 891.3000000119209,
+          "time": 977.7999999970198,
           "type": "WebGL2RenderingContext"
         },
         {
-          "time": 892.6000000238419,
+          "time": 979,
           "type": "WebGL2RenderingContext"
         }
       ]

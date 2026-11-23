@@ -338,6 +338,22 @@
       .catch(function () { /* the fallback text stays: Stripe shows the amount before any card is entered */ });
   })();
 </script>
+<script>
+  /* Arrived from a sample site (sites.html, sites/*.html, the two concept builds): note which one on the
+     order, in "Why are you coming to Northbound?", which the order email carries. Only when it's empty. */
+  (function () {
+    var names = {
+      plumber: 'Ledge Line Plumbing (plumber)', hvac: 'Northstar Heating & Air (heating and cooling)',
+      electrician: 'Brightwire Electric (electrician)', cleaner: 'Fresh Nest Cleaning (house cleaning)',
+      landscaper: 'Greenfield Lawn & Landscape (lawn and landscaping)', bakery: 'Morning Crumb Bakery (bakery and café)',
+      salon: 'Velvet Chair Salon (hair salon)', atlas: 'Atlas (trades site with booking)', vector: 'Vector (small shop with a cart)'
+    };
+    var d = new URLSearchParams(location.search).get('demo');
+    if (!d || !Object.prototype.hasOwnProperty.call(names, d)) return;
+    var why = document.getElementById('f-why-us');
+    if (why && !why.value) why.value = 'I would like the ' + names[d] + ' sample site as my starting point.';
+  })();
+</script>
 <script type="module" src="js/checkout-build.js"></script>
 
 </body>

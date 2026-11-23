@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fresh Nest Cleaning</title>
+<meta name="description" content="Reliable home cleaning by the same friendly team, every visit.">
+<style>
+  :root { --ink:#17202a; --soft:#5d6b78; --line:#e3e8ee; --bg:#ffffff; --tint:#f4f7fa; --accent:#0f766e; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+  .wrap { max-width:960px; margin:0 auto; padding:0 20px; }
+  header { padding:18px 0; border-bottom:1px solid var(--line); }
+  header .wrap { display:flex; align-items:center; gap:12px; justify-content:space-between; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; }
+  .brand img { height:40px; width:auto; }
+  .call { color:var(--accent); font-weight:600; text-decoration:none; white-space:nowrap; }
+  .hero { padding:56px 0 44px; background:var(--tint); }
+  h1 { font-size:clamp(30px, 6vw, 46px); line-height:1.1; margin:0 0 12px; }
+  .hero p { font-size:19px; color:var(--soft); margin:0 0 26px; max-width:640px; }
+  .btn { display:inline-block; background:var(--accent); color:#fff; padding:14px 26px; border-radius:10px; text-decoration:none; font-weight:600; font-size:17px; }
+  section { padding:44px 0; border-bottom:1px solid var(--line); }
+  h2 { font-size:24px; margin:0 0 18px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; }
+  .item { border:1px solid var(--line); border-radius:12px; padding:18px; }
+  .item h3 { margin:0 0 6px; font-size:18px; }
+  .item p { margin:0; color:var(--soft); }
+  ul.reasons { margin:0; padding-left:20px; } ul.reasons li { margin:6px 0; }
+  .info { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; }
+  .info div b { display:block; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--soft); margin-bottom:4px; }
+  footer { padding:28px 0 40px; color:var(--soft); font-size:14px; }
+  a { color:var(--accent); }
+  .trust { background:var(--accent); color:#fff; }
+  .trust .wrap { display:flex; flex-wrap:wrap; gap:10px 26px; padding-block:14px; font-weight:600; font-size:15px; }
+  .trust span::before { content:"✓ "; }
+  ol.steps { margin:0; padding:0; list-style:none; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; counter-reset:s; }
+  ol.steps li { counter-increment:s; border:1px solid var(--line); border-radius:12px; padding:18px; }
+  ol.steps li::before { content:counter(s); display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff; font-weight:700; margin-bottom:8px; }
+  .callbar { display:none; }
+  @media (max-width:640px) {
+    .callbar { display:block; position:fixed; left:12px; right:12px; bottom:12px; z-index:5; background:var(--accent); color:#fff; text-align:center; padding:15px; border-radius:12px; font-weight:700; text-decoration:none; box-shadow:0 6px 20px rgba(0,0,0,.18); }
+    body.has-callbar { padding-bottom:78px; }
+    header .call { display:none; }
+  }
+</style>
+</head>
+<body class="has-callbar">
+<div style="background:#111418;color:#d9dde3;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:center;text-align:center"><span>Sample site by Northbound Studio · Fresh Nest Cleaning is a made-up business</span><a href="https://northbound-dev.com/checkout.html?demo=cleaner" style="background:#9DBAF7;color:#111418;padding:6px 14px;border-radius:999px;text-decoration:none">Get this site →</a></div>
+<header><div class="wrap"><div class="brand"><span>Fresh Nest Cleaning</span></div><a class="call" href="tel:5175550168">(517) 555-0168</a></div></header>
+<div class="hero"><div class="wrap"><h1>Fresh Nest Cleaning</h1><p>Reliable home cleaning by the same friendly team, every visit.</p><a class="btn" href="mailto:book@freshnest.example?subject=Book%20a%20cleaning">Book a cleaning</a></div></div>
+<div class="trust"><div class="wrap"><span>Background-checked team</span><span>Insured and bonded</span><span>Flexible scheduling</span><span>Happiness guarantee</span></div></div>
+<section><div class="wrap"><h2>What we do</h2><div class="grid"><div class="item"><h3>Regular cleans</h3><p>Weekly or every other week, the way you like it.</p></div><div class="item"><h3>Deep cleans</h3><p>Baseboards, inside appliances, the works.</p></div><div class="item"><h3>Move-in and move-out</h3><p>Get the deposit back, or start fresh.</p></div><div class="item"><h3>Small offices</h3><p>Evening cleans that don’t get in your way.</p></div></div></div></section>
+<section><div class="wrap"><h2>How it works</h2><ol class="steps"><li>Pick a time that suits you.</li><li>Your team arrives with everything they need.</li><li>Come home to a clean house.</li></ol></div></section>
+<section><div class="wrap"><h2>Why people pick us</h2><ul class="reasons"><li>The same cleaners each time</li><li>Eco-friendly products on request</li><li>Not happy? We come back free</li></ul></div></section>
+<section id="contact"><div class="wrap"><h2>Get in touch</h2><div class="info">
+<div><b>Phone</b><a href="tel:5175550168">(517) 555-0168</a></div>
+<div><b>Email</b><a href="mailto:book@freshnest.example">book@freshnest.example</a></div>
+
+<div><b>Hours</b>Mon to Sat 8am to 6pm</div>
+<div><b>Area we serve</b>Grand Ledge, DeWitt and Okemos</div>
+</div><p style="margin-top:24px"><a class="btn" href="mailto:book@freshnest.example?subject=Book%20a%20cleaning">Book a cleaning</a></p></div></section>
+<footer><div class="wrap">© 2026 Fresh Nest Cleaning</div></footer>
+<a class="callbar" href="tel:5175550168">Call (517) 555-0168</a>
+</body>
+</html>

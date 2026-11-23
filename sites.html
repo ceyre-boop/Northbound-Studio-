@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sample sites — Northbound Studio</title>
+<meta name="description" content="Open a sample site for your kind of business on your phone, then get one like it built for you in 7 days.">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<!--
+  The sample sites: one made-up business per trade, built with Site Builder's own template (agents
+  src/sample-sites.ts writes sites/*.html), plus the two concept builds from templates.html. Each card has a phone
+  preview, a full-screen link, and "Get this site", which goes to checkout with the demo noted on the order.
+-->
+<style>
+  @font-face { font-family: 'Fraunces'; src: url('fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url('fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  :root {
+    --ink: #ECEEF2; --ink-soft: #B4B9C2; --line: #3E434C; --bg: #1F2228;
+    --panel: #2B2F36; --accent: #9DBAF7; --accent-dark: #B5CCFA;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --gutter: clamp(16px, 5vw, 40px);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 22px 10px; }
+  .brand img { display: block; height: 22px; width: auto; }
+  .mail-link { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 18px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; text-decoration: none; }
+  main { padding: clamp(28px, 5vw, 56px) 0 80px; }
+  .step { font-weight: 600; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 14px; }
+  h1 { font-family: var(--display); font-weight: 500; font-size: clamp(32px, 5vw, 48px); letter-spacing: -0.01em; line-height: 1.08; margin: 0 0 12px; }
+  .lede { color: var(--ink-soft); font-size: 18px; max-width: 640px; margin: 0 0 34px; }
+  h2 { font-family: var(--display); font-weight: 500; font-size: 26px; margin: 46px 0 6px; }
+  .sub { color: var(--ink-soft); margin: 0 0 22px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .phone { position: relative; width: 100%; aspect-ratio: 9 / 16; border-radius: 26px; border: 8px solid #0d0f12; background: #0d0f12; overflow: hidden; }
+  .phone iframe { position: absolute; top: 0; left: 0; width: 390px; height: 693px; border: 0; transform-origin: 0 0; background: #fff; pointer-events: none; }
+  .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .meta b { font-size: 17px; }
+  .meta span { color: var(--ink-soft); font-size: 13px; text-align: right; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { flex: 1 1 auto; display: inline-flex; justify-content: center; align-items: center; min-height: 44px; padding: 10px 16px; border-radius: 999px; font-weight: 600; font-size: 15px; text-decoration: none; }
+  .btn.buy { background: var(--accent); color: var(--bg); }
+  .btn.buy:hover { background: var(--accent-dark); }
+  .btn.look { border: 1px solid var(--line); }
+  .note { margin-top: 40px; color: var(--ink-soft); font-size: 14px; }
+  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--ink-soft); font-size: 14px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Northbound Studio — home"><img src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24"></a>
+    <a class="mail-link" href="mailto:hello@northbound-dev.com">Email us</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="step">Sample sites</p>
+    <h1>See your site before you buy it.</h1>
+    <p class="lede">Open the one for your kind of business on your phone. Like it? Tap <b>Get this site</b> and we build yours, with your name, photos and services, live in 7 days.</p>
+
+    <h2>One for every trade</h2>
+    <p class="sub">Built with the same template we use for clients: fast, phone-first, a call button that stays on screen.</p>
+    <div class="grid" id="trades"></div>
+
+    <h2>The bigger builds</h2>
+    <p class="sub">Multi-page concept sites: a trades business with booking, and a small shop with a cart.</p>
+    <div class="grid" id="builds"></div>
+
+    <p class="note">Every business on this page is made up. Phone numbers are 555 numbers, so nothing here rings a real person.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">© 2026 Northbound Studio · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="mailto:hello@northbound-dev.com">hello@northbound-dev.com</a></div>
+</footer>
+
+<script>
+  (function () {
+    var trades = [
+      ['plumber', 'Ledge Line Plumbing', 'Plumber'],
+      ['hvac', 'Northstar Heating & Air', 'Heating and cooling'],
+      ['electrician', 'Brightwire Electric', 'Electrician'],
+      ['cleaner', 'Fresh Nest Cleaning', 'House cleaning'],
+      ['landscaper', 'Greenfield Lawn & Landscape', 'Lawn and landscaping'],
+      ['bakery', 'Morning Crumb Bakery', 'Bakery and café'],
+      ['salon', 'Velvet Chair Salon', 'Hair salon']
+    ];
+    var builds = [
+      ['atlas', 'Atlas', 'Trades site with booking', '/demos/atlas/'],
+      ['vector', 'Vector', 'Small shop with a cart', '/demos/vector/']
+    ];
+    function card(slug, name, kind, href) {
+      var c = document.createElement('article');
+      c.className = 'card';
+      c.innerHTML = '<div class="phone"><iframe loading="lazy" tabindex="-1" aria-hidden="true" title=""></iframe></div>'
+        + '<div class="meta"><b></b><span></span></div>'
+        + '<div class="actions"><a class="btn look" target="_blank" rel="noopener">See it on your phone</a><a class="btn buy">Get this site</a></div>';
+      c.querySelector('iframe').src = href;
+      c.querySelector('.meta b').textContent = name;
+      c.querySelector('.meta span').textContent = kind;
+      c.querySelector('.btn.look').href = href;
+      c.querySelector('.btn.buy').href = 'checkout.html?demo=' + encodeURIComponent(slug);
+      return c;
+    }
+    var t = document.getElementById('trades'), b = document.getElementById('builds');
+    trades.forEach(function (x) { t.appendChild(card(x[0], x[1], x[2], 'sites/' + x[0] + '.html')); });
+    builds.forEach(function (x) { b.appendChild(card(x[0], x[1], x[2], x[3])); });
+    /* Scale each 390px-wide phone page to fit its frame. */
+    function fit() {
+      document.querySelectorAll('.phone').forEach(function (p) {
+        var f = p.querySelector('iframe'), s = p.clientWidth / 390;
+        f.style.transform = 'scale(' + s + ')';
+        f.style.height = (p.clientHeight / s) + 'px';
+      });
+    }
+    addEventListener('resize', fit); fit();
+  })();
+</script>
+</body>
+</html>

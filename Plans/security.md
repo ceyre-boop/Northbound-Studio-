@@ -15,14 +15,11 @@ Written 2026-11-26 after the "10 ways your vibe-coded app gets a huge bill" revi
 These counters live in each server instance's memory. They stop a single script cold, but a spread-out attack can reach several instances. The layer that holds across instances is the Vercel Firewall.
 
 ## Vercel Firewall rules (staged as drafts; publishing them is Colin's call)
+The project is on Hobby, and Hobby allows one rate-limit rule. So it's one rule covering every API POST: 30 per 10 minutes per IP. It's staged, not live:
 ```
-vercel firewall rules add "Forms: 10 posts per 10 min per IP" \
-  --condition '{"type":"path","op":"inc","value":["/api/quote","/api/account","/api/checkout"]}' \
-  --condition '{"type":"method","op":"eq","value":"POST"}' \
-  --action rate_limit --rate-limit-window 600 --rate-limit-requests 10 --rate-limit-keys ip --rate-limit-action rate_limit --yes
-vercel firewall rules add "License: 120 per 10 min per IP" \
-  --condition '{"type":"path","op":"pre","value":"/api/license"}' \
-  --action rate_limit --rate-limit-window 600 --rate-limit-requests 120 --rate-limit-keys ip --rate-limit-action rate_limit --yes
+vercel firewall rules inspect "API posts: 30 per 10 min per IP"
+#   path is any of /api/quote, /api/account, /api/checkout, /api/license, /api/license-admin; method POST
+#   30 requests / 600 s per IP, then 429
 vercel firewall diff
 vercel firewall publish --yes      # Colin
 ```

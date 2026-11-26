@@ -78,6 +78,10 @@
   ],
   "rewrites": [
     {
+      "source": "/free",
+      "destination": "/free.html"
+    },
+    {
       "source": "/demos/atlas",
       "destination": "https://nb-atlas.vercel.app/"
     },

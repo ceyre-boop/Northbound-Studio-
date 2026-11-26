@@ -81,7 +81,15 @@ function read(form: FormData, key: Field): string {
   return typeof v === 'string' ? v.replace(INVISIBLE, '').trim().slice(0, LIMITS[key]) : '';
 }
 
+/* A free sample (free.html) asks for as little as possible: an email and the
+   business. No phone, no name: the sample is sent by email. */
+const isSample = (q: Quote): boolean => q.package === 'sample';
+
 function problem(q: Quote): string | null {
+  if (isSample(q)) {
+    if (!q.business) return 'Please tell us the name of your business.';
+    return EMAIL_RE.test(q.email) ? null : 'Please check your email address.';
+  }
   if (!q.name) return 'Please tell us your name.';
   if (q.phone.replace(/\D/g, '').length < 7) return 'Please leave a phone number we can call.';
   if (!EMAIL_RE.test(q.email)) return 'Please check your email address.';
@@ -106,11 +114,11 @@ async function send(key: string, email: Record<string, unknown>): Promise<Sent> 
 
 function notification(q: Quote, page: string): string {
   return [
-    `Name:      ${q.name}`,
+    `Name:      ${q.name || '—'}`,
     `Business:  ${q.business || '—'}`,
-    `Phone:     ${q.phone}`,
+    `Phone:     ${q.phone || '—'}`,
     `Email:     ${q.email}`,
-    `Asking about: ${q.package === 'site' ? OFFER_NAME : 'Not said (an automation, or not sure yet)'}`,
+    `Asking about: ${isSample(q) ? 'A FREE SAMPLE (from a video). Send the sample named below, built for their business.' : q.package === 'site' ? OFFER_NAME : 'Not said (an automation, or not sure yet)'}`,
     `This week:  ${priceLine()}`,
     '',
     'What they need:',
@@ -130,7 +138,9 @@ function autoReply(q: Quote): string {
   return [
     `Hi ${safeFirstName(q.name)},`,
     '',
-    "Thanks for getting in touch. We have your request and we'll get back to you within one business day.",
+    isSample(q)
+      ? "Thanks for asking for a free sample. We'll email it to you within one business day, made for your business. There's no charge and nothing to sign up for."
+      : "Thanks for getting in touch. We have your request and we'll get back to you within one business day.",
     '',
     `If it can't wait, call ${PHONE}.`,
     '',

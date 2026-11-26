@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your free sample — Northbound Studio</title>
+<meta name="description" content="Pick one Northbound automation and we'll email you a free sample made for your business. No call, no card.">
+<meta name="theme-color" content="#1F2228">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<!--
+  Where the videos send people: northbound-dev.com/free. One job: pick a sample, leave
+  an email, done. Self-contained like thanks.html (the site's fonts and colours, none of
+  its scripts), so it loads fast on a phone and cannot break with the home page.
+  A video can pre-pick the sample with ?s=lead-catcher (ids below). Posts to api/quote.ts
+  with package=sample, which needs only the business and an email.
+-->
+<style>
+  @font-face { font-family: 'Fraunces'; src: url('fonts/fraunces.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url('fonts/inter.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+  :root { --ink: #1F2228; --ink-2: #2A2E36; --paper: #ECEEF2; --paper-dim: #B4B9C2; --aurora: #9DBAF7; }
+  * { box-sizing: border-box; }
+  html { background: var(--ink); }
+  body { margin: 0; min-height: 100svh; padding: 32px 20px 56px; color: var(--paper); font: 400 17px/1.5 'Inter', system-ui, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; }
+  img.mark { display: block; margin-bottom: 28px; }
+  h1 { font: 500 clamp(30px, 8vw, 42px)/1.1 'Fraunces', Georgia, serif; margin: 0 0 10px; }
+  p.lede { color: var(--paper-dim); margin: 0 0 26px; }
+  fieldset { border: 0; padding: 0; margin: 0 0 22px; }
+  legend, label.field > span { display: block; font-weight: 600; margin-bottom: 8px; }
+  .picks { display: grid; gap: 8px; }
+  .pick { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid #3a3f4a; border-radius: 12px; background: var(--ink-2); cursor: pointer; }
+  .pick:has(input:checked) { border-color: var(--aurora); box-shadow: 0 0 0 1px var(--aurora) inset; }
+  .pick input { margin-top: 4px; accent-color: var(--aurora); }
+  .pick b { display: block; }
+  .pick small { color: var(--paper-dim); font-size: 14.5px; }
+  label.field { display: block; margin-bottom: 16px; }
+  input[type="text"], input[type="email"] { width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 12px; border: 1px solid #3a3f4a; background: var(--ink-2); color: var(--paper); font: inherit; }
+  input:focus-visible, .pick:has(input:focus-visible) { outline: 2px solid var(--aurora); outline-offset: 2px; }
+  button { width: 100%; min-height: 52px; border: 0; border-radius: 12px; background: var(--aurora); color: var(--ink); font: 600 18px 'Inter', system-ui, sans-serif; cursor: pointer; }
+  p.note { color: var(--paper-dim); font-size: 14.5px; margin-top: 14px; }
+  .hp { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+<main>
+  <img class="mark" src="brand/wordmark.svg" alt="Northbound Studio" width="148" height="24">
+  <h1>Pick your free sample.</h1>
+  <p class="lede">Choose one. We'll email you a sample made for your business within one business day. No call. No card.</p>
+  <form method="post" action="/api/quote">
+    <input type="hidden" name="package" value="sample">
+    <input type="hidden" name="need" id="need" value="">
+    <fieldset>
+      <legend>Which one?</legend>
+      <div class="picks" id="picks"></div>
+    </fieldset>
+    <label class="field"><span>Your business name</span><input type="text" name="business" autocomplete="organization" maxlength="160" required></label>
+    <label class="field"><span>Email (where the sample goes)</span><input type="email" name="email" autocomplete="email" maxlength="200" required></label>
+    <p class="hp" aria-hidden="true"><label>Leave this empty<input name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></label></p>
+    <button type="submit">Send my free sample</button>
+    <p class="note">We use your details to send the sample and answer you, and for nothing else.</p>
+  </form>
+</main>
+<script>
+  // The samples, one per automation. A video links here with ?s=<id> to pre-pick its own.
+  var S = [
+    ['lead-catcher', 'Lead Catcher', 'See it answer a test enquiry for your business in a minute.'],
+    ['ai-receptionist', 'AI Receptionist', 'Call it and hear it take a message for your business.'],
+    ['appointment-reminders', 'Appointment Reminders', 'Get a sample reminder, written for your customers.'],
+    ['invoice-chaser', 'Invoice Chaser', 'See the polite reminders it would send on an unpaid invoice.'],
+    ['quote-builder', 'Quote Builder', 'A sample job turned into a priced quote.'],
+    ['inbox-autopilot', 'Inbox Autopilot', 'A reply it would draft to a customer email, in your voice.'],
+    ['post-everywhere', 'Post Everywhere', 'One of your videos, readied for every app you use.'],
+    ['owner-dashboard', 'Owner Dashboard', 'A sample weekly report: leads, sales and reviews on one page.'],
+    ['data-entry', 'Data Entry', 'A sample job copied from a form to a sheet to an invoice.'],
+    ['not-sure', "Not sure yet", "Tell us your trade and we'll pick the one that fits."]
+  ];
+  var want = new URLSearchParams(location.search).get('s'), box = document.getElementById('picks'), need = document.getElementById('need');
+  box.innerHTML = S.map(function (s, i) {
+    return '<label class="pick"><input type="radio" name="sample" value="' + s[0] + '"' + ((want ? s[0] === want : i === 0) ? ' checked' : '') + ' required><span><b>' + s[1] + '</b><small>' + s[2] + '</small></span></label>';
+  }).join('');
+  if (!box.querySelector('input:checked')) box.querySelector('input').checked = true;
+  function sync() { var c = box.querySelector('input:checked'), s = S.filter(function (x) { return x[0] === c.value; })[0]; need.value = 'FREE SAMPLE requested: ' + s[1] + '. ' + s[2]; }
+  box.addEventListener('change', sync); sync();
+</script>
+</body>
+</html>

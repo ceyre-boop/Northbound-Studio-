@@ -15,6 +15,11 @@
  *   https://northbound-dev.com/api/stripe-webhook
  *   events: checkout.session.completed
  *
+ * AUTOMATIONS PLANS. A session whose metadata says nb_kind=automations is a
+ * monthly plan bought through a payment link from api/license-admin.ts. It
+ * gets its license key here instead (lib/license.ts issueFromCheckout): the
+ * key is saved on the Stripe customer and subscription and emailed to them.
+ *
  * PRICES. Nothing here knows a price. Every number in these emails comes from
  * the session's metadata, which api/checkout.ts filled from data/price.json
  * when the session was created. That is deliberate: the price can change on
@@ -29,6 +34,7 @@
  */
 
 import { logQuote, money } from '../lib/price.js';
+import { issueFromCheckout } from '../lib/license.js';
 
 const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -168,6 +174,17 @@ export async function POST(request: Request): Promise<Response> {
   const obj = (event.data?.object ?? {}) as Record<string, unknown>;
   const md = (obj.metadata ?? {}) as Meta;
   const sessionId = typeof obj.id === 'string' ? obj.id : '';
+  /* An automations plan (a payment link from api/license-admin.ts `sell`): make the license key and email it.
+     Website orders never carry nb_kind, so they go on exactly as before. */
+  if (md.nb_kind === 'automations') {
+    try {
+      const r = await issueFromCheckout(obj);
+      return Response.json({ ok: r.status === 200 }, { status: r.status });
+    } catch (err) {
+      console.error('[stripe-webhook] license key not made; Stripe will retry', err instanceof Error ? err.message : err, { session: sessionId });
+      return Response.json({ ok: false }, { status: 502 });
+    }
+  }
   const paid = Number(obj.amount_total ?? 0);
   if (md.nb_due && String(paid) !== md.nb_due) {
     console.error('[stripe-webhook] amount mismatch', { expected: md.nb_due, paid, session: sessionId });

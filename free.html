@@ -39,6 +39,11 @@
   button { width: 100%; min-height: 52px; border: 0; border-radius: 12px; background: var(--aurora); color: var(--ink); font: 600 18px 'Inter', system-ui, sans-serif; cursor: pointer; }
   p.note { color: var(--paper-dim); font-size: 14.5px; margin-top: 14px; }
   .hp { position: absolute; left: -9999px; }
+  details { margin: 0 0 22px; }
+  summary { font-weight: 600; margin-bottom: 8px; cursor: pointer; }
+  .chosen { padding: 14px 16px; border: 1px solid var(--aurora); border-radius: 12px; background: var(--ink-2); margin: 0 0 12px; }
+  .chosen b { display: block; }
+  .chosen small { color: var(--paper-dim); font-size: 14.5px; }
 </style>
 </head>
 <body>
@@ -49,10 +54,11 @@
   <form method="post" action="/api/quote">
     <input type="hidden" name="package" value="sample">
     <input type="hidden" name="need" id="need" value="">
-    <fieldset>
-      <legend>Which one?</legend>
+    <p class="chosen" id="chosen" hidden></p>
+    <details id="all" open>
+      <summary id="all-sum">Which one?</summary>
       <div class="picks" id="picks"></div>
-    </fieldset>
+    </details>
     <label class="field"><span>Your business name</span><input type="text" name="business" autocomplete="organization" maxlength="160" required></label>
     <label class="field"><span>Email (where the sample goes)</span><input type="email" name="email" autocomplete="email" maxlength="200" required></label>
     <p class="hp" aria-hidden="true"><label>Leave this empty<input name="nb_hp_7" type="text" autocomplete="new-password" tabindex="-1"></label></p>
@@ -79,7 +85,11 @@
     return '<label class="pick"><input type="radio" name="sample" value="' + s[0] + '"' + ((want ? s[0] === want : i === 0) ? ' checked' : '') + ' required><span><b>' + s[1] + '</b><small>' + s[2] + '</small></span></label>';
   }).join('');
   if (!box.querySelector('input:checked')) box.querySelector('input').checked = true;
-  function sync() { var c = box.querySelector('input:checked'), s = S.filter(function (x) { return x[0] === c.value; })[0]; need.value = 'FREE SAMPLE requested: ' + s[1] + '. ' + s[2]; }
+  var chosen = document.getElementById('chosen'), all = document.getElementById('all');
+  // Coming from a video: its sample is already picked and the email box is right there; the full list folds away.
+  var known = want && S.some(function (x) { return x[0] === want; });
+  if (known) { all.open = false; document.getElementById('all-sum').textContent = 'Pick a different one'; chosen.hidden = false; }
+  function sync() { var c = box.querySelector('input:checked'), s = S.filter(function (x) { return x[0] === c.value; })[0]; need.value = 'FREE SAMPLE requested: ' + s[1] + '. ' + s[2]; chosen.innerHTML = '<b>Your sample: ' + s[1] + '</b><small>' + s[2] + '</small>'; }
   box.addEventListener('change', sync); sync();
 </script>
 </body>

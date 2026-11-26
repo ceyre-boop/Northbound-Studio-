@@ -109,6 +109,47 @@
   },
   "redirects": [
     {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.northbound-dev.com"
+        }
+      ],
+      "destination": "https://northbound-dev.com/$1",
+      "permanent": true
+    },
+    {
+      "source": "/studio",
+      "destination": "/studio.html",
+      "permanent": true
+    },
+    {
+      "source": "/build",
+      "destination": "/build.html",
+      "permanent": true
+    },
+    {
+      "source": "/sites",
+      "destination": "/sites.html",
+      "permanent": true
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html",
+      "permanent": true
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms.html",
+      "permanent": true
+    },
+    {
+      "source": "/templates",
+      "destination": "/templates.html",
+      "permanent": true
+    },
+    {
       "source": "/(api|lib|engines)/(.*)\\.(ts|mjs|cjs|map)",
       "destination": "/",
       "permanent": false

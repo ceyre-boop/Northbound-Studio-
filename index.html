@@ -133,6 +133,43 @@
     }, true);
   })();
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://northbound-dev.com/#org",
+      "name": "Northbound Studio",
+      "url": "https://northbound-dev.com/",
+      "logo": "https://northbound-dev.com/brand/og.png",
+      "email": "hello@northbound-dev.com",
+      "description": "Northbound builds automations for small businesses: the inbox, the follow-ups, the posting. And websites, live in 7 days.",
+      "founder": { "@id": "https://northbound-dev.com/#colin" },
+      "sameAs": [
+        "https://www.tiktok.com/@northbound_studio",
+        "https://github.com/ceyre-boop"
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://northbound-dev.com/#colin",
+      "name": "Colin Eyre",
+      "url": "https://northbound-dev.com/",
+      "jobTitle": "Founder",
+      "worksFor": { "@id": "https://northbound-dev.com/#org" },
+      "sameAs": [ "https://github.com/ceyre-boop" ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://northbound-dev.com/#website",
+      "url": "https://northbound-dev.com/",
+      "name": "Northbound Studio",
+      "publisher": { "@id": "https://northbound-dev.com/#org" }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 

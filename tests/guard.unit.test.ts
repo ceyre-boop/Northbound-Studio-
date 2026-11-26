@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:
 import { resetLimits, safeFirstName } from '../lib/guard.ts';
 import { POST as quotePOST } from '../api/quote.ts';
 import { POST as accountPOST } from '../api/account.ts';
-import { POST as checkoutPOST } from '../api/checkout.ts';
+import { POST as checkoutPOST, sameSite } from '../api/checkout.ts';
 import { POST as licensePOST } from '../api/license.ts';
 import { POST as adminPOST } from '../api/license-admin.ts';
 
@@ -101,5 +101,15 @@ describe('the license endpoints', () => {
     const admin = (token: string) => adminPOST(new Request('https://northbound-dev.com/api/license-admin', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${token}`, 'x-real-ip': '203.0.113.40' }, body: JSON.stringify({ action: 'list' }) }));
     for (let i = 0; i < 10; i++) expect((await admin('y'.repeat(40))).status).toBe(401);
     expect((await admin('z'.repeat(40))).status).toBe(429);
+  });
+});
+
+describe('the Stripe back link', () => {
+  test('only our own origin, not a look-alike that starts the same', () => {
+    expect(sameSite('https://northbound-dev.com/checkout.html?x=1')).toBe(true);
+    expect(sameSite('https://northbound-dev.com.evil.example/checkout.html')).toBe(false);
+    expect(sameSite('https://northbound-dev.com@evil.example/')).toBe(false);
+    expect(sameSite('javascript:alert(1)')).toBe(false);
+    expect(sameSite('')).toBe(false);
   });
 });

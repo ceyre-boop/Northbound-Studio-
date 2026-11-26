@@ -357,6 +357,12 @@ function stripeForm(params: Record<string, string>): string {
     .join('&');
 }
 
+/* Only a page on our own origin may be Stripe's "back" link: a prefix check would accept
+   https://northbound-dev.com.evil.example and send a paying visitor somewhere else. */
+export function sameSite(url: string): boolean {
+  try { return new URL(url).origin === new URL(SITE).origin; } catch { return false; }
+}
+
 async function createCheckoutSession(key: string, o: Order, p: Offer, specText: string, referer: string): Promise<SessionResult> {
   const params: Record<string, string> = {
     mode: 'payment',
@@ -369,7 +375,7 @@ async function createCheckoutSession(key: string, o: Order, p: Offer, specText: 
        what Stripe charges; the quoted price in the metadata does not move. */
     allow_promotion_codes: 'true',
     success_url: `${SITE}/order-paid.html?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: referer.startsWith(SITE) ? referer : `${SITE}/checkout.html`,
+    cancel_url: sameSite(referer) ? referer : `${SITE}/checkout.html`, // not startsWith: https://northbound-dev.com.evil.example starts with SITE
     /* No payment_intent_data here. A 100%-off promotion code makes the order
        free, a free order has no PaymentIntent, and Stripe then rejects the
        code as "invalid" if the session carries PaymentIntent settings. The

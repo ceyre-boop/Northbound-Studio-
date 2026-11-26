@@ -65,7 +65,7 @@ If this file conflicts with any other plan, **this file wins.** Detail lives in 
 45. **Trials only come through Side Gig.** Users earn tokens in the Side Gig app and cash them in for a trial. Northbound then emails a **temporary license key + password, active 24–48 hours** depending on the automation, tied to their account.
 46. **Automations ship as an app the client downloads and runs on a computer, on Mac, Windows and Linux.** Phone versions maybe later.
 47. **Everyone runs the app, trial users and paying clients alike.** A paying client's monthly license key keeps it on.
-48. **License keys come from an off-the-shelf licensing service** (e.g. Keygen or Lemon Squeezy): 24–48 h keys for trials, monthly keys for paid. Side Gig and Stripe both trigger key creation.
+48. **License keys come from an off-the-shelf licensing service** (e.g. Keygen or Lemon Squeezy): 24–48 h keys for trials, monthly keys for paid. Side Gig and Stripe both trigger key creation. **Built 2026-11-26 on Stripe itself** (no new service): keys live on the Stripe customer, a paid automations payment link makes and emails the key, and the subscription's status decides what it unlocks (past due stays on until day 14, per #27). `api/license.ts`, `api/license-admin.ts`, `bun run license`.
 
 ## Build order: one at a time
 41. Build 00 (remove prices) → Build 01 (Buddy onboarding + dashboard v0, together) → **Automation Builder** → Site Builder → Buddy after launch → Lead button. (Changed 2026-11-21: automations are the main product, so the Automation Builder moves ahead of the Site Builder.)

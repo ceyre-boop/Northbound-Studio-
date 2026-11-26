@@ -38,6 +38,7 @@
  */
 
 import { offer, money, logQuote, OFFER_NAME, CARE_NAME, type Offer } from '../lib/price.js';
+import { clientIp, courtesyAllowed, formLimited, safeFirstName } from '../lib/guard.js';
 
 const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -172,9 +173,10 @@ function notification(o: Order, p: Offer, page: string, spec: Spec | null): stri
 }
 
 function confirmation(o: Order, p: Offer, spec: Spec | null): string {
-  const first = o.name.split(/\s+/)[0];
+  // Only fixed text and the checked first name: this goes to an address a stranger typed (lib/guard.ts).
+  void spec;
   const lines = [
-    `Hi ${first},`,
+    `Hi ${safeFirstName(o.name)},`,
     '',
     'We have your order for:',
     ...orderLines(p),
@@ -182,7 +184,6 @@ function confirmation(o: Order, p: Offer, spec: Spec | null): string {
     `Due today: ${money(p.depositCents)}`,
     `At launch: ${money(p.balanceCents)} (the balance)`,
   ];
-  if (spec) lines.push('', ...specLines(spec));
   lines.push(
     '',
     "Nothing has been charged yet. We'll email a secure payment link within one business hour. Once that's paid, we get started.",
@@ -443,6 +444,13 @@ export async function POST(request: Request): Promise<Response> {
     return failed(request, 400, 'The form arrived empty.');
   }
 
+  /* Limits (lib/guard.ts): a person sends one form; a script sending hundreds is refused here, before
+     anything is emailed or created. */
+  if (formLimited(request, 'checkout')) {
+    console.warn('[checkout] rate limited', { ip: clientIp(request) });
+    return failed(request, 429, `That's a lot of requests in a short time, so this one wasn't sent. Please call ${PHONE}.`);
+  }
+
   /* The honeypot. A person never sees this field; a bot fills every field it
      finds. Answer exactly as a success would, so there is nothing to learn. */
   const trap = form.get('nb_hp_7');
@@ -515,6 +523,10 @@ export async function POST(request: Request): Promise<Response> {
     return failed(request, 502, 'Something went wrong on our side.');
   }
 
+  if (!courtesyAllowed(o.email)) {
+    console.warn('[checkout] delivered; confirmation skipped (this address already had one today, or the hourly ceiling)', { notification: studio.id });
+    return done(request);
+  }
   const courtesy = await send(key, {
     from,
     to: [o.email],

@@ -12,6 +12,7 @@
  *     and the customer-facing quote reply states no price at all.
  */
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { resetLimits } from '../lib/guard.ts';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { POST, decodeSpec, specLines, specParts } from '../api/checkout.ts';
@@ -37,6 +38,7 @@ const post = (fields: Record<string, string>, json = true) => POST(request('/api
 let sent: { to: string[]; subject: string; text: string; reply_to?: string }[] = [];
 
 beforeEach(() => {
+  resetLimits();
   process.env.RESEND_API_KEY = 'test-key';
   process.env.QUOTE_TO = 'studio@example.com';
   delete process.env.STRIPE_SECRET_KEY;
@@ -217,6 +219,7 @@ describe('the guided build code, in words', () => {
   test('a code that is not one is ignored, never an error', async () => {
     for (const spec of ['', 'x', '1', '9tc33ny5e', '2zzzze', '1tc33ny5e.%E0%A4%A']) {
       sent = [];
+      resetLimits(); // six posts from one test client would otherwise trip the per-IP limit (lib/guard.ts)
       const res = await post({ ...baseFields(), spec });
       expect(res.status, spec).toBe(200);
     }
@@ -237,7 +240,10 @@ describe('POST /api/quote', () => {
     expect(studio.text).toContain(`The Northbound Site: ${money(P.setupCents)} (${money(P.depositCents)} now, ${money(P.balanceCents)} at launch) + Care plan ${money(P.careCents)}/mo. Week ${P.week}.`);
     expect(reply.to).toEqual(['sam@example.com']);
     expect(reply.text).not.toMatch(/\$\d/);
-    expect(reply.text).toContain('Following up on quotes takes my whole Friday');
+    // The visitor's own words stay out of the auto-reply (it goes to an address anyone can type: lib/guard.ts);
+    // the studio's copy has them.
+    expect(reply.text).not.toContain('Following up on quotes takes my whole Friday');
+    expect(studio.text).toContain('Following up on quotes takes my whole Friday');
   });
 
   test('an automation enquiry needs no package and no review name', async () => {

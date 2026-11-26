@@ -106,5 +106,32 @@
     "api/*.ts": {
       "includeFiles": "data/price.json"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/(api|lib|engines)/(.*)\\.(ts|mjs|cjs|map)",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/templates/(.*)\\.(ts|md)",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/brand-src/(.*)",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/VISION.md",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/README.md",
+      "destination": "/",
+      "permanent": false
+    }
+  ]
 }

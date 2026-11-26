@@ -12,6 +12,9 @@
  * Env: NB_LICENSE_SIGNING_KEY, STRIPE_SECRET_KEY.
  */
 import { KEY_RE, check, findCustomer, normaliseKey, portalUrl, signLicense } from '../lib/license.js';
+import { clientIp, overLimit, usesIn } from '../lib/guard.js';
+
+const TEN_MIN = 600_000;
 
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
 
@@ -26,13 +29,22 @@ export async function POST(request: Request): Promise<Response> {
   const key = normaliseKey(body?.key);
   if (!KEY_RE.test(key)) return json({ error: 'License keys look like NB-XXXXX-XXXXX-XXXXX-XXXXX.' }, 400);
   const device = typeof body.device === 'string' ? body.device.slice(0, 40) : '';
+  /* Limits (lib/guard.ts), before Stripe is asked anything: a launcher checks every few hours, so 60 checks in ten
+     minutes from one IP is a script. Ten wrong keys in ten minutes from one IP is someone guessing; and each
+     guess costs a Stripe search, which has its own rate limit that real customers need. */
+  const ip = clientIp(request);
+  if (usesIn('license:miss', ip, TEN_MIN) >= 10 || overLimit(body.action === 'portal' ? 'license:portal' : 'license:ip', ip, body.action === 'portal' ? 10 : 60, TEN_MIN)) {
+    console.warn('[license] rate limited', { ip });
+    return json({ error: 'Too many license checks from this network. Try again in a few minutes.' }, 429);
+  }
   try {
     if (body.action === 'portal') {
       const c = await findCustomer(key);
-      if (!c) return json({ error: 'That license key isn’t recognised.' }, 404);
+      if (!c) { overLimit('license:miss', ip, 1_000, TEN_MIN); return json({ error: 'That license key isn’t recognised.' }, 404); }
       return json({ url: await portalUrl(c.id) });
     }
     const { payload } = await check(key, device);
+    if (payload.status === 'unknown') overLimit('license:miss', ip, 1_000, TEN_MIN);
     console.log('[license] checked', { status: payload.status, device: device.slice(0, 8) });
     return json(signLicense(payload, seed));
   } catch (e) {

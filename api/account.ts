@@ -23,6 +23,7 @@
  */
 
 import { offer, money, CARE_NAME } from '../lib/price.js';
+import { clientIp, courtesyAllowed, formLimited, safeFirstName } from '../lib/guard.js';
 
 const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -109,13 +110,12 @@ function notification(r: Request_, picks: string[]): string {
 }
 
 function confirmation(r: Request_, picks: string[]): string {
-  const first = r.name.split(/\s+/)[0];
+  // No free text from the form in here (it goes to an address a stranger typed): lib/guard.ts.
   return [
-    `Hi ${first},`,
+    `Hi ${safeFirstName(r.name)},`,
     '',
     'We have your request:',
-    picks.length ? picks.map((p) => `  · ${p}`).join('\n') : '  · (see your note below)',
-    r.message ? `\nYou wrote:\n${r.message}` : '',
+    picks.length ? picks.map((p) => `  · ${p}`).join('\n') : '  · the change described in your note',
     '',
     "Nothing has been charged. If the change costs anything we'll email a secure payment link first, and it only starts once you pay it. If you asked to drop a plan, we'll confirm the date it stops.",
     '',
@@ -162,6 +162,13 @@ export async function POST(request: Request): Promise<Response> {
     return failed(request, 400, 'The form arrived empty.');
   }
 
+  /* Limits (lib/guard.ts): a person sends one form; a script sending hundreds is refused here, before
+     anything is emailed or created. */
+  if (formLimited(request, 'account')) {
+    console.warn('[account] rate limited', { ip: clientIp(request) });
+    return failed(request, 429, `That's a lot of requests in a short time, so this one wasn't sent. Please call ${PHONE}.`);
+  }
+
   const trap = form.get('nb_hp_7');
   if (typeof trap === 'string' && trap.trim() !== '') {
     console.warn('[account] honeypot hit; not delivered', { name: form.get('name'), email: form.get('email') });
@@ -196,6 +203,10 @@ export async function POST(request: Request): Promise<Response> {
     return failed(request, 502, 'Something went wrong on our side.');
   }
 
+  if (!courtesyAllowed(r.email)) {
+    console.warn('[account] delivered; confirmation skipped (this address already had one today, or the hourly ceiling)');
+    return done(request);
+  }
   const courtesy = await send(key, {
     from,
     to: [r.email],

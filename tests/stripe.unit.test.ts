@@ -14,6 +14,7 @@
  *     week's price even after data/price.json has moved.
  */
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { resetLimits } from '../lib/guard.ts';
 import { createHmac } from 'node:crypto';
 import { POST as checkoutPOST } from '../api/checkout.ts';
 import { POST as webhookPOST } from '../api/stripe-webhook.ts';
@@ -41,6 +42,7 @@ const emails = () => calls.filter((c) => c.url.includes('resend.com')).map((c) =
 const quoteLogs = () => logs.filter((l) => l.startsWith('[quote-log] ')).map((l) => JSON.parse(l.slice('[quote-log] '.length)));
 
 beforeEach(() => {
+  resetLimits();
   process.env.STRIPE_SECRET_KEY = 'sk_test_unit';
   process.env.STRIPE_WEBHOOK_SECRET = SECRET;
   process.env.RESEND_API_KEY = 'test-key';

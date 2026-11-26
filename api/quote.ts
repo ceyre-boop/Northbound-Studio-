@@ -35,6 +35,7 @@
  */
 
 import { offer, money, OFFER_NAME, CARE_NAME } from '../lib/price.js';
+import { clientIp, courtesyAllowed, formLimited, safeFirstName } from '../lib/guard.js';
 
 const PHONE = '470-573-8908';
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -124,14 +125,13 @@ function notification(q: Quote, page: string): string {
 }
 
 function autoReply(q: Quote): string {
-  const first = q.name.split(/\s+/)[0];
-  const sent = [q.need, q.message].filter(Boolean).join('\n\n');
+  /* Nothing the visitor typed goes in here except a checked first name: this goes to an address a stranger
+     typed, so echoing their text would let anyone send any message from our domain (lib/guard.ts). */
   return [
-    `Hi ${first},`,
+    `Hi ${safeFirstName(q.name)},`,
     '',
     "Thanks for getting in touch. We have your request and we'll get back to you within one business day.",
     '',
-    ...(sent ? ['What you sent us:', sent, ''] : []),
     `If it can't wait, call ${PHONE}.`,
     '',
     'Northbound Studio',
@@ -173,6 +173,13 @@ export async function POST(request: Request): Promise<Response> {
     form = await request.formData();
   } catch {
     return failed(request, 400, 'The form arrived empty.');
+  }
+
+  /* Limits (lib/guard.ts): a person sends one form; a script sending hundreds is refused here, before
+     anything is emailed or created. */
+  if (formLimited(request, 'quote')) {
+    console.warn('[quote] rate limited', { ip: clientIp(request) });
+    return failed(request, 429, `That's a lot of requests in a short time, so this one wasn't sent. Please call ${PHONE}.`);
   }
 
   /* The honeypot. A person never sees this field; a bot fills every field it
@@ -219,6 +226,10 @@ export async function POST(request: Request): Promise<Response> {
     return failed(request, 502, 'Something went wrong on our side.');
   }
 
+  if (!courtesyAllowed(q.email)) {
+    console.warn('[quote] delivered; auto-reply skipped (this address already had one today, or the hourly ceiling)', { notification: studio.id });
+    return done(request);
+  }
   const courtesy = await send(key, {
     from,
     to: [q.email],

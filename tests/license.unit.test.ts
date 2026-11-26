@@ -12,6 +12,7 @@
  *   - admin calls need the token.
  */
 import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
+import { resetLimits } from '../lib/guard.ts';
 import { createHmac, createPublicKey, randomBytes, verify } from 'node:crypto';
 import { POST as licensePOST } from '../api/license.ts';
 import { POST as adminPOST } from '../api/license-admin.ts';
@@ -79,6 +80,7 @@ async function fakeFetch(input: string | URL | Request, init: RequestInit = {}):
 let realFetch: typeof fetch;
 let quiet: ReturnType<typeof spyOn>[] = [];
 beforeEach(() => {
+  resetLimits();
   customers = []; subs = []; prices = []; links = []; portalConfs = []; emails = []; portalDefaultMissing = false;
   realFetch = globalThis.fetch;
   globalThis.fetch = fakeFetch as typeof fetch;

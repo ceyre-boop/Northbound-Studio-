@@ -14,6 +14,7 @@
  * Prices are Colin's: `monthly` is whatever he agreed with the client (DECISIONS #24: $100–$300 a month per
  * automation). Nothing here sends an email except a payment the customer makes themselves.
  */
+import { clientIp, overLimit, usesIn } from '../lib/guard.js';
 import { APPS, KEY_RE, check, decide, findCustomer, newKey, normaliseKey, parseApps, sameSecret, stripe, StripeError, type Customer, type Subscription } from '../lib/license.js';
 
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
@@ -128,7 +129,9 @@ export async function POST(request: Request): Promise<Response> {
   const token = process.env.NB_LICENSE_ADMIN_TOKEN;
   if (!token || token.length < 32 || !process.env.STRIPE_SECRET_KEY) return json({ error: 'license admin isn’t set up' }, 503);
   const auth = request.headers.get('authorization') ?? '';
-  if (!sameSecret(auth, `Bearer ${token}`)) return json({ error: 'unauthorised' }, 401);
+  const ip = clientIp(request);
+  if (usesIn('admin:fail', ip, 600_000) >= 10) return json({ error: 'too many failed attempts; try again later' }, 429);
+  if (!sameSecret(auth, `Bearer ${token}`)) { overLimit('admin:fail', ip, 1_000, 600_000); return json({ error: 'unauthorised' }, 401); }
   let b: Body;
   try { b = (await request.json()) as Body; } catch { return json({ error: 'send JSON' }, 400); }
   const run = actions[String(b?.action ?? '')];
